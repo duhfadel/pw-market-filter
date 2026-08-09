@@ -1,0 +1,97 @@
+name: Coletar e publicar
+
+# Every twenty minutes. The market gains or loses about three listings an hour,
+# so this misses one at worst — and each run is a single request for the
+# listing plus a detail page for whoever is new, because the collector's state
+# survives in the cache below. Only the very first run pays the full ~28
+# minutes.
+#
+# GitHub delays free-tier scheduled runs, often by ten or fifteen minutes. The
+# collection date is on screen for exactly that reason.
+on:
+  schedule:
+    - cron: '*/20 * * * *'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never two collections at once against the same site, and never a half-written
+# deploy. A run already in flight wins; the next schedule picks up its state.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # A first run crawls all 770 pages at one request every 1.5 s. The rest
+    # finish in under a minute.
+    timeout-minutes: 50
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      # What the collector already read. Without it every run would be a fresh
+      # 28-minute crawl, which is both slow and rude to the site.
+      #
+      # The key rotates so the cache is rewritten rather than appended to
+      # (GitHub caches are immutable once written); restore-keys picks the most
+      # recent previous one.
+      - name: Restaurar estado da coleta
+        uses: actions/cache@v4
+        with:
+          path: tool/.collect_state.json
+          key: collect-state-${{ github.run_id }}
+          restore-keys: collect-state-
+
+      - name: Coletar o mercado
+        run: dart run tool/collect.dart --resume
+
+      # Skips everything already committed, so this costs nothing unless an
+      # item appeared that nobody had worn before.
+      - name: Baixar ícones novos
+        run: dart run tool/fetch_icons.dart
+
+      # An icon fetched here lives only for this run unless it is committed, so
+      # a genuinely new item shows an empty box until someone commits it. The
+      # name is always beside it, which is why that is tolerable.
+      - name: Avisar sobre ícones não versionados
+        run: |
+          novos=$(git status --porcelain assets/icons | wc -l | tr -d ' ')
+          if [ "$novos" != "0" ]; then
+            echo "::notice::$novos ícones novos foram baixados e não estão no repositório. Rode 'dart run tool/fetch_icons.dart' localmente e comite."
+          fi
+
+      - run: flutter analyze
+      - run: flutter test
+
+      # The site is served from a subdirectory, so every asset URL needs the
+      # prefix. Without it the page loads and nothing else does.
+      - name: Compilar
+        env:
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: flutter build web --no-tree-shake-icons --base-href "/$REPO_NAME/"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}

@@ -80,10 +80,13 @@ jobs:
 
       # The site is served from a subdirectory, so every asset URL needs the
       # prefix. Without it the page loads and nothing else does.
+      # Icon tree-shaking takes MaterialIcons from 1.6 MB to 8 KB, and this app
+      # uses about a dozen glyphs. Do not add --no-tree-shake-icons without a
+      # reason: it costs every visitor 1.8 MB.
       - name: Compilar
         env:
           REPO_NAME: ${{ github.event.repository.name }}
-        run: flutter build web --no-tree-shake-icons --base-href "/$REPO_NAME/"
+        run: flutter build web --base-href "/$REPO_NAME/"
 
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -1,5 +1,21 @@
 import 'item_criterion.dart';
 
+/// One control on the form.
+///
+/// Each control's options are read from the characters that pass every filter
+/// **except its own**. Including its own would collapse the control to the
+/// single value already chosen — pick Guerreiro and the class list would offer
+/// Guerreiro and nothing else, with no way back.
+enum FacetDimension {
+  characterClass,
+  cultivation,
+  level,
+  price,
+  cards,
+  items,
+  criteria,
+}
+
 /// How the results are ordered.
 ///
 /// The default is the cheapest first, and that is a decision about the task
@@ -78,6 +94,34 @@ class SearchQuery {
       cardRarity == null &&
       !cardsMaxed &&
       criteria.isEmpty;
+
+  /// This query with [dimension] switched off, which is the population a
+  /// control should read its options from.
+  ///
+  /// The item slots are one dimension rather than fourteen: narrowing the helm
+  /// list by the weapon already chosen is right, but it also means the weapon
+  /// list is not narrowed by the helm. One shared dimension keeps every item
+  /// control offering what the rest of the query allows, without a control
+  /// hiding an option because of a sibling.
+  SearchQuery without(FacetDimension dimension) => switch (dimension) {
+    FacetDimension.characterClass => copyWith(characterClass: () => null),
+    FacetDimension.cultivation => copyWith(cultivation: () => null),
+    FacetDimension.level => copyWith(
+      minLevel: () => null,
+      maxLevel: () => null,
+    ),
+    FacetDimension.price => copyWith(
+      minPrice: () => null,
+      maxPrice: () => null,
+    ),
+    FacetDimension.cards => copyWith(
+      comboName: () => null,
+      cardRarity: () => null,
+      cardsMaxed: false,
+    ),
+    FacetDimension.items => copyWith(itemBySlot: const {}),
+    FacetDimension.criteria => copyWith(criteria: const []),
+  };
 
   SearchQuery copyWith({
     String? Function()? characterClass,

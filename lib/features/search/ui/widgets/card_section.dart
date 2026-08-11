@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/game_icon.dart';
 import '../../../../market/card_combos.dart';
+import '../../domain/search_query.dart';
 import '../search_state.dart';
 import '../search_view_model.dart';
 
@@ -77,9 +78,13 @@ class CardSection extends StatelessWidget {
   Widget _comboField(String? value) {
     // How many characters wear each combo, so a filter that will return three
     // results says so before it is applied.
+    // Counted over the characters that pass every other filter, so with
+    // Guerreiro chosen the combo list says how many Guerreiros wear each — not
+    // how many exist in the market.
+    final scope = state.facetsFor(FacetDimension.cards).scope;
     final wearers = {
       for (final combo in cardCombos)
-        combo.name: state.index.characters
+        combo.name: scope
             .where(
               (c) => c.cards
                   .map((card) => card.cardId)

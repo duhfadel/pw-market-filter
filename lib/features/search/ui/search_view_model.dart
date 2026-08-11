@@ -2,7 +2,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/result/result.dart';
 import '../../../market/index_repository.dart';
-import '../domain/index_facets.dart';
 import '../domain/item_criterion.dart';
 import '../domain/matcher.dart';
 import '../domain/search_query.dart';
@@ -26,7 +25,6 @@ class SearchViewModel extends Cubit<SearchState> {
           const query = SearchQuery();
           return SearchReady(
             index: index,
-            facets: IndexFacets(index),
             query: query,
             results: runQuery(index, query),
           );
@@ -63,7 +61,7 @@ class SearchViewModel extends Cubit<SearchState> {
 
     final surviving = <int, int>{};
     for (final chosen in query.itemBySlot.entries) {
-      final available = ready.facets.itemsIn(chosen.key, characterClass: value);
+      final available = ready.facetsFor(FacetDimension.items).itemsIn(chosen.key, characterClass: value);
       if (available.any((item) => item.itemId == chosen.value)) {
         surviving[chosen.key] = chosen.value;
       }

@@ -237,6 +237,27 @@ Each of these already cost something — measured on the live site, not guessed.
   origin has no worker — and when a change refuses to appear, prove it with a
   loud temporary marker (an app bar in `PWColors.danger`) before touching the
   code again.
+- **Every control reads its options from the characters that pass every filter
+  but its own.** Choose Portal de Nuema and the class list drops from
+  seventeen to sixteen — no Paladino wears it — the level range collapses to
+  105–105, and the cheapest price becomes 450. A form of independent dropdowns
+  offers combinations that return nothing and gives no hint which choice
+  emptied the result.
+
+  The exclusion is not an optimisation, it is what makes a choice reversible:
+  include a control's own dimension and picking Guerreiro leaves the class list
+  offering Guerreiro alone. `SearchQuery.without(FacetDimension)` and
+  `SearchReady.facetsFor` are the whole mechanism, and `faceted_test.dart`
+  pins both halves — that a choice narrows the others, and that it never
+  narrows itself.
+
+  The item slots share one dimension rather than owning fourteen. Narrowing the
+  helm list by the chosen weapon is right; letting the helm narrow the weapon
+  list too would have each control hiding options because of its siblings.
+
+  One exception: the attribute vocabulary comes from `allFacets`, the whole
+  market. An attribute list that shrinks while a minimum is being typed removes
+  the very entry that says the attribute exists.
 - **A collapsed filter section must show what it is hiding.** The slot groups
   start closed except the weapon, and the header carries a count of the slots
   being filtered inside. Without that count, a closed section can hold a

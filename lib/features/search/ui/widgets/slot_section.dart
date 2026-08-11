@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/game_icon.dart';
 import '../../../../market/slot_names.dart';
+import '../../domain/search_query.dart';
 import '../search_state.dart';
 import '../search_view_model.dart';
 
@@ -38,7 +39,7 @@ class _SlotSectionState extends State<SlotSection> {
     // A slot nobody in the market wears has nothing to offer, and an empty
     // dropdown is worse than no dropdown.
     final slots = widget.group.slots
-        .where((slot) => widget.state.facets.itemsIn(slot).isNotEmpty)
+        .where((slot) => widget.state.facetsFor(FacetDimension.items).itemsIn(slot).isNotEmpty)
         .toList(growable: false);
     if (slots.isEmpty) return const SizedBox.shrink();
 
@@ -128,7 +129,7 @@ class _ItemPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = state.facets.itemsIn(
+    final items = state.facetsFor(FacetDimension.items).itemsIn(
       slot,
       characterClass: state.query.characterClass,
     );

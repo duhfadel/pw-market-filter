@@ -84,9 +84,16 @@ class ItemFacet {
 /// Nobody has to know Attack Level exists in order to find it, and nobody
 /// wastes a query on an attribute the chosen slot never carries.
 class IndexFacets {
-  IndexFacets(this.index);
+  /// [scope] is the population the options are read from — normally the
+  /// characters that pass every *other* filter, so choosing a combo empties
+  /// the class list of classes nobody plays with it.
+  IndexFacets(this.index, [List<MarketCharacter>? scope])
+    : scope = scope ?? index.characters;
 
   final MarketIndex index;
+
+  /// Never `index.characters` unless nothing else is filtering.
+  final List<MarketCharacter> scope;
 
   late final List<int> slots = _slots();
   late final List<String> classes = _distinct((c) => c.characterClass);
@@ -94,7 +101,7 @@ class IndexFacets {
   /// Class name to the `occupation` number, which is what names the portrait
   /// file. The listing carries both, so nothing has to be hardcoded.
   late final Map<String, int> occupationOf = {
-    for (final character in index.characters)
+    for (final character in scope)
       character.characterClass: character.occupation,
   };
   late final List<String> cultivations = _distinct((c) => c.cultivation);
@@ -144,7 +151,7 @@ class IndexFacets {
     final highest = <int, int>{};
     final lowest = <int, int>{};
 
-    for (final character in index.characters) {
+    for (final character in scope) {
       if (characterClass != null &&
           character.characterClass != characterClass) {
         continue;
@@ -198,7 +205,7 @@ class IndexFacets {
   /// unnamed slot actually is.
   String exampleItemIn(int slot) => _exampleCache.putIfAbsent(slot, () {
     final counts = <int, int>{};
-    for (final character in index.characters) {
+    for (final character in scope) {
       for (final item in character.equipped) {
         if (item.slot == slot) {
           counts[item.itemId] = (counts[item.itemId] ?? 0) + 1;
@@ -216,7 +223,7 @@ class IndexFacets {
     final characterCount = <int, int>{};
     final highest = <int, int>{};
 
-    for (final character in index.characters) {
+    for (final character in scope) {
       final seen = <int>{};
       for (final item in character.equipped) {
         if (slot != null && item.slot != slot) continue;
@@ -252,7 +259,7 @@ class IndexFacets {
 
   List<int> _slots() {
     final slots = <int>{};
-    for (final character in index.characters) {
+    for (final character in scope) {
       for (final item in character.equipped) {
         slots.add(item.slot);
       }
@@ -261,15 +268,15 @@ class IndexFacets {
   }
 
   List<String> _distinct(String Function(MarketCharacter) of) {
-    final values = index.characters.map(of).where((v) => v.isNotEmpty).toSet();
+    final values = scope.map(of).where((v) => v.isNotEmpty).toSet();
     return values.toList()..sort();
   }
 
-  int _lowest(int Function(MarketCharacter) of) => index.characters.isEmpty
+  int _lowest(int Function(MarketCharacter) of) => scope.isEmpty
       ? 0
-      : index.characters.map(of).reduce((a, b) => a < b ? a : b);
+      : scope.map(of).reduce((a, b) => a < b ? a : b);
 
-  int _highest(int Function(MarketCharacter) of) => index.characters.isEmpty
+  int _highest(int Function(MarketCharacter) of) => scope.isEmpty
       ? 0
-      : index.characters.map(of).reduce((a, b) => a > b ? a : b);
+      : scope.map(of).reduce((a, b) => a > b ? a : b);
 }

@@ -4,6 +4,7 @@ import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/game_icon.dart';
 import '../../../../market/slot_names.dart';
 import '../../domain/index_facets.dart';
+import '../../domain/search_query.dart';
 import '../../domain/item_criterion.dart';
 import '../search_state.dart';
 import '../search_view_model.dart';
@@ -20,19 +21,18 @@ class FilterPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final facets = state.facets;
     final query = state.query;
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _classDropdown(facets, query.characterClass),
+        _classDropdown(state.facetsFor(FacetDimension.characterClass), query.characterClass),
         const SizedBox(height: 10),
         _dropdown(
           label: 'Cultivo',
           value: query.cultivation,
           anyLabel: 'Todos',
-          options: facets.cultivations,
+          options: state.facetsFor(FacetDimension.cultivation).cultivations,
           onChanged: viewModel.setCultivation,
         ),
         const SizedBox(height: 10),
@@ -40,8 +40,8 @@ class FilterPanel extends StatelessWidget {
           label: 'Nível',
           min: query.minLevel,
           max: query.maxLevel,
-          hintMin: facets.lowestLevel,
-          hintMax: facets.highestLevel,
+          hintMin: state.facetsFor(FacetDimension.level).lowestLevel,
+          hintMax: state.facetsFor(FacetDimension.level).highestLevel,
           onChanged: viewModel.setLevelRange,
         ),
         const SizedBox(height: 10),
@@ -49,8 +49,8 @@ class FilterPanel extends StatelessWidget {
           label: 'Preço (TCC)',
           min: query.minPrice,
           max: query.maxPrice,
-          hintMin: facets.lowestPrice,
-          hintMax: facets.highestPrice,
+          hintMin: state.facetsFor(FacetDimension.price).lowestPrice,
+          hintMax: state.facetsFor(FacetDimension.price).highestPrice,
           onChanged: viewModel.setPriceRange,
         ),
         const SizedBox(height: 12),
@@ -87,7 +87,7 @@ class FilterPanel extends StatelessWidget {
             // not carry the previous row's text-field state along with it.
             key: ValueKey('criterion-$i'),
             criterion: query.criteria[i],
-            facets: facets,
+            facets: state.allFacets,
             onChanged: (criterion) => viewModel.replaceCriterion(i, criterion),
             onRemoved: () => viewModel.removeCriterion(i),
           ),
@@ -115,7 +115,7 @@ class FilterPanel extends StatelessWidget {
     );
   }
 
-  bool get _canAddCriterion => state.facets.slots.isNotEmpty;
+  bool get _canAddCriterion => state.allFacets.slots.isNotEmpty;
 
   /// A new row starts on the weapon and asks nothing else. Pre-selecting an
   /// attribute — even the commonest one — puts a condition on screen that

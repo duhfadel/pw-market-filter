@@ -27,6 +27,9 @@ class SearchQuery {
     this.minPrice,
     this.maxPrice,
     this.itemBySlot = const {},
+    this.comboName,
+    this.cardRarity,
+    this.cardsMaxed = false,
     this.criteria = const [],
     this.order = ResultOrder.cheapest,
   });
@@ -47,6 +50,18 @@ class SearchQuery {
   /// An AND. Every criterion has to find its own satisfying item.
   final List<ItemCriterion> criteria;
 
+  /// Name of a [CardCombo] the character must wear in full.
+  final String? comboName;
+
+  /// All six cards at this rarity — useful even where no named combo applies,
+  /// because six S cards is the thing that moves the price whatever the set is
+  /// called.
+  final String? cardRarity;
+
+  /// Every card at its cap. A combo of six S cards sitting at 1/80 is not the
+  /// same purchase as one at 80/80.
+  final bool cardsMaxed;
+
   final ResultOrder order;
 
   /// The order is not part of this: it is always set, and a query that only
@@ -59,6 +74,9 @@ class SearchQuery {
       minPrice == null &&
       maxPrice == null &&
       itemBySlot.isEmpty &&
+      comboName == null &&
+      cardRarity == null &&
+      !cardsMaxed &&
       criteria.isEmpty;
 
   SearchQuery copyWith({
@@ -69,6 +87,9 @@ class SearchQuery {
     int? Function()? minPrice,
     int? Function()? maxPrice,
     Map<int, int>? itemBySlot,
+    String? Function()? comboName,
+    String? Function()? cardRarity,
+    bool? cardsMaxed,
     List<ItemCriterion>? criteria,
     ResultOrder? order,
   }) => SearchQuery(
@@ -81,6 +102,9 @@ class SearchQuery {
     minPrice: minPrice == null ? this.minPrice : minPrice(),
     maxPrice: maxPrice == null ? this.maxPrice : maxPrice(),
     itemBySlot: itemBySlot ?? this.itemBySlot,
+    comboName: comboName == null ? this.comboName : comboName(),
+    cardRarity: cardRarity == null ? this.cardRarity : cardRarity(),
+    cardsMaxed: cardsMaxed ?? this.cardsMaxed,
     criteria: criteria ?? this.criteria,
     order: order ?? this.order,
   );

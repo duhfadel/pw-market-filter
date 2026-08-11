@@ -115,6 +115,30 @@ Each of these already cost something — measured on the live site, not guessed.
 - **Never write a test that hits the live site.** It fails for reasons that have
   nothing to do with the code, and it earns the block above. The fixtures in
   `test/fixtures/` are the site, as far as the suite is concerned.
+- **The same trap catches the cards, and it caught them.** The inventory has a
+  `cards` panel holding the whole collection — 35 on one character, 60 on
+  another. `<h4>Cartas equipadas</h4>` holds the six that are worn, one per
+  type (Destruidor, Batalha, Durabilidade, Alma Primordial, Vida Primordial,
+  Longevidade). Only the six matter; a combo is those six belonging to one set.
+- **A card's combo is not on the page, and the tooltip pretends otherwise.**
+  Every S card prints `Seis Soberanos da Chama da Vela (6)`, including on a
+  character wearing thirty-four distinct S cards — a six-card set cannot hold
+  thirty-four, so the line identifies nothing. The item database has no card
+  category either. `lib/market/card_combos.dart` is hand-written, and
+  `test/combo_test.dart` pins every id in it against the collected market
+  because an invented id yields a filter that matches nobody, and "nobody has
+  this combo" is a believable answer.
+- **Frequency finds combos; it cannot name them.** Of 146 distinct six-card
+  sets in the market, two are worn by 48 and 455 characters and the other 144
+  appear once or twice — those are assemblies, not sets. What *named* the big
+  S one was the sellers: 17% of its wearers put NUEMA in the character's
+  nickname against 0% of everyone else. When the data will not say, look at
+  what people called things.
+- **Card icons are not item icons, and `index.items` holds only equipment.**
+  Cards share the icon host and the id space but live in `character.cards`.
+  Fetching icons from `items` alone left every card blank with a 404 per card
+  in the console — silent on screen, because `ItemIcon` falls back to an empty
+  box.
 - **Equipment lives in the page twice, and the richer copy is the wrong one.**
   The inventory panel's `<h4>Equipamento</h4>` section holds real JSON per item
   in a `data-item` attribute — and it is a trap. It carries **no slot number**,
@@ -259,11 +283,24 @@ Each of these already cost something — measured on the live site, not guessed.
   model; every socket and file lives in `tool/`. A stray `dart:io` import in
   `lib/` does not fail `flutter test` — it fails only when you build for web,
   far from where the mistake was made.
-- **The site's own item filter is a shell with nothing behind it.**
-  `/pw187/advanced_item_list` returns `[]`, and `/pw187/item_filter` and
-  `/pw187/refine_filter` return zero roleids. `/pw187/advanced_filter` works for
-  level, price and class. Do not spend time trying to reuse the item endpoints —
-  they were checked on 2026-08-09 and there is no data behind them.
+- **The site's own item filter is a shell with nothing behind it, and it fails
+  in the way that looks like success.** `/pw187/advanced_item_list` returns
+  `[]` and `/pw187/item_filter` returns zero roleids — those are obvious. The
+  trap is `/pw187/advanced_filter?item_ids=50206`, which answers **200 with a
+  long list of roleids** and looks exactly like a working bulk item search.
+
+  It is not. It **ignores the parameter**: measured on 2026-08-10, three
+  different weapons each returned the identical set of **842** roleids, which
+  is also what the endpoint returns with no filter at all — and 842 is more
+  than the 770 the listing page had, so it is not even the live market. Believe
+  the comparison, not the status code. `advanced_filter` does work for level,
+  price and class.
+- **There is no bulk source for equipment. One page per character is the
+  method, and it is not for lack of looking.** Probed and 404: `api/characters`,
+  `characters.json`, `export`, `api/marketplace/pw187`. No `robots.txt`, no
+  sitemap. What makes this affordable is not a shortcut but never repeating
+  work — the listing is one request for everybody, and the state file means a
+  refresh fetches only role ids never seen.
 - **The listing page is the cheap half.** One request returns all 779 cards,
   server-rendered, with `data-roleid`, `data-price`, `data-level`,
   `data-occupation`, name, class, cultivation and fame. Only the per-character

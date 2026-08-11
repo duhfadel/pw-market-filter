@@ -96,6 +96,8 @@ class MarketCharacter {
     required this.fame,
     required this.cultivation,
     required this.equipped,
+    this.sex = '',
+    this.cards = const [],
   });
 
   final int roleId;
@@ -108,6 +110,12 @@ class MarketCharacter {
   final String cultivation;
   final List<EquippedItem> equipped;
 
+  /// `Masculino`, `Feminino`, or empty when this index predates the field.
+  final String sex;
+
+  /// The six equipped War Avatar cards — never the whole collection.
+  final List<EquippedCard> cards;
+
   Map<String, dynamic> toJson() => {
     'roleId': roleId,
     'name': name,
@@ -117,7 +125,9 @@ class MarketCharacter {
     'price': price,
     'fame': fame,
     'cultivation': cultivation,
+    if (sex.isNotEmpty) 'sex': sex,
     'equipped': equipped.map((e) => e.toJson()).toList(),
+    if (cards.isNotEmpty) 'cards': cards.map((c) => c.toJson()).toList(),
   };
 
   factory MarketCharacter.fromJson(Map<String, dynamic> json) =>
@@ -130,11 +140,62 @@ class MarketCharacter {
         price: _int(json, 'price'),
         fame: _int(json, 'fame'),
         cultivation: _string(json, 'cultivation'),
+        sex: json['sex'] as String? ?? '',
         equipped: _list(
           json,
           'equipped',
         ).map((e) => EquippedItem.fromJson(e as Map<String, dynamic>)).toList(),
+        cards: (json['cards'] as List<dynamic>? ?? const [])
+            .map((c) => EquippedCard.fromJson(c as Map<String, dynamic>))
+            .toList(),
       );
+}
+
+/// One of the six War Avatar cards a character wears.
+class EquippedCard {
+  const EquippedCard({
+    required this.cardId,
+    required this.name,
+    required this.rarity,
+    required this.type,
+    required this.level,
+    required this.maxLevel,
+  });
+
+  final int cardId;
+  final String name;
+
+  /// `S`, `A` or `B`.
+  final String rarity;
+
+  /// One of six: Destruidor, Batalha, Durabilidade, Alma Primordial, Vida
+  /// Primordial, Longevidade. A character wears exactly one of each.
+  final String type;
+
+  final int level;
+  final int maxLevel;
+
+  /// A card at its cap. Owning one and having it finished are different
+  /// things — a character was found with ten S cards, nine of them at 1/80.
+  bool get isMaxed => maxLevel > 0 && level >= maxLevel;
+
+  Map<String, dynamic> toJson() => {
+    'card': cardId,
+    'name': name,
+    'rarity': rarity,
+    'type': type,
+    'level': level,
+    'maxLevel': maxLevel,
+  };
+
+  factory EquippedCard.fromJson(Map<String, dynamic> json) => EquippedCard(
+    cardId: _int(json, 'card'),
+    name: _string(json, 'name'),
+    rarity: _string(json, 'rarity'),
+    type: _string(json, 'type'),
+    level: _int(json, 'level'),
+    maxLevel: _int(json, 'maxLevel'),
+  );
 }
 
 class EquippedItem {
@@ -144,6 +205,7 @@ class EquippedItem {
     required this.refine,
     required this.stones,
     required this.attributes,
+    this.requireLevel = 0,
   });
 
   final int slot;
@@ -155,10 +217,15 @@ class EquippedItem {
   /// attribute the item carries twice was already summed by the collector.
   final Map<int, int> attributes;
 
+  /// The level the piece demands: 60, 80, 100 or 105. Zero when the index
+  /// predates the field.
+  final int requireLevel;
+
   Map<String, dynamic> toJson() => {
     'slot': slot,
     'item': itemId,
     'refine': refine,
+    if (requireLevel > 0) 'requireLevel': requireLevel,
     if (stones.isNotEmpty) 'stones': stones,
     if (attributes.isNotEmpty)
       'attributes': {
@@ -171,6 +238,7 @@ class EquippedItem {
     slot: _int(json, 'slot'),
     itemId: _int(json, 'item'),
     refine: _int(json, 'refine'),
+    requireLevel: json['requireLevel'] as int? ?? 0,
     stones: (json['stones'] as List<dynamic>? ?? const []).cast<int>(),
     attributes: {
       for (final entry

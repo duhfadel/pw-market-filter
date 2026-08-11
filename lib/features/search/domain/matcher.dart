@@ -1,3 +1,4 @@
+import '../../../market/card_combos.dart';
 import '../../../market/market_index.dart';
 import 'item_criterion.dart';
 import 'search_query.dart';
@@ -41,6 +42,8 @@ bool matchesQuery(
   if (query.minPrice != null && character.price < query.minPrice!) return false;
   if (query.maxPrice != null && character.price > query.maxPrice!) return false;
 
+  if (!_matchesCards(character, query)) return false;
+
   final wearsEachChosenItem = query.itemBySlot.entries.every(
     (wanted) => character.equipped.any(
       (item) => item.slot == wanted.key && item.itemId == wanted.value,
@@ -52,6 +55,35 @@ bool matchesQuery(
     (criterion) =>
         character.equipped.any((item) => _satisfies(index, item, criterion)),
   );
+}
+
+/// Cards are read off the six the character wears, never the collection.
+bool _matchesCards(MarketCharacter character, SearchQuery query) {
+  if (query.comboName == null &&
+      query.cardRarity == null &&
+      !query.cardsMaxed) {
+    return true;
+  }
+  // No cards read means the answer is "not known", and an unknown must not
+  // pass a filter that asks for something specific.
+  if (character.cards.isEmpty) return false;
+
+  if (query.cardsMaxed && !character.cards.every((c) => c.isMaxed)) {
+    return false;
+  }
+  if (query.cardRarity != null &&
+      !character.cards.every((c) => c.rarity == query.cardRarity)) {
+    return false;
+  }
+  if (query.comboName != null) {
+    final combo = cardCombos.where((c) => c.name == query.comboName).firstOrNull;
+    if (combo == null) return false;
+    final worn = character.cards.map((c) => c.cardId).toSet();
+    // Complete only: every card of the combo, which for a six-card set worn in
+    // six slots also means nothing else.
+    if (!worn.containsAll(combo.cardIds)) return false;
+  }
+  return true;
 }
 
 /// The worn item that satisfies [criterion], or null when none does.

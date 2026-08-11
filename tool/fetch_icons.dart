@@ -46,15 +46,20 @@ Future<void> main() async {
       names: {for (final o in occupations) '$o': '$_classIcons/occu_$o.png'},
     );
 
-    // Only equipped items are in the index, so this is exactly the set the
-    // screen can ever show.
+    // Equipment and War Avatar cards share one icon host and one id space, but
+    // **not** one index field: `items` holds only equipment. Reading just that
+    // left every card in the app with a blank square and a 404 in the console.
+    final iconIds = {
+      ...index.items.keys,
+      for (final character in index.characters)
+        for (final card in character.cards) card.cardId,
+    };
+
     await _fetchAll(
       client,
-      label: 'itens',
+      label: 'itens e cartas',
       directory: 'assets/icons/items',
-      names: {
-        for (final id in index.items.keys) '$id': '$_itemIcons/$id.png',
-      },
+      names: {for (final id in iconIds) '$id': '$_itemIcons/$id.png'},
     );
   } finally {
     client.close(force: true);

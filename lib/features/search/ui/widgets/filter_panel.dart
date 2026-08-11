@@ -7,6 +7,7 @@ import '../../domain/index_facets.dart';
 import '../../domain/item_criterion.dart';
 import '../search_state.dart';
 import '../search_view_model.dart';
+import 'card_section.dart';
 import 'criterion_row.dart';
 import 'number_field.dart';
 import 'slot_section.dart';
@@ -62,6 +63,7 @@ class FilterPanel extends StatelessWidget {
             // character's price, and fourteen dropdowns open at once is a wall.
             startsOpen: i == 0,
           ),
+        CardSection(state: state, viewModel: viewModel),
         const SizedBox(height: 12),
         Row(
           children: [

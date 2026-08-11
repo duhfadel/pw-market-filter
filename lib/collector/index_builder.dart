@@ -49,7 +49,12 @@ class IndexBuilder {
 
   /// Adds one character. [items] is what the detail page yielded; a character
   /// whose page failed to load is simply never added.
-  void add(ListingCard card, List<ParsedItem> items) {
+  void add(
+    ListingCard card,
+    List<ParsedItem> items, {
+    String sex = '',
+    List<ParsedCard> cards = const [],
+  }) {
     _characters.add(
       MarketCharacter(
         roleId: card.roleId,
@@ -60,7 +65,20 @@ class IndexBuilder {
         price: card.price,
         fame: card.fame,
         cultivation: card.cultivation,
+        sex: sex,
         equipped: items.map(_convert).toList(growable: false),
+        cards: cards
+            .map(
+              (c) => EquippedCard(
+                cardId: c.cardId,
+                name: c.name,
+                rarity: c.rarity,
+                type: c.type,
+                level: c.level,
+                maxLevel: c.maxLevel,
+              ),
+            )
+            .toList(growable: false),
       ),
     );
   }
@@ -80,6 +98,7 @@ class IndexBuilder {
       slot: item.slot,
       itemId: item.itemId,
       refine: item.refine,
+      requireLevel: item.requireLevel,
       stones: item.stones,
       attributes: {
         for (final entry in item.attributes.entries)

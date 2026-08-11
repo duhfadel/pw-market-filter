@@ -72,6 +72,15 @@ class SearchViewModel extends Cubit<SearchState> {
     _apply(query.copyWith(characterClass: () => value, itemBySlot: surviving));
   }
 
+  void setCombo(String? name) =>
+      _apply(_query!.copyWith(comboName: () => name));
+
+  void setCardRarity(String? rarity) =>
+      _apply(_query!.copyWith(cardRarity: () => rarity));
+
+  void setCardsMaxed(bool value) =>
+      _apply(_query!.copyWith(cardsMaxed: value));
+
   void setOrder(ResultOrder order) => _apply(_query!.copyWith(order: order));
 
   void setCultivation(String? value) =>

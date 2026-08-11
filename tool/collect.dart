@@ -90,7 +90,14 @@ Future<void> main(List<String> arguments) async {
         state.markFailed(card.roleId);
         stdout.writeln('  ${card.roleId} ${card.name}: falhou');
       } else {
-        state.markDone(card.roleId, parseEquippedItems(page));
+        state.markDone(
+          card.roleId,
+          _Collected(
+            items: parseEquippedItems(page),
+            cards: parseEquippedCards(page),
+            sex: parseSex(page),
+          ),
+        );
       }
       state.save(_statePath);
 
@@ -205,8 +212,15 @@ void _writeIndex(List<ListingCard> listing, _CollectState state) {
   );
 
   for (final card in listing) {
-    final items = state.itemsFor(card.roleId);
-    if (items != null) builder.add(card, items);
+    final collected = state.itemsFor(card.roleId);
+    if (collected != null) {
+      builder.add(
+        card,
+        collected.items,
+        sex: collected.sex,
+        cards: collected.cards,
+      );
+    }
   }
 
   final file = File(_outputPath)..parent.createSync(recursive: true);
@@ -240,7 +254,9 @@ void _reportSummary(
   int blockedPauses,
 ) {
   final collected = listing.where((c) => state.itemsFor(c.roleId) != null);
-  final bare = collected.where((c) => state.itemsFor(c.roleId)!.isEmpty).length;
+  final bare = collected
+      .where((c) => state.itemsFor(c.roleId)!.items.isEmpty)
+      .length;
 
   stdout
     ..writeln('')
@@ -283,7 +299,7 @@ void _rebuildFromState() {
 class _CollectState {
   _CollectState(this.done, this.failed, this.listing);
 
-  final Map<int, List<ParsedItem>> done;
+  final Map<int, _Collected> done;
   final Set<int> failed;
 
   /// The roster as it was when this collection started. Kept so `--rebuild`
@@ -296,11 +312,15 @@ class _CollectState {
     if (!resume || !file.existsSync()) return _CollectState({}, {}, []);
 
     final json = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
-    final done = <int, List<ParsedItem>>{};
+    final done = <int, _Collected>{};
     for (final entry in (json['done'] as Map<String, dynamic>).entries) {
-      done[int.parse(entry.key)] = (entry.value as List<dynamic>)
-          .map((i) => _itemFromJson(i as Map<String, dynamic>))
-          .toList();
+      // A state written before cards and sex existed stored a bare list of
+      // items. Those entries are dropped rather than adapted: the point of
+      // re-collecting is the fields they do not have, and silently keeping
+      // them would leave most of the market with no cards and no explanation.
+      final value = entry.value;
+      if (value is! Map<String, dynamic>) continue;
+      done[int.parse(entry.key)] = _Collected.fromJson(value);
     }
     return _CollectState(
       done,
@@ -324,10 +344,10 @@ class _CollectState {
 
   bool isDone(int roleId) => done.containsKey(roleId);
 
-  List<ParsedItem>? itemsFor(int roleId) => done[roleId];
+  _Collected? itemsFor(int roleId) => done[roleId];
 
-  void markDone(int roleId, List<ParsedItem> items) {
-    done[roleId] = items;
+  void markDone(int roleId, _Collected collected) {
+    done[roleId] = collected;
     failed.remove(roleId);
   }
 
@@ -338,7 +358,7 @@ class _CollectState {
       jsonEncode({
         'done': {
           for (final entry in done.entries)
-            entry.key.toString(): entry.value.map(_itemToJson).toList(),
+            entry.key.toString(): entry.value.toJson(),
         },
         'failed': failed.toList(),
         'listing': listing.map(_cardToJson).toList(),
@@ -367,6 +387,57 @@ ListingCard _cardFromJson(Map<String, dynamic> json) => ListingCard(
   price: json['price'] as int,
   fame: json['fame'] as int,
   cultivation: json['cultivation'] as String,
+);
+
+/// Everything one detail page yielded, kept raw in the state file.
+///
+/// Raw is the point: the state is what lets `--rebuild` answer a new question
+/// in seconds instead of a fresh crawl. Two re-collections were already paid
+/// for storing something already reduced.
+class _Collected {
+  const _Collected({
+    required this.items,
+    required this.cards,
+    required this.sex,
+  });
+
+  final List<ParsedItem> items;
+  final List<ParsedCard> cards;
+  final String sex;
+
+  Map<String, dynamic> toJson() => {
+    'items': items.map(_itemToJson).toList(),
+    'cards': cards.map(_warAvatarToJson).toList(),
+    'sex': sex,
+  };
+
+  factory _Collected.fromJson(Map<String, dynamic> json) => _Collected(
+    items: (json['items'] as List<dynamic>)
+        .map((i) => _itemFromJson(i as Map<String, dynamic>))
+        .toList(),
+    cards: (json['cards'] as List<dynamic>? ?? const [])
+        .map((c) => _warAvatarFromJson(c as Map<String, dynamic>))
+        .toList(),
+    sex: json['sex'] as String? ?? '',
+  );
+}
+
+Map<String, dynamic> _warAvatarToJson(ParsedCard card) => {
+  'cardId': card.cardId,
+  'name': card.name,
+  'rarity': card.rarity,
+  'type': card.type,
+  'level': card.level,
+  'maxLevel': card.maxLevel,
+};
+
+ParsedCard _warAvatarFromJson(Map<String, dynamic> json) => ParsedCard(
+  cardId: json['cardId'] as int,
+  name: json['name'] as String,
+  rarity: json['rarity'] as String,
+  type: json['type'] as String,
+  level: json['level'] as int,
+  maxLevel: json['maxLevel'] as int,
 );
 
 Map<String, dynamic> _itemToJson(ParsedItem item) => {

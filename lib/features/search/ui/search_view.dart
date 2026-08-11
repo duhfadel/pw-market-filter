@@ -61,18 +61,44 @@ class _Results extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: PWColors.surface,
-        title: Text('${state.results.length} de ${state.total} personagens'),
+        titleSpacing: wide ? null : 8,
+        // On a phone the bar holds a menu button, the count and the ordering,
+        // and something has to give. It is not the count: "830 de 830" is the
+        // answer to the question the whole screen exists to ask, and it was
+        // the part being ellipsized to "83…".
+        title: Text(
+          wide
+              ? '${state.results.length} de ${state.total} personagens'
+              : '${state.results.length} de ${state.total}',
+          overflow: TextOverflow.ellipsis,
+        ),
         titleTextStyle: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: PWColors.text,
         ),
         actions: [
-          _OrderPicker(state: state, viewModel: viewModel),
-          const SizedBox(width: 20),
-          _CollectedAt(state: state),
-          const SizedBox(width: 16),
+          _OrderPicker(state: state, viewModel: viewModel, compact: !wide),
+          if (wide) ...[
+            const SizedBox(width: 20),
+            _CollectedAt(state: state),
+          ],
+          const SizedBox(width: 12),
         ],
+        // The collection date matters too much to drop — a stale index looks
+        // exactly like a fresh one — so on a phone it moves to its own line
+        // instead of fighting for the bar.
+        bottom: wide
+            ? null
+            : PreferredSize(
+                preferredSize: const Size.fromHeight(30),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.only(left: 16, bottom: 10),
+                  alignment: Alignment.centerLeft,
+                  child: _CollectedAt(state: state),
+                ),
+              ),
       ),
       drawer: wide
           ? null
@@ -96,15 +122,26 @@ class _Results extends StatelessWidget {
 /// Cheapest first by default. Knowing who owns the weapon is half the answer;
 /// which of them costs least is the other half.
 class _OrderPicker extends StatelessWidget {
-  const _OrderPicker({required this.state, required this.viewModel});
+  const _OrderPicker({
+    required this.state,
+    required this.viewModel,
+    this.compact = false,
+  });
 
   final SearchReady state;
   final SearchViewModel viewModel;
+
+  /// On a phone the label is dropped and only the icon remains: the ordering
+  /// is worth one tap to check, and the count is worth more than it is.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) => DropdownButtonHideUnderline(
     child: DropdownButton<ResultOrder>(
       value: state.query.order,
+      selectedItemBuilder: compact
+          ? (_) => [for (final _ in ResultOrder.values) const SizedBox.shrink()]
+          : null,
       dropdownColor: PWColors.surfaceRaised,
       borderRadius: BorderRadius.circular(8),
       style: const TextStyle(color: PWColors.text, fontSize: 13),
@@ -194,10 +231,15 @@ class _Grid extends StatelessWidget {
   Widget build(BuildContext context) {
     if (state.results.isEmpty) return const _NoMatches();
 
+    // Two columns on a 390 px phone leaves 179 px a card, which truncates the
+    // nickname and wraps the stat line onto a third row. One column reads.
+    final width = MediaQuery.sizeOf(context).width;
+    final narrow = width < 600;
+
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 300,
+        maxCrossAxisExtent: narrow ? double.infinity : 300,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
         // The grid needs one height for every tile, and the card cannot ask

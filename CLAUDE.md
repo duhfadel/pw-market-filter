@@ -223,6 +223,20 @@ Each of these already cost something — measured on the live site, not guessed.
   name cannot be trusted to tell you. The closed item field lays out icon,
   name (ellipsizing) and the attack level pinned right — not one string. Same
   rule anywhere an item is named next to its number.
+- **A rebuilt Flutter web app keeps serving the previous bundle, and it looks
+  exactly like a change that did not compile.** `flutter build web` writes a
+  service worker, and it answers from cache on the next load — the file on disk
+  is new, the md5 served matches the md5 on disk, and the browser still runs
+  yesterday's code. An hour went into a responsive layout that had been correct
+  the whole time.
+
+  Clearing the cache and unregistering the worker from inside the page does not
+  help: the reload re-registers it from the cached `index.html`. Deleting
+  `build/web/flutter_service_worker.js` does not either, because the next build
+  puts it back. **Serve the build on a port you have not used before** — a new
+  origin has no worker — and when a change refuses to appear, prove it with a
+  loud temporary marker (an app bar in `PWColors.danger`) before touching the
+  code again.
 - **A collapsed filter section must show what it is hiding.** The slot groups
   start closed except the weapon, and the header carries a count of the slots
   being filtered inside. Without that count, a closed section can hold a

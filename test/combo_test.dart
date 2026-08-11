@@ -27,9 +27,16 @@ void main() {
     );
   });
 
-  test('every combo has exactly six cards', () {
+  test('a combo has six cards, or says why it does not', () {
     for (final combo in cardCombos) {
-      expect(combo.cardIds, hasLength(6), reason: combo.name);
+      if (combo.isComplete) {
+        expect(combo.cardIds, hasLength(6), reason: combo.name);
+      } else {
+        // Brado de Batalha is five: its Durabilidade card is worn by nobody in
+        // the market, so it cannot be identified. An incomplete combo has to
+        // carry a note, because the filter then means "wears these five".
+        expect(combo.note, isNotEmpty, reason: combo.name);
+      }
     }
   });
 
@@ -48,7 +55,7 @@ void main() {
     }
   });
 
-  test('each combo covers the six types, one card each', () {
+  test('no combo names two cards of the same type', () {
     final typeOf = {
       for (final character in index.characters)
         for (final card in character.cards) card.cardId: card.type,
@@ -56,7 +63,8 @@ void main() {
 
     for (final combo in cardCombos) {
       final types = combo.cardIds.map((id) => typeOf[id]).toSet();
-      expect(types, hasLength(6), reason: combo.name);
+      // One card per type, whether the combo has six of them or five.
+      expect(types, hasLength(combo.cardIds.length), reason: combo.name);
     }
   });
 
@@ -73,10 +81,11 @@ void main() {
     }
   });
 
-  test('somebody in the market wears each combo in full', () {
-    // A combo nobody has is not wrong, but it is worth knowing about — and
-    // while these two were seeded *from* the market, a silent zero here means
-    // the ids drifted.
+  test('every combo offered has at least one wearer', () {
+    // A dropdown option that can only ever return nothing is worse than an
+    // absent one: it reads as "the market has none of these" when it means
+    // "this was never confirmed". Two candidates — Emissários and Mestres —
+    // are kept in the source and off the list for exactly this reason.
     for (final combo in cardCombos) {
       final wearers = runQuery(
         index,

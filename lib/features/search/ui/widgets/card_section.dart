@@ -119,8 +119,11 @@ class CardSection extends StatelessWidget {
                     children: [
                       Text(combo.name, overflow: TextOverflow.ellipsis),
                       Text(
-                        'seis cartas ${combo.rarity}  ·  '
-                        '${wearers[combo.name]} personagens',
+                        combo.note.isEmpty
+                            ? '${combo.cardIds.length} cartas ${combo.rarity}'
+                                  '  ·  ${wearers[combo.name]} personagens'
+                            : '${wearers[combo.name]} personagens  ·  '
+                                  '${combo.note}',
                         style: const TextStyle(
                           fontSize: 11,
                           color: PWColors.ok,

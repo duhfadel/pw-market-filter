@@ -16,10 +16,10 @@
 ///    finished set. The market also supplied the card the player left out of
 ///    Seis Soberanos — Imperador Locen, the missing Destruidor.
 /// 3. **Id blocks plus a shared word in the name**, which is how [emissarios]
-///    and [mestres] got here. Weaker, and marked as such in their names, since
-///    six consecutive ids covering six types happens by accident: three
-///    overlapping windows around the Emissário block pass that test on their
-///    own. Only the shared word makes it more than coincidence.
+///    and [mestres] got here. Weaker, since six consecutive ids covering six
+///    types happens by accident: three overlapping windows around the Emissário
+///    block pass that test on their own. Only the shared word makes it more
+///    than coincidence, and neither is offered by the filter.
 class CardCombo {
   const CardCombo({
     required this.name,
@@ -33,8 +33,8 @@ class CardCombo {
   /// `S` or `A`. Every combo found so far is of a single rarity.
   final String rarity;
 
-  /// The cards that must all be worn. Usually six — one per type — but
-  /// [bradoDeBatalha] carries five, because its sixth is not in the market.
+  /// The six cards that must all be worn, one per type. Anything short of six
+  /// stays out of [cardCombos]: "combo completo" has to mean it.
   final Set<int> cardIds;
 
   /// Shown under the name when there is something the user should know before
@@ -77,17 +77,18 @@ const seisSoberanos = CardCombo(
   },
 );
 
-/// Five cards, and the fifth is not an oversight to fix later.
+/// Candidate, **not in [cardCombos]**: five of six, and the sixth cannot be
+/// recovered from the market.
 ///
-/// The player named five Generals covering five types; the Durabilidade slot is
-/// open. It cannot be recovered from the market: the A card ids run 41836 to
-/// 41905 with **no gaps**, every one of them is worn by somebody, and none of
-/// the eleven Durabilidade cards in that range is a General. So the sixth card
-/// exists in the game and nobody on sale wears it — invisible from here.
+/// The player named five Generals covering five types; Durabilidade is open.
+/// The A card ids run 41836 to 41905 with **no gaps**, every one is worn by
+/// somebody, and none of the eleven Durabilidade cards in that range is a
+/// General — so the sixth exists in the game and nobody on sale has it.
 ///
-/// Filtering on this therefore means "wears these five", which can in principle
-/// admit a character running the Brado build with a foreign Durabilidade card.
-/// That is the honest reading, and the note says so on screen.
+/// It stays off the list on the player's rule: a filter for "combo completo"
+/// that can only check five cards would pass a character running the Brado
+/// build with a foreign Durabilidade card, and call it complete. Add the
+/// sixth id and it belongs.
 const bradoDeBatalha = CardCombo(
   name: 'Brado de Batalha',
   rarity: 'A',
@@ -98,7 +99,7 @@ const bradoDeBatalha = CardCombo(
     41888, // General Fant. Jiehun — Vida Primordial
     41891, // General Invejoso Chiya — Longevidade
   },
-  note: 'a sexta carta (Durabilidade) não aparece no mercado',
+  note: 'falta a 6ª carta (Durabilidade)',
 );
 
 /// Candidate, **not in [cardCombos]**: six consecutive ids, six distinct types,
@@ -139,6 +140,10 @@ const mestres = CardCombo(
   note: 'nome deduzido das cartas, não confirmado',
 );
 
-/// What the filter offers. Only combos somebody actually wears, so no option
-/// in the dropdown is a dead end.
-const cardCombos = <CardCombo>[nuema, seisSoberanos, bradoDeBatalha];
+/// What the filter offers.
+///
+/// Two rules, both the player's: a combo is six cards, and it only earns a
+/// place here if somebody in the market wears it. The first keeps
+/// "combo completo" meaning what it says; the second keeps the dropdown free
+/// of options that can only ever return nothing.
+const cardCombos = <CardCombo>[nuema, seisSoberanos];

@@ -27,16 +27,14 @@ void main() {
     );
   });
 
-  test('a combo has six cards, or says why it does not', () {
+  test('every combo offered has all six cards', () {
+    // The player's rule: an incomplete combo is not a combo. Filtering on five
+    // would pass a character running the build with a foreign sixth card and
+    // report it as complete. Brado de Batalha waits in the source until its
+    // Durabilidade card is known.
     for (final combo in cardCombos) {
-      if (combo.isComplete) {
-        expect(combo.cardIds, hasLength(6), reason: combo.name);
-      } else {
-        // Brado de Batalha is five: its Durabilidade card is worn by nobody in
-        // the market, so it cannot be identified. An incomplete combo has to
-        // carry a note, because the filter then means "wears these five".
-        expect(combo.note, isNotEmpty, reason: combo.name);
-      }
+      expect(combo.cardIds, hasLength(6), reason: combo.name);
+      expect(combo.isComplete, isTrue, reason: combo.name);
     }
   });
 

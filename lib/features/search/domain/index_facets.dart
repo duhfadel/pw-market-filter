@@ -272,11 +272,9 @@ class IndexFacets {
     return values.toList()..sort();
   }
 
-  int _lowest(int Function(MarketCharacter) of) => scope.isEmpty
-      ? 0
-      : scope.map(of).reduce((a, b) => a < b ? a : b);
+  int _lowest(int Function(MarketCharacter) of) =>
+      scope.isEmpty ? 0 : scope.map(of).reduce((a, b) => a < b ? a : b);
 
-  int _highest(int Function(MarketCharacter) of) => scope.isEmpty
-      ? 0
-      : scope.map(of).reduce((a, b) => a > b ? a : b);
+  int _highest(int Function(MarketCharacter) of) =>
+      scope.isEmpty ? 0 : scope.map(of).reduce((a, b) => a > b ? a : b);
 }

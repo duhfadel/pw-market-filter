@@ -143,7 +143,8 @@ Map<int, int> _requireLevelsById(Document document) {
     try {
       final json = jsonDecode(raw) as Map<String, dynamic>;
       final id = json['id'];
-      final level = (json['decoded'] as Map<String, dynamic>?)?['require_level'];
+      final level =
+          (json['decoded'] as Map<String, dynamic>?)?['require_level'];
       if (id is int && level is int) levels[id] = level;
     } on FormatException {
       // One unreadable entry must not cost the whole page.

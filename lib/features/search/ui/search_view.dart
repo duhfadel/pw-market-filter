@@ -68,19 +68,30 @@ class _Results extends StatelessWidget {
         // chrome is what it costs to have it legible.
         toolbarHeight: wide ? 68 : null,
         titleSpacing: wide ? null : 8,
-        // On a phone the bar holds a menu button, the count and the ordering,
-        // and something has to give. It is not the count: "830 de 830" is the
-        // answer to the question the whole screen exists to ask, and it was
-        // the part being ellipsized to "83…".
+        // Declared, never implied. `automaticallyImplyLeading` gives the
+        // drawer's hamburger priority over the back arrow, so on a phone —
+        // where the filter lives in a drawer — the way home silently vanished
+        // and the drawer had two entrances instead of one. The comment that
+        // used to sit here claimed the opposite.
+        leading: _HomeButton(wide: wide),
+        leadingWidth: wide ? null : 44,
         title: Row(
           children: [
-            // Only where there is room. On a phone the bar already holds the
-            // way back, the count, the ordering and the filters button, and a
-            // mark nobody clicks is the first thing that should give.
+            // Desktop only, and it is not about space. Tried at 26 px on a
+            // phone and it came out a red smudge — the third time this logo
+            // has been asked to work small and the third time it refused. It
+            // is a wordmark over an ornate globe; below about 40 px there is
+            // nothing left to read. The arrow beside it is the part that had
+            // to be on every width, and it is.
             if (wide) ...[
-              const _HomeMark(),
+              const _HomeMark(height: 46),
               const SizedBox(width: 14),
             ],
+            // On a phone the bar holds the way home, the mark, the count, the
+            // ordering and the filters, and something has to give. It is not
+            // the count: "830 de 830" is the answer to the question the whole
+            // screen exists to ask, and it was the part being ellipsized to
+            // "83…". So the word "personagens" is what goes.
             Flexible(
               child: Text(
                 wide
@@ -107,10 +118,7 @@ class _Results extends StatelessWidget {
               ),
             ),
           _OrderPicker(state: state, viewModel: viewModel, compact: !wide),
-          if (wide) ...[
-            const SizedBox(width: 20),
-            _CollectedAt(state: state),
-          ],
+          if (wide) ...[const SizedBox(width: 20), _CollectedAt(state: state)],
           const SizedBox(width: 12),
         ],
         // The collection date matters too much to drop — a stale index looks
@@ -128,9 +136,8 @@ class _Results extends StatelessWidget {
                 ),
               ),
       ),
-      // The back arrow owns the leading slot, so the drawer needs its own way
-      // in — an icon on the right rather than the hamburger Scaffold would
-      // otherwise put where the way home belongs.
+      // The filters open from the icon in `actions`, not from a hamburger in
+      // the leading slot — that slot is the way home.
       drawer: wide
           ? null
           : Drawer(
@@ -198,31 +205,59 @@ class _Disclaimer extends StatelessWidget {
   );
 }
 
-/// The Portal's mark in the filter's bar, and the way back to the front page.
+/// The way back to the front page, and the only one this screen has.
+///
+/// It pops when there is something to pop, and goes home when there is not —
+/// which is the case that matters, because a link shared in the game's chat
+/// opens straight into the filter with an empty history. Popping nothing would
+/// leave the visitor stuck, and "stuck" on a page with no way out is how a
+/// visitor stops being one.
+class _HomeButton extends StatelessWidget {
+  const _HomeButton({required this.wide});
+
+  final bool wide;
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+    icon: const Icon(Icons.arrow_back),
+    color: PWColors.text,
+    iconSize: wide ? 24 : 20,
+    tooltip: 'Voltar ao Portal',
+    onPressed: () {
+      final navigator = Navigator.of(context);
+      if (navigator.canPop()) {
+        navigator.pop();
+      } else {
+        navigator.pushNamedAndRemoveUntil('/', (route) => false);
+      }
+    },
+  );
+}
+
+/// The Portal's mark in the filter's bar, clickable like every logo is.
 ///
 /// It is small — the logo is a wordmark over an ornate globe and an app bar
-/// gives it 30 px of height — so it is not carrying the branding on its own.
-/// What it does is say which site this screen belongs to, which a bare count
-/// and a back arrow do not, and give the habit of clicking a logo to go home
-/// somewhere to land.
+/// has no height to give — so it is not carrying the branding on its own. What
+/// it does is say which site this screen belongs to, which a bare count and an
+/// arrow do not.
 class _HomeMark extends StatelessWidget {
-  const _HomeMark();
+  const _HomeMark({required this.height});
+
+  final double height;
 
   @override
   Widget build(BuildContext context) => InkWell(
-    onTap: () => Navigator.of(context).pushNamedAndRemoveUntil(
-      '/',
-      (route) => false,
-    ),
+    onTap: () =>
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false),
     borderRadius: BorderRadius.circular(6),
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       child: Image.asset(
         'assets/images/portal-pw-logo.webp',
-        height: 46,
+        height: height,
         filterQuality: FilterQuality.medium,
-        // The bar must not break over a missing file, and the back arrow
-        // beside it already answers "how do I leave".
+        // The bar must not break over a missing file, and the arrow beside it
+        // already answers "how do I leave".
         errorBuilder: (_, _, _) => const SizedBox.shrink(),
       ),
     ),

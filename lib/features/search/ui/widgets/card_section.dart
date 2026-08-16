@@ -16,11 +16,7 @@ import 'section_header.dart';
 /// rarity whatever the set is called, and that one keeps working for a combo
 /// nobody has named yet.
 class CardSection extends StatefulWidget {
-  const CardSection({
-    required this.state,
-    required this.viewModel,
-    super.key,
-  });
+  const CardSection({required this.state, required this.viewModel, super.key});
 
   final SearchReady state;
   final SearchViewModel viewModel;

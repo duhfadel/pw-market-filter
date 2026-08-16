@@ -40,7 +40,12 @@ class _SlotSectionState extends State<SlotSection> {
     // A slot nobody in the market wears has nothing to offer, and an empty
     // dropdown is worse than no dropdown.
     final slots = widget.group.slots
-        .where((slot) => widget.state.facetsFor(FacetDimension.items).itemsIn(slot).isNotEmpty)
+        .where(
+          (slot) => widget.state
+              .facetsFor(FacetDimension.items)
+              .itemsIn(slot)
+              .isNotEmpty,
+        )
         .toList(growable: false);
     if (slots.isEmpty) return const SizedBox.shrink();
 
@@ -96,10 +101,9 @@ class _ItemPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = state.facetsFor(FacetDimension.items).itemsIn(
-      slot,
-      characterClass: state.query.characterClass,
-    );
+    final items = state
+        .facetsFor(FacetDimension.items)
+        .itemsIn(slot, characterClass: state.query.characterClass);
     if (items.isEmpty) return const SizedBox.shrink();
 
     final label = slotLabel(slot);
@@ -169,9 +173,7 @@ class _ItemPicker extends StatelessWidget {
         ItemIcon(itemId, size: 22),
         const SizedBox(width: 8),
       ],
-      Expanded(
-        child: Text(text, overflow: TextOverflow.ellipsis, maxLines: 1),
-      ),
+      Expanded(child: Text(text, overflow: TextOverflow.ellipsis, maxLines: 1)),
       if (attackLevel != null) ...[
         const SizedBox(width: 6),
         Text(

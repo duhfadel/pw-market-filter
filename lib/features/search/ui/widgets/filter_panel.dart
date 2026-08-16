@@ -27,7 +27,10 @@ class FilterPanel extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _classDropdown(state.facetsFor(FacetDimension.characterClass), query.characterClass),
+        _classDropdown(
+          state.facetsFor(FacetDimension.characterClass),
+          query.characterClass,
+        ),
         const SizedBox(height: 10),
         _range(
           label: 'Preço (TCC)',
@@ -112,9 +115,7 @@ class FilterPanel extends StatelessWidget {
                 children: [
                   ClassIcon(facets.occupationOf[name] ?? -1, size: 22),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(name, overflow: TextOverflow.ellipsis),
-                  ),
+                  Expanded(child: Text(name, overflow: TextOverflow.ellipsis)),
                 ],
               ),
             ),

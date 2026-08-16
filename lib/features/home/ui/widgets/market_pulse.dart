@@ -69,7 +69,8 @@ class MarketPulse extends StatelessWidget {
       spacing: large ? 48 : (wide ? 34 : 22),
       runSpacing: 18,
       children: [
-        for (final (value, label) in stats) _Stat(value, label, large || wide, large),
+        for (final (value, label) in stats)
+          _Stat(value, label, large || wide, large),
       ],
     );
   }

@@ -76,7 +76,9 @@ bool _matchesCards(MarketCharacter character, SearchQuery query) {
     return false;
   }
   if (query.comboName != null) {
-    final combo = cardCombos.where((c) => c.name == query.comboName).firstOrNull;
+    final combo = cardCombos
+        .where((c) => c.name == query.comboName)
+        .firstOrNull;
     if (combo == null) return false;
     final worn = character.cards.map((c) => c.cardId).toSet();
     // Complete only: every card of the combo, which for a six-card set worn in
@@ -117,11 +119,7 @@ EquippedItem? bestMatchFor(
 /// Every condition is read off the **same** item. Checking the refine against
 /// one piece and the attribute against another in the same slot would let a
 /// spare vouch for the one being worn.
-bool _satisfies(
-  MarketIndex index,
-  EquippedItem item,
-  ItemCriterion criterion,
-) {
+bool _satisfies(MarketIndex index, EquippedItem item, ItemCriterion criterion) {
   if (criterion.slot != null && item.slot != criterion.slot) return false;
   if (item.refine < criterion.minimumRefine) return false;
 

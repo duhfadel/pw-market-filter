@@ -61,7 +61,9 @@ class SearchViewModel extends Cubit<SearchState> {
 
     final surviving = <int, int>{};
     for (final chosen in query.itemBySlot.entries) {
-      final available = ready.facetsFor(FacetDimension.items).itemsIn(chosen.key, characterClass: value);
+      final available = ready
+          .facetsFor(FacetDimension.items)
+          .itemsIn(chosen.key, characterClass: value);
       if (available.any((item) => item.itemId == chosen.value)) {
         surviving[chosen.key] = chosen.value;
       }
@@ -76,8 +78,7 @@ class SearchViewModel extends Cubit<SearchState> {
   void setCardRarity(String? rarity) =>
       _apply(_query!.copyWith(cardRarity: () => rarity));
 
-  void setCardsMaxed(bool value) =>
-      _apply(_query!.copyWith(cardsMaxed: value));
+  void setCardsMaxed(bool value) => _apply(_query!.copyWith(cardsMaxed: value));
 
   void setOrder(ResultOrder order) => _apply(_query!.copyWith(order: order));
 

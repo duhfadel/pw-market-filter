@@ -78,8 +78,12 @@ jobs:
       - run: flutter analyze
       - run: flutter test
 
-      # The site is served from a subdirectory, so every asset URL needs the
-      # prefix. Without it the page loads and nothing else does.
+      # Served from the root of portalpw.net, so the default base href of "/"
+      # is right and no --base-href is needed. It was "/pw-market-filter/"
+      # while the site lived on github.io: a subdirectory needs the prefix or
+      # the page loads and nothing else does. If the custom domain is ever
+      # removed, that flag has to come back.
+      #
       # Icon tree-shaking takes MaterialIcons from 1.6 MB to 8 KB, and this app
       # uses about a dozen glyphs. Do not add --no-tree-shake-icons without a
       # reason: it costs every visitor 1.8 MB.
@@ -92,9 +96,7 @@ jobs:
       # HTTP cache (max-age=600 on every file, not configurable), and it heals
       # itself in ten minutes.
       - name: Compilar
-        env:
-          REPO_NAME: ${{ github.event.repository.name }}
-        run: flutter build web --base-href "/$REPO_NAME/"
+        run: flutter build web
 
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -317,6 +317,21 @@ Each of these already cost something — measured on the live site, not guessed.
   server, and it heals by itself after that. The index JSON escapes this
   because `IndexRepository` appends `?t=<millis>`; that cache-buster is why the
   data is never the stale part, and it is why it must stay.
+- **The custom domain and `--base-href` are one change, not two, and between
+  them the site is broken.** `portalpw.net` serves from the root, so the build
+  takes the default `/`; on `duhfadel.github.io/pw-market-filter/` it needed
+  `--base-href "/pw-market-filter/"`. Deploy either half alone and every asset
+  404s while `index.html` still loads, which looks like a broken build rather
+  than a misconfigured path. Order: DNS first, then the domain in the Pages
+  settings, then the flag — and if the custom domain is ever dropped, the flag
+  has to come back in the same breath.
+
+  **Cloudflare's proxy has to be off while the certificate is issued.** Orange
+  cloud and GitHub cannot validate the domain, so it never issues one and the
+  site answers with an HTTPS error that says nothing about DNS. Grey cloud —
+  "DNS only" — on all nine records until the padlock works. After that the
+  proxy can go on, with SSL/TLS set to **Full**; on Flexible it redirects in a
+  loop forever.
 - **A `catch` that exists to keep a feature quiet will also keep its bugs
   quiet.** `VisitRepository` swallows exceptions on purpose: a counter must
   never take the page down. `shared_preferences` was storing the "already

@@ -1,7 +1,7 @@
 # Portal PW
 
 Ferramentas para o mercado do **The Classic PW 1.8.7**, em
-[duhfadel.github.io/pw-market-filter](https://duhfadel.github.io/pw-market-filter/).
+[portalpw.net](https://portalpw.net/).
 
 Hoje tem uma: o **Market Filter**.
 

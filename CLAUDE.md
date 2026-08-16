@@ -362,10 +362,16 @@ Each of these already cost something — measured on the live site, not guessed.
 
   It earned its place immediately. The filter looked broken at 390 px — text at
   twice its size, cards running off the right edge — and the ratio said 2.00:
-  a 780 px view inside a 390 px window. Resizing to 500 and back gave 1.00 both
-  times, so the layout was never wrong. Only the **first paint after a load at
-  phone width** came out doubled, which is a different bug in a different place
-  from the one the screenshot suggested.
+  a 780 px view inside a 390 px window. But the layout was never wrong.
+  **Nudging the viewport by one pixel, 390 to 391, takes the ratio straight
+  back to 1.00**, and no layout bug is fixed by one pixel. It is the engine
+  losing a resize race in Playwright's emulation, where the viewport shrinks to
+  phone size while the real window stays 1422 wide.
+
+  So the doubling is a property of the harness, not of the app, and the test
+  for it is the nudge. What it cannot tell you is how a real phone behaves,
+  which loads once at its own size and is never resized — that still needs a
+  real phone.
 - **A `catch` that exists to keep a feature quiet will also keep its bugs
   quiet.** `VisitRepository` swallows exceptions on purpose: a counter must
   never take the page down. `shared_preferences` was storing the "already

@@ -137,17 +137,65 @@ class _Results extends StatelessWidget {
               backgroundColor: PWColors.background,
               child: SafeArea(child: panel),
             ),
-      body: Row(
+      body: Column(
         children: [
-          if (wide) ...[
-            SizedBox(width: 340, child: panel),
-            const VerticalDivider(width: 1),
-          ],
-          Expanded(child: _Grid(state: state)),
+          const _Disclaimer(),
+          const Divider(height: 1),
+          Expanded(
+            child: Row(
+              children: [
+                if (wide) ...[
+                  SizedBox(width: 340, child: panel),
+                  const VerticalDivider(width: 1),
+                ],
+                Expanded(child: _Grid(state: state)),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
+}
+
+/// Says what this screen is, and what it is not.
+///
+/// The screen shows other people's characters with prices next to them, which
+/// is exactly what a shop looks like. Somebody arriving from a search has no
+/// way to tell that this is a reader over a marketplace someone else runs, and
+/// the honest reading of a price list is "these are for sale here". So it is
+/// stated on the screen itself rather than in a footer nobody scrolls to.
+///
+/// It sits above the filter and the results, on both layouts, and it stays —
+/// a notice that can be dismissed is a notice most visitors never see.
+class _Disclaimer extends StatelessWidget {
+  const _Disclaimer();
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    color: PWColors.surface,
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+    child: const Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.info_outline, size: 15, color: PWColors.textMuted),
+        SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            'Não somos donos do marketplace e não vendemos nada. Este é um '
+            'projeto de fã: só lemos as páginas públicas para facilitar a '
+            'busca e ajudar a comunidade.',
+            style: TextStyle(
+              color: PWColors.textMuted,
+              fontSize: 12,
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 /// The Portal's mark in the filter's bar, and the way back to the front page.
@@ -227,10 +275,17 @@ class _CollectedAt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final stale = state.isStale(DateTime.now().toUtc());
+    // Local time, so the hour reads as the visitor's own clock. The index
+    // stores UTC because the collection runs on a machine that knows no other
+    // timezone.
     final date = state.index.collectedAt.toLocal();
+    String two(int n) => n.toString().padLeft(2, '0');
+    // The hour matters as much as the day. Prices move through the afternoon,
+    // and "collected today" covers everything from a minute ago to twenty-three
+    // hours ago — which is the difference between a live price and a guess.
     final text =
-        'coletado em ${date.day.toString().padLeft(2, '0')}/'
-        '${date.month.toString().padLeft(2, '0')}/${date.year}';
+        'coletado em ${two(date.day)}/${two(date.month)}/${date.year} '
+        'às ${two(date.hour)}:${two(date.minute)}';
 
     return Row(
       children: [

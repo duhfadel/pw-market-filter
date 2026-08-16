@@ -312,11 +312,17 @@ Each of these already cost something — measured on the live site, not guessed.
 
   What actually goes stale is the plain HTTP cache. GitHub Pages sends
   `cache-control: max-age=600` on every file, `index.html` and `main.dart.js`
-  included, and Pages gives no way to change a header. A visitor returning
-  inside ten minutes is served the old bundle without a request reaching the
-  server, and it heals by itself after that. The index JSON escapes this
-  because `IndexRepository` appends `?t=<millis>`; that cache-buster is why the
-  data is never the stale part, and it is why it must stay.
+  included, and Pages itself gives no way to change a header. A visitor
+  returning inside ten minutes is served the old bundle without a request
+  reaching the server, and it heals by itself after that. The index JSON
+  escapes this because `IndexRepository` appends `?t=<millis>`; that
+  cache-buster is why the data is never the stale part, and it is why it must
+  stay.
+
+  Since the site moved behind Cloudflare this is fixable after all — a cache
+  rule can override the browser TTL that GitHub sends. If the ten minutes ever
+  becomes a real complaint, that is where the fix lives, not in the Flutter
+  build.
 - **The custom domain and `--base-href` are one change, not two, and between
   them the site is broken.** `portalpw.net` serves from the root, so the build
   takes the default `/`; on `duhfadel.github.io/pw-market-filter/` it needed
@@ -326,12 +332,21 @@ Each of these already cost something — measured on the live site, not guessed.
   settings, then the flag — and if the custom domain is ever dropped, the flag
   has to come back in the same breath.
 
-  **Cloudflare's proxy has to be off while the certificate is issued.** Orange
-  cloud and GitHub cannot validate the domain, so it never issues one and the
-  site answers with an HTTPS error that says nothing about DNS. Grey cloud —
-  "DNS only" — on all nine records until the padlock works. After that the
-  proxy can go on, with SSL/TLS set to **Full**; on Flexible it redirects in a
-  loop forever.
+  **Cloudflare's proxy has to be off while the certificate is issued, and on
+  afterwards.** Orange cloud and GitHub cannot validate the domain, so it never
+  issues one and the site answers with an HTTPS error that says nothing about
+  DNS. Grey cloud — "DNS only" — until the padlock works, then orange.
+
+  It is orange now, with SSL/TLS on **Full**. Not Flexible, which redirects in
+  a loop forever; and deliberately not Full (strict), which would validate
+  GitHub's origin certificate and so would take the site down if a renewal ever
+  failed behind the proxy — the one failure mode this arrangement is known to
+  have. On Full, visitors keep Cloudflare's edge certificate either way.
+
+  What the proxy bought, beyond the padlock: the site is served from Brazil
+  instead of `x-github-edge-region: fra`, the browser cache TTL becomes
+  changeable, and Web Analytics is injected at the edge, which is why there is
+  no beacon script in `web/index.html` and should not be one.
 - **A `catch` that exists to keep a feature quiet will also keep its bugs
   quiet.** `VisitRepository` swallows exceptions on purpose: a counter must
   never take the page down. `shared_preferences` was storing the "already

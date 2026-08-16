@@ -28,8 +28,21 @@
   <!-- The mark is "PW" and not the logo. The logo is the word Portal over an
        ornate globe, and at the 16 px a tab actually gives you it renders as a
        red-brown smudge — checked side by side at 16, 32, 48 and 64. Two
-       letters are the most that survives that size. -->
-  <link rel="icon" type="image/png" sizes="64x64" href="favicon.png"/>
+       letters are the most that survives that size.
+
+       favicon.ico is not redundant with the PNG. Chrome asks for /favicon.ico
+       by name in the places that have no page to read a <link> from — a new
+       tab, the history list, a bookmark — and while it 404'd there, those
+       places kept showing whatever they had cached, which was Flutter's
+       default. It holds 16, 32, 48 and 64 as separate bitmaps so the browser
+       picks one instead of squeezing 64 down to 16.
+
+       The ?v= is what evicts the old icon. A favicon lives in its own store
+       that ordinary cache headers do not reach, so changing the bytes behind
+       the same URL can leave the previous picture on screen for weeks. Bump it
+       whenever the mark changes. -->
+  <link rel="icon" type="image/png" sizes="64x64" href="favicon.png?v=2"/>
+  <link rel="icon" type="image/x-icon" href="favicon.ico?v=2"/>
 
   <title>Portal PW</title>
   <link rel="manifest" href="manifest.json">

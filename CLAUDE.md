@@ -1,4 +1,11 @@
-# PW Market Filter
+# Portal PW
+
+A hub of tools for The Classic PW 1.8.7. One exists so far — the **Market
+Filter** — and `lib/features/home/domain/tool.dart` is the menu: a tool with a
+null route is listed, dimmed and labelled *em breve*, so the page shows the
+shape of the place from the start and shipping a tool is a one-line change.
+
+## Market Filter
 
 Filters the character marketplace of The Classic PW 1.8.7
 (`marketplace.theclassic.games/pw187`) **by the attributes of the equipped
@@ -223,6 +230,16 @@ Each of these already cost something — measured on the live site, not guessed.
   name cannot be trusted to tell you. The closed item field lays out icon,
   name (ellipsizing) and the attack level pinned right — not one string. Same
   rule anywhere an item is named next to its number.
+- **Routing belongs to `MaterialApp`, never to a `Navigator` under it.** A
+  nested Navigator moves between screens perfectly and never touches the
+  address bar: the filter had no link of its own and the browser's back button
+  left the site instead of going home. Both looked fine in a screenshot. Check
+  a navigation change by reading `location.href`, not by looking at the page.
+
+  Flutter web's default strategy writes the route after a `#`, and that is
+  wanted here — GitHub Pages serves files, so `/filtro` would 404 while
+  `/#/filtro` is the same `index.html`. Do not call `usePathUrlStrategy`
+  without adding a 404 fallback first.
 - **A rebuilt Flutter web app keeps serving the previous bundle, and it looks
   exactly like a change that did not compile.** `flutter build web` writes a
   service worker, and it answers from cache on the next load — the file on disk

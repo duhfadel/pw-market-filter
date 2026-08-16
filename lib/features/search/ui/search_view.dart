@@ -78,6 +78,15 @@ class _Results extends StatelessWidget {
           color: PWColors.text,
         ),
         actions: [
+          if (!wide)
+            Builder(
+              builder: (context) => IconButton(
+                onPressed: Scaffold.of(context).openDrawer,
+                icon: const Icon(Icons.tune, size: 20),
+                color: PWColors.text,
+                tooltip: 'Filtros',
+              ),
+            ),
           _OrderPicker(state: state, viewModel: viewModel, compact: !wide),
           if (wide) ...[
             const SizedBox(width: 20),
@@ -100,6 +109,9 @@ class _Results extends StatelessWidget {
                 ),
               ),
       ),
+      // The back arrow owns the leading slot, so the drawer needs its own way
+      // in — an icon on the right rather than the hamburger Scaffold would
+      // otherwise put where the way home belongs.
       drawer: wide
           ? null
           : Drawer(

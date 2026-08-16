@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <!-- Replaced by `flutter build --base-href`, which the workflow sets to the
-       repository name because GitHub Pages serves from a subdirectory. -->
+  <!-- Replaced by `flutter build`. It is "/" since the site moved to the root
+       of portalpw.net; on github.io it was the repository name. -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
@@ -23,10 +23,13 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Portal PW">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/Icon-180.png">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <!-- The mark is "PW" and not the logo. The logo is the word Portal over an
+       ornate globe, and at the 16 px a tab actually gives you it renders as a
+       red-brown smudge — checked side by side at 16, 32, 48 and 64. Two
+       letters are the most that survives that size. -->
+  <link rel="icon" type="image/png" sizes="64x64" href="favicon.png"/>
 
   <title>Portal PW</title>
   <link rel="manifest" href="manifest.json">

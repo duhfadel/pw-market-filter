@@ -11,6 +11,7 @@ import '../search_view_model.dart';
 import 'card_section.dart';
 import 'criterion_row.dart';
 import 'number_field.dart';
+import 'section_header.dart';
 import 'slot_section.dart';
 
 class FilterPanel extends StatelessWidget {
@@ -27,14 +28,6 @@ class FilterPanel extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       children: [
         _classDropdown(state.facetsFor(FacetDimension.characterClass), query.characterClass),
-        const SizedBox(height: 10),
-        _dropdown(
-          label: 'Cultivo',
-          value: query.cultivation,
-          anyLabel: 'Todos',
-          options: state.facetsFor(FacetDimension.cultivation).cultivations,
-          onChanged: viewModel.setCultivation,
-        ),
         const SizedBox(height: 10),
         _range(
           label: 'Nível',
@@ -65,21 +58,7 @@ class FilterPanel extends StatelessWidget {
           ),
         CardSection(state: state, viewModel: viewModel),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            const Text(
-              'POR ATRIBUTO',
-              style: TextStyle(
-                color: PWColors.textMuted,
-                fontSize: 11,
-                letterSpacing: 1.5,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Expanded(child: Divider()),
-          ],
-        ),
+        const SectionHeader(title: 'Por atributo'),
         const SizedBox(height: 12),
         for (var i = 0; i < query.criteria.length; i++)
           CriterionRow(
@@ -151,25 +130,6 @@ class FilterPanel extends StatelessWidget {
         ],
         onChanged: viewModel.setClass,
       );
-
-  Widget _dropdown({
-    required String label,
-    required String? value,
-    required String anyLabel,
-    required List<String> options,
-    required ValueChanged<String?> onChanged,
-  }) => DropdownButtonFormField<String?>(
-    initialValue: value,
-    isExpanded: true,
-    decoration: InputDecoration(labelText: label),
-    dropdownColor: PWColors.surfaceRaised,
-    items: [
-      DropdownMenuItem(value: null, child: Text(anyLabel)),
-      for (final option in options)
-        DropdownMenuItem(value: option, child: Text(option)),
-    ],
-    onChanged: onChanged,
-  );
 
   Widget _range({
     required String label,

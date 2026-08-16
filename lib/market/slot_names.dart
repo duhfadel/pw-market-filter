@@ -67,15 +67,31 @@ String slotLabel(int slot) => slotNames[slot] ?? 'Slot $slot';
 /// then everything else. Helm and cape sit in the third group — they are worn
 /// armour but they are not part of the set bonus, and a fourth group for two
 /// slots would be more structure than it earns.
+/// The three groups the filter is divided into, each standing behind a real
+/// item out of the collected market rather than a generic glyph.
+///
+/// The emblems are the commonest piece of their kind, picked by counting the
+/// index: the mage's 70 attack-level weapon, the barbarian chestpiece thirty
+/// characters wear, and the Cubo do Destino that two hundred do. A made-up id
+/// would silently draw nothing, so `test/emblem_test.dart` pins all three
+/// against the market the same way `combo_test.dart` pins the card ids.
 const slotGroups = <SlotGroup>[
-  SlotGroup('Arma', [10]),
-  SlotGroup('Set', [2, 3, 4, 7]),
-  SlotGroup('Acessórios', [8, 6, 5, 9, 18, 19, 11, 16, 17]),
+  SlotGroup('Arma', [10], emblem: 50194),
+  SlotGroup('Set', [2, 3, 4, 7], emblem: 43661),
+  SlotGroup('Acessórios', [8, 6, 5, 9, 18, 19, 11, 16, 17], emblem: 23612),
 ];
 
+/// The emblem above the card filter: Kestra, the most worn S card in the
+/// market. Cards are not in `index.items`, so this id lives beside the groups
+/// rather than inside one.
+const cardsEmblem = 41785;
+
 class SlotGroup {
-  const SlotGroup(this.title, this.slots);
+  const SlotGroup(this.title, this.slots, {required this.emblem});
 
   final String title;
   final List<int> slots;
+
+  /// Item id whose picture stands for the group in the filter's header.
+  final int emblem;
 }

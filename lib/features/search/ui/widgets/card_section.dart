@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/game_icon.dart';
 import '../../../../market/card_combos.dart';
+import '../../../../market/slot_names.dart';
 import '../../domain/search_query.dart';
 import '../search_state.dart';
 import '../search_view_model.dart';
+import 'section_header.dart';
 
 /// Filters on the six War Avatar cards a character wears.
 ///
@@ -56,23 +58,9 @@ class CardSection extends StatelessWidget {
     );
   }
 
-  Widget _header() => Padding(
-    padding: const EdgeInsets.only(top: 10),
-    child: Row(
-      children: [
-        const Text(
-          'CARTAS',
-          style: TextStyle(
-            color: PWColors.textMuted,
-            fontSize: 11,
-            letterSpacing: 1.5,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(width: 10),
-        const Expanded(child: Divider()),
-      ],
-    ),
+  Widget _header() => const Padding(
+    padding: EdgeInsets.only(top: 10),
+    child: SectionHeader(title: 'Cartas', emblem: cardsEmblem),
   );
 
   Widget _comboField(String? value) {

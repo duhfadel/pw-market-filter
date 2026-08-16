@@ -6,6 +6,7 @@ import '../../../../market/slot_names.dart';
 import '../../domain/search_query.dart';
 import '../search_state.dart';
 import '../search_view_model.dart';
+import 'section_header.dart';
 
 /// A group of slots — Arma, Set, Acessórios — with one item picker each.
 ///
@@ -54,45 +55,11 @@ class _SlotSectionState extends State<SlotSection> {
           onTap: () => setState(() => _open = !_open),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Row(
-              children: [
-                Icon(
-                  _open ? Icons.expand_more : Icons.chevron_right,
-                  size: 18,
-                  color: PWColors.textMuted,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  widget.group.title.toUpperCase(),
-                  style: const TextStyle(
-                    color: PWColors.textMuted,
-                    fontSize: 11,
-                    letterSpacing: 1.5,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                if (active > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 7,
-                      vertical: 1,
-                    ),
-                    decoration: BoxDecoration(
-                      color: PWColors.accentDim,
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                    child: Text(
-                      '$active',
-                      style: const TextStyle(
-                        color: PWColors.accent,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                const Expanded(child: Divider(indent: 10)),
-              ],
+            child: SectionHeader(
+              title: widget.group.title,
+              emblem: widget.group.emblem,
+              badge: active,
+              expanded: _open,
             ),
           ),
         ),

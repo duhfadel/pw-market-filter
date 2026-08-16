@@ -21,18 +21,25 @@ import 'widgets/tool_card.dart';
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
+  /// Below this the grid becomes a column.
   static const _twoColumnWidth = 680.0;
+
+  /// Above this the page is not competing for space, and holding the layout at
+  /// its tablet size leaves the mark reading as a small card adrift in black —
+  /// on a 1920 monitor the logo was 18% of the width. Everything grows a step.
+  static const _largeWidth = 1280.0;
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final wide = width >= _twoColumnWidth;
+    final large = width >= _largeWidth;
 
     return Scaffold(
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 780),
+            constraints: BoxConstraints(maxWidth: large ? 900 : 780),
             child: ListView(
               // Shrink-wrapped so a short menu sits in the middle of the page
               // instead of clinging to the top with a screen of nothing under
@@ -46,7 +53,7 @@ class HomeView extends StatelessWidget {
                 Center(
                   child: Image.asset(
                     'assets/images/portal-pw-logo.webp',
-                    width: wide ? 340 : 260,
+                    width: large ? 440 : (wide ? 340 : 260),
                     filterQuality: FilterQuality.medium,
                     // The logo is the one asset whose absence would be
                     // baffling rather than cosmetic, so it falls back to the
@@ -68,19 +75,20 @@ class HomeView extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: PWColors.textMuted,
-                      fontSize: wide ? 15 : 13,
+                      fontSize: large ? 17 : (wide ? 15 : 13),
                       height: 1.5,
                     ),
                   ),
                 ),
-                SizedBox(height: wide ? 26 : 20),
+                SizedBox(height: large ? 34 : (wide ? 26 : 20)),
                 BlocBuilder<SearchViewModel, SearchState>(
                   builder: (context, state) => MarketPulse(
                     state: state is SearchReady ? state : null,
                     wide: wide,
+                    large: large,
                   ),
                 ),
-                SizedBox(height: wide ? 30 : 22),
+                SizedBox(height: large ? 38 : (wide ? 30 : 22)),
                 _Menu(wide: wide),
                 SizedBox(height: wide ? 28 : 22),
                 const _Footer(),

@@ -14,13 +14,19 @@ import '../../../search/ui/search_state.dart';
 /// "830 personagens" would be wrong within the hour — the market moved 36
 /// listings in two hours on the day this was built.
 class MarketPulse extends StatelessWidget {
-  const MarketPulse({required this.state, required this.wide, super.key});
+  const MarketPulse({
+    required this.state,
+    required this.wide,
+    this.large = false,
+    super.key,
+  });
 
   /// Null while the index is still loading, or if it failed. The strip then
   /// reserves its space quietly instead of flashing zeros.
   final SearchReady? state;
 
   final bool wide;
+  final bool large;
 
   @override
   Widget build(BuildContext context) {
@@ -60,19 +66,22 @@ class MarketPulse extends StatelessWidget {
 
     return Wrap(
       alignment: WrapAlignment.center,
-      spacing: wide ? 34 : 22,
+      spacing: large ? 48 : (wide ? 34 : 22),
       runSpacing: 18,
-      children: [for (final (value, label) in stats) _Stat(value, label, wide)],
+      children: [
+        for (final (value, label) in stats) _Stat(value, label, large || wide, large),
+      ],
     );
   }
 }
 
 class _Stat extends StatelessWidget {
-  const _Stat(this.value, this.label, this.wide);
+  const _Stat(this.value, this.label, this.wide, this.large);
 
   final String value;
   final String label;
   final bool wide;
+  final bool large;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -82,7 +91,7 @@ class _Stat extends StatelessWidget {
       Text(
         value,
         style: TextStyle(
-          fontSize: wide ? 30 : 24,
+          fontSize: large ? 36 : (wide ? 30 : 24),
           fontWeight: FontWeight.w800,
           color: PWColors.accent,
           height: 1.1,
@@ -91,7 +100,7 @@ class _Stat extends StatelessWidget {
       const SizedBox(height: 2),
       Text(
         label,
-        style: const TextStyle(color: PWColors.textMuted, fontSize: 12),
+        style: TextStyle(color: PWColors.textMuted, fontSize: large ? 13 : 12),
       ),
     ],
   );

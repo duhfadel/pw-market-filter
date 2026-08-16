@@ -347,6 +347,25 @@ Each of these already cost something — measured on the live site, not guessed.
   instead of `x-github-edge-region: fra`, the browser cache TTL becomes
   changeable, and Web Analytics is injected at the edge, which is why there is
   no beacon script in `web/index.html` and should not be one.
+- **When the app looks the wrong size, measure `flutter-view`, not the
+  screenshot.** Everything is drawn into a canvas, so the DOM has nothing to
+  inspect and the eye has nothing to check against — and screenshots arrive
+  resized, which is the trap recorded above. The one number that settles it is
+
+  ```js
+  document.querySelector('flutter-view').getBoundingClientRect().width
+  ```
+
+  against `window.innerWidth`. A ratio of 1 means the layout is right and the
+  problem is elsewhere; anything else is the engine sizing its view wrong, and
+  no amount of layout code will fix it.
+
+  It earned its place immediately. The filter looked broken at 390 px — text at
+  twice its size, cards running off the right edge — and the ratio said 2.00:
+  a 780 px view inside a 390 px window. Resizing to 500 and back gave 1.00 both
+  times, so the layout was never wrong. Only the **first paint after a load at
+  phone width** came out doubled, which is a different bug in a different place
+  from the one the screenshot suggested.
 - **A `catch` that exists to keep a feature quiet will also keep its bugs
   quiet.** `VisitRepository` swallows exceptions on purpose: a counter must
   never take the page down. `shared_preferences` was storing the "already

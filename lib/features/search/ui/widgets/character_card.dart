@@ -72,44 +72,90 @@ class CharacterCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // The portrait, because a grid of forty cards is scanned
+                  // before it is read and seventeen faces separate faster than
+                  // seventeen class names set in the same grey.
+                  ClassIcon(character.occupation, size: 38),
+                  const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      character.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${character.price} TCC',
-                    style: const TextStyle(
-                      color: PWColors.accent,
-                      fontWeight: FontWeight.w700,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                character.name,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${character.price} TCC',
+                              style: const TextStyle(
+                                color: PWColors.accent,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'nv ${character.level} · '
+                          '${character.characterClass}',
+                          style: const TextStyle(
+                            color: PWColors.textMuted,
+                            fontSize: 12,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                'nv ${character.level} · ${character.characterClass} · '
-                'fama ${character.fame}',
-                style: const TextStyle(color: PWColors.textMuted, fontSize: 12),
-              ),
-              if (_highlights.isNotEmpty) ...[
+              if (_lines.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 const Divider(height: 1),
                 const SizedBox(height: 10),
-                ..._highlights.map(_highlightLine),
+                ..._lines.map(_highlightLine),
               ],
             ],
           ),
         ),
       ),
     );
+  }
+
+  /// What the card shows below the divider: the weapon, then everything the
+  /// query asked about.
+  ///
+  /// The weapon has a permanent line because it is the reason this tool
+  /// exists. Three weapons share the word *Dilacerador* and carry 30, 40 and
+  /// 70 attack level, and the 70 sells for eleven times the 40 — so a card
+  /// that gives the class and the price and says nothing about the weapon is
+  /// withholding the number the sale turns on. It took the place of `fama`,
+  /// which is five digits nobody buys on.
+  ///
+  /// It is skipped when a highlight already covers the weapon: a card naming
+  /// the same piece twice reads as a character wearing two of them.
+  List<_Highlight> get _lines {
+    final asked = _highlights;
+    if (asked.any((h) => h.item.slot == weaponSlot)) return asked;
+
+    for (final item in character.equipped) {
+      if (item.slot != weaponSlot) continue;
+      return [_Highlight(item: item, note: _attackLevelNote(item)), ...asked];
+    }
+    // A character with no weapon on the doll. Rare, and not worth a blank row.
+    return asked;
   }
 
   /// One line per thing the query asked for, in the order the form shows them:

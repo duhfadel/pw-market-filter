@@ -15,7 +15,7 @@ import 'section_header.dart';
 /// table. `Combo` asks for a specific set; `Todas S` asks for six cards of a
 /// rarity whatever the set is called, and that one keeps working for a combo
 /// nobody has named yet.
-class CardSection extends StatelessWidget {
+class CardSection extends StatefulWidget {
   const CardSection({
     required this.state,
     required this.viewModel,
@@ -24,6 +24,26 @@ class CardSection extends StatelessWidget {
 
   final SearchReady state;
   final SearchViewModel viewModel;
+
+  @override
+  State<CardSection> createState() => _CardSectionState();
+}
+
+class _CardSectionState extends State<CardSection> {
+  bool _open = false;
+
+  SearchReady get state => widget.state;
+  SearchViewModel get viewModel => widget.viewModel;
+
+  /// How many of the three card conditions are in force. Same job as the count
+  /// on a slot group: it is what lets the section be closed without hiding a
+  /// filter that is quietly shaping the results.
+  int get _active {
+    final query = state.query;
+    return (query.comboName != null ? 1 : 0) +
+        (query.cardRarity != null ? 1 : 0) +
+        (query.cardsMaxed ? 1 : 0);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,30 +57,40 @@ class CardSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _header(),
-        const SizedBox(height: 10),
-        _comboField(query.comboName),
-        const SizedBox(height: 10),
-        _rarityField(query.cardRarity),
-        CheckboxListTile(
-          value: query.cardsMaxed,
-          onChanged: (v) => viewModel.setCardsMaxed(v ?? false),
-          dense: true,
-          contentPadding: EdgeInsets.zero,
-          controlAffinity: ListTileControlAffinity.leading,
-          activeColor: PWColors.accent,
-          checkColor: PWColors.background,
-          title: const Text(
-            'Todas no nível máximo',
-            style: TextStyle(fontSize: 13),
+        if (_open) ...[
+          const SizedBox(height: 10),
+          _comboField(query.comboName),
+          const SizedBox(height: 10),
+          _rarityField(query.cardRarity),
+          CheckboxListTile(
+            value: query.cardsMaxed,
+            onChanged: (v) => viewModel.setCardsMaxed(v ?? false),
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+            activeColor: PWColors.accent,
+            checkColor: PWColors.background,
+            title: const Text(
+              'Todas no nível máximo',
+              style: TextStyle(fontSize: 13),
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
 
-  Widget _header() => const Padding(
-    padding: EdgeInsets.only(top: 10),
-    child: SectionHeader(title: 'Cartas', emblem: cardsEmblem),
+  Widget _header() => InkWell(
+    onTap: () => setState(() => _open = !_open),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: SectionHeader(
+        title: 'Cartas',
+        emblem: cardsEmblem,
+        badge: _active,
+        expanded: _open,
+      ),
+    ),
   );
 
   Widget _comboField(String? value) {

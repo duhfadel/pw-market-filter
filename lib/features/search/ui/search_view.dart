@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/pw_colors.dart';
+import '../../../market/slot_names.dart';
 import '../domain/search_query.dart';
 import 'search_state.dart';
 import 'search_view_model.dart';
@@ -61,16 +62,34 @@ class _Results extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: PWColors.surface,
+        // Taller than the default 56 only where the mark is shown. At 30 px
+        // the logo is a dark smudge — it is a wordmark over an ornate globe
+        // and it needs height before it is anything at all. Twelve pixels of
+        // chrome is what it costs to have it legible.
+        toolbarHeight: wide ? 68 : null,
         titleSpacing: wide ? null : 8,
         // On a phone the bar holds a menu button, the count and the ordering,
         // and something has to give. It is not the count: "830 de 830" is the
         // answer to the question the whole screen exists to ask, and it was
         // the part being ellipsized to "83…".
-        title: Text(
-          wide
-              ? '${state.results.length} de ${state.total} personagens'
-              : '${state.results.length} de ${state.total}',
-          overflow: TextOverflow.ellipsis,
+        title: Row(
+          children: [
+            // Only where there is room. On a phone the bar already holds the
+            // way back, the count, the ordering and the filters button, and a
+            // mark nobody clicks is the first thing that should give.
+            if (wide) ...[
+              const _HomeMark(),
+              const SizedBox(width: 14),
+            ],
+            Flexible(
+              child: Text(
+                wide
+                    ? '${state.results.length} de ${state.total} personagens'
+                    : '${state.results.length} de ${state.total}',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
         titleTextStyle: const TextStyle(
           fontSize: 16,
@@ -129,6 +148,37 @@ class _Results extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The Portal's mark in the filter's bar, and the way back to the front page.
+///
+/// It is small — the logo is a wordmark over an ornate globe and an app bar
+/// gives it 30 px of height — so it is not carrying the branding on its own.
+/// What it does is say which site this screen belongs to, which a bare count
+/// and a back arrow do not, and give the habit of clicking a logo to go home
+/// somewhere to land.
+class _HomeMark extends StatelessWidget {
+  const _HomeMark();
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: () => Navigator.of(context).pushNamedAndRemoveUntil(
+      '/',
+      (route) => false,
+    ),
+    borderRadius: BorderRadius.circular(6),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      child: Image.asset(
+        'assets/images/portal-pw-logo.webp',
+        height: 46,
+        filterQuality: FilterQuality.medium,
+        // The bar must not break over a missing file, and the back arrow
+        // beside it already answers "how do I leave".
+        errorBuilder: (_, _, _) => const SizedBox.shrink(),
+      ),
+    ),
+  );
 }
 
 /// Cheapest first by default. Knowing who owns the weapon is half the answer;
@@ -224,7 +274,10 @@ class _Grid extends StatelessWidget {
   /// as its own block, which can leave a little air at the bottom of a card —
   /// the safe direction, since the alternative clips the line off.
   double get _cardHeight {
-    final slots = <int>{...state.query.itemBySlot.keys};
+    // The weapon is always drawn, asked about or not, so its block is always
+    // reserved. When the query does pick a weapon it is the same block — which
+    // is exactly why this is a set and not a count.
+    final slots = <int>{weaponSlot, ...state.query.itemBySlot.keys};
     var anySlotCriteria = 0;
     for (final criterion in state.query.criteria) {
       if (criterion.slot == null) {
@@ -235,7 +288,6 @@ class _Grid extends StatelessWidget {
     }
 
     final blocks = slots.length + anySlotCriteria;
-    if (blocks == 0) return _headerHeight;
     return _headerHeight + _dividerHeight + blocks * _matchLineHeight;
   }
 

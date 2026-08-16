@@ -30,15 +30,6 @@ class FilterPanel extends StatelessWidget {
         _classDropdown(state.facetsFor(FacetDimension.characterClass), query.characterClass),
         const SizedBox(height: 10),
         _range(
-          label: 'Nível',
-          min: query.minLevel,
-          max: query.maxLevel,
-          hintMin: state.facetsFor(FacetDimension.level).lowestLevel,
-          hintMax: state.facetsFor(FacetDimension.level).highestLevel,
-          onChanged: viewModel.setLevelRange,
-        ),
-        const SizedBox(height: 10),
-        _range(
           label: 'Preço (TCC)',
           min: query.minPrice,
           max: query.maxPrice,

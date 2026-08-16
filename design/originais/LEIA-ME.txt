@@ -6,3 +6,10 @@ contra 7,6 MB. Guardadas porque recortar de novo exige o original.
 
 Sao arte oficial da versao Classic. O barb_pw.jpeg traz marca dagua do
 world2.com.cn no canto superior esquerdo; o recorte a exclui.
+
+O portal-perfect-world-logo.png e a marca do site, com a margem
+transparente ainda por aparar. Vira assets/images/portal-pw-logo.webp a
+880 px de largura, que e o dobro dos 440 que a capa mostra — abaixo disso
+ele fica macio numa tela retina. O nome do arquivo gerado continua sendo
+o antigo de proposito: index.html, a capa e a barra do filtro apontam
+para ele, e trocar a arte nao precisa ser trocar codigo.

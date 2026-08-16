@@ -113,10 +113,15 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 40px 0; }
 
 figure { margin: 28px 0; }
 
+/* Never stretched past its own pixels. A cropped panel out of a screenshot is
+   often narrower than the column, and blowing it up to fill the width trades
+   the one thing it was cropped for — being readable — for a tidier edge. */
 figure img {
-  width: 100%;
+  max-width: 100%;
+  width: auto;
   height: auto;
   display: block;
+  margin: 0 auto;
   border-radius: 10px;
   border: 1px solid var(--border);
 }

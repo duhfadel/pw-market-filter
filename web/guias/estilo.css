@@ -165,6 +165,28 @@ figcaption {
 .guia .titulo { font-weight: 700; font-size: 1.1rem; margin-bottom: 4px; }
 .guia .linha { color: var(--text-muted); font-size: 0.92rem; }
 
+/* A guide that does not exist yet is listed and dimmed, never hidden — the
+   same rule the front page follows for its tools. A list showing only what is
+   finished makes the place look like it stopped growing, and it turns every
+   new guide into a surprise. It is a <div> and not an <a>: something that
+   looks clickable and does nothing is worse than something that says it is not
+   ready. */
+.guia.em-breve { opacity: 0.55; cursor: default; }
+.guia.em-breve:hover { border-color: var(--border); }
+
+.guia .selo {
+  float: right;
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 20px;
+  margin-left: 10px;
+}
+
 /* ---- foot ---- */
 
 footer {

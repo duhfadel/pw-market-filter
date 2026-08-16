@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/pw_colors.dart';
 import '../../domain/tool.dart';
@@ -31,9 +34,7 @@ class ToolCard extends StatelessWidget {
             if (tool.art != null) _Art(path: tool.art!),
             InkWell(
               borderRadius: BorderRadius.circular(14),
-              onTap: ready
-                  ? () => Navigator.of(context).pushNamed(tool.route!)
-                  : null,
+              onTap: ready ? () => _openTool(context, tool) : null,
               child: Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
@@ -50,6 +51,18 @@ class ToolCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Leaves for [Tool.href] in the same tab, or pushes [Tool.route] inside the
+/// app. `_self` matters: a guide is part of this site, and a new tab for an
+/// internal page turns the browser's back button into a dead end.
+void _openTool(BuildContext context, Tool tool) {
+  final href = tool.href;
+  if (href != null) {
+    unawaited(launchUrl(Uri.parse(href), webOnlyWindowName: '_self'));
+    return;
+  }
+  Navigator.of(context).pushNamed(tool.route!);
 }
 
 /// The class art, pushed far back.

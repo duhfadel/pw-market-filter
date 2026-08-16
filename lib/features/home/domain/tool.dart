@@ -12,6 +12,7 @@ class Tool {
     required this.tagline,
     required this.icon,
     this.route,
+    this.href,
     this.art,
   });
 
@@ -23,15 +24,25 @@ class Tool {
 
   final IconData icon;
 
-  /// `null` while the tool is still an idea.
+  /// A screen inside the app. `null` while the tool is still an idea, or when
+  /// it lives at [href] instead.
   final String? route;
+
+  /// A page outside the app, on the same domain.
+  ///
+  /// The guides are plain HTML and not Flutter screens because the app paints
+  /// into a canvas: its pages carry no text in the DOM at all, which makes
+  /// them unreadable to search engines and hostile to ads. Editorial content
+  /// is exactly what should be findable, so it is served as ordinary pages and
+  /// linked to from here.
+  final String? href;
 
   /// Class art behind the card, heavily darkened so the text stays readable.
   /// `null` falls back to the flat surface colour — a card without art must
   /// look deliberate, not broken.
   final String? art;
 
-  bool get isReady => route != null;
+  bool get isReady => route != null || href != null;
 }
 
 /// The three sections of the Portal.
@@ -61,6 +72,7 @@ const tools = <Tool>[
     name: 'Começando no PW? Aprenda aqui',
     tagline: 'Ideias e sugestões de como iniciar no mundo de Pangu.',
     icon: Icons.auto_stories_outlined,
+    href: '/guias/',
     art: 'assets/images/sacerdote.webp',
   ),
 ];

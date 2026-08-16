@@ -12,6 +12,7 @@ class Tool {
     required this.tagline,
     required this.icon,
     this.route,
+    this.art,
   });
 
   final String name;
@@ -24,6 +25,11 @@ class Tool {
 
   /// `null` while the tool is still an idea.
   final String? route;
+
+  /// Class art behind the card, heavily darkened so the text stays readable.
+  /// `null` falls back to the flat surface colour — a card without art must
+  /// look deliberate, not broken.
+  final String? art;
 
   bool get isReady => route != null;
 }
@@ -43,16 +49,19 @@ const tools = <Tool>[
         'atributos.',
     icon: Icons.travel_explore,
     route: '/filtro',
+    art: 'assets/images/barbaro.webp',
   ),
   Tool(
     name: 'Histórico de preços',
     tagline: 'Quanto um personagem já pediu, e há quanto tempo está à venda.',
     icon: Icons.show_chart,
+    art: 'assets/images/espiritualista.webp',
   ),
   Tool(
     name: 'Comparador',
     tagline: 'Dois personagens lado a lado, peça por peça.',
     icon: Icons.balance,
+    art: 'assets/images/sacerdote.webp',
   ),
   Tool(
     name: 'Calculadora de refino',

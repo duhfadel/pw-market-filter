@@ -1,0 +1,8 @@
+As artes originais, em tamanho cheio.
+
+Ficam fora de assets/ de proposito: nao entram no bundle do app. O que
+o site usa sao os recortes 3:4 em assets/images/, gerados daqui — 191 KB
+contra 7,6 MB. Guardadas porque recortar de novo exige o original.
+
+Sao arte oficial da versao Classic. O barb_pw.jpeg traz marca dagua do
+world2.com.cn no canto superior esquerdo; o recorte a exclui.

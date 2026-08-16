@@ -5,6 +5,8 @@ import '../../../core/theme/pw_colors.dart';
 import '../../search/ui/search_state.dart';
 import '../../search/ui/search_view_model.dart';
 import '../domain/tool.dart';
+import '../domain/visit_label.dart';
+import 'visit_counter_view_model.dart';
 import 'widgets/market_pulse.dart';
 import 'widgets/tool_card.dart';
 
@@ -130,27 +132,30 @@ class _Menu extends StatelessWidget {
         for (var i = 0; i < tools.length; i += 2)
           Padding(
             padding: const EdgeInsets.only(bottom: 14),
-            // `stretch` needs a bounded height to stretch to, and inside a
-            // shrink-wrapped list there is none: the cards were handed an
-            // infinite height and stopped painting their own background.
-            // IntrinsicHeight measures the taller card first, which is also
-            // what makes a pair line up when their taglines differ in length.
-            child: IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(child: ToolCard(tool: tools[i], wide: true)),
-                  const SizedBox(width: 14),
-                  // An odd number of tools leaves a hole rather than a card
-                  // stretched to twice the width of its neighbours.
-                  Expanded(
-                    child: i + 1 < tools.length
-                        ? ToolCard(tool: tools[i + 1], wide: true)
-                        : const SizedBox.shrink(),
-                  ),
-                ],
-              ),
-            ),
+            // An odd tool at the end takes the whole row rather than half of
+            // it. Left at half width it sat beside an empty square, and an
+            // empty square in a grid reads as a card that failed to load — the
+            // full-width one reads as a decision.
+            child: i + 1 < tools.length
+                // `stretch` needs a bounded height to stretch to, and inside a
+                // shrink-wrapped list there is none: the cards were handed an
+                // infinite height and stopped painting their own background.
+                // IntrinsicHeight measures the taller card first, which is
+                // also what makes a pair line up when their taglines differ in
+                // length.
+                ? IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(child: ToolCard(tool: tools[i], wide: true)),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: ToolCard(tool: tools[i + 1], wide: true),
+                        ),
+                      ],
+                    ),
+                  )
+                : ToolCard(tool: tools[i], wide: true),
           ),
       ],
     );
@@ -161,10 +166,46 @@ class _Footer extends StatelessWidget {
   const _Footer();
 
   @override
-  Widget build(BuildContext context) => const Text(
-    'Projeto de fã, sem vínculo com o The Classic Games. Lê apenas páginas '
-    'públicas do marketplace.',
-    textAlign: TextAlign.center,
-    style: TextStyle(color: PWColors.textMuted, fontSize: 12, height: 1.5),
+  Widget build(BuildContext context) => Column(
+    children: [
+      const Text(
+        'Projeto de fã, sem vínculo com o The Classic Games. Lê apenas páginas '
+        'públicas do marketplace.',
+        textAlign: TextAlign.center,
+        style: TextStyle(color: PWColors.textMuted, fontSize: 12, height: 1.5),
+      ),
+      const _VisitCount(),
+    ],
   );
+}
+
+/// Visits, once they are known.
+///
+/// It says *visitas* and not *pessoas* because that is what it counts: one per
+/// browser per day. Claiming people would be a small lie that grows with the
+/// number.
+///
+/// Nothing is drawn while the count is unknown — no spinner, no dash, no
+/// "carregando". Whoever reads a footer is not waiting on it, and a counter
+/// that fails should look like a page that never had one.
+class _VisitCount extends StatelessWidget {
+  const _VisitCount();
+
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<VisitCounterViewModel, int?>(
+        builder: (context, total) => total == null
+            ? const SizedBox.shrink()
+            : Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Text(
+                  visitLabel(total),
+                  style: const TextStyle(
+                    color: PWColors.textMuted,
+                    fontSize: 12,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+      );
 }

@@ -78,9 +78,15 @@ class _Art extends StatelessWidget {
               child: Image.asset(
                 path,
                 fit: BoxFit.cover,
-                // The crops put the face just above centre, so a wide short
-                // card cropping vertically still lands on it.
-                alignment: Alignment.center,
+                // All three crops put the face around a fifth of the way down,
+                // not at the centre — `Alignment.center` was measured against
+                // that assumption and it was wrong. It survived on the
+                // half-width cards, whose art box is tall enough that the
+                // visible band reaches the face anyway, and broke the moment a
+                // card went full width: the box became a 600×110 letterbox and
+                // the band landed on the priest's skirt. -0.6 puts the crop's
+                // centre at 20% down, where the faces actually are.
+                alignment: const Alignment(0, -0.6),
                 // A missing file leaves the flat card rather than a broken box.
                 errorBuilder: (_, _, _) => const SizedBox.shrink(),
               ),

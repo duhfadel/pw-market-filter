@@ -88,11 +88,15 @@ The site changing touches only the collector.
 ```
 lib/
 ├── core/
-│   ├── di/          # GetIt + injectable
+│   ├── di/          # GetIt, by hand
 │   ├── result/      # Result<T>, AppFailure
 │   └── theme/       # PWColors, PWTheme
 ├── market/          # the index model — the only thing both programs share
 ├── collector/       # listing_parser.dart, detail_parser.dart — pure Dart
+├── features/home/
+│   ├── data/        # VisitRepository, VisitMemory (conditional import)
+│   ├── domain/      # the menu, the visit label
+│   └── ui/          # HomeView, VisitCounterViewModel, widgets/
 └── features/search/
     ├── domain/      # Criterion, SearchQuery, the matcher
     └── ui/          # SearchView, SearchViewModel (Bloc), widgets/
@@ -105,6 +109,38 @@ be introduced — at this size it only breeds one-line classes that forward call
 `market/` depends on nothing. `collector/` depends on `market/`. `features/`
 depends on `market/` and `core/`, never on `collector/`. Nothing depends on
 `tool/`.
+
+### The one server
+
+Everything above is static. The single exception is the visit counter in the
+footer, which a static site cannot compute, and which lives in a Supabase
+project called `portal-pw` (`yadfbwsolmkcaylbxviw`, São Paulo).
+
+The whole schema is one table, `visit_days (day, hits)`, plus two functions.
+The publishable key is compiled into every visitor's browser and there is no
+hiding it, so the table — not the key — is what holds the line: RLS is on with
+**no policy at all**, which denies the anon role every direct read, insert and
+delete. The two `security definer` functions are the only door, and they are
+granted `execute` deliberately:
+
+- `register_visit()` — adds one to today, returns the running total
+- `visit_total()` — returns the total, changes nothing
+
+Both were probed with curl before shipping; a direct insert answers `42501`.
+The Supabase linter reports five warnings about exactly this arrangement
+(`rls_enabled_no_policy`, and `anon`/`authenticated` executing definer
+functions). They are the design, not findings — it cannot tell an intentional
+public endpoint from an accident. Do not "fix" them by adding a policy.
+
+A day is Brazil's day, in both places: the SQL uses
+`now() at time zone 'America/Sao_Paulo'` and `VisitRepository._today()`
+subtracts three hours from UTC. If one is ever changed, change both, or a
+browser will ask `visit_total` for a day the server has not opened yet.
+
+Nothing prevents someone calling `register_visit` in a loop. On a static site
+there is no session and no server to rate-limit at, and the cost of being wrong
+is a wrong number in a footer, so it is accepted; `visit_days` at least keeps
+the damage to one dated row.
 
 ## Gotchas
 
@@ -281,6 +317,29 @@ Each of these already cost something — measured on the live site, not guessed.
   server, and it heals by itself after that. The index JSON escapes this
   because `IndexRepository` appends `?t=<millis>`; that cache-buster is why the
   data is never the stale part, and it is why it must stay.
+- **A `catch` that exists to keep a feature quiet will also keep its bugs
+  quiet.** `VisitRepository` swallows exceptions on purpose: a counter must
+  never take the page down. `shared_preferences` was storing the "already
+  counted today" flag, and on the web build it wrote to neither `localStorage`
+  nor IndexedDB — it threw `MissingPluginException`, which is an `Exception`,
+  which the catch absorbed. The counter silently counted every reload and the
+  test suite was green, because the tests used the package's own in-memory
+  mock, which works perfectly.
+
+  Two things came out of it. `localStorage` is now reached directly through
+  `package:web`, behind the same conditional-import split the collector uses
+  for `dart:io` (`visit_memory_stub.dart` for the VM, `visit_memory_web.dart`
+  for the browser) — fourteen transitive packages to reach a one-line browser
+  API was a bad trade even while it worked. And **a storage layer is not proved
+  by a passing test**: open the built page and read `localStorage` in the
+  console, or query the table and reload twice.
+- **The three class arts have their faces about a fifth of the way down, not
+  at the centre.** `Alignment.center` looked right for a year of half-width
+  cards, because their art box is tall enough that the crop reaches the face
+  anyway. The first full-width card turned the box into a 600×110 letterbox and
+  the band landed on the priest's skirt. `Alignment(0, -0.6)` matches where the
+  faces actually are. Replacing an image means checking this again — and
+  checking it on the *widest* card, which is where a bad crop shows first.
 - **Every control reads its options from the characters that pass every filter
   but its own.** Choose Portal de Nuema and the class list drops from
   seventeen to sixteen — no Paladino wears it — the level range collapses to

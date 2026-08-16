@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/di/injection.dart';
 import 'core/theme/pw_theme.dart';
 import 'features/home/ui/home_view.dart';
+import 'features/home/ui/visit_counter_view_model.dart';
 import 'features/search/ui/search_view.dart';
 import 'features/search/ui/search_view_model.dart';
 
@@ -38,11 +39,17 @@ class PortalPWApp extends StatelessWidget {
       },
     ),
 
-    // One ViewModel above every route. The front page shows figures off the
-    // same index the filter searches, and `builder` wraps the Navigator, so
-    // 1.7 MB is fetched once for the whole site rather than once per screen.
-    builder: (context, child) => BlocProvider(
-      create: (_) => getIt<SearchViewModel>()..load(),
+    // Both ViewModels sit above every route. The front page shows figures off
+    // the same index the filter searches, and `builder` wraps the Navigator,
+    // so 1.7 MB is fetched once for the whole site rather than once per
+    // screen. The visit counter is here for the same reason inverted: mounted
+    // per route it would fire again every time someone came back from the
+    // filter, and one arrival is one visit.
+    builder: (context, child) => MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => getIt<SearchViewModel>()..load()),
+        BlocProvider(create: (_) => getIt<VisitCounterViewModel>()..load()),
+      ],
       child: child ?? const SizedBox.shrink(),
     ),
   );

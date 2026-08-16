@@ -47,8 +47,22 @@ class SectionHeader extends StatelessWidget {
         const SizedBox(width: 4),
       ],
       if (emblem != null) ...[
-        ItemIcon(emblem!, size: 22),
-        const SizedBox(width: 8),
+        // On a raised chip, and bigger than it first shipped. At 22 px, loose
+        // against the page, the art reads as a dark smudge: it is a 32 px
+        // sprite that carries its own busy background, so shrinking it buries
+        // the subject and there is no edge to say where the picture stops. The
+        // chip is the same one the front page puts behind its tool icons.
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: PWColors.surfaceRaised,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: ItemIcon(emblem!, size: 30),
+        ),
+        const SizedBox(width: 9),
       ],
       Text(
         title.toUpperCase(),

@@ -1,11 +1,11 @@
 {
-    "name": "pw_market_filter",
-    "short_name": "pw_market_filter",
+    "name": "Portal PW",
+    "short_name": "Portal PW",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0B0B1A",
+    "theme_color": "#0B0B1A",
+    "description": "Ferramentas para o mercado de personagens do The Classic PW 1.8.7.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

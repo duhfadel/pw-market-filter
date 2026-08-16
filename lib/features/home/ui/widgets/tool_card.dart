@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../domain/tool.dart';
 
-/// One tool on the front page.
+/// One tool in the menu.
 ///
 /// A tool that is not built yet is shown and dimmed rather than hidden: it
 /// tells a visitor the place is growing, and it costs one line to switch on.
@@ -20,7 +20,7 @@ class ToolCard extends StatelessWidget {
     final ready = tool.isReady;
 
     return Opacity(
-      opacity: ready ? 1 : 0.45,
+      opacity: ready ? 1 : 0.42,
       child: Material(
         color: PWColors.surface,
         borderRadius: BorderRadius.circular(14),
@@ -30,91 +30,79 @@ class ToolCard extends StatelessWidget {
               ? () => Navigator.of(context).pushNamed(tool.route!)
               : null,
           child: Container(
-            padding: EdgeInsets.all(wide ? 22 : 18),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: ready && tool.featured
-                    ? PWColors.accentDim
-                    : PWColors.border,
+                color: ready ? PWColors.accentDim : PWColors.border,
               ),
             ),
-            child: Row(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: wide ? 52 : 44,
-                  height: wide ? 52 : 44,
-                  decoration: BoxDecoration(
-                    color: PWColors.surfaceRaised,
-                    borderRadius: BorderRadius.circular(11),
-                  ),
-                  child: Icon(
-                    tool.icon,
-                    color: ready ? PWColors.accent : PWColors.textMuted,
-                    size: wide ? 26 : 22,
-                  ),
-                ),
-                SizedBox(width: wide ? 18 : 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              tool.name,
-                              style: TextStyle(
-                                fontSize: wide ? 19 : 17,
-                                fontWeight: FontWeight.w700,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (!ready) ...[
-                            const SizedBox(width: 10),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: PWColors.surfaceRaised,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Text(
-                                'em breve',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: PWColors.textMuted,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: PWColors.surfaceRaised,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        tool.tagline,
-                        style: TextStyle(
-                          color: PWColors.textMuted,
-                          fontSize: wide ? 14 : 13,
-                          height: 1.5,
+                      child: Icon(
+                        tool.icon,
+                        color: ready ? PWColors.accent : PWColors.textMuted,
+                        size: 21,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        tool.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (ready)
+                      const Icon(
+                        Icons.arrow_forward,
+                        size: 18,
+                        color: PWColors.accent,
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: PWColors.surfaceRaised,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'em breve',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: PWColors.textMuted,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ],
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  tool.tagline,
+                  style: const TextStyle(
+                    color: PWColors.textMuted,
+                    fontSize: 13,
+                    height: 1.45,
                   ),
                 ),
-                if (ready) ...[
-                  const SizedBox(width: 10),
-                  const Icon(
-                    Icons.arrow_forward,
-                    size: 20,
-                    color: PWColors.accent,
-                  ),
-                ],
               ],
             ),
           ),

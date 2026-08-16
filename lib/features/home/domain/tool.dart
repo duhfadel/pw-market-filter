@@ -12,7 +12,6 @@ class Tool {
     required this.tagline,
     required this.icon,
     this.route,
-    this.featured = false,
   });
 
   final String name;
@@ -26,26 +25,38 @@ class Tool {
   /// `null` while the tool is still an idea.
   final String? route;
 
-  /// Gets the wide card. With every entry the same size the eye has nowhere to
-  /// land, and the one tool that actually works should be the obvious one.
-  final bool featured;
-
   bool get isReady => route != null;
 }
 
 /// The menu.
 ///
-/// Only the Market Filter exists. The rest of the list is waiting on the
-/// player — names and one line each — and until then the page carries a single
-/// featured card, which is the layout it was built to survive.
+/// **Only the first entry is real.** The other three are placeholders the
+/// player has not confirmed — they exist so the grid can be judged at its
+/// intended size rather than as a single card, and so the second tool costs a
+/// line instead of a redesign. Replace the names and taglines; delete any that
+/// are not wanted.
 const tools = <Tool>[
   Tool(
     name: 'Market Filter',
     tagline:
         'Ache personagens à venda pelo equipamento, pelas cartas e pelos '
-        'atributos — o que o marketplace não deixa filtrar.',
+        'atributos.',
     icon: Icons.travel_explore,
     route: '/filtro',
-    featured: true,
+  ),
+  Tool(
+    name: 'Histórico de preços',
+    tagline: 'Quanto um personagem já pediu, e há quanto tempo está à venda.',
+    icon: Icons.show_chart,
+  ),
+  Tool(
+    name: 'Comparador',
+    tagline: 'Dois personagens lado a lado, peça por peça.',
+    icon: Icons.balance,
+  ),
+  Tool(
+    name: 'Calculadora de refino',
+    tagline: 'Quanto custa levar uma arma do +10 ao +12.',
+    icon: Icons.calculate_outlined,
   ),
 ];

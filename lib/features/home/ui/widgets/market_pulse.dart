@@ -59,6 +59,7 @@ class MarketPulse extends StatelessWidget {
     ];
 
     return Wrap(
+      alignment: WrapAlignment.center,
       spacing: wide ? 34 : 22,
       runSpacing: 18,
       children: [for (final (value, label) in stats) _Stat(value, label, wide)],
@@ -76,7 +77,7 @@ class _Stat extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
-    crossAxisAlignment: CrossAxisAlignment.start,
+    crossAxisAlignment: CrossAxisAlignment.center,
     children: [
       Text(
         value,

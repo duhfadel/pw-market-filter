@@ -73,6 +73,7 @@ flutter:
     # The market index is deliberately *not* here. It lives in `web/` and is
     # fetched over HTTP at runtime, so refreshing the data is one file instead
     # of a rebuild — see IndexRepository.
+    - assets/images/
     - assets/icons/classes/
     - assets/icons/items/
 

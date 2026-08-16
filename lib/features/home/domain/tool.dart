@@ -34,38 +34,33 @@ class Tool {
   bool get isReady => route != null;
 }
 
-/// The menu.
+/// The three sections of the Portal.
 ///
-/// **Only the first entry is real.** The other three are placeholders the
-/// player has not confirmed — they exist so the grid can be judged at its
-/// intended size rather than as a single card, and so the second tool costs a
-/// line instead of a redesign. Replace the names and taglines; delete any that
-/// are not wanted.
+/// Only the first is built. The other two are listed and dimmed so the page
+/// shows the shape of the place from the start — and so shipping one is a
+/// route away, not a redesign.
 const tools = <Tool>[
   Tool(
-    name: 'Market Filter',
-    tagline:
-        'Ache personagens à venda pelo equipamento, pelas cartas e pelos '
-        'atributos.',
+    name: 'Filtro do Marketplace',
+    // Says what you gain, never what the official marketplace lacks. The
+    // people who run that site are the audience here, not the competition.
+    tagline: 'Busque seu próximo personagem por arma, cartas e atributos.',
     icon: Icons.travel_explore,
     route: '/filtro',
-    art: 'assets/images/barbaro.webp',
-  ),
-  Tool(
-    name: 'Histórico de preços',
-    tagline: 'Quanto um personagem já pediu, e há quanto tempo está à venda.',
-    icon: Icons.show_chart,
     art: 'assets/images/espiritualista.webp',
   ),
   Tool(
-    name: 'Comparador',
-    tagline: 'Dois personagens lado a lado, peça por peça.',
-    icon: Icons.balance,
-    art: 'assets/images/sacerdote.webp',
+    name: 'Guerras territoriais',
+    tagline:
+        'Fique por dentro do que está acontecendo: entrevistas e as últimas '
+        'notícias das guerras.',
+    icon: Icons.local_fire_department_outlined,
+    art: 'assets/images/barbaro.webp',
   ),
   Tool(
-    name: 'Calculadora de refino',
-    tagline: 'Quanto custa levar uma arma do +10 ao +12.',
-    icon: Icons.calculate_outlined,
+    name: 'Começando no PW? Aprenda aqui',
+    tagline: 'Ideias e sugestões de como iniciar no mundo de Pangu.',
+    icon: Icons.auto_stories_outlined,
+    art: 'assets/images/sacerdote.webp',
   ),
 ];

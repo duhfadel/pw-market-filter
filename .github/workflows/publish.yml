@@ -83,6 +83,14 @@ jobs:
       # Icon tree-shaking takes MaterialIcons from 1.6 MB to 8 KB, and this app
       # uses about a dozen glyphs. Do not add --no-tree-shake-icons without a
       # reason: it costs every visitor 1.8 MB.
+      #
+      # Do not add --pwa-strategy=none to "turn off the service worker". It is
+      # already off: since Flutter 3.35 the default strategy emits a 784-byte
+      # worker whose only job is to unregister itself and reload the page, and
+      # `none` emits an empty file that does not do that cleanup. Measured on
+      # 3.44.8 and against the live site. Staleness here is the GitHub Pages
+      # HTTP cache (max-age=600 on every file, not configurable), and it heals
+      # itself in ten minutes.
       - name: Compilar
         env:
           REPO_NAME: ${{ github.event.repository.name }}

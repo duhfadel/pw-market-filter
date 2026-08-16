@@ -259,19 +259,28 @@ Each of these already cost something — measured on the live site, not guessed.
   proved Flutter was centring correctly and moved the search off the layout in
   one step. Reach for it first.
 - **A rebuilt Flutter web app keeps serving the previous bundle, and it looks
-  exactly like a change that did not compile.** `flutter build web` writes a
-  service worker, and it answers from cache on the next load — the file on disk
-  is new, the md5 served matches the md5 on disk, and the browser still runs
-  yesterday's code. An hour went into a responsive layout that had been correct
-  the whole time.
+  exactly like a change that did not compile.** The file on disk is new, the
+  md5 served matches the md5 on disk, and the browser still runs yesterday's
+  code. An hour went into a responsive layout that had been correct the whole
+  time. **Serve the build on a port you have not used before**, and when a
+  change refuses to appear, prove it with a loud temporary marker (an app bar
+  in `PWColors.danger`) before touching the code again.
 
-  Clearing the cache and unregistering the worker from inside the page does not
-  help: the reload re-registers it from the cached `index.html`. Deleting
-  `build/web/flutter_service_worker.js` does not either, because the next build
-  puts it back. **Serve the build on a port you have not used before** — a new
-  origin has no worker — and when a change refuses to appear, prove it with a
-  loud temporary marker (an app bar in `PWColors.danger`) before touching the
-  code again.
+  **It is not the service worker.** That was the first diagnosis here and it
+  was wrong. Since Flutter 3.35 the default `--pwa-strategy` emits a 784-byte
+  worker whose entire body unregisters itself and re-navigates every client; it
+  has no `fetch` handler and caches nothing. Verified on 3.44.8 and against the
+  published site. So do not reach for `--pwa-strategy=none` — it emits an empty
+  file, which is strictly worse, because it drops the cleanup that evicts a
+  legacy worker from a returning visitor's browser.
+
+  What actually goes stale is the plain HTTP cache. GitHub Pages sends
+  `cache-control: max-age=600` on every file, `index.html` and `main.dart.js`
+  included, and Pages gives no way to change a header. A visitor returning
+  inside ten minutes is served the old bundle without a request reaching the
+  server, and it heals by itself after that. The index JSON escapes this
+  because `IndexRepository` appends `?t=<millis>`; that cache-buster is why the
+  data is never the stale part, and it is why it must stay.
 - **Every control reads its options from the characters that pass every filter
   but its own.** Choose Portal de Nuema and the class list drops from
   seventeen to sixteen — no Paladino wears it — the level range collapses to

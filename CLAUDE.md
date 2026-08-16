@@ -240,6 +240,23 @@ Each of these already cost something — measured on the live site, not guessed.
   wanted here — GitHub Pages serves files, so `/filtro` would 404 while
   `/#/filtro` is the same `index.html`. Do not call `usePathUrlStrategy`
   without adding a 404 fallback first.
+- **Chrome remembers zoom per host, and every `localhost` port shares it.**
+  A page reviewed on `localhost` rendered with everything shifted right and a
+  band of empty space on the left, while the same build on GitHub Pages was
+  correct in the same browser. Changing ports never helped, because the zoom
+  belongs to the host and not to the port.
+
+  What it looks like from inside the app: `MediaQuery` and
+  `devicePixelRatio` come back as a pair that cannot both be true of a Retina
+  Mac — 2000 logical pixels at `dpr 1.00`. Neither number is obviously wrong on
+  its own.
+
+  How it was settled, after a lot of wasted pixel-measuring on screenshots that
+  had been resized in transit: draw a line at `MediaQuery.width / 2` and
+  screenshot it. A line drawn inside the same coordinate system scales with
+  everything else, so it survives any rescaling — it ran through the middle of
+  the logo, which proved Flutter was centring correctly and moved the search
+  off the layout entirely. Reach for that before measuring a screenshot.
 - **A rebuilt Flutter web app keeps serving the previous bundle, and it looks
   exactly like a change that did not compile.** `flutter build web` writes a
   service worker, and it answers from cache on the next load — the file on disk

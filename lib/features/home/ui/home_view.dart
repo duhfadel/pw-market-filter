@@ -42,7 +42,12 @@ class HomeView extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: large ? 900 : 780),
+            // 1040 and not 900 at the top step, and the reason is one line of
+            // type: at 900 the headline broke with "usando" alone on a second
+            // line at every desktop size measured — 1366 and 1920 both. The
+            // first sentence a visitor reads is not a good place to hyphenate
+            // the argument.
+            constraints: BoxConstraints(maxWidth: large ? 1040 : 780),
             child: ListView(
               // Shrink-wrapped so a short menu sits in the middle of the page
               // instead of clinging to the top with a screen of nothing under

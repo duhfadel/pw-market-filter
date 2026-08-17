@@ -19,6 +19,16 @@ import 'package:flutter/services.dart';
 class AddressBar {
   const AddressBar();
 
+  /// The absolute address of [query], for handing to somebody else.
+  ///
+  /// Built from [base] rather than read off the address bar so it survives the
+  /// page having been opened with something else in its own query string — the
+  /// link shared should be the search, not whatever else came along.
+  static String linkTo(Uri base, String query) {
+    final root = '${base.scheme}://${base.authority}${base.path}';
+    return query.isEmpty ? '$root#/filtro' : '$root#/filtro?$query';
+  }
+
   /// [query] is a query string without its leading `?`; empty clears it.
   void writeFilter(String query) {
     // Outside a browser there is no address bar to write to, and reaching for

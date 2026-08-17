@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:flutter/services.dart';
+
 import '../../../core/theme/pw_colors.dart';
 import '../../../market/slot_names.dart';
+import '../data/address_bar.dart';
 import '../domain/search_query.dart';
+import '../domain/search_query_url.dart';
 import 'search_state.dart';
 import 'search_view_model.dart';
 import 'widgets/character_card.dart';
@@ -135,6 +139,7 @@ class _Results extends StatelessWidget {
           color: PWColors.text,
         ),
         actions: [
+          _CopyLink(state: state, wide: wide),
           // The filters used to be an unlabelled icon here. On the surface
           // word of mouth lands on, the one thing this screen does better than
           // the marketplace was a 20 px glyph.
@@ -200,6 +205,69 @@ class _Results extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Hands the current search to somebody else.
+///
+/// The address bar already holds it, and on a desktop that is arguably enough —
+/// but only if you know to look, and only if you are on a desktop. What this
+/// says is that the search is a thing that can be sent, which is the part
+/// nobody guesses.
+class _CopyLink extends StatelessWidget {
+  const _CopyLink({required this.state, required this.wide});
+
+  final SearchReady state;
+  final bool wide;
+
+  @override
+  Widget build(BuildContext context) {
+    void copy() {
+      final link = AddressBar.linkTo(
+        Uri.base,
+        encodeQuery(state.query, state.index),
+      );
+      Clipboard.setData(ClipboardData(text: link));
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            backgroundColor: PWColors.surfaceRaised,
+            behavior: SnackBarBehavior.floating,
+            width: 320,
+            duration: const Duration(seconds: 3),
+            content: Text(
+              state.query.isEmpty
+                  // Copying an empty form gives a link to the whole market,
+                  // which is a fine thing to send and a confusing thing to be
+                  // told you sent.
+                  ? 'Link copiado — o filtro, sem busca nenhuma'
+                  : 'Link copiado com a busca inteira',
+              style: const TextStyle(color: PWColors.text, fontSize: 13),
+            ),
+          ),
+        );
+    }
+
+    if (!wide) {
+      return IconButton(
+        onPressed: copy,
+        icon: const Icon(Icons.link, size: 20),
+        color: PWColors.textMuted,
+        tooltip: 'Copiar link da busca',
+      );
+    }
+
+    return TextButton.icon(
+      onPressed: copy,
+      icon: const Icon(Icons.link, size: 17),
+      label: const Text('copiar link'),
+      style: TextButton.styleFrom(
+        foregroundColor: PWColors.textMuted,
+        textStyle: const TextStyle(fontSize: 13),
       ),
     );
   }

@@ -131,16 +131,10 @@ class _Results extends StatelessWidget {
           color: PWColors.text,
         ),
         actions: [
-          if (!wide)
-            Builder(
-              builder: (context) => IconButton(
-                onPressed: Scaffold.of(context).openDrawer,
-                icon: const Icon(Icons.tune, size: 20),
-                color: PWColors.text,
-                tooltip: 'Filtros',
-              ),
-            ),
-          _OrderPicker(state: state, viewModel: viewModel, compact: !wide),
+          // The filters used to be an unlabelled icon here. On the surface
+          // word of mouth lands on, the one thing this screen does better than
+          // the marketplace was a 20 px glyph.
+          _OrderPicker(state: state, viewModel: viewModel),
           if (wide) ...[const SizedBox(width: 20), _CollectedAt(state: state)],
           const SizedBox(width: 12),
         ],
@@ -159,14 +153,6 @@ class _Results extends StatelessWidget {
                 ),
               ),
       ),
-      // The filters open from the icon in `actions`, not from a hamburger in
-      // the leading slot — that slot is the way home.
-      drawer: wide
-          ? null
-          : Drawer(
-              backgroundColor: PWColors.background,
-              child: SafeArea(child: panel),
-            ),
       body: Column(
         children: [
           _Disclaimer(wide: wide),
@@ -181,7 +167,26 @@ class _Results extends StatelessWidget {
                 Expanded(
                   child: Column(
                     children: [
-                      PresetChips(state: state, viewModel: viewModel),
+                      Row(
+                        children: [
+                          // One strip for everything that narrows. Its own row
+                          // would have cost 48 px of a 844 px screen to say
+                          // one word.
+                          if (!wide) ...[
+                            _FilterButton(state: state, viewModel: viewModel),
+                            const SizedBox(
+                              height: 26,
+                              child: VerticalDivider(width: 1),
+                            ),
+                          ],
+                          Expanded(
+                            child: PresetChips(
+                              state: state,
+                              viewModel: viewModel,
+                            ),
+                          ),
+                        ],
+                      ),
                       const Divider(height: 1),
                       Expanded(child: _Grid(state: state)),
                     ],
@@ -194,6 +199,142 @@ class _Results extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The way into the filters on a phone, and the count of what is in force.
+///
+/// The count is not decoration. A criterion set inside a closed panel is a
+/// filter with nothing on screen saying so, and the results then look wrong for
+/// no visible reason — the same argument the collapsed slot sections already
+/// make with their own counts.
+class _FilterButton extends StatelessWidget {
+  const _FilterButton({required this.state, required this.viewModel});
+
+  final SearchReady state;
+  final SearchViewModel viewModel;
+
+  /// What the form is asking, counted the way a person would count it: one per
+  /// control that has something in it.
+  int get _active {
+    final query = state.query;
+    return [
+      query.characterClass != null,
+      query.cultivation != null,
+      query.minLevel != null || query.maxLevel != null,
+      query.minPrice != null || query.maxPrice != null,
+      query.comboName != null,
+      query.cardRarity != null,
+      query.cardsMaxed,
+      ...query.itemBySlot.keys.map((_) => true),
+      ...query.criteria.map((_) => true),
+    ].where((asked) => asked).length;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final active = _active;
+
+    return TextButton.icon(
+      onPressed: () => _openFilterSheet(context, viewModel),
+      icon: const Icon(Icons.tune, size: 18),
+      label: Text(active == 0 ? 'Filtros' : 'Filtros · $active'),
+      style: TextButton.styleFrom(
+        foregroundColor: active == 0 ? PWColors.text : PWColors.accent,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+}
+
+/// The filters as a sheet over the results, with a live count in the footer.
+///
+/// The count is what the panel is for on a phone: it turns each criterion into
+/// a consequence you can see, instead of a guess to be checked after closing.
+/// It reads `state.results.length` — the same list the grid behind it renders —
+/// so the two can never disagree.
+void _openFilterSheet(BuildContext context, SearchViewModel viewModel) {
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: PWColors.background,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+    ),
+    builder: (sheetContext) => FractionallySizedBox(
+      heightFactor: 0.9,
+      child: BlocBuilder<SearchViewModel, SearchState>(
+        bloc: viewModel,
+        builder: (context, state) => state is! SearchReady
+            ? const SizedBox.shrink()
+            : Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 8, 6),
+                    child: Row(
+                      children: [
+                        const Text(
+                          'Filtros',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: PWColors.text,
+                          ),
+                        ),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: viewModel.clear,
+                          child: const Text(
+                            'limpar tudo',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: PWColors.textMuted,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.of(sheetContext).pop(),
+                          icon: const Icon(Icons.close, size: 20),
+                          color: PWColors.textMuted,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: FilterPanel(state: state, viewModel: viewModel),
+                  ),
+                  SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: () => Navigator.of(sheetContext).pop(),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: PWColors.accent,
+                            foregroundColor: PWColors.background,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            textStyle: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          child: Text(
+                            state.results.length == 1
+                                ? 'Ver 1 personagem'
+                                : 'Ver ${state.results.length} personagens',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    ),
+  );
 }
 
 /// Says what this screen is, and what it is not.
@@ -309,26 +450,15 @@ class _HomeMark extends StatelessWidget {
 /// Cheapest first by default. Knowing who owns the weapon is half the answer;
 /// which of them costs least is the other half.
 class _OrderPicker extends StatelessWidget {
-  const _OrderPicker({
-    required this.state,
-    required this.viewModel,
-    this.compact = false,
-  });
+  const _OrderPicker({required this.state, required this.viewModel});
 
   final SearchReady state;
   final SearchViewModel viewModel;
-
-  /// On a phone the label is dropped and only the icon remains: the ordering
-  /// is worth one tap to check, and the count is worth more than it is.
-  final bool compact;
 
   @override
   Widget build(BuildContext context) => DropdownButtonHideUnderline(
     child: DropdownButton<ResultOrder>(
       value: state.query.order,
-      selectedItemBuilder: compact
-          ? (_) => [for (final _ in ResultOrder.values) const SizedBox.shrink()]
-          : null,
       dropdownColor: PWColors.surfaceRaised,
       borderRadius: BorderRadius.circular(8),
       style: const TextStyle(color: PWColors.text, fontSize: 13),
@@ -365,17 +495,24 @@ class _CollectedAt extends StatelessWidget {
         'às ${two(date.hour)}:${two(date.minute)}';
 
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         if (stale) ...[
           const Icon(Icons.schedule, size: 15, color: PWColors.danger),
           const SizedBox(width: 6),
         ],
-        Text(
-          stale ? '$text — desatualizado' : text,
-          style: TextStyle(
-            fontSize: 12,
-            color: stale ? PWColors.danger : PWColors.textMuted,
-            fontWeight: stale ? FontWeight.w600 : FontWeight.w400,
+        // Flexible, because this line is one long unbroken string and it sits
+        // in a bar that a large system text size can shrink under it. It is
+        // better to lose the minutes than to paint the overflow stripes.
+        Flexible(
+          child: Text(
+            stale ? '$text — desatualizado' : text,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12,
+              color: stale ? PWColors.danger : PWColors.textMuted,
+              fontWeight: stale ? FontWeight.w600 : FontWeight.w400,
+            ),
           ),
         ),
       ],

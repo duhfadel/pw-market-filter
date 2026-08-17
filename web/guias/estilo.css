@@ -235,3 +235,45 @@ footer a { color: var(--text-muted); }
   .topo .marca-larga { display: none; }
   .topo .marca-curta { display: block; height: 32px; }
 }
+
+/* ---- o espaço de publicidade ---- */
+
+/* Escrito como espaço, não como anúncio: o dia em que entrar uma rede, muda o
+   que vai dentro de .publicidade, não onde ela fica nem como é rotulada.
+   Enquanto ninguém comprou, o espaço se anuncia — uma caixa vazia não ensina
+   o layout nem atrai patrocinador.
+
+   O rótulo fica sempre visível e o fundo nunca é o de um card: este site
+   afirma que não vende nada, e um anúncio sem rótulo é a forma mais rápida de
+   fazer essa frase soar falsa.
+
+   Some quando não há o que mostrar. `hidden` no HTML é o interruptor. */
+.publicidade[hidden] { display: none; }
+
+.publicidade {
+  margin: 44px 0 8px;
+  text-align: center;
+}
+
+.publicidade .rotulo {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 1.6px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.publicidade a,
+.publicidade .casa {
+  display: block;
+  max-width: 728px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.publicidade img { display: block; max-width: 100%; height: auto; margin: 0 auto; }

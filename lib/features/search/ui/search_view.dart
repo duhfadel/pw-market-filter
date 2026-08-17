@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../../../core/theme/pw_colors.dart';
 import '../../../market/slot_names.dart';
+import '../../ads/ad_slot.dart';
 import '../data/address_bar.dart';
 import '../domain/search_query.dart';
 import '../domain/search_query_url.dart';
@@ -197,6 +198,7 @@ class _Results extends StatelessWidget {
                       ),
                       const Divider(height: 1),
                       Expanded(child: _Grid(state: state)),
+                      const AdSlot(compact: true),
                     ],
                   ),
                 ),

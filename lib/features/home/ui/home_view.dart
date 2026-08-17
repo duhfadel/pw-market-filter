@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/pw_colors.dart';
 import '../../../core/theme/pw_theme.dart';
 import '../../search/ui/search_state.dart';
+import '../../ads/ad_slot.dart';
 import '../../search/ui/search_view_model.dart';
 import '../domain/tool.dart';
 import '../domain/visit_label.dart';
@@ -138,6 +139,7 @@ class HomeView extends StatelessWidget {
                     ),
                     SizedBox(height: large ? 38 : (wide ? 30 : 22)),
                     _Menu(wide: wide),
+                    const AdSlot(),
                     SizedBox(height: wide ? 28 : 22),
                     const _Footer(),
                   ],

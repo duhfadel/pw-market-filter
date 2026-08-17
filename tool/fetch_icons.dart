@@ -26,9 +26,7 @@ const _pause = Duration(milliseconds: 250);
 Future<void> main() async {
   final file = File('web/market_index.json');
   if (!file.existsSync()) {
-    stderr.writeln(
-      'web/market_index.json não existe. Rode a coleta primeiro.',
-    );
+    stderr.writeln('web/market_index.json não existe. Rode a coleta primeiro.');
     exit(1);
   }
 

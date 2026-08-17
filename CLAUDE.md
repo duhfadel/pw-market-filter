@@ -21,6 +21,7 @@ Flutter web + Bloc + GetIt, fed by an offline index that a Dart CLI collects.
 | Collector | listing + detail parsers, pacing, resume, index writing | **Done** |
 | Index | the JSON contract between collector and app | **Done** |
 | Screen | criteria form, filtered cards, empty and stale states | **Done** |
+| First visit | front page, preset chips, phone filters, shareable link, preview | **Done** |
 
 The first full collection ran on 2026-08-09: 770 characters, no failures, 538
 distinct items, 101 attributes, 1.0 MB of index. All fourteen slots are named.
@@ -32,6 +33,24 @@ Tormentador) to 8000 (Gege, Espiritualista). Sixty times the price for the same
 weapon tier is the gap this tool exists to show.
 
 Open: results have no widget tests.
+
+**The visit, done on 2026-08-17.** The site now receives people who have never
+seen it, through two doors and only two — the front page, from a link pasted in
+the community, and `/filtro`, from word of mouth. What that round added: a front
+page that says what the site does before it says its name, with every figure a
+link into the search that produced it; five preset chips that are the same
+`SearchQuery` objects those figures use (`domain/presets.dart`); a labelled
+filter entrance and a bottom sheet with a live count on phones; a search that
+writes itself into the address bar and reads itself back (`search_query_url.dart`);
+and `og:` tags, without which a link pasted in Discord arrived as a bare line.
+
+Still open from that round, and named on purpose: **the market has no memory.**
+Each collection overwrites the last, so there is no "new today", no "dropped
+from 500 to 400", and therefore no reason to come back tomorrow. It is cheap —
+the collector's state file already keeps `roleId` and `price` per character, so
+recording first-seen and previous price costs no extra request — and it is the
+only thing here that earns a second visit. Spec:
+`docs/superpowers/specs/2026-08-17-primeira-visita-design.md`.
 
 **Deferred on 2026-08-09, by the user's call: the character's sex.** It is on
 the detail page (`Sexo / Masculino`) and nowhere else, so it costs a full
@@ -251,6 +270,50 @@ Each of these already cost something — measured on the live site, not guessed.
   It needed no collection: the stars were already in the index, spelled
   differently. When a new attribute of an item is asked for, look for it in
   what is already stored before reaching for the crawler.
+- **An attribute's id is a position, and the position is not stable.**
+  `IndexBuilder` numbers attributes with `putIfAbsent(name, () => length)` — in
+  the order the crawl happens to meet them — so two collections a week apart
+  disagree about what attribute `0` is. Nothing inside one index notices;
+  everything is consistent with itself. What it breaks is anything that outlives
+  a collection, and the first such thing was the **shared link**: `c=10~0~70`
+  opened filtering `Feitiço da Purificação` where it had meant `Nível de Ataque`,
+  with the right count on screen and no error anywhere.
+
+  So `search_query_url.dart` writes the attribute **by name** and resolves it
+  against the index on arrival, and a name this collection no longer has drops
+  its criterion rather than falling back to attribute zero. Everything else in a
+  query was already stable — class names, cultivations, combo names, game item
+  ids. The attribute was the one hole, and any future store of a query outside
+  the app inherits the same duty.
+
+  The link's separator is `~` and not `:` for a reason worth keeping: `Uri`
+  escapes a colon and escapes the percent signs of a hand-encoded name, so
+  `Nível de Ataque` came out `%3AN%25C3%25ADvel%2520de%2520Ataque%3A` — correct,
+  and gibberish to the person deciding whether to click.
+
+- **The 70 weapon is almost always rank 4 and refined to +10 — 204 of 205.**
+  Which kills the obvious preset: `refino +10` returns 597 of 830 and
+  `rank 4 na arma` 594, because they ask "do you refine?", which nearly everyone
+  does, rather than "do you have the weapon", which is the question. A chip that
+  leaves three quarters of the market on screen teaches nothing. `presets_test`
+  therefore demands each preset cut the market **at least in half**; the first
+  bar, "narrows at all", passed both bad ones.
+
+- **In `flutter_test` every glyph is a square of the font size.** So a chip
+  reading `Arma de 70 até 500 TCC` measures 286 px in a test and about 150 in a
+  browser. Two consequences, both met the hard way: a horizontally scrolling row
+  builds fewer items than it will in the app, so `find.text` misses one that is
+  plainly on screen in real life; and a `Row` that fits everywhere overflows in
+  a test. Widen `tester.view.physicalSize` or assert on something else — but
+  check which of the two it is before "fixing" a layout that was never broken.
+
+- **Marcellus draws Roman figures, so no number may use it.** Its `1` has no
+  flag and its `0` is barely an `O`: `150 TCC` reads `I5O TCC`. The display face
+  is for the headline and tool names only, and `PWTheme.display` says so. Every
+  price, count and attribute stays on Roboto — they are numbers somebody is
+  deciding money on. Accented capitals were checked against the file before
+  adopting it (Á À Â Ã É Ê Í Ó Ô Õ Ú Ü Ç all draw).
+
 - **Icons come from two hosts, neither of which is the marketplace.** Class art
   is `theclassic.games/assets/img/pw_roles/occu_<occupation>.png` (100×100) and
   item art is

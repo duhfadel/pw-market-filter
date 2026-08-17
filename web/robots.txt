@@ -1,0 +1,6 @@
+# Tudo liberado. O que precisava ficar fora do Google era o guia enquanto
+# rascunho, e isso era um noindex na própria página, não uma regra aqui.
+User-agent: *
+Allow: /
+
+Sitemap: https://portalpw.net/sitemap.xml

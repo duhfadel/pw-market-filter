@@ -373,11 +373,28 @@ Each of these already cost something — measured on the live site, not guessed.
   file, which is strictly worse, because it drops the cleanup that evicts a
   legacy worker from a returning visitor's browser.
 
-  What actually goes stale is the plain HTTP cache. GitHub Pages sends
-  `cache-control: max-age=600` on every file, `index.html` and `main.dart.js`
-  included, and Pages itself gives no way to change a header. A visitor
-  returning inside ten minutes is served the old bundle without a request
-  reaching the server, and it heals by itself after that. The index JSON
+  What actually goes stale is the plain HTTP cache — and **it is four hours,
+  not ten minutes.** GitHub Pages sends `cache-control: max-age=600` on every
+  file and gives no way to change a header, but that is only what the origin
+  says. Measured on the live site on 2026-08-17, right after a deploy:
+  `index.html` comes back `max-age=600`, and `flutter_bootstrap.js` and
+  `main.dart.js` come back **`max-age=14400`**. Cloudflare's Browser Cache TTL
+  defaults to four hours and overrides the origin unless it is set to "Respect
+  existing headers".
+
+  It matters more than it looks, because `flutter_bootstrap.js` asks for
+  `"main.dart.js"` with **no version query** — checked in the served file. So
+  the URL never changes between builds, and a visitor who opened the site in
+  the last four hours runs the old app with the new data: the index is fetched
+  with `?t=<millis>` and is always fresh, so the page shows today's numbers in
+  yesterday's interface, which looks like a deploy that half worked. It is how
+  a shipped change was first judged missing on 2026-08-17; the bundle on the
+  server was already correct, byte for byte.
+
+  To check a deploy, clear the browser cache rather than reloading — a
+  cache-buster on the page URL does not touch the scripts. The fix for visitors
+  is one setting: Cloudflare → Caching → Configuration → Browser Cache TTL →
+  *Respect existing headers*, which hands the ten minutes back. The index JSON
   escapes this because `IndexRepository` appends `?t=<millis>`; that
   cache-buster is why the data is never the stale part, and it is why it must
   stay.

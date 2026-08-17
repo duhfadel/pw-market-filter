@@ -151,6 +151,6 @@ void main() {
         .map((image) => image.assetName);
 
     expect(marks, contains('assets/images/pw-mark.webp'));
-    expect(marks, isNot(contains('assets/images/portal-pw-logo.webp')));
+    expect(marks, isNot(contains('assets/images/portal-pw-logo-v2.webp')));
   });
 }

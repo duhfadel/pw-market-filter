@@ -28,9 +28,11 @@
        fetching it and shows the bare link again — the thing these tags exist
        to prevent.
 
-       Replacing the art later means shipping it under a NEW file name. Preview
+       Replacing the art means shipping it under a NEW file name. Preview
        scrapers and Cloudflare both cache it hard, and an overwrite is served
-       as the old picture for as long as they feel like it. -->
+       as the old picture for as long as they feel like it. That is why this
+       is og-v2.jpg and why og.jpg is still in the folder: whoever cached the
+       first one keeps resolving it instead of collecting a 404. -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Portal PW">
   <meta property="og:locale" content="pt_BR">
@@ -38,7 +40,7 @@
   <meta property="og:description"
         content="Ache o personagem certo pelo que ele está usando: arma, cartas, refino e atributos dos personagens à venda no The Classic PW 1.8.7.">
   <meta property="og:url" content="https://portalpw.net/">
-  <meta property="og:image" content="https://portalpw.net/og.jpg">
+  <meta property="og:image" content="https://portalpw.net/og-v2.jpg">
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">

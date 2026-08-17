@@ -512,7 +512,7 @@ class _HomeMark extends StatelessWidget {
       child: Image.asset(
         monogram
             ? 'assets/images/pw-mark.webp'
-            : 'assets/images/portal-pw-logo.webp',
+            : 'assets/images/portal-pw-logo-v2.webp',
         height: height,
         filterQuality: FilterQuality.medium,
         // The bar must not break over a missing file, and the arrow beside it

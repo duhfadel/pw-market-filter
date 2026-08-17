@@ -60,12 +60,18 @@ class HomeView extends StatelessWidget {
               children: [
                 Center(
                   child: Image.asset(
-                    'assets/images/portal-pw-logo.webp',
+                    'assets/images/portal-pw-logo-v2.webp',
                     // Two thirds of what it was. The mark says the name of the
                     // site and nothing about what it does, and at 440 px it was
                     // the entire first fold of a phone — the visitor scrolled
                     // before learning there was anything here to use.
-                    width: large ? 300 : (wide ? 230 : 180),
+                    //
+                    // The numbers dropped a step when the wordmark lost its
+                    // ".net": the new drawing is squarer (1.39 against 1.52),
+                    // so the same width would have made it 9% taller and
+                    // quietly undone the fold this was measured for. These
+                    // widths hold the height where it was.
+                    width: large ? 280 : (wide ? 215 : 168),
                     filterQuality: FilterQuality.medium,
                     // The logo is the one asset whose absence would be
                     // baffling rather than cosmetic, so it falls back to the

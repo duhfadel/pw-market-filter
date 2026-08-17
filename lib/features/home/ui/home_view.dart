@@ -39,104 +39,184 @@ class HomeView extends StatelessWidget {
     final large = width >= _largeWidth;
 
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            // 1040 and not 900 at the top step, and the reason is one line of
-            // type: at 900 the headline broke with "usando" alone on a second
-            // line at every desktop size measured — 1366 and 1920 both. The
-            // first sentence a visitor reads is not a good place to hyphenate
-            // the argument.
-            constraints: BoxConstraints(maxWidth: large ? 1040 : 780),
-            child: ListView(
-              // Shrink-wrapped so a short menu sits in the middle of the page
-              // instead of clinging to the top with a screen of nothing under
-              // it — and it still scrolls once the list outgrows the window.
-              shrinkWrap: true,
-              padding: EdgeInsets.symmetric(
-                horizontal: wide ? 40 : 20,
-                vertical: wide ? 44 : 28,
-              ),
-              children: [
-                Center(
-                  child: Image.asset(
-                    'assets/images/portal-pw-logo-v2.webp',
-                    // Two thirds of what it was. The mark says the name of the
-                    // site and nothing about what it does, and at 440 px it was
-                    // the entire first fold of a phone — the visitor scrolled
-                    // before learning there was anything here to use.
-                    //
-                    // The numbers dropped a step when the wordmark lost its
-                    // ".net": the new drawing is squarer (1.39 against 1.52),
-                    // so the same width would have made it 9% taller and
-                    // quietly undone the fold this was measured for. These
-                    // widths hold the height where it was.
-                    width: large ? 280 : (wide ? 215 : 168),
-                    filterQuality: FilterQuality.medium,
-                    // The logo is the one asset whose absence would be
-                    // baffling rather than cosmetic, so it falls back to the
-                    // name rather than to a gap.
-                    errorBuilder: (_, _, _) => Text(
-                      'PORTAL PW',
-                      style: TextStyle(
-                        fontSize: wide ? 34 : 26,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 3,
+      body: Stack(
+        children: [
+          // Behind everything and touching nothing: the light is decoration,
+          // and decoration that eats a tap is a bug.
+          const Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: IgnorePointer(child: _Aurora()),
+          ),
+          SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                // 1040 and not 900 at the top step, and the reason is one line of
+                // type: at 900 the headline broke with "usando" alone on a second
+                // line at every desktop size measured — 1366 and 1920 both. The
+                // first sentence a visitor reads is not a good place to hyphenate
+                // the argument.
+                constraints: BoxConstraints(maxWidth: large ? 1040 : 780),
+                child: ListView(
+                  // Shrink-wrapped so a short menu sits in the middle of the page
+                  // instead of clinging to the top with a screen of nothing under
+                  // it — and it still scrolls once the list outgrows the window.
+                  shrinkWrap: true,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: wide ? 40 : 20,
+                    vertical: wide ? 44 : 28,
+                  ),
+                  children: [
+                    Center(
+                      child: Image.asset(
+                        'assets/images/portal-pw-logo-v2.webp',
+                        // Two thirds of what it was. The mark says the name of the
+                        // site and nothing about what it does, and at 440 px it was
+                        // the entire first fold of a phone — the visitor scrolled
+                        // before learning there was anything here to use.
+                        //
+                        // The numbers dropped a step when the wordmark lost its
+                        // ".net": the new drawing is squarer (1.39 against 1.52),
+                        // so the same width would have made it 9% taller and
+                        // quietly undone the fold this was measured for. These
+                        // widths hold the height where it was.
+                        width: large ? 280 : (wide ? 215 : 168),
+                        filterQuality: FilterQuality.medium,
+                        // The logo is the one asset whose absence would be
+                        // baffling rather than cosmetic, so it falls back to the
+                        // name rather than to a gap.
+                        errorBuilder: (_, _, _) => Text(
+                          'PORTAL PW',
+                          style: TextStyle(
+                            fontSize: wide ? 34 : 26,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 3,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                SizedBox(height: wide ? 18 : 14),
-                Center(
-                  child: Text(
-                    'Ache o personagem certo pelo que ele está usando',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: PWTheme.display,
-                      color: PWColors.text,
-                      // Marcellus is lighter and wider than Roboto at the same
-                      // size, so the headline gains a couple of points and
-                      // loses the extra weight it needed as a sans.
-                      fontSize: large ? 38 : (wide ? 31 : 25),
-                      height: 1.25,
-                      letterSpacing: 0.2,
+                    SizedBox(height: wide ? 18 : 14),
+                    Center(
+                      child: Text(
+                        'Ache o personagem certo pelo que ele está usando',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: PWTheme.display,
+                          color: PWColors.text,
+                          // Marcellus is lighter and wider than Roboto at the same
+                          // size, so the headline gains a couple of points and
+                          // loses the extra weight it needed as a sans.
+                          fontSize: large ? 38 : (wide ? 31 : 25),
+                          height: 1.25,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                SizedBox(height: wide ? 12 : 10),
-                Center(
-                  child: Text(
-                    'Filtre os personagens à venda do The Classic PW 1.8.7 por '
-                    'arma, cartas, refino e atributos.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: PWColors.textMuted,
-                      fontSize: large ? 17 : (wide ? 15 : 13),
-                      height: 1.5,
+                    SizedBox(height: wide ? 12 : 10),
+                    Center(
+                      child: Text(
+                        'Filtre os personagens à venda do The Classic PW 1.8.7 por '
+                        'arma, cartas, refino e atributos.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: PWColors.textMuted,
+                          fontSize: large ? 17 : (wide ? 15 : 13),
+                          height: 1.5,
+                        ),
+                      ),
                     ),
-                  ),
+                    SizedBox(height: large ? 28 : (wide ? 24 : 20)),
+                    const Center(child: _SearchButton()),
+                    SizedBox(height: large ? 30 : (wide ? 24 : 20)),
+                    BlocBuilder<SearchViewModel, SearchState>(
+                      builder: (context, state) => MarketPulse(
+                        state: state is SearchReady ? state : null,
+                        wide: wide,
+                        large: large,
+                      ),
+                    ),
+                    SizedBox(height: large ? 38 : (wide ? 30 : 22)),
+                    _Menu(wide: wide),
+                    SizedBox(height: wide ? 28 : 22),
+                    const _Footer(),
+                  ],
                 ),
-                SizedBox(height: large ? 28 : (wide ? 24 : 20)),
-                const Center(child: _SearchButton()),
-                SizedBox(height: large ? 30 : (wide ? 24 : 20)),
-                BlocBuilder<SearchViewModel, SearchState>(
-                  builder: (context, state) => MarketPulse(
-                    state: state is SearchReady ? state : null,
-                    wide: wide,
-                    large: large,
-                  ),
-                ),
-                SizedBox(height: large ? 38 : (wide ? 30 : 22)),
-                _Menu(wide: wide),
-                SizedBox(height: wide ? 28 : 22),
-                const _Footer(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The light behind the front page.
+///
+/// Three layers, and the order is the whole trick: a violet sky at the top
+/// fading into the page's own black, then two soft lights over it — one violet
+/// high and centred, one gold low and to the left, which is where the eye
+/// already is because that is where the reading starts.
+///
+/// It costs nothing to download. The alternative tried first was a blurred
+/// screenshot of the game, which works and weighs 5 KB, but the greens and
+/// browns of a grass valley fight an indigo palette; a gradient cannot go off
+/// palette because it is made of the palette.
+///
+/// It does not scroll. On a phone the page is longer than the screen, and a
+/// light that slides up with the content reads as a picture coming loose.
+class _Aurora extends StatelessWidget {
+  const _Aurora();
+
+  /// Tall enough to cover the fold on a desktop and to fade out before the
+  /// cards on a phone.
+  static const _height = 900.0;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    height: _height,
+    child: Stack(
+      fit: StackFit.expand,
+      children: [
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [PWColors.nightTop, PWColors.background],
+              stops: [0, 0.78],
+            ),
+          ),
+        ),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: const Alignment(0, -0.85),
+              radius: 0.9,
+              colors: [
+                PWColors.glowViolet.withValues(alpha: 0.22),
+                PWColors.glowDeep.withValues(alpha: 0.10),
+                PWColors.background.withValues(alpha: 0),
+              ],
+              stops: const [0, 0.45, 1],
+            ),
+          ),
+        ),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: const Alignment(-0.6, -0.2),
+              radius: 0.7,
+              colors: [
+                PWColors.accent.withValues(alpha: 0.09),
+                PWColors.accent.withValues(alpha: 0),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
+      ],
+    ),
+  );
 }
 
 /// Two per row when there is room, one when there is not.

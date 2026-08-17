@@ -15,6 +15,18 @@ abstract final class PWColors {
   static const textMuted = Color(0xFF8F9BB8);
 
   static const accent = Color(0xFFFFB454);
+
+  /// The night the front page's light is painted over.
+  ///
+  /// The page used to sit on a flat [background] at every size, and on a wide
+  /// monitor that is a 1040 px column of content inside a 1920 px field of one
+  /// colour — the content reads as floating rather than placed. These three
+  /// are the top of that light, and they are deliberately violet rather than
+  /// a lift of the same indigo: a gradient between two shades of one colour is
+  /// a stain, and a shift in hue is a sky.
+  static const nightTop = Color(0xFF16143A);
+  static const glowViolet = Color(0xFF785ADC);
+  static const glowDeep = Color(0xFF5A46C8);
   static const accentDim = Color(0xFF6B4E1F);
   static const danger = Color(0xFFFF6B6B);
   static const ok = Color(0xFF5FBAB9);

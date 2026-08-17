@@ -24,13 +24,30 @@
 
 * { box-sizing: border-box; }
 
+/* The one face that is not the system stack, and it is for headings only.
+ *
+ * The rule that used to sit below — no web font at all — was written about
+ * body text, and it still holds there: a guide is text, and text that arrives
+ * late is worse than text in a slightly different face. A heading is a
+ * different bet. It is a handful of words, `font-display: swap` paints them
+ * immediately in the fallback, and what the 46 KB buys is the guides sounding
+ * like the app instead of like a plainer cousin of it.
+ *
+ * The file is the app's own, bundled by Flutter from assets/fonts/ and served
+ * from the path below. One copy, two sites.
+ */
+@font-face {
+  font-family: "Marcellus";
+  src: url("/assets/assets/fonts/Marcellus-Regular.ttf") format("truetype");
+  font-display: swap;
+}
+
 body {
   margin: 0;
   background: var(--background);
   color: var(--text);
-  /* The system stack, matching what Flutter falls back to on the web. No web
-     font: a guide is text, and text that arrives late is worse than text in a
-     slightly different face. */
+  /* The system stack, matching what Flutter falls back to on the web. Body
+     text stays here on purpose — see the note above the @font-face. */
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
   font-size: 17px;
@@ -82,15 +99,19 @@ main {
 
 h1 {
   font-size: 2rem;
-  line-height: 1.25;
+  line-height: 1.3;
   margin: 0 0 8px;
-  font-weight: 800;
+  font-family: "Marcellus", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: 0.2px;
 }
 
 h2 {
-  font-size: 1.35rem;
+  font-size: 1.45rem;
   margin: 44px 0 12px;
-  font-weight: 700;
+  font-family: "Marcellus", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: 0.2px;
   color: var(--accent);
 }
 

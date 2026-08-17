@@ -14,6 +14,7 @@ class Tool {
     this.route,
     this.href,
     this.art,
+    this.artAlignment = const Alignment(0, -0.6),
   });
 
   final String name;
@@ -37,10 +38,19 @@ class Tool {
   /// linked to from here.
   final String? href;
 
-  /// Class art behind the card, heavily darkened so the text stays readable.
+  /// Art behind the card, heavily darkened so the text stays readable.
   /// `null` falls back to the flat surface colour — a card without art must
   /// look deliberate, not broken.
   final String? art;
+
+  /// Which part of [art] survives the crop.
+  ///
+  /// The default puts the crop's centre a fifth of the way down, because the
+  /// three class portraits carry their faces there and `Alignment.center`
+  /// landed the visible band on a priest's skirt — on the full-width card,
+  /// which is where a bad crop shows first. A landscape has no face and wants
+  /// its middle, so it says so.
+  final Alignment artAlignment;
 
   bool get isReady => route != null || href != null;
 }
@@ -68,11 +78,19 @@ const tools = <Tool>[
     icon: Icons.local_fire_department_outlined,
     art: 'assets/images/barbaro.webp',
   ),
+  // The guides are listed one by one rather than behind a single "read the
+  // guides" card. There is one written, so this is one card — and that is the
+  // point: a card that leads to a list of one is a click spent on nothing, and
+  // as guides are written the front page fills itself.
   Tool(
-    name: 'Começando no PW? Aprenda aqui',
-    tagline: 'Ideias e sugestões de como iniciar no mundo de Pangu.',
+    name: 'Início rápido',
+    tagline:
+        'Como ganhar nível: as quests vermelhas, o Vale da Fênix e as '
+        'Anedotas.',
     icon: Icons.auto_stories_outlined,
-    href: '/guias/',
-    art: 'assets/images/sacerdote.webp',
+    href: '/guias/inicio-rapido',
+    art: 'assets/images/guia-inicio-rapido.webp',
+    // A landscape, not a portrait: it wants its middle.
+    artAlignment: Alignment.center,
   ),
 ];

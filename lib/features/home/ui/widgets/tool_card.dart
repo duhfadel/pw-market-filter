@@ -32,7 +32,8 @@ class ToolCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.passthrough,
           children: [
-            if (tool.art != null) _Art(path: tool.art!),
+            if (tool.art != null)
+              _Art(path: tool.art!, alignment: tool.artAlignment),
             InkWell(
               borderRadius: BorderRadius.circular(14),
               onTap: ready ? () => _openTool(context, tool) : null,
@@ -74,9 +75,10 @@ void _openTool(BuildContext context, Tool tool) {
 /// to nearly nothing on the right, so the left third, where every line of text
 /// begins, is effectively flat.
 class _Art extends StatelessWidget {
-  const _Art({required this.path});
+  const _Art({required this.path, required this.alignment});
 
   final String path;
+  final Alignment alignment;
 
   @override
   Widget build(BuildContext context) => Positioned.fill(
@@ -92,15 +94,14 @@ class _Art extends StatelessWidget {
               child: Image.asset(
                 path,
                 fit: BoxFit.cover,
-                // All three crops put the face around a fifth of the way down,
-                // not at the centre — `Alignment.center` was measured against
-                // that assumption and it was wrong. It survived on the
-                // half-width cards, whose art box is tall enough that the
-                // visible band reaches the face anyway, and broke the moment a
-                // card went full width: the box became a 600×110 letterbox and
-                // the band landed on the priest's skirt. -0.6 puts the crop's
-                // centre at 20% down, where the faces actually are.
-                alignment: const Alignment(0, -0.6),
+                // Whatever the tool asks for; the default and the reason for
+                // it live on `Tool.artAlignment`. What is worth repeating here
+                // is how the mistake showed up: a wrong alignment survives on
+                // the half-width cards, whose art box is tall enough to reach
+                // the subject anyway, and only breaks when a card goes full
+                // width and the box becomes a 600×110 letterbox. Judge a new
+                // art on the widest card it can land on.
+                alignment: alignment,
                 // A missing file leaves the flat card rather than a broken box.
                 errorBuilder: (_, _, _) => const SizedBox.shrink(),
               ),

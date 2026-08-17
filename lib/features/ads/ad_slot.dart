@@ -41,16 +41,18 @@ class AdConfig {
 ///
 /// To hand the space to a sponsor: set [AdConfig.active] to true, drop the art
 /// in `assets/images/`, and fill in the link.
-const adConfig = AdConfig(
-  // TODO(portal): fill in `houseAdLink` below and flip this to true. The house
-  // ad needs somewhere to send whoever clicks it — a Discord invite, a profile,
-  // an e-mail — and inventing one would send people nowhere.
-  active: false,
-  title: 'Publicidade',
-);
+const adConfig = AdConfig(active: true, title: 'Publicidade');
 
 /// Where the house ad sends someone who wants to advertise.
-const houseAdLink = '';
+///
+/// An address and not a Discord profile: a profile link opens nothing for
+/// somebody who shares no server with you, which is most of the people this
+/// space is meant to reach.
+const houseAdLink = 'mailto:$adEmail';
+
+/// Written once and shown as text as well as linked, because a `mailto:` that
+/// a phone cannot open leaves nothing on screen to copy.
+const adEmail = 'duhspain@gmail.com';
 
 /// A banner, or nothing at all.
 ///
@@ -146,8 +148,19 @@ class _HouseAd extends StatelessWidget {
       border: Border.all(color: PWColors.border),
     ),
     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-    child: const Text(
-      'Quer anunciar aqui? Fale com o Portal PW.',
+    child: const Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(text: 'Quer anunciar aqui? Escreva para '),
+          TextSpan(
+            text: adEmail,
+            style: TextStyle(
+              color: PWColors.accent,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
       textAlign: TextAlign.center,
       style: TextStyle(color: PWColors.textMuted, fontSize: 13),
     ),

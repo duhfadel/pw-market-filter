@@ -391,10 +391,16 @@ Each of these already cost something — measured on the live site, not guessed.
   a shipped change was first judged missing on 2026-08-17; the bundle on the
   server was already correct, byte for byte.
 
-  To check a deploy, clear the browser cache rather than reloading — a
-  cache-buster on the page URL does not touch the scripts. The fix for visitors
-  is one setting: Cloudflare → Caching → Configuration → Browser Cache TTL →
-  *Respect existing headers*, which hands the ten minutes back. The index JSON
+  **Fixed on 2026-08-17**, and the fix is one setting: Cloudflare → Caching →
+  Configuration → Browser Cache TTL → *Respect existing headers*. Measured
+  afterwards, `index.html`, `flutter_bootstrap.js`, `main.dart.js`, the assets
+  and the guides' CSS all come back `max-age=600`. If a deploy ever seems not
+  to arrive again, measure that header first — if it is back at 14400, the
+  setting was changed, and nothing in this repository can cause that.
+
+  To check a deploy, clear the browser cache rather than reloading: a
+  cache-buster on the page URL does not touch the scripts, which is what made
+  the bundle look stale while it was already correct on the server. The index JSON
   escapes this because `IndexRepository` appends `?t=<millis>`; that
   cache-buster is why the data is never the stale part, and it is why it must
   stay.

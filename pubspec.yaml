@@ -77,6 +77,18 @@ flutter:
     - assets/icons/classes/
     - assets/icons/items/
 
+  # One face, one weight, for headings only. Bundled rather than fetched:
+  # `google_fonts` would add a dependency and go to a CDN at runtime, which is
+  # a network round trip and a third party for something that weighs 46 KB.
+  #
+  # Marcellus is under the SIL Open Font License; the licence ships beside it
+  # in assets/fonts/OFL.txt because redistributing the file is what that
+  # licence asks for.
+  fonts:
+    - family: Marcellus
+      fonts:
+        - asset: assets/fonts/Marcellus-Regular.ttf
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

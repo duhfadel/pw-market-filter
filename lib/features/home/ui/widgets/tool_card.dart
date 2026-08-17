@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/pw_colors.dart';
+import '../../../../core/theme/pw_theme.dart';
 import '../../domain/tool.dart';
 
 /// One tool in the menu.
@@ -156,7 +157,11 @@ class _Body extends StatelessWidget {
           Expanded(
             child: Text(
               tool.name,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              style: const TextStyle(
+                fontFamily: PWTheme.display,
+                fontSize: 18,
+                letterSpacing: 0.2,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),

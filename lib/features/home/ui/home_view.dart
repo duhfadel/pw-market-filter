@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/pw_colors.dart';
+import '../../../core/theme/pw_theme.dart';
 import '../../search/ui/search_state.dart';
 import '../../search/ui/search_view_model.dart';
 import '../domain/tool.dart';
@@ -80,11 +81,14 @@ class HomeView extends StatelessWidget {
                     'Ache o personagem certo pelo que ele está usando',
                     textAlign: TextAlign.center,
                     style: TextStyle(
+                      fontFamily: PWTheme.display,
                       color: PWColors.text,
-                      fontSize: large ? 34 : (wide ? 28 : 23),
-                      fontWeight: FontWeight.w800,
-                      height: 1.2,
-                      letterSpacing: -0.4,
+                      // Marcellus is lighter and wider than Roboto at the same
+                      // size, so the headline gains a couple of points and
+                      // loses the extra weight it needed as a sans.
+                      fontSize: large ? 38 : (wide ? 31 : 25),
+                      height: 1.25,
+                      letterSpacing: 0.2,
                     ),
                   ),
                 ),

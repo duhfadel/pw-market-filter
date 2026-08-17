@@ -1,0 +1,170 @@
+/// A search written as a query string, and read back from one.
+///
+/// This exists so a finding can be sent to somebody. Before it, the only thing
+/// anyone could share was the site — and "there is a filter over there" is a
+/// far weaker message than "here are the fourteen characters with a 70 weapon
+/// under 500 TCC".
+///
+/// The parameters are readable on purpose rather than a single encoded blob:
+/// the link pasted into a group already says what it does, which is half of
+/// why anyone clicks it.
+///
+/// The two halves are deliberately asymmetric. Encoding writes only what was
+/// asked; decoding forgives everything, because the input is a link somebody
+/// saved a month ago, pointing at an item that may have left the market, in a
+/// format this version may no longer write. A shared link that opens the wrong
+/// filter is a disappointment; one that opens an error is a dead end.
+library;
+
+import 'item_criterion.dart';
+import 'search_query.dart';
+
+const _classParam = 'classe';
+const _cultivationParam = 'cultivo';
+const _levelParam = 'nivel';
+const _priceParam = 'preco';
+const _itemParam = 'item';
+const _comboParam = 'carta';
+const _rarityParam = 'raridade';
+const _maxedParam = 'maximas';
+const _criterionParam = 'c';
+const _orderParam = 'ordem';
+
+/// The query string without its leading `?`. Empty when nothing is being asked
+/// and the order is the default one.
+String encodeQuery(SearchQuery query) {
+  final params = <String, List<String>>{};
+
+  void put(String key, String? value) {
+    if (value != null) params[key] = [value];
+  }
+
+  put(_classParam, query.characterClass);
+  put(_cultivationParam, query.cultivation);
+  put(_levelParam, _encodeRange(query.minLevel, query.maxLevel));
+  put(_priceParam, _encodeRange(query.minPrice, query.maxPrice));
+  put(_comboParam, query.comboName);
+  put(_rarityParam, query.cardRarity);
+  if (query.cardsMaxed) put(_maxedParam, '1');
+
+  if (query.itemBySlot.isNotEmpty) {
+    params[_itemParam] = [
+      for (final entry in query.itemBySlot.entries)
+        '${entry.key}:${entry.value}',
+    ];
+  }
+
+  final criteria = query.criteria.where(_asks).toList();
+  if (criteria.isNotEmpty) {
+    params[_criterionParam] = [for (final c in criteria) _encodeCriterion(c)];
+  }
+
+  if (query.order != ResultOrder.cheapest) {
+    params[_orderParam] = [query.order.name];
+  }
+
+  if (params.isEmpty) return '';
+  return Uri(queryParameters: params).query;
+}
+
+/// Reads what it recognises and silently drops the rest.
+SearchQuery decodeQuery(Map<String, List<String>> params) {
+  String? first(String key) {
+    final values = params[key];
+    if (values == null || values.isEmpty) return null;
+    final value = values.first.trim();
+    return value.isEmpty ? null : value;
+  }
+
+  final (minLevel, maxLevel) = _decodeRange(first(_levelParam));
+  final (minPrice, maxPrice) = _decodeRange(first(_priceParam));
+
+  final itemBySlot = <int, int>{};
+  for (final entry in params[_itemParam] ?? const <String>[]) {
+    final parts = entry.split(':');
+    if (parts.length != 2) continue;
+    final slot = int.tryParse(parts[0]);
+    final itemId = int.tryParse(parts[1]);
+    if (slot != null && itemId != null) itemBySlot[slot] = itemId;
+  }
+
+  final criteria = <ItemCriterion>[];
+  for (final entry in params[_criterionParam] ?? const <String>[]) {
+    final criterion = _decodeCriterion(entry);
+    if (criterion != null && _asks(criterion)) criteria.add(criterion);
+  }
+
+  return SearchQuery(
+    characterClass: first(_classParam),
+    cultivation: first(_cultivationParam),
+    minLevel: minLevel,
+    maxLevel: maxLevel,
+    minPrice: minPrice,
+    maxPrice: maxPrice,
+    itemBySlot: itemBySlot,
+    comboName: first(_comboParam),
+    cardRarity: first(_rarityParam),
+    cardsMaxed: first(_maxedParam) == '1',
+    criteria: criteria,
+    order: _decodeOrder(first(_orderParam)),
+  );
+}
+
+/// A criterion left at its defaults is a row being filled in, not a question.
+/// Writing it into the link would share a criterion that matches everybody.
+bool _asks(ItemCriterion criterion) =>
+    criterion.slot != null ||
+    criterion.attributeId != null ||
+    criterion.minimumRefine > 0 ||
+    criterion.minimumRank > 0;
+
+String _encodeCriterion(ItemCriterion criterion) => [
+  criterion.slot?.toString() ?? '',
+  criterion.attributeId?.toString() ?? '',
+  criterion.minimum.toString(),
+  criterion.minimumRefine.toString(),
+  criterion.minimumRank.toString(),
+].join(':');
+
+ItemCriterion? _decodeCriterion(String entry) {
+  final parts = entry.split(':');
+  if (parts.length != 5) return null;
+
+  // An unreadable slot or attribute becomes "any", and an unreadable number
+  // becomes zero, which is what "do not ask" already means for a refine and a
+  // rank. Every fallback widens the search rather than narrowing it: a shared
+  // link that shows too much is recoverable by looking, one that shows too
+  // little looks like an empty market.
+  return ItemCriterion(
+    slot: int.tryParse(parts[0]),
+    attributeId: int.tryParse(parts[1]),
+    minimum: int.tryParse(parts[2]) ?? 0,
+    minimumRefine: int.tryParse(parts[3]) ?? 0,
+    minimumRank: int.tryParse(parts[4]) ?? 0,
+  );
+}
+
+/// `min-max`, either side allowed to be missing. `null` when neither is asked.
+String? _encodeRange(int? min, int? max) {
+  if (min == null && max == null) return null;
+  return '${min ?? ''}-${max ?? ''}';
+}
+
+(int?, int?) _decodeRange(String? value) {
+  if (value == null) return (null, null);
+
+  final separator = value.indexOf('-');
+  if (separator < 0) return (null, null);
+
+  return (
+    int.tryParse(value.substring(0, separator)),
+    int.tryParse(value.substring(separator + 1)),
+  );
+}
+
+ResultOrder _decodeOrder(String? name) {
+  for (final order in ResultOrder.values) {
+    if (order.name == name) return order;
+  }
+  return ResultOrder.cheapest;
+}

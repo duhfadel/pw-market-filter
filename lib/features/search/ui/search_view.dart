@@ -8,6 +8,7 @@ import 'search_state.dart';
 import 'search_view_model.dart';
 import 'widgets/character_card.dart';
 import 'widgets/filter_panel.dart';
+import 'widgets/preset_chips.dart';
 
 class SearchView extends StatefulWidget {
   const SearchView({super.key, this.arriving});
@@ -168,7 +169,7 @@ class _Results extends StatelessWidget {
             ),
       body: Column(
         children: [
-          const _Disclaimer(),
+          _Disclaimer(wide: wide),
           const Divider(height: 1),
           Expanded(
             child: Row(
@@ -177,7 +178,15 @@ class _Results extends StatelessWidget {
                   SizedBox(width: 340, child: panel),
                   const VerticalDivider(width: 1),
                 ],
-                Expanded(child: _Grid(state: state)),
+                Expanded(
+                  child: Column(
+                    children: [
+                      PresetChips(state: state, viewModel: viewModel),
+                      const Divider(height: 1),
+                      Expanded(child: _Grid(state: state)),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -197,25 +206,36 @@ class _Results extends StatelessWidget {
 ///
 /// It sits above the filter and the results, on both layouts, and it stays —
 /// a notice that can be dismissed is a notice most visitors never see.
+///
+/// On a phone it says the same thing in one line instead of three. Moving it
+/// to a footer was considered and rejected for the reason above; what could be
+/// given up was the second sentence, which explains the project rather than
+/// making the claim. The claim — not ours, nothing for sale — is what a
+/// visitor arriving from a link needs, and it is what stays at every width.
 class _Disclaimer extends StatelessWidget {
-  const _Disclaimer();
+  const _Disclaimer({required this.wide});
+
+  final bool wide;
 
   @override
   Widget build(BuildContext context) => Container(
     width: double.infinity,
     color: PWColors.surface,
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-    child: const Row(
+    child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(Icons.info_outline, size: 15, color: PWColors.textMuted),
-        SizedBox(width: 8),
+        const Icon(Icons.info_outline, size: 15, color: PWColors.textMuted),
+        const SizedBox(width: 8),
         Expanded(
           child: Text(
-            'Não somos donos do marketplace e não vendemos nada. Este é um '
-            'projeto de fã: só lemos as páginas públicas para facilitar a '
-            'busca e ajudar a comunidade.',
-            style: TextStyle(
+            wide
+                ? 'Não somos donos do marketplace e não vendemos nada. Este é '
+                      'um projeto de fã: só lemos as páginas públicas para '
+                      'facilitar a busca e ajudar a comunidade.'
+                : 'Projeto de fã. Não somos donos do marketplace e não '
+                      'vendemos nada.',
+            style: const TextStyle(
               color: PWColors.textMuted,
               fontSize: 12,
               height: 1.4,

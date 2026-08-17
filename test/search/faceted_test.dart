@@ -80,10 +80,10 @@ void main() {
   test('with nothing chosen, every control offers everything', () {
     final state = _ready(const SearchQuery());
 
-    expect(
-      state.facetsFor(FacetDimension.characterClass).classes,
-      ['Guerreiro', 'Mago'],
-    );
+    expect(state.facetsFor(FacetDimension.characterClass).classes, [
+      'Guerreiro',
+      'Mago',
+    ]);
   });
 
   test('choosing cards narrows the class list to who wears them', () {
@@ -91,10 +91,9 @@ void main() {
     // because no Mago has it.
     final state = _ready(const SearchQuery(cardRarity: 'S'));
 
-    expect(
-      state.facetsFor(FacetDimension.characterClass).classes,
-      ['Guerreiro'],
-    );
+    expect(state.facetsFor(FacetDimension.characterClass).classes, [
+      'Guerreiro',
+    ]);
   });
 
   test('choosing cards narrows the weapon list too', () {
@@ -120,10 +119,10 @@ void main() {
     // it and the class list would offer Guerreiro alone, with no way back.
     final state = _ready(const SearchQuery(characterClass: 'Guerreiro'));
 
-    expect(
-      state.facetsFor(FacetDimension.characterClass).classes,
-      ['Guerreiro', 'Mago'],
-    );
+    expect(state.facetsFor(FacetDimension.characterClass).classes, [
+      'Guerreiro',
+      'Mago',
+    ]);
   });
 
   test('but that choice does narrow the other controls', () {
@@ -146,14 +145,17 @@ void main() {
     ]);
   });
 
-  test('a filter matching nobody leaves the other controls empty, not full', () {
-    // The honest answer to "which classes have this?" when nothing does is
-    // none — not "all of them", which would invite another dead query.
-    final state = _ready(const SearchQuery(maxPrice: 1));
+  test(
+    'a filter matching nobody leaves the other controls empty, not full',
+    () {
+      // The honest answer to "which classes have this?" when nothing does is
+      // none — not "all of them", which would invite another dead query.
+      final state = _ready(const SearchQuery(maxPrice: 1));
 
-    expect(state.facetsFor(FacetDimension.characterClass).classes, isEmpty);
-    expect(state.results, isEmpty);
-  });
+      expect(state.facetsFor(FacetDimension.characterClass).classes, isEmpty);
+      expect(state.results, isEmpty);
+    },
+  );
 
   test('the attribute vocabulary is read from the whole market', () {
     // Attributes must not vanish as a minimum is typed: the list is what tells

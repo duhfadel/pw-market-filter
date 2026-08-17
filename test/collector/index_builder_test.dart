@@ -90,7 +90,10 @@ void main() {
         _item({'Nível de Ataque': const []}),
       ]);
 
-      expect(builder.build().characters.single.equipped.single.attributes, isEmpty);
+      expect(
+        builder.build().characters.single.equipped.single.attributes,
+        isEmpty,
+      );
     });
 
     test('the same item worn by two characters is stored once', () {

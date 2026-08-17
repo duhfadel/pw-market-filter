@@ -85,10 +85,7 @@ void main() {
     // "this was never confirmed". Two candidates — Emissários and Mestres —
     // are kept in the source and off the list for exactly this reason.
     for (final combo in cardCombos) {
-      final wearers = runQuery(
-        index,
-        SearchQuery(comboName: combo.name),
-      );
+      final wearers = runQuery(index, SearchQuery(comboName: combo.name));
       expect(wearers, isNotEmpty, reason: combo.name);
     }
   });

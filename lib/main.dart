@@ -5,6 +5,7 @@ import 'core/di/injection.dart';
 import 'core/theme/pw_theme.dart';
 import 'features/home/ui/home_view.dart';
 import 'features/home/ui/visit_counter_view_model.dart';
+import 'features/search/domain/search_query_url.dart';
 import 'features/search/ui/search_view.dart';
 import 'features/search/ui/search_view_model.dart';
 
@@ -30,14 +31,26 @@ class PortalPWApp extends StatelessWidget {
     // Flutter web's default strategy writes the route after a `#`, which is
     // what GitHub Pages needs: it serves files, so `/filtro` would 404 while
     // `/#/filtro` is the same index.html.
+    // A browser arriving at `/#/filtro?preco=-500` overrides this: Flutter
+    // takes the platform's route whenever it is not `/`, which is exactly what
+    // makes a shared search openable.
     initialRoute: '/',
-    onGenerateRoute: (settings) => MaterialPageRoute(
-      settings: settings,
-      builder: (_) => switch (settings.name) {
-        '/filtro' => const SearchView(),
-        _ => const HomeView(),
-      },
-    ),
+    onGenerateRoute: (settings) {
+      // The name carries the query string once a search is being shared, so it
+      // cannot be compared to '/filtro' whole — that comparison sent every
+      // shared link to the front page.
+      final route = Uri.parse(settings.name ?? '/');
+
+      return MaterialPageRoute(
+        settings: settings,
+        builder: (_) => switch (route.path) {
+          '/filtro' => SearchView(
+            arriving: decodeQuery(route.queryParametersAll),
+          ),
+          _ => const HomeView(),
+        },
+      );
+    },
 
     // Both ViewModels sit above every route. The front page shows figures off
     // the same index the filter searches, and `builder` wraps the Navigator,

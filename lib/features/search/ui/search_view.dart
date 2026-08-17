@@ -9,12 +9,34 @@ import 'search_view_model.dart';
 import 'widgets/character_card.dart';
 import 'widgets/filter_panel.dart';
 
-class SearchView extends StatelessWidget {
-  const SearchView({super.key});
+class SearchView extends StatefulWidget {
+  const SearchView({super.key, this.arriving});
+
+  /// The search the address bar arrived with, if any.
+  ///
+  /// It is asked for once, on the way in, and never again: after that the form
+  /// owns the query, and re-applying this on every rebuild would undo the
+  /// visitor's next click.
+  final SearchQuery? arriving;
 
   /// Below this the two columns do not both fit, and the filter moves into a
   /// drawer instead of squeezing the cards to nothing.
   static const _twoColumnWidth = 900.0;
+
+  @override
+  State<SearchView> createState() => _SearchViewState();
+}
+
+class _SearchViewState extends State<SearchView> {
+  @override
+  void initState() {
+    super.initState();
+
+    final arriving = widget.arriving;
+    if (arriving != null && !arriving.isEmpty) {
+      context.read<SearchViewModel>().request(arriving);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

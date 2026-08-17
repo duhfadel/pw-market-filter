@@ -412,18 +412,35 @@ void main() {
 
     test('class, price, level and cultivation each exclude on their own', () {
       expect(
-        matchesQuery(_index, leandrim, const SearchQuery(characterClass: 'Arcano')),
+        matchesQuery(
+          _index,
+          leandrim,
+          const SearchQuery(characterClass: 'Arcano'),
+        ),
         isFalse,
       );
-      expect(matchesQuery(_index, leandrim, const SearchQuery(maxPrice: 999)), isFalse);
+      expect(
+        matchesQuery(_index, leandrim, const SearchQuery(maxPrice: 999)),
+        isFalse,
+      );
       expect(
         matchesQuery(_index, leandrim, const SearchQuery(minPrice: 1001)),
         isFalse,
       );
-      expect(matchesQuery(_index, leandrim, const SearchQuery(minLevel: 106)), isFalse);
-      expect(matchesQuery(_index, leandrim, const SearchQuery(maxLevel: 104)), isFalse);
       expect(
-        matchesQuery(_index, leandrim, const SearchQuery(cultivation: 'Demônio')),
+        matchesQuery(_index, leandrim, const SearchQuery(minLevel: 106)),
+        isFalse,
+      );
+      expect(
+        matchesQuery(_index, leandrim, const SearchQuery(maxLevel: 104)),
+        isFalse,
+      );
+      expect(
+        matchesQuery(
+          _index,
+          leandrim,
+          const SearchQuery(cultivation: 'Demônio'),
+        ),
         isFalse,
       );
     });
@@ -507,13 +524,12 @@ void main() {
     test('each ordering puts a different character first', () {
       const empty = SearchQuery();
 
+      expect(runQuery(index, empty).map((c) => c.price), [40, 90, 1000]);
       expect(
-        runQuery(index, empty).map((c) => c.price),
-        [40, 90, 1000],
-      );
-      expect(
-        runQuery(index, empty.copyWith(order: ResultOrder.dearest))
-            .map((c) => c.price),
+        runQuery(
+          index,
+          empty.copyWith(order: ResultOrder.dearest),
+        ).map((c) => c.price),
         [1000, 90, 40],
       );
     });
@@ -524,10 +540,7 @@ void main() {
         order: ResultOrder.dearest,
       ).copyWith(characterClass: () => 'Guerreiro');
 
-      expect(
-        runQuery(index, viewModelLike).map((c) => c.price).first,
-        1000,
-      );
+      expect(runQuery(index, viewModelLike).map((c) => c.price).first, 1000);
     });
 
     test('a query nobody matches returns empty, and that is an answer', () {

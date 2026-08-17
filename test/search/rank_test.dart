@@ -201,7 +201,11 @@ void main() {
       const criterion = ItemCriterion(slot: weaponSlot, minimumRank: 4);
 
       expect(
-        bestMatchFor(_index, _character('Pobre', [_weapon(simples)]), criterion),
+        bestMatchFor(
+          _index,
+          _character('Pobre', [_weapon(simples)]),
+          criterion,
+        ),
         isNull,
       );
     });

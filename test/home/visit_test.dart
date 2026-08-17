@@ -69,20 +69,23 @@ void main() {
       expect(called, ['register_visit']);
     });
 
-    test('answers null rather than throwing when the counter is down', () async {
-      expect(await reload('', status: 503).register(), isNull);
+    test(
+      'answers null rather than throwing when the counter is down',
+      () async {
+        expect(await reload('', status: 503).register(), isNull);
 
-      expect(
-        await VisitRepository(
-          memory: memory,
-          client: MockClient((_) async => throw const _Offline()),
-        ).register(),
-        isNull,
-      );
+        expect(
+          await VisitRepository(
+            memory: memory,
+            client: MockClient((_) async => throw const _Offline()),
+          ).register(),
+          isNull,
+        );
 
-      // A body that is not a number must not reach the footer either.
-      expect(await reload('"muitas"').register(), isNull);
-    });
+        // A body that is not a number must not reach the footer either.
+        expect(await reload('"muitas"').register(), isNull);
+      },
+    );
 
     test('does not mark the day when the call failed', () async {
       await reload('', status: 503).register();

@@ -2,18 +2,40 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/result/result.dart';
 import '../../../market/index_repository.dart';
+import '../data/address_bar.dart';
 import '../domain/item_criterion.dart';
 import '../domain/matcher.dart';
 import '../domain/search_query.dart';
+import '../domain/search_query_url.dart';
 import 'search_state.dart';
 
 /// The ViewModel is the Bloc. Every change to the form rebuilds the query and
 /// re-runs it — 779 characters against a handful of criteria is nothing, so
 /// there is no reason to make the user press a button.
 class SearchViewModel extends Cubit<SearchState> {
-  SearchViewModel(this._repository) : super(const SearchLoading());
+  SearchViewModel(this._repository, [this._addressBar = const AddressBar()])
+    : super(const SearchLoading());
 
   final IndexRepository _repository;
+  final AddressBar _addressBar;
+
+  /// A search that arrived from outside the form — a shared link, or a figure
+  /// on the front page — before there was an index to run it against.
+  SearchQuery? _pending;
+
+  /// Runs [query] as soon as there is something to run it against.
+  ///
+  /// The index is 1.7 MB and the link is read the instant the page opens, so
+  /// most shared links arrive here first. Dropping the query while loading
+  /// would open somebody's careful search on the unfiltered market, which reads
+  /// as a filter that failed rather than a page still loading.
+  void request(SearchQuery query) {
+    if (state is SearchReady) {
+      _apply(query);
+    } else {
+      _pending = query;
+    }
+  }
 
   Future<void> load() async {
     emit(const SearchLoading());
@@ -22,7 +44,11 @@ class SearchViewModel extends Cubit<SearchState> {
     emit(
       result.fold(
         (index) {
-          const query = SearchQuery();
+          // Whatever the link asked for, or everybody. The address already says
+          // it, so nothing is written back: replacing the visitor's own link
+          // with our rendering of it, before they have read it, buys nothing.
+          final query = _pending ?? const SearchQuery();
+          _pending = null;
           return SearchReady(
             index: index,
             query: query,
@@ -44,6 +70,7 @@ class SearchViewModel extends Cubit<SearchState> {
     final ready = state;
     if (ready is! SearchReady) return;
 
+    _addressBar.writeFilter(encodeQuery(query));
     emit(ready.copyWith(query: query, results: runQuery(ready.index, query)));
   }
 

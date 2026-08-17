@@ -55,7 +55,11 @@ class HomeView extends StatelessWidget {
                 Center(
                   child: Image.asset(
                     'assets/images/portal-pw-logo.webp',
-                    width: large ? 440 : (wide ? 340 : 260),
+                    // Two thirds of what it was. The mark says the name of the
+                    // site and nothing about what it does, and at 440 px it was
+                    // the entire first fold of a phone — the visitor scrolled
+                    // before learning there was anything here to use.
+                    width: large ? 300 : (wide ? 230 : 180),
                     filterQuality: FilterQuality.medium,
                     // The logo is the one asset whose absence would be
                     // baffling rather than cosmetic, so it falls back to the
@@ -70,10 +74,25 @@ class HomeView extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: wide ? 6 : 4),
+                SizedBox(height: wide ? 18 : 14),
                 Center(
                   child: Text(
-                    'Ferramentas para o mercado do The Classic PW 1.8.7',
+                    'Ache o personagem certo pelo que ele está usando',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: PWColors.text,
+                      fontSize: large ? 34 : (wide ? 28 : 23),
+                      fontWeight: FontWeight.w800,
+                      height: 1.2,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                ),
+                SizedBox(height: wide ? 12 : 10),
+                Center(
+                  child: Text(
+                    'Filtre os personagens à venda do The Classic PW 1.8.7 por '
+                    'arma, cartas, refino e atributos.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: PWColors.textMuted,
@@ -82,7 +101,9 @@ class HomeView extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: large ? 34 : (wide ? 26 : 20)),
+                SizedBox(height: large ? 28 : (wide ? 24 : 20)),
+                const Center(child: _SearchButton()),
+                SizedBox(height: large ? 30 : (wide ? 24 : 20)),
                 BlocBuilder<SearchViewModel, SearchState>(
                   builder: (context, state) => MarketPulse(
                     state: state is SearchReady ? state : null,
@@ -160,6 +181,32 @@ class _Menu extends StatelessWidget {
       ],
     );
   }
+}
+
+/// The one primary action on the page.
+///
+/// Before it the only way into the filter was a card that reads as an
+/// illustration, which asks a first-time visitor to guess that the picture is a
+/// door.
+class _SearchButton extends StatelessWidget {
+  const _SearchButton();
+
+  @override
+  Widget build(BuildContext context) => FilledButton.icon(
+    onPressed: () => Navigator.of(context).pushNamed('/filtro'),
+    icon: const Icon(Icons.search, size: 20),
+    label: const Text('Buscar personagens'),
+    style: FilledButton.styleFrom(
+      backgroundColor: PWColors.accent,
+      foregroundColor: PWColors.background,
+      padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
+      textStyle: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.2,
+      ),
+    ),
+  );
 }
 
 class _Footer extends StatelessWidget {

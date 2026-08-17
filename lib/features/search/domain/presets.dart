@@ -48,41 +48,38 @@ class Preset {
 /// that leaves three quarters of the market on screen teaches nothing — the
 /// visitor taps it, the page does not move, and the tool looks broken.
 List<Preset> presetsFor(MarketIndex index) {
-  final attackLevel = index.attributes.indexOf('Nível de Ataque');
+  final weapon = strongWeaponQuery(index);
 
   return [
-    if (attackLevel >= 0) ...[
-      Preset(
-        'Arma de 70 de ataque',
-        SearchQuery(
-          criteria: [
-            ItemCriterion(
-              slot: weaponSlot,
-              attributeId: attackLevel,
-              minimum: 70,
-            ),
-          ],
-        ),
-      ),
-      Preset(
-        'Arma de 70 até 500 TCC',
-        SearchQuery(
-          maxPrice: 500,
-          criteria: [
-            ItemCriterion(
-              slot: weaponSlot,
-              attributeId: attackLevel,
-              minimum: 70,
-            ),
-          ],
-        ),
-      ),
+    if (weapon != null) ...[
+      Preset('Arma de 70 de ataque', weapon),
+      Preset('Arma de 70 até 500 TCC', weapon.copyWith(maxPrice: () => 500)),
     ],
     const Preset('Seis cartas S', SearchQuery(cardRarity: 'S')),
-    Preset('Portal de Nuema', SearchQuery(comboName: nuema.name)),
+    Preset('Portal de Nuema', nuemaQuery),
     const Preset('Até 100 TCC', SearchQuery(maxPrice: 100)),
   ];
 }
+
+/// The one weapon tier that decides a purchase: 70 attack level.
+///
+/// Every class has its own weapon capping there — seventeen names for one tier
+/// — which is why this asks for the attribute and never for an item. `null`
+/// when the index does not carry the attribute at all, which only a broken
+/// collection would produce.
+SearchQuery? strongWeaponQuery(MarketIndex index) {
+  final attackLevel = index.attributes.indexOf('Nível de Ataque');
+  if (attackLevel < 0) return null;
+
+  return SearchQuery(
+    criteria: [
+      ItemCriterion(slot: weaponSlot, attributeId: attackLevel, minimum: 70),
+    ],
+  );
+}
+
+/// The card combo the market has a name for.
+SearchQuery get nuemaQuery => SearchQuery(comboName: nuema.name);
 
 /// The preset [query] is currently asking, if any.
 ///

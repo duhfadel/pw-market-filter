@@ -45,7 +45,16 @@ void main() {
   testWidgets('with nobody buying it, the space offers itself', (tester) async {
     await _pump(tester, const AdConfig(active: true));
 
-    expect(find.textContaining('Quer anunciar aqui'), findsOneWidget);
+    expect(find.textContaining('Quer anunciar neste espaço'), findsOneWidget);
+  });
+
+  testWidgets('the address is linked, never printed', (tester) async {
+    // A visible address is an address a spam harvester copies. What the
+    // visitor reads is an instruction; the mailto carries the rest.
+    await _pump(tester, const AdConfig(active: true));
+
+    expect(find.textContaining('@'), findsNothing);
+    expect(find.textContaining('Clique aqui'), findsOneWidget);
   });
 
   testWidgets('the compact slot is shorter than the full one', (tester) async {

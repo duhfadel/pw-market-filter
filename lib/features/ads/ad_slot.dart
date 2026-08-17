@@ -50,8 +50,10 @@ const adConfig = AdConfig(active: true, title: 'Publicidade');
 /// space is meant to reach.
 const houseAdLink = 'mailto:$adEmail';
 
-/// Written once and shown as text as well as linked, because a `mailto:` that
-/// a phone cannot open leaves nothing on screen to copy.
+/// The address behind the link. It is deliberately not printed on screen: what
+/// the visitor reads is "clique aqui", so a scraper harvesting visible text
+/// finds nothing to harvest, and the line stops being an address the eye has
+/// to parse before it knows what to do.
 const adEmail = 'duhspain@gmail.com';
 
 /// A banner, or nothing at all.
@@ -151,9 +153,9 @@ class _HouseAd extends StatelessWidget {
     child: const Text.rich(
       TextSpan(
         children: [
-          TextSpan(text: 'Quer anunciar aqui? Escreva para '),
+          TextSpan(text: 'Quer anunciar neste espaço? '),
           TextSpan(
-            text: adEmail,
+            text: 'Clique aqui',
             style: TextStyle(
               color: PWColors.accent,
               fontWeight: FontWeight.w600,

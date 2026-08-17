@@ -108,16 +108,15 @@ class _Results extends StatelessWidget {
         leadingWidth: wide ? null : 44,
         title: Row(
           children: [
-            // Desktop only, and it is not about space. Tried at 26 px on a
-            // phone and it came out a red smudge — the third time this logo
-            // has been asked to work small and the third time it refused. It
-            // is a wordmark over an ornate globe; below about 40 px there is
-            // nothing left to read. The arrow beside it is the part that had
-            // to be on every width, and it is.
-            if (wide) ...[
-              const _HomeMark(height: 46),
-              const SizedBox(width: 14),
-            ],
+            // Two marks, because one image cannot do both jobs. The wordmark
+            // is a script over an ornate globe: below about 40 px there is
+            // nothing left to read, and at 26 px on a phone it came out a red
+            // smudge — three attempts, three refusals. The monogram is the
+            // same lettering with the globe and the words taken away, so it
+            // still reads at 30. Checked against the wordmark side by side on
+            // the bar's own colour before it went in.
+            _HomeMark(height: wide ? 46 : 30, monogram: !wide),
+            SizedBox(width: wide ? 14 : 10),
             // On a phone the bar holds the way home, the mark, the count, the
             // ordering and the filters, and something has to give. It is not
             // the count: "830 de 830" is the answer to the question the whole
@@ -496,9 +495,12 @@ class _HomeButton extends StatelessWidget {
 /// it does is say which site this screen belongs to, which a bare count and an
 /// arrow do not.
 class _HomeMark extends StatelessWidget {
-  const _HomeMark({required this.height});
+  const _HomeMark({required this.height, this.monogram = false});
 
   final double height;
+
+  /// The `PW` on its own, for the sizes the full wordmark cannot survive.
+  final bool monogram;
 
   @override
   Widget build(BuildContext context) => InkWell(
@@ -508,7 +510,9 @@ class _HomeMark extends StatelessWidget {
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       child: Image.asset(
-        'assets/images/portal-pw-logo.webp',
+        monogram
+            ? 'assets/images/pw-mark.webp'
+            : 'assets/images/portal-pw-logo.webp',
         height: height,
         filterQuality: FilterQuality.medium,
         // The bar must not break over a missing file, and the arrow beside it

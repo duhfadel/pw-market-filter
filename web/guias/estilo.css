@@ -54,7 +54,12 @@ body {
   gap: 14px;
 }
 
+/* The wordmark is a script over an ornate globe: below about 40 px there is
+   nothing left to read, and the phone header was showing a red smudge. The
+   monogram is the same lettering with the globe and the words taken away, and
+   it survives 30 px. Which one is shown is the media query at the bottom. */
 .topo img { height: 46px; width: auto; display: block; }
+.topo .marca-curta { display: none; }
 
 .topo a { display: flex; align-items: center; text-decoration: none; }
 
@@ -206,5 +211,6 @@ footer a { color: var(--text-muted); }
   body { font-size: 16px; }
   h1 { font-size: 1.6rem; }
   main { padding: 28px 18px 60px; }
-  .topo img { height: 38px; }
+  .topo .marca-larga { display: none; }
+  .topo .marca-curta { display: block; height: 32px; }
 }

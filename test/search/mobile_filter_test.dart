@@ -137,4 +137,20 @@ void main() {
     expect(find.byType(Drawer), findsNothing);
     expect(find.byType(FilterPanel), findsNothing);
   });
+
+  testWidgets('the phone carries a mark it can actually read', (tester) async {
+    // The wordmark is a script over an ornate globe and it dies below about
+    // 40 px, which is why the bar used to carry nothing at all on a phone.
+    // The monogram is the same lettering with the globe taken away.
+    await _pumpPhone(tester);
+
+    final marks = tester
+        .widgetList<Image>(find.byType(Image))
+        .map((image) => image.image)
+        .whereType<AssetImage>()
+        .map((image) => image.assetName);
+
+    expect(marks, contains('assets/images/pw-mark.webp'));
+    expect(marks, isNot(contains('assets/images/portal-pw-logo.webp')));
+  });
 }

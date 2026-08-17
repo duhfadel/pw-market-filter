@@ -174,6 +174,26 @@ Each of these already cost something — measured on the live site, not guessed.
   `Connection refused` shows up, because that is the block's face and retrying
   through it only extends it. There is no fast mode to add later; a full pass
   is 779 pages and ~40 min, and that is the design.
+- **A failed deploy is usually GitHub, and `gh run rerun --failed` makes it
+  worse.** On 2026-08-17 the collect, analyze, test and build steps all passed
+  and `actions/deploy-pages` answered **503 — "No server is currently available"**;
+  `githubstatus.com` was reporting a major outage on Actions and API Requests.
+  Re-running only the failed jobs uploaded a *second* artifact named
+  `github-pages`, and the next attempt died on
+  `Multiple artifacts named "github-pages" were unexpectedly found`. The clean
+  move is a fresh run — `gh workflow run publish.yml` — which starts with an
+  empty artifact slate. Check the status page before assuming the repository
+  broke something.
+
+- **A deploy can land and the site still serve the old bundle for ten
+  minutes.** Cloudflare's *edge* cache is separate from the browser TTL that
+  "Respect existing headers" governs: after a successful deploy the asset the
+  build just added answered 200 while `main.dart.js` still came back
+  `cf-cache-status: HIT` with an `age` under 600 and the previous
+  `last-modified`. It expires on its own. The way to tell "still propagating"
+  from "actually broken" is to compare `md5` of the served bundle against
+  `build/web/main.dart.js`, not to look at the page.
+
 - **Never write a test that hits the live site.** It fails for reasons that have
   nothing to do with the code, and it earns the block above. The fixtures in
   `test/fixtures/` are the site, as far as the suite is concerned.

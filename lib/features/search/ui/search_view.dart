@@ -13,12 +13,16 @@ import 'widgets/preset_chips.dart';
 class SearchView extends StatefulWidget {
   const SearchView({super.key, this.arriving});
 
-  /// The search the address bar arrived with, if any.
+  /// The address bar's parameters, if it arrived with any.
   ///
-  /// It is asked for once, on the way in, and never again: after that the form
-  /// owns the query, and re-applying this on every rebuild would undo the
+  /// Parameters and not a `SearchQuery`, because reading them needs the index:
+  /// the attribute travels by name, and only the collection on hand knows what
+  /// number it gives that name.
+  ///
+  /// They are asked for once, on the way in, and never again: after that the
+  /// form owns the query, and re-applying this on every rebuild would undo the
   /// visitor's next click.
-  final SearchQuery? arriving;
+  final Map<String, List<String>>? arriving;
 
   /// Below this the two columns do not both fit, and the filter moves into a
   /// drawer instead of squeezing the cards to nothing.
@@ -34,8 +38,8 @@ class _SearchViewState extends State<SearchView> {
     super.initState();
 
     final arriving = widget.arriving;
-    if (arriving != null && !arriving.isEmpty) {
-      context.read<SearchViewModel>().request(arriving);
+    if (arriving != null && arriving.isNotEmpty) {
+      context.read<SearchViewModel>().requestUrl(arriving);
     }
   }
 

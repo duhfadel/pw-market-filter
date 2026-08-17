@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/pw_colors.dart';
+import '../../../../market/market_index.dart';
 import '../../../search/domain/matcher.dart';
 import '../../../search/domain/presets.dart';
 import '../../../search/domain/search_query.dart';
@@ -52,6 +53,7 @@ class MarketPulse extends StatelessWidget {
         '${index.characters.length}',
         'personagens à venda',
         const SearchQuery(),
+        index,
       ),
     ];
 
@@ -60,12 +62,22 @@ class MarketPulse extends StatelessWidget {
       final strong = runQuery(index, weapon);
       if (strong.isNotEmpty) {
         figures.add(
-          _Figure('${strong.length}', 'com arma de 70 de ataque', weapon),
+          _Figure(
+            '${strong.length}',
+            'com arma de 70 de ataque',
+            weapon,
+            index,
+          ),
         );
         // `runQuery` orders by cheapest first, which is the default and also
         // what this figure is asking for.
         figures.add(
-          _Figure('${strong.first.price} TCC', 'o mais barato deles', weapon),
+          _Figure(
+            '${strong.first.price} TCC',
+            'o mais barato deles',
+            weapon,
+            index,
+          ),
         );
       }
     }
@@ -73,7 +85,12 @@ class MarketPulse extends StatelessWidget {
     final nuemaWearers = runQuery(index, nuemaQuery);
     if (nuemaWearers.isNotEmpty) {
       figures.add(
-        _Figure('${nuemaWearers.length}', 'com o Portal de Nuema', nuemaQuery),
+        _Figure(
+          '${nuemaWearers.length}',
+          'com o Portal de Nuema',
+          nuemaQuery,
+          index,
+        ),
       );
     }
 
@@ -90,13 +107,17 @@ class MarketPulse extends StatelessWidget {
 }
 
 class _Figure {
-  const _Figure(this.value, this.label, this.query);
+  const _Figure(this.value, this.label, this.query, this.index);
 
   final String value;
   final String label;
 
   /// The search this figure counted, and the one tapping it opens.
   final SearchQuery query;
+
+  /// Needed to write the link: an attribute is written by name, and the name
+  /// lives here.
+  final MarketIndex index;
 }
 
 class _Stat extends StatelessWidget {
@@ -112,7 +133,7 @@ class _Stat extends StatelessWidget {
     onTap: () {
       // The whole search travels in the route name, so the address bar is
       // right on arrival rather than being corrected a frame later.
-      final query = encodeQuery(figure.query);
+      final query = encodeQuery(figure.query, figure.index);
       Navigator.of(
         context,
       ).pushNamed(query.isEmpty ? '/filtro' : '/filtro?$query');

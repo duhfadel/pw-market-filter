@@ -14,8 +14,18 @@
 /// saved a month ago, pointing at an item that may have left the market, in a
 /// format this version may no longer write. A shared link that opens the wrong
 /// filter is a disappointment; one that opens an error is a dead end.
+///
+/// **The attribute travels by name, and that is the whole reason [index] is
+/// here.** `ItemCriterion.attributeId` is a position in
+/// `MarketIndex.attributes`, and the collector hands out those positions in
+/// the order it happens to meet each attribute — so two collections a week
+/// apart disagree about what "attribute 0" means. A link carrying the number
+/// would go on working, go on looking right, and filter by something else
+/// entirely. Everything else in a query is already a stable name or a game id:
+/// classes, cultivations, combos, item ids. The attribute was the one hole.
 library;
 
+import '../../../market/market_index.dart';
 import 'item_criterion.dart';
 import 'search_query.dart';
 
@@ -30,9 +40,26 @@ const _maxedParam = 'maximas';
 const _criterionParam = 'c';
 const _orderParam = 'ordem';
 
+/// What packs the fields of one criterion into one parameter.
+///
+/// A tilde and not a colon, and the difference is the whole readability of a
+/// shared link. `Uri` escapes a colon and escapes the percent signs of a name
+/// encoded by hand, so `Nível de Ataque` came out as
+/// `%3AN%25C3%25ADvel%2520de%2520Ataque%3A` — correct, and gibberish to the
+/// person deciding whether to click. A tilde is left alone, so one layer of
+/// escaping is enough and the browser shows `c=10~Nível de Ataque~70~0~0`.
+///
+/// It also cannot appear in an attribute name. If one ever did, the criterion
+/// would split into six fields and be dropped — the safe direction, and not a
+/// silent misreading.
+const _fieldSeparator = '~';
+
 /// The query string without its leading `?`. Empty when nothing is being asked
 /// and the order is the default one.
-String encodeQuery(SearchQuery query) {
+///
+/// Without [index] the attribute is written as its raw number, which is only
+/// good for comparing two queries written the same way — never for a link.
+String encodeQuery(SearchQuery query, [MarketIndex? index]) {
   final params = <String, List<String>>{};
 
   void put(String key, String? value) {
@@ -50,13 +77,15 @@ String encodeQuery(SearchQuery query) {
   if (query.itemBySlot.isNotEmpty) {
     params[_itemParam] = [
       for (final entry in query.itemBySlot.entries)
-        '${entry.key}:${entry.value}',
+        '${entry.key}$_fieldSeparator${entry.value}',
     ];
   }
 
   final criteria = query.criteria.where(_asks).toList();
   if (criteria.isNotEmpty) {
-    params[_criterionParam] = [for (final c in criteria) _encodeCriterion(c)];
+    params[_criterionParam] = [
+      for (final c in criteria) _encodeCriterion(c, index),
+    ];
   }
 
   if (query.order != ResultOrder.cheapest) {
@@ -68,7 +97,14 @@ String encodeQuery(SearchQuery query) {
 }
 
 /// Reads what it recognises and silently drops the rest.
-SearchQuery decodeQuery(Map<String, List<String>> params) {
+///
+/// [index] resolves attribute names back to their positions in this
+/// collection. Without it, criteria naming an attribute are dropped rather
+/// than guessed at — see [_decodeCriterion].
+SearchQuery decodeQuery(
+  Map<String, List<String>> params, [
+  MarketIndex? index,
+]) {
   String? first(String key) {
     final values = params[key];
     if (values == null || values.isEmpty) return null;
@@ -81,7 +117,7 @@ SearchQuery decodeQuery(Map<String, List<String>> params) {
 
   final itemBySlot = <int, int>{};
   for (final entry in params[_itemParam] ?? const <String>[]) {
-    final parts = entry.split(':');
+    final parts = entry.split(_fieldSeparator);
     if (parts.length != 2) continue;
     final slot = int.tryParse(parts[0]);
     final itemId = int.tryParse(parts[1]);
@@ -90,7 +126,7 @@ SearchQuery decodeQuery(Map<String, List<String>> params) {
 
   final criteria = <ItemCriterion>[];
   for (final entry in params[_criterionParam] ?? const <String>[]) {
-    final criterion = _decodeCriterion(entry);
+    final criterion = _decodeCriterion(entry, index);
     if (criterion != null && _asks(criterion)) criteria.add(criterion);
   }
 
@@ -118,30 +154,70 @@ bool _asks(ItemCriterion criterion) =>
     criterion.minimumRefine > 0 ||
     criterion.minimumRank > 0;
 
-String _encodeCriterion(ItemCriterion criterion) => [
+String _encodeCriterion(ItemCriterion criterion, MarketIndex? index) => [
   criterion.slot?.toString() ?? '',
-  criterion.attributeId?.toString() ?? '',
+  _encodeAttribute(criterion.attributeId, index),
   criterion.minimum.toString(),
   criterion.minimumRefine.toString(),
   criterion.minimumRank.toString(),
-].join(':');
+].join(_fieldSeparator);
 
-ItemCriterion? _decodeCriterion(String entry) {
-  final parts = entry.split(':');
+/// The attribute's name, written plainly. `Uri` does the escaping, once.
+String _encodeAttribute(int? attributeId, MarketIndex? index) {
+  if (attributeId == null) return '';
+  if (index == null || attributeId >= index.attributes.length) {
+    return attributeId.toString();
+  }
+  return index.attributes[attributeId];
+}
+
+ItemCriterion? _decodeCriterion(String entry, MarketIndex? index) {
+  final parts = entry.split(_fieldSeparator);
   if (parts.length != 5) return null;
 
-  // An unreadable slot or attribute becomes "any", and an unreadable number
-  // becomes zero, which is what "do not ask" already means for a refine and a
-  // rank. Every fallback widens the search rather than narrowing it: a shared
-  // link that shows too much is recoverable by looking, one that shows too
-  // little looks like an empty market.
+  final attribute = parts[1];
+  if (attribute.isNotEmpty) {
+    final resolved = _decodeAttribute(attribute, index);
+    // The attribute was named and this collection does not have it. Dropping
+    // the criterion is the honest answer: falling back to "any attribute"
+    // would run a wider search under the visitor's own link, and falling back
+    // to attribute zero would run a different one and call it theirs.
+    if (resolved == null) return null;
+
+    return ItemCriterion(
+      slot: int.tryParse(parts[0]),
+      attributeId: resolved,
+      minimum: int.tryParse(parts[2]) ?? 0,
+      minimumRefine: int.tryParse(parts[3]) ?? 0,
+      minimumRank: int.tryParse(parts[4]) ?? 0,
+    );
+  }
+
+  // An unreadable slot becomes "any", and an unreadable number becomes zero,
+  // which is what "do not ask" already means for a refine and a rank.
   return ItemCriterion(
     slot: int.tryParse(parts[0]),
-    attributeId: int.tryParse(parts[1]),
     minimum: int.tryParse(parts[2]) ?? 0,
     minimumRefine: int.tryParse(parts[3]) ?? 0,
     minimumRank: int.tryParse(parts[4]) ?? 0,
   );
+}
+
+/// The position this collection gives [name], or `null` if it has none.
+///
+/// A bare number is still read as a position, which is what keeps the two
+/// index-less callers — comparing a preset against the current query — working
+/// on the same terms.
+int? _decodeAttribute(String name, MarketIndex? index) {
+  if (index != null) {
+    final position = index.attributes.indexOf(name);
+    if (position >= 0) return position;
+  }
+
+  final number = int.tryParse(name);
+  if (number == null) return null;
+  if (index != null && number >= index.attributes.length) return null;
+  return number;
 }
 
 /// `min-max`, either side allowed to be missing. `null` when neither is asked.

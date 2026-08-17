@@ -23,6 +23,11 @@ class SearchViewModel extends Cubit<SearchState> {
   /// on the front page — before there was an index to run it against.
   SearchQuery? _pending;
 
+  /// A link's parameters, still unread. They cannot be turned into a query
+  /// without the index: the attribute travels by name and only the index knows
+  /// what number this collection gives that name.
+  Map<String, List<String>>? _pendingUrl;
+
   /// Runs [query] as soon as there is something to run it against.
   ///
   /// The index is 1.7 MB and the link is read the instant the page opens, so
@@ -37,6 +42,16 @@ class SearchViewModel extends Cubit<SearchState> {
     }
   }
 
+  /// The search a link is asking for, read against the index once there is one.
+  void requestUrl(Map<String, List<String>> params) {
+    final ready = state;
+    if (ready is SearchReady) {
+      _apply(decodeQuery(params, ready.index));
+    } else {
+      _pendingUrl = params;
+    }
+  }
+
   Future<void> load() async {
     emit(const SearchLoading());
     final result = await _repository.load();
@@ -47,8 +62,12 @@ class SearchViewModel extends Cubit<SearchState> {
           // Whatever the link asked for, or everybody. The address already says
           // it, so nothing is written back: replacing the visitor's own link
           // with our rendering of it, before they have read it, buys nothing.
-          final query = _pending ?? const SearchQuery();
+          final url = _pendingUrl;
+          final query =
+              _pending ??
+              (url == null ? const SearchQuery() : decodeQuery(url, index));
           _pending = null;
+          _pendingUrl = null;
           return SearchReady(
             index: index,
             query: query,
@@ -70,7 +89,7 @@ class SearchViewModel extends Cubit<SearchState> {
     final ready = state;
     if (ready is! SearchReady) return;
 
-    _addressBar.writeFilter(encodeQuery(query));
+    _addressBar.writeFilter(encodeQuery(query, ready.index));
     emit(ready.copyWith(query: query, results: runQuery(ready.index, query)));
   }
 

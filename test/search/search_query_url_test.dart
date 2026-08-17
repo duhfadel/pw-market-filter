@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/features/search/domain/item_criterion.dart';
 import 'package:pw_market_filter/features/search/domain/search_query.dart';
 import 'package:pw_market_filter/features/search/domain/search_query_url.dart';
+import 'package:pw_market_filter/market/market_index.dart';
 
 /// The link is the share. A search that cannot be written down can only be
 /// recommended as "that site", never as the finding — and the finding is the
@@ -113,7 +114,7 @@ void main() {
   test('garbage is ignored rather than thrown', () {
     final back = decodeQuery(
       Uri.parse(
-        '?preco=abc&nivel=&c=x:y&item=dez:onze&ordem=inventada&desconhecido=1',
+        '?preco=abc&nivel=&c=x~y&item=dez~onze&ordem=inventada&desconhecido=1',
       ).queryParametersAll,
     );
 
@@ -126,5 +127,90 @@ void main() {
 
     expect(back.minPrice, 40);
     expect(back.maxPrice, isNull);
+  });
+
+  group('the attribute travels by name', () {
+    // `attributeId` is a position in `MarketIndex.attributes`, and the
+    // collector numbers those in the order it happens to meet them. Two
+    // collections a week apart can therefore disagree about what "attribute 0"
+    // is — so a link that carried the number would keep working, keep looking
+    // right, and quietly filter by something else entirely.
+    MarketIndex indexWith(List<String> attributes) => MarketIndex(
+      server: 'pw187',
+      collectedAt: DateTime.utc(2026, 8, 9),
+      attributes: attributes,
+      items: const {},
+      characters: const [],
+    );
+
+    final august = indexWith(['Nível de Ataque', 'HP']);
+    final september = indexWith(['Vitalidade', 'HP', 'Nível de Ataque']);
+
+    test('the name is what is written down', () {
+      final written = encodeQuery(
+        const SearchQuery(
+          criteria: [ItemCriterion(slot: 10, attributeId: 0, minimum: 70)],
+        ),
+        august,
+      );
+
+      // Readable once the browser has decoded it, which is the state anyone
+      // pasting a link sees.
+      expect(Uri.decodeQueryComponent(written), 'c=10~Nível de Ataque~70~0~0');
+    });
+
+    test('a link survives the market being collected again', () {
+      final link = encodeQuery(
+        const SearchQuery(
+          criteria: [ItemCriterion(slot: 10, attributeId: 0, minimum: 70)],
+        ),
+        august,
+      );
+
+      final back = decodeQuery(
+        Uri.parse('?$link').queryParametersAll,
+        september,
+      );
+
+      expect(
+        september.attributes[back.criteria.single.attributeId!],
+        'Nível de Ataque',
+      );
+    });
+
+    test('an attribute the market no longer has drops its criterion', () {
+      // Not "falls back to attribute zero": that would filter by whatever
+      // happens to sit first and call it the visitor's search.
+      final link = encodeQuery(
+        const SearchQuery(
+          criteria: [ItemCriterion(slot: 10, attributeId: 0, minimum: 70)],
+        ),
+        august,
+      );
+
+      final back = decodeQuery(
+        Uri.parse('?$link').queryParametersAll,
+        indexWith(['HP']),
+      );
+
+      expect(back.criteria, isEmpty);
+    });
+
+    test('a name carrying a colon survives, because they do', () {
+      // "Feitiço da Purificação: Ao ser atingido" is a real attribute name,
+      // and a colon is this format's own separator.
+      final tricky = indexWith(['Feitiço da Purificação: Ao ser atingido']);
+      final link = encodeQuery(
+        const SearchQuery(
+          criteria: [ItemCriterion(attributeId: 0, minimum: 3)],
+        ),
+        tricky,
+      );
+
+      final back = decodeQuery(Uri.parse('?$link').queryParametersAll, tricky);
+
+      expect(back.criteria.single.attributeId, 0);
+      expect(back.criteria.single.minimum, 3);
+    });
   });
 }

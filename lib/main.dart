@@ -5,7 +5,6 @@ import 'core/di/injection.dart';
 import 'core/theme/pw_theme.dart';
 import 'features/home/ui/home_view.dart';
 import 'features/home/ui/visit_counter_view_model.dart';
-import 'features/search/domain/search_query_url.dart';
 import 'features/search/ui/search_view.dart';
 import 'features/search/ui/search_view_model.dart';
 
@@ -44,9 +43,7 @@ class PortalPWApp extends StatelessWidget {
       return MaterialPageRoute(
         settings: settings,
         builder: (_) => switch (route.path) {
-          '/filtro' => SearchView(
-            arriving: decodeQuery(route.queryParametersAll),
-          ),
+          '/filtro' => SearchView(arriving: route.queryParametersAll),
           _ => const HomeView(),
         },
       );

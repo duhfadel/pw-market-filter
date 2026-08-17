@@ -122,10 +122,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(pushed, hasLength(1));
-    final asked = decodeQuery(Uri.parse(pushed.single).queryParametersAll);
+    // Read back the way the filter will read it, against the same index — the
+    // attribute is written by name, so the number only exists on this side.
+    final asked = decodeQuery(
+      Uri.parse(pushed.single).queryParametersAll,
+      _index,
+    );
     final criterion = asked.criteria.single;
     expect(criterion.slot, 10);
-    expect(criterion.attributeId, 0);
+    expect(_index.attributes[criterion.attributeId!], 'Nível de Ataque');
     expect(criterion.minimum, 70);
   });
 
@@ -136,7 +141,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      decodeQuery(Uri.parse(pushed.single).queryParametersAll).isEmpty,
+      decodeQuery(Uri.parse(pushed.single).queryParametersAll, _index).isEmpty,
       isTrue,
     );
   });

@@ -522,6 +522,15 @@ Each of these already cost something — measured on the live site, not guessed.
   to arrive again, measure that header first — if it is back at 14400, the
   setting was changed, and nothing in this repository can cause that.
 
+  **The md5 comparison does not work on a page that contains a `mailto:`.**
+  Cloudflare's email obfuscation rewrites the address into
+  `/cdn-cgi/l/email-protection#<token>` and injects a decoder script — and the
+  token differs on every response, so the served bytes never match the build
+  and two consecutive requests do not match each other. On `/guerras/` that
+  read as "the deploy did not arrive" while the page was already correct.
+  Diff the two files instead of hashing them, or grep for the specific thing
+  the deploy was supposed to add.
+
   To check a deploy, clear the browser cache rather than reloading: a
   cache-buster on the page URL does not touch the scripts, which is what made
   the bundle look stale while it was already correct on the server. The index JSON

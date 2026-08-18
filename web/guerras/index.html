@@ -7,6 +7,10 @@
   <title>Guerras territoriais — Portal PW</title>
   <meta name="description"
         content="O mapa das guerras territoriais do The Classic PW 1.8.7: os 52 territórios, quem domina cada um e quanto de gold cada um rende.">
+  <!-- Fora do Google enquanto a página não é anunciada. Não linkar da home
+       esconde de quem navega, não de um robô: o `noindex` é a metade que
+       fala com ele. Sai junto com o card da home e a volta ao sitemap. -->
+  <meta name="robots" content="noindex">
   <link rel="canonical" href="https://portalpw.net/guerras/">
 
   <meta property="og:type" content="article">
@@ -35,6 +39,15 @@
   main.mapa-largo { max-width:1180px }
 
   .sub { color:var(--text-muted); font-size:14px; margin:0 0 22px }
+
+  /* A prévia se anuncia como prévia. O link vai circular numa mão cheia de
+     pessoas antes de a página existir para o resto do site, e um mapa que
+     parece pronto vira captura de tela com guilda inventada. Some no mesmo
+     commit que traz os donos de verdade. */
+  .previa { background:var(--surface); border:1px solid var(--accent);
+            border-radius:10px; padding:12px 16px; margin:0 0 20px;
+            font-size:13.5px; line-height:1.55 }
+  .previa b { color:var(--accent) }
   .sub b { color:var(--accent); font-weight:600 }
 
   .grade { display:grid; gap:24px; grid-template-columns:minmax(0,1fr) 264px; align-items:start }
@@ -159,6 +172,12 @@
 </header>
 
 <main class="mapa-largo">
+  <div class="previa">
+    <b>Prévia.</b> Esta página ainda não foi anunciada, e as guildas abaixo são
+    <b>fictícias</b> — servem só para mostrar como o mapa funciona. Nada aqui
+    corresponde às guerras de verdade ainda.
+  </div>
+
   <h1>Guerras territoriais</h1>
   <p class="sub" id="sub">Os 52 territórios de Pangu e quem domina cada um.</p>
 

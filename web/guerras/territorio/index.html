@@ -7,6 +7,10 @@
   <title>Território — Guerras territoriais — Portal PW</title>
   <meta name="description"
         content="A ficha de um território das guerras territoriais do The Classic PW 1.8.7: quem domina, quanto rende e o que está acontecendo nele.">
+  <!-- Fora do Google enquanto a página não é anunciada. Não linkar da home
+       esconde de quem navega, não de um robô: o `noindex` é a metade que
+       fala com ele. Sai junto com o card da home e a volta ao sitemap. -->
+  <meta name="robots" content="noindex">
   <link rel="canonical" href="https://portalpw.net/guerras/territorio/">
 
   <meta property="og:type" content="article">
@@ -25,6 +29,11 @@
   <link rel="stylesheet" href="/guias/estilo.css">
 <style>
   :root { --neutro:#343652; --guerra:#E5484D }
+
+  .previa { background:var(--surface); border:1px solid var(--accent);
+            border-radius:10px; padding:12px 16px; margin:0 0 20px;
+            font-size:13.5px; line-height:1.55 }
+  .previa b { color:var(--accent) }
 
   .voltar { display:inline-block; color:var(--text-muted); font-size:13px;
             text-decoration:none; margin-bottom:18px }
@@ -126,6 +135,10 @@
 
 <main>
   <a class="voltar" href="/guerras/">← Voltar ao mapa</a>
+  <div class="previa">
+    <b>Prévia.</b> A guilda, o comentário e o resumo abaixo são
+    <b>fictícios</b> — servem só para mostrar como a ficha funciona.
+  </div>
   <div id="ficha"></div>
 </main>
 

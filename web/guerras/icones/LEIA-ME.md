@@ -16,3 +16,10 @@ ficar em branco enquanto a arte não fica pronta.
 Acrescentar uma arte nova é um commit e um deploy de uns três minutos — é a
 única parte das guerras que ainda passa por CI, e é a que muda menos. Trocar
 qual arquivo uma guilda usa continua sendo editar uma linha no painel.
+
+## Os arquivos `demo-`
+
+`demo-chama.svg` e `demo-jade.svg` não são de ninguém: são das guildas
+fictícias da prévia, para a página mostrar o recurso enquanto os brasões de
+verdade não chegam. Saem no mesmo commit que traz as guildas reais — junto com
+o aviso de prévia, o `noindex` e o card da home.

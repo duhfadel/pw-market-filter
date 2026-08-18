@@ -149,6 +149,26 @@ antes de desenhar. Com uma só, a proteção fica num sistema e o risco no outro
 Escapar não resolve — `javascript:alert(1)` não tem nenhum dos caracteres que
 um escapador troca, e passaria inteiro para dentro do `href`.
 
+## Num PC o mapa cabe na tela
+
+O desenho é 482x635 — mais alto que largo — então quem manda no tamanho dele é
+a **altura** da janela, não a largura. Sem isso, numa tela de 1400 px ele saía
+com 945 px de altura e a metade sul só aparecia rolando, o que num mapa é o
+mesmo que não mostrar.
+
+A conta está no CSS: desconta da altura da janela o cabeçalho, o título e as
+folgas (`--fora`), e converte o que sobra em largura pela proporção do desenho.
+A coluna do mapa encolhe junto e a grade se centraliza, senão sobraria um
+buraco ao lado das guildas.
+
+`--fora` tem dois valores, e o segundo mora num `body:has(.previa)`: o aviso de
+prévia ocupa 76 px e é temporário. Assim, no dia em que ele sair do HTML o mapa
+cresce sozinho para ocupar o espaço — em vez de continuar encolhido por causa
+de um aviso que já não existe.
+
+Medido em 1366x768, 1440x900 e 1920x1080: cabe nas três, sem rolagem lateral. A
+regra é `min-width:881px`, então o telefone segue como estava.
+
 ## A distinção que a página faz questão de manter
 
 Três estados, três frases diferentes, porque confundi-los é publicar mentira:

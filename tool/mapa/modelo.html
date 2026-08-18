@@ -53,6 +53,27 @@
   .grade { display:grid; gap:24px; grid-template-columns:minmax(0,1fr) 264px; align-items:start }
   @media (max-width:880px) { .grade { grid-template-columns:1fr } }
 
+  /* Num PC o mapa inteiro tem que caber de uma vez. Ele é 482x635 — mais alto
+     que largo — então quem manda é a altura da janela, não a largura: sem
+     isto, numa tela de 1400 px ele ficava com 945 px de altura e a metade sul
+     só aparecia rolando, o que num mapa é o mesmo que não mostrar.
+     A conta desconta o cabeçalho, o título, o aviso e as folgas (--fora), e
+     converte a altura que sobra em largura pela proporção do desenho. A
+     coluna encolhe junto e a grade se centraliza, para não sobrar buraco ao
+     lado das guildas. */
+  @media (min-width:881px) {
+    .grade {
+      /* Cabeçalho, título, subtítulo e folgas. O aviso de prévia é temporário
+         e some sozinho da conta no dia em que sair do HTML — sem isso, o mapa
+         continuaria encolhido por um aviso que já não existe. */
+      --fora: 224px;
+      --largura-do-mapa: min(100%, calc((100vh - var(--fora)) * 482 / 635));
+      grid-template-columns: var(--largura-do-mapa) 264px;
+      justify-content: center;
+    }
+    body:has(.previa) .grade { --fora: 300px }
+  }
+
   .quadro { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px }
   .quadro svg { width:100%; height:auto; display:block }
 
@@ -200,14 +221,17 @@
     </aside>
   </div>
 
+  <!-- Entre o mapa e a lista, e não no rodapé: aqui ela fica na dobra que a
+       pessoa cruza ao terminar de olhar o mapa e antes de começar a ler os 52
+       nomes. No pé da página ela só era vista por quem rolava tudo. -->
+  <div class="publicidade">
+    <span class="rotulo">PUBLICIDADE</span>
+    <a class="casa" href="mailto:duhspain@gmail.com">Quer anunciar neste espaço? <strong>Clique aqui</strong></a>
+  </div>
+
   <h2>Os 52 territórios</h2>
   <div class="lista-t" id="lista"></div>
 </main>
-
-<div class="publicidade">
-  <span class="rotulo">PUBLICIDADE</span>
-  <a class="casa" href="mailto:duhspain@gmail.com">Quer anunciar neste espaço? <strong>Clique aqui</strong></a>
-</div>
 
 <footer>
   <p>

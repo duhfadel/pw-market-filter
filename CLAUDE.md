@@ -83,6 +83,7 @@ The two real pages the whole parser rests on are already saved:
 | `dart run tool/collect.dart --rebuild` | Rewrites the index from the saved state — no network, seconds |
 | `dart run tool/fetch_icons.dart` | Downloads class and item icons named by the index; skips what is already on disk |
 | `dart run tool/build_fixture_index.dart` | Builds an index from the saved fixtures — no network, for working on the screen |
+| `python3 tool/mapa/pagina.py` | Rebuilds both pages of `web/guerras/` from the map's SVG and the models in `tool/mapa/` |
 | `flutter run -d chrome` | Runs the app |
 | `flutter test` | Runs every test |
 | `flutter analyze` | Static analysis |
@@ -131,11 +132,17 @@ depends on `market/` and `core/`, never on `collector/`. Nothing depends on
 
 ### The one server
 
-Everything above is static. The single exception is the visit counter in the
-footer, which a static site cannot compute, and which lives in a Supabase
-project called `portal-pw` (`yadfbwsolmkcaylbxviw`, São Paulo).
+Everything above is static. The exceptions are the visit counter in the footer,
+which a static site cannot compute, and the territory map's owners, which
+change weekly and must not cost a deploy. Both live in a Supabase project
+called `portal-pw` (`yadfbwsolmkcaylbxviw`, São Paulo).
 
-The whole schema is one table, `visit_days (day, hits)`, plus two functions.
+Four tables and a view, and **the two halves are opposite on purpose**, which is the part
+to read before changing either.
+
+#### The counter: RLS with no policy
+
+`visit_days (day, hits)`, plus two functions.
 The publishable key is compiled into every visitor's browser and there is no
 hiding it, so the table — not the key — is what holds the line: RLS is on with
 **no policy at all**, which denies the anon role every direct read, insert and
@@ -160,6 +167,81 @@ Nothing prevents someone calling `register_visit` in a loop. On a static site
 there is no session and no server to rate-limit at, and the cost of being wrong
 is a wrong number in a footer, so it is accepted; `visit_days` at least keeps
 the damage to one dated row.
+
+#### The map: RLS with a read policy, on purpose
+
+`territorios (numero, nome, capital, gold, guilda, em_guerra, comentario,
+comentario_por, resumo, + three dates)`, `guildas (nome, cor, brasao)` and
+`streamers (territorio, nome, url, ordem)` are the other case, and copying the
+counter's arrangement onto them would be wrong. Here the rows **are** the page's content, so both
+carry `for select to anon, authenticated using (true)` and an explicit
+`grant select`. What stays shut is writing: no insert, update or delete policy
+exists, so the anon role changes nothing and updating a conquest is editing a
+row in the dashboard — no build, no CI, no deploy.
+
+Probed with curl before shipping, and the probe has a trap worth remembering:
+an anon `PATCH` or `DELETE` answers **204, not 403**, because RLS filters the
+row out rather than refusing the verb, and PostgREST reports zero rows changed
+as success. Believe the follow-up `select`, not the status code — the row was
+read back intact and the count was still 52.
+
+`atualizado_em` is maintained by a trigger that fires **only when `guilda`
+actually changes**, so it dates the conquest and not the last time somebody
+touched the table. The page shows that date, and shows it only when at least
+one territory has an owner: on the day the table was created every row was
+"updated today" while nothing had been conquered. `texto_em` is the same
+trigger for `texto`, and it is a second column rather than a reuse of the
+first because a corrected comma is not a conquest.
+
+**`public.mapa` is a view, and it exists to answer one question cheaply.**
+The map page needs to know which territories are worth clicking — that is
+`tem_ficha` — and computing it in the browser would mean downloading the
+comment and the summary of all 52 just to find out which are empty: paying for
+the whole text in order to show none of it. The view carries
+`security_invoker = true`, without which a view ignores RLS and becomes the
+back door to the tables it reads.
+
+`tem_ficha` must agree exactly with what the ficha will render, and the first
+version did not: it counted a territory's streamers whether or not there was a
+war, while the page only lists them *during* one. A territory with a streamer
+and no war was therefore clickable and opened an empty page — precisely the
+defect the rule exists to prevent. When a section's visibility gains a
+condition, the flag gains the same one.
+
+`streamers.url` becomes an `href`, and it is checked **twice on purpose**. The
+table refuses anything that is not `http(s)`, and the page checks the scheme
+again before rendering — otherwise the protection lives in one system and the
+risk in the other, and dropping the constraint would silently open the hole.
+Escaping does not help here: `javascript:alert(1)` contains none of the
+characters an HTML escaper replaces, so it would travel intact into the `href`.
+`enderecoWeb()` parses with `new URL` and keeps only `http:`/`https:`, which
+also turns away `data:`, `vbscript:`, `file:`, leading whitespace and mixed
+case. A streamer that fails is dropped rather than pointed at `#`: a dead link
+promises a broadcast that does not exist.
+
+`guildas.brasao` holds a **file name**, not an image. The art lives in
+`web/guerras/icones/` and ships in the deploy; the row says which file to use.
+So changing a guild's crest stays a dashboard edit and only *adding* new art
+costs a commit — the right frequency, since a guild is born far less often
+than a territory changes hands. A missing file leaves the territory with its
+colour and no symbol, never a broken box.
+
+**`comentario` and `resumo` are written in the dashboard and rendered in the
+browser, so they are escaped and then given back a three-item vocabulary** —
+paragraph, `**bold**`, `[text](url)`. Accepting raw HTML there would hand
+anyone who can write to those columns a script tag on the page. Probed with
+`<img onerror>` and `<script>` in both: they come out as visible text, the
+title stays put, and no element is created.
+
+A single newline collapses to a space and only a blank line starts a
+paragraph — markdown's rule, and not the obvious `<br>`. Text pasted out of
+Discord arrives hard-wrapped at that window's width, and `<br>` reproduced
+those breaks as a staircase in a 760 px column.
+
+They are two columns and not one because they are two voices: the owner
+talking, and the account of what happened. Merged, a reader cannot tell which
+sentence comes from the interested party — which is why the page also quotes
+the comment and signs it.
 
 ## Gotchas
 
@@ -359,6 +441,28 @@ Each of these already cost something — measured on the live site, not guessed.
   wanted here — GitHub Pages serves files, so `/filtro` would 404 while
   `/#/filtro` is the same `index.html`. Do not call `usePathUrlStrategy`
   without adding a 404 fallback first.
+- **`<use>` renders into a shadow tree, so your CSS never reaches inside it.**
+  The war marker on the map is a circle and two strokes; `.selo-guerra circle
+  { fill: var(--guerra) }` was in the stylesheet and the circle still came out
+  black, because a `<use>` of a `<symbol>` clones its content into a shadow
+  tree that outside selectors cannot cross. Only inherited properties get in,
+  and `fill` alone would have painted the strokes too. The fix is a plain `<g>`
+  template plus `cloneNode(true)` — real nodes in the document, where the
+  selector applies — positioned with `transform: translate() scale()`.
+
+- **The top of a shape's bounding box is usually not inside the shape.**
+  Anchoring a crest at `ymin` put a third of them in the neighbour's territory:
+  the 52 outlines are irregular and several start in a spike. `ancoras.py`
+  scans by scanline instead, and it needed two more corrections that are worth
+  knowing before writing anything similar. Stopping at the *first* height that
+  fits is too early — territory 7 only has width in its left tip at y=65 and
+  opens up two pixels lower, so the search collects the candidates in the top
+  band and takes the one nearest the territory's centre. And the number is
+  already there: at 23 px, **34 of the 52** crests landed on top of their own
+  number, so the crest is sized by the band *above* the number, and in the
+  eight tightest territories the number yields 1–9 px. That position was never
+  sacred — it came from "deepest point of the shape", not from the game.
+
 - **Judge layout on the published site, not on `localhost`.** On this machine
   every page served from `localhost` renders shifted right, with a band of
   empty space on the left. The same build on GitHub Pages, in the same Chrome,
@@ -424,6 +528,14 @@ Each of these already cost something — measured on the live site, not guessed.
   escapes this because `IndexRepository` appends `?t=<millis>`; that
   cache-buster is why the data is never the stale part, and it is why it must
   stay.
+
+  **That trick does not transfer to Supabase, and it fails loudly.** PostgREST
+  reads every query parameter it does not recognise as a filter on a column of
+  that name, so `?select=...&t=1755...` answers `PGRST100`,
+  *"failed to parse filter"* — no rows, no map. The equivalent there is
+  `fetch(url, {cache: 'no-store'})`, which is what `web/guerras/index.html`
+  uses. Supabase sends no `cache-control` at all on a REST read, so something
+  has to say it.
 
   Since the site moved behind Cloudflare this is fixable after all — a cache
   rule can override the browser TTL that GitHub sends. If the ten minutes ever

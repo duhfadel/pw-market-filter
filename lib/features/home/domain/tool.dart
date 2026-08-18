@@ -73,9 +73,14 @@ const tools = <Tool>[
   Tool(
     name: 'Guerras territoriais',
     tagline:
-        'Fique por dentro do que está acontecendo: entrevistas e as últimas '
-        'notícias das guerras.',
+        'O mapa dos 52 territórios de Pangu: quem domina cada um e quanto '
+        'de gold rende.',
     icon: Icons.local_fire_department_outlined,
+    // A página existe e está publicada em /guerras/, mas o card continua sem
+    // href de propósito: ela está sendo mostrada a um punhado de pessoas antes
+    // de ser anunciada. Ligar aqui é o gesto que a torna pública — junto com
+    // tirar o `noindex` das duas páginas e devolvê-las ao sitemap. Os três
+    // andam juntos; fazer um só deixa o site incoerente consigo mesmo.
     art: 'assets/images/barbaro.webp',
   ),
   // The guides are listed one by one rather than behind a single "read the

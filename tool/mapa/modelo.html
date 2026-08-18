@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Guerras territoriais — Portal PW</title>
+  <meta name="description"
+        content="O mapa das guerras territoriais do The Classic PW 1.8.7: os 52 territórios, quem domina cada um e quanto de gold cada um rende.">
+  <!-- Fora do Google enquanto a página não é anunciada. Não linkar da home
+       esconde de quem navega, não de um robô: o `noindex` é a metade que
+       fala com ele. Sai junto com o card da home e a volta ao sitemap. -->
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="https://portalpw.net/guerras/">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Portal PW">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Guerras territoriais — Portal PW">
+  <meta property="og:description" content="O mapa das guerras territoriais do The Classic PW 1.8.7: os 52 territórios, quem domina cada um e quanto de gold cada um rende.">
+  <meta property="og:url" content="https://portalpw.net/guerras/">
+  <meta property="og:image" content="https://portalpw.net/og-v2.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2">
+
+  <!-- The shell — bar, foot, ad space, palette — is the guides' stylesheet, not
+       a third copy of the colours. What is below it is only the map, which no
+       other page has. -->
+  <link rel="stylesheet" href="/guias/estilo.css">
+<style>
+  /* The one colour the shell has no name for: a territory nobody holds. */
+  :root { --neutro:#343652; --guerra:#E5484D }
+
+  /* The guides are a column of text at 760 px. A map is not. */
+  main.mapa-largo { max-width:1180px }
+
+  .sub { color:var(--text-muted); font-size:14px; margin:0 0 22px }
+
+  /* A prévia se anuncia como prévia. O link vai circular numa mão cheia de
+     pessoas antes de a página existir para o resto do site, e um mapa que
+     parece pronto vira captura de tela com guilda inventada. Some no mesmo
+     commit que traz os donos de verdade. */
+  .previa { background:var(--surface); border:1px solid var(--accent);
+            border-radius:10px; padding:12px 16px; margin:0 0 20px;
+            font-size:13.5px; line-height:1.55 }
+  .previa b { color:var(--accent) }
+  .sub b { color:var(--accent); font-weight:600 }
+
+  .grade { display:grid; gap:24px; grid-template-columns:minmax(0,1fr) 264px; align-items:start }
+  @media (max-width:880px) { .grade { grid-template-columns:1fr } }
+
+  .quadro { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px }
+  .quadro svg { width:100%; height:auto; display:block }
+
+  /* O cursor é a única promessa de clique que a página faz, e ela só é feita
+     a quem tem o que mostrar. Território sem comentário, sem resumo e sem
+     streamer não é link: uma ficha que repete o que o mapa acabou de dizer é
+     um clique gasto à toa, e ensina a não clicar da próxima vez. O realce do
+     hover fica em todos, porque ele serve ao painel ao lado, não ao clique. */
+  .t { fill:var(--neutro); stroke:var(--background); stroke-width:1.6; stroke-linejoin:round;
+       cursor:default; transition:filter .12s ease }
+  .t.tem-ficha { cursor:pointer }
+  .t:hover, .t.on { filter:brightness(1.55); stroke:var(--accent); stroke-width:2.8 }
+
+  /* Território em guerra. O contorno é o sinal, e não o ícone: ele existe em
+     todo território, inclusive nos apertados demais para caberem um brasão, e
+     é visível sem passar o mouse. O ícone confirma de perto.
+
+     São duas cópias do contorno, uma escura por baixo e a tracejada por cima.
+     Com uma só, o vermelho da guerra sobre o vermelho de uma guilda vermelha
+     praticamente sumia — e um alerta que depende da cor do dono não é alerta.
+     Elas ficam numa camada própria, acima do mapa e sem capturar o mouse, para
+     não disputarem o contorno dourado do hover. */
+  .cerco { fill:none; pointer-events:none }
+  .cerco.base { stroke:var(--background); stroke-width:4.2 }
+  .cerco.linha { stroke:var(--guerra); stroke-width:2.4; stroke-dasharray:5 3;
+                 animation:ronda 1.6s linear infinite }
+  @keyframes ronda { to { stroke-dashoffset:-16 } }
+  @media (prefers-reduced-motion:reduce) { .cerco.linha { animation:none } }
+
+  .brasao { pointer-events:none }
+  .selo-guerra { pointer-events:none }
+  .selo-guerra circle { fill:var(--guerra) }
+  .selo-guerra path { stroke:#fff; stroke-linecap:round; fill:none }
+
+  /* As nove capitais valem 300 ou 600 de gold contra 150 das outras. A marca
+     dourada as separa sem competir com o realce do hover, que é o mesmo
+     dourado porém no contorno. */
+  .n.cap { fill:var(--accent) }
+  .coroa { fill:var(--accent); opacity:.9; pointer-events:none }
+  .n { fill:#fff; font-size:12.5px; font-weight:700; text-anchor:middle; dominant-baseline:central;
+       pointer-events:none; paint-order:stroke; stroke:rgba(0,0,0,.6); stroke-width:2.6 }
+
+  aside h2 { font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-muted);
+             margin:0 0 12px; font-weight:600; font-family:inherit }
+  .guild { display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:8px; font-size:14px }
+  .guild i { width:13px; height:13px; border-radius:4px; flex:0 0 auto }
+  .guild .qtd { margin-left:auto; color:var(--text-muted); font-size:13px; font-variant-numeric:tabular-nums }
+
+  .info { margin-top:14px; background:var(--surface-raised); border:1px solid var(--border);
+          border-radius:10px; padding:13px 15px; min-height:104px }
+  .info .num { color:var(--text-muted); font-size:11px; letter-spacing:.11em }
+  .info .nome { font-size:17px; font-weight:600; margin:3px 0 4px }
+  .info .cap { color:var(--accent); font-size:11px; letter-spacing:.09em; text-transform:uppercase }
+  .info .dono { font-size:13px; margin-top:5px }
+  .vazio { color:var(--text-muted); font-size:13px }
+  .com-toque { display:none }
+  @media (hover:none) {
+    .com-mouse { display:none }
+    .com-toque { display:inline }
+  }
+
+  /* A lista de nomes. O jogo mostra assim, e por um bom motivo: um nome como
+     "Castelo Flor de Pessegueiro" não cabe dentro do território mais apertado,
+     que tem 15 px de folga até a divisa. */
+  .lista-t { margin-top:24px; columns:3; column-gap:26px }
+  @media (max-width:880px) { .lista-t { columns:2 } }
+  @media (max-width:520px) { .lista-t { columns:1 } }
+  .item { break-inside:avoid; display:flex; align-items:baseline; gap:9px; padding:5px 8px;
+          border-radius:7px; font-size:13.5px; cursor:default }
+  .item.tem-ficha { cursor:pointer }
+  /* Na lista dá para marcar quem é clicável sem depender de passar o mouse,
+     o que o mapa não permite sem virar poluição. */
+  .item .ler { color:var(--accent); font-size:12px; font-weight:700 }
+  .item:hover, .item.on { background:var(--surface-raised) }
+  .item .id { color:var(--text-muted); font-variant-numeric:tabular-nums; font-size:12px; min-width:19px }
+  .item .nm { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+  .item.cap .nm { color:var(--accent); font-weight:600 }
+  .item .g { color:var(--text-muted); font-size:11.5px; font-variant-numeric:tabular-nums }
+  .item .g.alto { color:var(--accent) }
+  .item .dot { width:9px; height:9px; border-radius:3px; background:var(--neutro); flex:0 0 auto }
+  .item .fogo { color:var(--guerra); font-size:11px; font-weight:700; letter-spacing:.06em }
+
+  .info .dono { display:flex; align-items:center; gap:7px }
+  .info .dono img { width:20px; height:20px; object-fit:contain }
+  .info .guerra { color:var(--guerra); font-size:12px; font-weight:700; margin-top:6px;
+                  letter-spacing:.05em }
+  .info .ler { color:var(--accent); font-size:12px; margin-top:8px }
+  .guild img { width:15px; height:15px; object-fit:contain; margin-left:-3px }
+</style>
+</head>
+<body>
+
+<!-- Duas espadas cruzadas, desenhadas aqui e não num arquivo: o marcador de
+     guerra é a informação mais urgente da página e não pode depender de um
+     download que pode faltar. O brasão pode — ele é arte de cada guilda.
+
+     É um <g> clonado, e não um <symbol> com <use>, porque <use> monta uma
+     shadow tree: `.selo-guerra circle` não atravessa ela, e o selo saiu preto
+     em vez de vermelho na primeira tentativa. Clonar deixa os nós no
+     documento, onde o CSS os alcança. Modelo de 24×24; quem usa aplica a
+     escala. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <g id="ic-guerra">
+    <circle cx="12" cy="12" r="11"/>
+    <path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5" stroke-width="2.8"/>
+  </g>
+</svg>
+
+<header class="topo">
+  <div class="topo-interno">
+    <a href="/" title="Portal PW">
+      <img class="marca-larga" src="/assets/assets/images/portal-pw-logo-v2.webp" alt="Portal PW">
+      <img class="marca-curta" src="/assets/assets/images/pw-mark.webp" alt="Portal PW">
+    </a>
+    <span class="secao">Guerras territoriais</span>
+  </div>
+</header>
+
+<main class="mapa-largo">
+  <div class="previa">
+    <b>Prévia.</b> Esta página ainda não foi anunciada, e as guildas abaixo são
+    <b>fictícias</b> — servem só para mostrar como o mapa funciona. Nada aqui
+    corresponde às guerras de verdade ainda.
+  </div>
+
+  <h1>Guerras territoriais</h1>
+  <p class="sub" id="sub">Os 52 territórios de Pangu e quem domina cada um.</p>
+
+  <div class="grade">
+    <div class="quadro">
+/*SVG*/
+    </div>
+    <aside>
+      <h2>Guildas</h2>
+      <div id="legenda"></div>
+      <div class="info" id="info">
+        <!-- Duas frases, e o CSS escolhe: num telefone não há mouse para
+             passar, e mandar passá-lo é a página falando de um aparelho que
+             não é o que está na mão de quem lê. -->
+        <span class="vazio">
+          <span class="com-mouse">Passe o mouse sobre um território — no mapa ou na lista.</span>
+          <span class="com-toque">Toque num território — no mapa ou na lista.</span>
+        </span>
+      </div>
+    </aside>
+  </div>
+
+  <h2>Os 52 territórios</h2>
+  <div class="lista-t" id="lista"></div>
+</main>
+
+<div class="publicidade">
+  <span class="rotulo">PUBLICIDADE</span>
+  <a class="casa" href="mailto:duhspain@gmail.com">Quer anunciar neste espaço? <strong>Clique aqui</strong></a>
+</div>
+
+<footer>
+  <p>
+    Projeto de fã, sem vínculo com o The Classic Games.<br>
+    <a href="/guias/">Todos os guias</a> · <a href="/">Voltar ao Portal</a>
+  </p>
+</footer>
+
+<script>
+// O mapa não muda: os 52 contornos são o desenho do jogo, e nome, gold e
+// capital são propriedades dele. Vêm no arquivo, e é por isso que a página
+// desenha inteira mesmo com a rede fora do ar.
+//
+// O que muda vem do Supabase: o dono, o brasão da guilda, se o território está
+// em guerra e o texto da ficha. Atualizar qualquer um deles é editar uma linha
+// no painel — sem build, sem deploy, sem esperar CI.
+const territorios = /*BASE*/;
+
+// Onde cabe um brasão no alto de cada forma, calculado por tool/mapa/ancoras.py
+// contra a geometria real dos contornos. Ver o cabeçalho daquele arquivo: o
+// topo do retângulo que envolve um território quase nunca está dentro dele.
+const brasoes = /*BRASOES*/;
+
+const SUPABASE = 'https://yadfbwsolmkcaylbxviw.supabase.co/rest/v1';
+const CHAVE = 'sb_publishable_D2hgezeh5BbZVpt_QLeXwg_FowKweu2';
+const SVG = 'http://www.w3.org/2000/svg';
+
+let dono = {};      // numero -> nome da guilda
+let guerra = {};    // numero -> true
+let ficha = {};     // numero -> true, quando ha o que ler na pagina do territorio
+let guildas = {};   // nome da guilda -> { cor, brasao }
+
+async function carregar() {
+  // `cache: 'no-store'` e não o `?t=<millis>` que o índice do filtro usa: o
+  // PostgREST lê qualquer parâmetro que não conheça como filtro de coluna, e
+  // `?t=123` responde PGRST100 em vez dos territórios. Medido, não suposto.
+  const pedir = (rota) =>
+    fetch(SUPABASE + rota, { headers: { apikey: CHAVE }, cache: 'no-store' })
+      .then(r => r.ok ? r.json() : Promise.reject(r.status));
+
+  // A view `mapa` e nao a tabela: ela ja traz `tem_ficha` resolvido, o que
+  // evita baixar o comentario e o resumo dos 52 territorios so para descobrir
+  // quais estao vazios -- pagar o texto inteiro para nao mostrar texto nenhum.
+  const [linhas, gs] = await Promise.all([
+    pedir('/mapa?select=numero,nome,capital,gold,guilda,em_guerra,tem_ficha,atualizado_em'),
+    pedir('/guildas?select=nome,cor,brasao'),
+  ]);
+
+  gs.forEach(g => guildas[g.nome] = { cor: g.cor, brasao: g.brasao });
+  let ultima = null;
+  linhas.forEach(l => {
+    // A tabela é a fonte também dos nomes: corrigir uma grafia no painel
+    // aparece no site sem passar por aqui.
+    territorios[l.numero] = { nome: l.nome, capital: l.capital, gold: l.gold };
+    if (l.em_guerra) guerra[l.numero] = true;
+    if (l.tem_ficha) ficha[l.numero] = true;
+    if (l.guilda) {
+      dono[l.numero] = l.guilda;
+      // A data que interessa é a da última conquista, não a da última vez que
+      // alguém mexeu na tabela. Território sem dono não conta: senão a página
+      // anunciaria "atualizado hoje" no dia em que a tabela foi criada.
+      if (!ultima || l.atualizado_em > ultima) ultima = l.atualizado_em;
+    }
+  });
+  return ultima;
+}
+
+const cor = (n) => guildas[dono[n]]?.cor || 'var(--neutro)';
+
+function pintar() {
+  const mapa = document.querySelector('.quadro svg');
+  document.getElementById('icones')?.remove();
+  const camada = document.createElementNS(SVG, 'g');
+  camada.id = 'icones';
+
+  document.querySelectorAll('.t').forEach(p => {
+    const n = p.id.slice(1);
+    const g = guildas[dono[n]];
+    p.style.fill = g ? g.cor : '';
+    p.classList.toggle('guerra', !!guerra[n]);
+    p.classList.toggle('tem-ficha', !!ficha[n]);
+
+    if (guerra[n]) {
+      for (const camadaCerco of ['base', 'linha']) {
+        const c = p.cloneNode(false);
+        c.removeAttribute('id');
+        c.setAttribute('class', 'cerco ' + camadaCerco);
+        c.removeAttribute('style');
+        camada.appendChild(c);
+      }
+    }
+
+    const a = brasoes[n];
+    if (!a) return;
+    const [x, y, lado] = a;
+
+    if (g && g.brasao) {
+      const img = document.createElementNS(SVG, 'image');
+      img.setAttribute('href', 'icones/' + g.brasao);
+      img.setAttribute('x', x - lado / 2);
+      img.setAttribute('y', y);
+      img.setAttribute('width', lado);
+      img.setAttribute('height', lado);
+      // Um brasão que ainda não subiu deixa o território como estava, nunca um
+      // quadrado quebrado no meio do mapa.
+      img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+      img.setAttribute('class', 'brasao');
+      camada.appendChild(img);
+    }
+
+    if (guerra[n]) {
+      // Um território sem dono também entra em guerra, então o selo existe com
+      // ou sem brasão: encavalado no canto dele quando há um, sozinho e maior
+      // quando não há. Nos dois casos fica dentro do quadrado que ancoras.py
+      // já provou caber — encostar na divisa faz o selo parecer do vizinho.
+      const selo = g && g.brasao ? lado * 0.6 : lado * 0.9;
+      const cx = g && g.brasao ? x + lado / 2 - selo * 0.5 : x;
+      const cy = g && g.brasao ? y + lado - selo * 0.5 : y + lado / 2;
+      const marca = document.getElementById('ic-guerra').cloneNode(true);
+      marca.removeAttribute('id');
+      marca.setAttribute('class', 'selo-guerra');
+      marca.setAttribute('transform',
+        `translate(${cx - selo / 2} ${cy - selo / 2}) scale(${selo / 24})`);
+      camada.appendChild(marca);
+    }
+  });
+  mapa.appendChild(camada);
+}
+
+function desenharLegenda() {
+  const conta = {};
+  Object.values(dono).forEach(g => conta[g] = (conta[g] || 0) + 1);
+  const semDono = Object.keys(territorios).length - Object.keys(dono).length;
+  const emGuerra = Object.keys(guerra).length;
+  document.getElementById('legenda').innerHTML =
+    Object.entries(guildas)
+      .sort((a, b) => (conta[b[0]] || 0) - (conta[a[0]] || 0))
+      .map(([n, g]) =>
+        `<div class="guild"><i style="background:${g.cor}"></i>`
+        + (g.brasao ? `<img src="icones/${g.brasao}" alt="">` : '')
+        + `${n}<span class="qtd">${conta[n] || 0}</span></div>`)
+      .join('')
+    + `<div class="guild"><i style="background:var(--neutro)"></i>sem dono<span class="qtd">${semDono}</span></div>`
+    + (emGuerra
+        ? `<div class="guild"><i style="background:var(--guerra)"></i>em guerra<span class="qtd">${emGuerra}</span></div>`
+        : '');
+}
+
+function desenharLista() {
+  document.getElementById('lista').innerHTML = Object.entries(territorios)
+    .sort((a, b) => a[0] - b[0]).map(([n, t]) => {
+      return `<div class="item${t.capital ? ' cap' : ''}${ficha[n] ? ' tem-ficha' : ''}" data-n="${n}">
+        <span class="dot" style="background:${cor(n)}"></span>
+        <span class="id">${String(n).padStart(2, '0')}</span>
+        <span class="nm">${t.nome}</span>
+        ${guerra[n] ? '<span class="fogo">GUERRA</span>' : ''}
+        ${ficha[n] ? '<span class="ler">ler ›</span>' : ''}
+        <span class="g${t.gold > 150 ? ' alto' : ''}">${t.gold}</span></div>`;
+    }).join('');
+  ligarEventos(document.querySelectorAll('.item'), el => el.dataset.n);
+}
+
+const info = document.getElementById('info');
+function mostrar(n) {
+  const t = territorios[n], g = guildas[dono[n]];
+  info.innerHTML =
+    `<div class="num">TERRITÓRIO ${String(n).padStart(2, '0')} · ${t.gold} de gold</div>`
+    + `<div class="nome">${t.nome}</div>`
+    + (t.capital ? '<div class="cap">capital</div>' : '')
+    + (dono[n]
+        ? `<div class="dono" style="color:${g?.cor || 'inherit'}">`
+          + (g?.brasao ? `<img src="icones/${g.brasao}" alt="">` : '')
+          + `${dono[n]}</div>`
+        : '<div class="dono vazio">sem dono</div>')
+    + (guerra[n] ? '<div class="guerra">EM GUERRA</div>' : '')
+    + (ficha[n] ? '<div class="ler">Abrir ficha ›</div>' : '');
+}
+
+function acender(n, liga) {
+  document.getElementById('t' + n)?.classList.toggle('on', liga);
+  document.querySelector(`.item[data-n="${n}"]`)?.classList.toggle('on', liga);
+}
+
+// Os dois lados se acendem: passar na lista destaca no mapa, e vice-versa.
+// O clique, dos dois lados, abre a ficha -- quando existe ficha para abrir.
+function ligarEventos(nos, numeroDe) {
+  nos.forEach(el => {
+    const n = numeroDe(el);
+    el.addEventListener('mouseenter', () => { mostrar(n); acender(n, true); });
+    el.addEventListener('mouseleave', () => acender(n, false));
+    el.addEventListener('click', () => {
+      if (ficha[n]) location.href = 'territorio/?n=' + n;
+    });
+  });
+}
+
+function assinatura(ultima, falhou) {
+  const sub = document.getElementById('sub');
+  if (falhou) {
+    // Um mapa sem dono nenhum é indistinguível de um mapa que ninguém tomou.
+    // A linha existe para que essa diferença não fique escondida.
+    sub.innerHTML = 'Os 52 territórios de Pangu. '
+      + '<b>Não foi possível carregar quem domina cada um agora</b> — recarregue a página.';
+  } else if (!ultima) {
+    sub.innerHTML = 'Os 52 territórios de Pangu. <b>As conquistas ainda não foram preenchidas.</b>';
+  } else {
+    const d = new Date(ultima);
+    sub.innerHTML = 'Os 52 territórios de Pangu e quem domina cada um · última mudança em <b>'
+      + d.toLocaleDateString('pt-BR') + '</b>';
+  }
+}
+
+ligarEventos(document.querySelectorAll('.t'), p => p.id.slice(1));
+desenharLista();
+
+carregar().then(ultima => {
+  pintar();
+  desenharLegenda();
+  desenharLista();
+  assinatura(ultima, false);
+}).catch(erro => {
+  console.warn('guerras: não deu para ler os donos —', erro);
+  desenharLegenda();
+  assinatura(null, true);
+});
+</script>
+
+</body>
+</html>

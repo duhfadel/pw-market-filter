@@ -97,7 +97,13 @@
   @media (prefers-reduced-motion:reduce) { .stream .ponto { animation:none } }
 
   .todos { columns:3; column-gap:24px; margin-top:20px }
-  @media (max-width:760px) { .todos { columns:2 } .mini { width:100% } }
+  /* No telefone o mapinha ia a 100% da largura e virava meia tela de mapa
+     antes de qualquer conteúdo — ele responde "onde fica", não é a atração.
+     Limitado e centralizado, responde a mesma pergunta em um terço do espaço. */
+  @media (max-width:760px) {
+    .todos { columns:2 }
+    .mini { width:100%; max-width:240px; margin:0 auto }
+  }
   @media (max-width:480px) { .todos { columns:1 } }
   .todos a { display:block; break-inside:avoid; padding:5px 8px; border-radius:7px;
              text-decoration:none; color:inherit; font-size:13.5px }

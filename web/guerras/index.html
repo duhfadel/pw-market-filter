@@ -95,6 +95,11 @@
   .info .cap { color:var(--accent); font-size:11px; letter-spacing:.09em; text-transform:uppercase }
   .info .dono { font-size:13px; margin-top:5px }
   .vazio { color:var(--text-muted); font-size:13px }
+  .com-toque { display:none }
+  @media (hover:none) {
+    .com-mouse { display:none }
+    .com-toque { display:inline }
+  }
 
   /* A lista de nomes. O jogo mostra assim, e por um bom motivo: um nome como
      "Castelo Flor de Pessegueiro" não cabe dentro do território mais apertado,
@@ -279,7 +284,13 @@
       <h2>Guildas</h2>
       <div id="legenda"></div>
       <div class="info" id="info">
-        <span class="vazio">Passe o mouse sobre um território — no mapa ou na lista.</span>
+        <!-- Duas frases, e o CSS escolhe: num telefone não há mouse para
+             passar, e mandar passá-lo é a página falando de um aparelho que
+             não é o que está na mão de quem lê. -->
+        <span class="vazio">
+          <span class="com-mouse">Passe o mouse sobre um território — no mapa ou na lista.</span>
+          <span class="com-toque">Toque num território — no mapa ou na lista.</span>
+        </span>
       </div>
     </aside>
   </div>
@@ -467,7 +478,7 @@ function mostrar(n) {
           + `${dono[n]}</div>`
         : '<div class="dono vazio">sem dono</div>')
     + (guerra[n] ? '<div class="guerra">EM GUERRA</div>' : '')
-    + (ficha[n] ? '<div class="ler">Clique para ler ›</div>' : '');
+    + (ficha[n] ? '<div class="ler">Abrir ficha ›</div>' : '');
 }
 
 function acender(n, liga) {

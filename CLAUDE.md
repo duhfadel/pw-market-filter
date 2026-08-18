@@ -83,7 +83,7 @@ The two real pages the whole parser rests on are already saved:
 | `dart run tool/collect.dart --rebuild` | Rewrites the index from the saved state — no network, seconds |
 | `dart run tool/fetch_icons.dart` | Downloads class and item icons named by the index; skips what is already on disk |
 | `dart run tool/build_fixture_index.dart` | Builds an index from the saved fixtures — no network, for working on the screen |
-| `python3 tool/mapa/pagina.py` | Rebuilds `web/guerras/index.html` from the map's SVG and `tool/mapa/modelo.html` |
+| `python3 tool/mapa/pagina.py` | Rebuilds both pages of `web/guerras/` from the map's SVG and the models in `tool/mapa/` |
 | `flutter run -d chrome` | Runs the app |
 | `flutter test` | Runs every test |
 | `flutter analyze` | Static analysis |
@@ -137,7 +137,7 @@ which a static site cannot compute, and the territory map's owners, which
 change weekly and must not cost a deploy. Both live in a Supabase project
 called `portal-pw` (`yadfbwsolmkcaylbxviw`, São Paulo).
 
-Three tables, and **the two halves are opposite on purpose**, which is the part
+Four tables and a view, and **the two halves are opposite on purpose**, which is the part
 to read before changing either.
 
 #### The counter: RLS with no policy
@@ -170,9 +170,10 @@ the damage to one dated row.
 
 #### The map: RLS with a read policy, on purpose
 
-`territorios (numero, nome, capital, gold, guilda, em_guerra, texto, texto_em,
-atualizado_em)` and `guildas (nome, cor, brasao)` are the other case, and
-copying the counter's arrangement onto them would be wrong. Here the rows **are** the page's content, so both
+`territorios (numero, nome, capital, gold, guilda, em_guerra, comentario,
+comentario_por, resumo, + three dates)`, `guildas (nome, cor, brasao)` and
+`streamers (territorio, nome, url, ordem)` are the other case, and copying the
+counter's arrangement onto them would be wrong. Here the rows **are** the page's content, so both
 carry `for select to anon, authenticated using (true)` and an explicit
 `grant select`. What stays shut is writing: no insert, update or delete policy
 exists, so the anon role changes nothing and updating a conquest is editing a
@@ -192,6 +193,26 @@ one territory has an owner: on the day the table was created every row was
 trigger for `texto`, and it is a second column rather than a reuse of the
 first because a corrected comma is not a conquest.
 
+**`public.mapa` is a view, and it exists to answer one question cheaply.**
+The map page needs to know which territories are worth clicking — that is
+`tem_ficha` — and computing it in the browser would mean downloading the
+comment and the summary of all 52 just to find out which are empty: paying for
+the whole text in order to show none of it. The view carries
+`security_invoker = true`, without which a view ignores RLS and becomes the
+back door to the tables it reads.
+
+`tem_ficha` must agree exactly with what the ficha will render, and the first
+version did not: it counted a territory's streamers whether or not there was a
+war, while the page only lists them *during* one. A territory with a streamer
+and no war was therefore clickable and opened an empty page — precisely the
+defect the rule exists to prevent. When a section's visibility gains a
+condition, the flag gains the same one.
+
+`streamers.url` becomes an `href`, so the table refuses anything that is not
+`http(s)` — a `javascript:` URL typed into the dashboard would otherwise be
+code on click. Verified: the check rejects it, and an anon insert never gets
+that far because RLS answers first.
+
 `guildas.brasao` holds a **file name**, not an image. The art lives in
 `web/guerras/icones/` and ships in the deploy; the row says which file to use.
 So changing a guild's crest stays a dashboard edit and only *adding* new art
@@ -199,12 +220,22 @@ costs a commit — the right frequency, since a guild is born far less often
 than a territory changes hands. A missing file leaves the territory with its
 colour and no symbol, never a broken box.
 
-**`texto` is written in the dashboard and rendered in the browser, so it is
-escaped and then given back a three-item vocabulary** — paragraph, `**bold**`,
-`[text](url)`. Accepting raw HTML there would hand anyone who can write to that
-column a script tag on the page. Probed with `<img onerror>` and `<script>` in
-the column: both come out as visible text, the title stays put, and no element
-is created.
+**`comentario` and `resumo` are written in the dashboard and rendered in the
+browser, so they are escaped and then given back a three-item vocabulary** —
+paragraph, `**bold**`, `[text](url)`. Accepting raw HTML there would hand
+anyone who can write to those columns a script tag on the page. Probed with
+`<img onerror>` and `<script>` in both: they come out as visible text, the
+title stays put, and no element is created.
+
+A single newline collapses to a space and only a blank line starts a
+paragraph — markdown's rule, and not the obvious `<br>`. Text pasted out of
+Discord arrives hard-wrapped at that window's width, and `<br>` reproduced
+those breaks as a staircase in a 760 px column.
+
+They are two columns and not one because they are two voices: the owner
+talking, and the account of what happened. Merged, a reader cannot tell which
+sentence comes from the interested party — which is why the page also quotes
+the comment and signs it.
 
 ## Gotchas
 

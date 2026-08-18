@@ -52,9 +52,9 @@ mexer no algoritmo não invalida as correções.
 
 Em lugar nenhum daqui. `pagina.py` embute no HTML só a metade que **não muda** —
 nome, gold e capital são propriedades do mapa do jogo, não da guerra — e a
-página busca no Supabase (`portal-pw`, tabelas `territorios` e `guildas`) tudo
-que muda: o dono, o brasão dele, se o território está em guerra e o texto da
-ficha.
+página busca no Supabase (`portal-pw`) tudo que muda: o dono, o brasão dele, se
+o território está em guerra, o comentário da guilda, o resumo da última guerra
+e quem está transmitindo.
 
 É por isso que atualizar uma conquista não passa por este diretório, nem por um
 commit, nem por CI: é editar uma linha no painel. E é por isso que a página
@@ -102,6 +102,48 @@ A saída foi o número ceder. Em oito territórios ele desce de 1 a 9 px — o
 suficiente para os 52 caberem — e essa posição não era sagrada: veio de "ponto
 mais fundo da forma", não do jogo. É por isso que o SVG do site não é byte a
 byte o de `pagina-exemplo.html`.
+
+## Território sem nada não é clicável
+
+É a regra que mais decide como a página se comporta, e ela vale a pena escrita:
+**só vira link o território que tem comentário, resumo ou — durante a guerra —
+streamer.** Uma ficha que repete o que o mapa acabou de mostrar é um clique
+gasto à toa, e ensina a não clicar da próxima vez.
+
+Quem responde é a coluna `tem_ficha` da view `mapa`, e não a página: calcular
+no navegador significaria baixar o comentário e o resumo dos 52 territórios só
+para descobrir quais estão vazios — pagar o texto inteiro para não mostrar
+texto nenhum.
+
+O cursor é a única promessa de clique que o mapa faz, e ela só é feita a quem
+tem o que mostrar; o realce do hover fica em todos, porque serve ao painel ao
+lado. Na lista, que não depende do mouse, quem é clicável ganha um `ler ›`.
+
+**A armadilha:** `tem_ficha` tem que concordar exatamente com o que a ficha vai
+desenhar. A primeira versão contava os streamers houvesse guerra ou não, mas a
+página só os lista durante uma — então território com streamer e sem guerra era
+clicável e abria uma página vazia, que é justamente o defeito que a regra
+existe para impedir. Quando uma seção ganha uma condição, a coluna ganha a
+mesma.
+
+## O que a ficha mostra, e nessa ordem
+
+1. **Quem está transmitindo**, se houver guerra. Vem primeiro porque é a única
+   coisa da página que perde o valor daqui a uma hora.
+2. **O que a guilda diz** — citação com o brasão, o nome de quem falou e a
+   data. É voz de parte interessada, e a citação é o que diz isso.
+3. **A última guerra** — o relato, em texto corrido.
+
+Comentário e resumo são duas colunas e não uma justamente por causa de 2 e 3:
+juntos num campo só, ninguém sabe qual frase é do dono.
+
+O texto dos dois é escapado e só então ganha parágrafo, `**negrito**` e
+`[texto](link)`. Aceitar HTML cru num campo do painel é dar script na página a
+quem escreve nele. Quebra de linha simples vira espaço e só linha em branco
+começa parágrafo — a regra do markdown: com `<br>`, texto colado do Discord,
+que vem quebrado na largura da janela de lá, saía em escadinha.
+
+`streamers.url` vira `href`, então a tabela recusa o que não for `http(s)`.
 
 ## A distinção que a página faz questão de manter
 

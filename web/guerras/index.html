@@ -43,8 +43,14 @@
   .quadro { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px }
   .quadro svg { width:100%; height:auto; display:block }
 
+  /* O cursor é a única promessa de clique que a página faz, e ela só é feita
+     a quem tem o que mostrar. Território sem comentário, sem resumo e sem
+     streamer não é link: uma ficha que repete o que o mapa acabou de dizer é
+     um clique gasto à toa, e ensina a não clicar da próxima vez. O realce do
+     hover fica em todos, porque ele serve ao painel ao lado, não ao clique. */
   .t { fill:var(--neutro); stroke:var(--background); stroke-width:1.6; stroke-linejoin:round;
-       cursor:pointer; transition:filter .12s ease }
+       cursor:default; transition:filter .12s ease }
+  .t.tem-ficha { cursor:pointer }
   .t:hover, .t.on { filter:brightness(1.55); stroke:var(--accent); stroke-width:2.8 }
 
   /* Território em guerra. O contorno é o sinal, e não o ícone: ele existe em
@@ -97,7 +103,11 @@
   @media (max-width:880px) { .lista-t { columns:2 } }
   @media (max-width:520px) { .lista-t { columns:1 } }
   .item { break-inside:avoid; display:flex; align-items:baseline; gap:9px; padding:5px 8px;
-          border-radius:7px; font-size:13.5px; cursor:pointer }
+          border-radius:7px; font-size:13.5px; cursor:default }
+  .item.tem-ficha { cursor:pointer }
+  /* Na lista dá para marcar quem é clicável sem depender de passar o mouse,
+     o que o mapa não permite sem virar poluição. */
+  .item .ler { color:var(--accent); font-size:12px; font-weight:700 }
   .item:hover, .item.on { background:var(--surface-raised) }
   .item .id { color:var(--text-muted); font-variant-numeric:tabular-nums; font-size:12px; min-width:19px }
   .item .nm { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
@@ -111,6 +121,7 @@
   .info .dono img { width:20px; height:20px; object-fit:contain }
   .info .guerra { color:var(--guerra); font-size:12px; font-weight:700; margin-top:6px;
                   letter-spacing:.05em }
+  .info .ler { color:var(--accent); font-size:12px; margin-top:8px }
   .guild img { width:15px; height:15px; object-fit:contain; margin-left:-3px }
 </style>
 </head>
@@ -310,6 +321,7 @@ const SVG = 'http://www.w3.org/2000/svg';
 
 let dono = {};      // numero -> nome da guilda
 let guerra = {};    // numero -> true
+let ficha = {};     // numero -> true, quando ha o que ler na pagina do territorio
 let guildas = {};   // nome da guilda -> { cor, brasao }
 
 async function carregar() {
@@ -320,8 +332,11 @@ async function carregar() {
     fetch(SUPABASE + rota, { headers: { apikey: CHAVE }, cache: 'no-store' })
       .then(r => r.ok ? r.json() : Promise.reject(r.status));
 
+  // A view `mapa` e nao a tabela: ela ja traz `tem_ficha` resolvido, o que
+  // evita baixar o comentario e o resumo dos 52 territorios so para descobrir
+  // quais estao vazios -- pagar o texto inteiro para nao mostrar texto nenhum.
   const [linhas, gs] = await Promise.all([
-    pedir('/territorios?select=numero,nome,capital,gold,guilda,em_guerra,atualizado_em'),
+    pedir('/mapa?select=numero,nome,capital,gold,guilda,em_guerra,tem_ficha,atualizado_em'),
     pedir('/guildas?select=nome,cor,brasao'),
   ]);
 
@@ -332,6 +347,7 @@ async function carregar() {
     // aparece no site sem passar por aqui.
     territorios[l.numero] = { nome: l.nome, capital: l.capital, gold: l.gold };
     if (l.em_guerra) guerra[l.numero] = true;
+    if (l.tem_ficha) ficha[l.numero] = true;
     if (l.guilda) {
       dono[l.numero] = l.guilda;
       // A data que interessa é a da última conquista, não a da última vez que
@@ -356,6 +372,7 @@ function pintar() {
     const g = guildas[dono[n]];
     p.style.fill = g ? g.cor : '';
     p.classList.toggle('guerra', !!guerra[n]);
+    p.classList.toggle('tem-ficha', !!ficha[n]);
 
     if (guerra[n]) {
       for (const camadaCerco of ['base', 'linha']) {
@@ -426,11 +443,12 @@ function desenharLegenda() {
 function desenharLista() {
   document.getElementById('lista').innerHTML = Object.entries(territorios)
     .sort((a, b) => a[0] - b[0]).map(([n, t]) => {
-      return `<div class="item${t.capital ? ' cap' : ''}" data-n="${n}">
+      return `<div class="item${t.capital ? ' cap' : ''}${ficha[n] ? ' tem-ficha' : ''}" data-n="${n}">
         <span class="dot" style="background:${cor(n)}"></span>
         <span class="id">${String(n).padStart(2, '0')}</span>
         <span class="nm">${t.nome}</span>
         ${guerra[n] ? '<span class="fogo">GUERRA</span>' : ''}
+        ${ficha[n] ? '<span class="ler">ler ›</span>' : ''}
         <span class="g${t.gold > 150 ? ' alto' : ''}">${t.gold}</span></div>`;
     }).join('');
   ligarEventos(document.querySelectorAll('.item'), el => el.dataset.n);
@@ -448,7 +466,8 @@ function mostrar(n) {
           + (g?.brasao ? `<img src="icones/${g.brasao}" alt="">` : '')
           + `${dono[n]}</div>`
         : '<div class="dono vazio">sem dono</div>')
-    + (guerra[n] ? '<div class="guerra">⚔ EM GUERRA</div>' : '');
+    + (guerra[n] ? '<div class="guerra">EM GUERRA</div>' : '')
+    + (ficha[n] ? '<div class="ler">Clique para ler ›</div>' : '');
 }
 
 function acender(n, liga) {
@@ -457,13 +476,15 @@ function acender(n, liga) {
 }
 
 // Os dois lados se acendem: passar na lista destaca no mapa, e vice-versa.
-// O clique, dos dois lados, abre a ficha do território.
+// O clique, dos dois lados, abre a ficha -- quando existe ficha para abrir.
 function ligarEventos(nos, numeroDe) {
   nos.forEach(el => {
     const n = numeroDe(el);
     el.addEventListener('mouseenter', () => { mostrar(n); acender(n, true); });
     el.addEventListener('mouseleave', () => acender(n, false));
-    el.addEventListener('click', () => location.href = 'territorio/?n=' + n);
+    el.addEventListener('click', () => {
+      if (ficha[n]) location.href = 'territorio/?n=' + n;
+    });
   });
 }
 

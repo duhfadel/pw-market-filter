@@ -1,0 +1,418 @@
+{
+ "1": {
+  "n": 1,
+  "nome": "Terra Congelada",
+  "ingles": "The Harshlands",
+  "capital": false,
+  "incerto": true,
+  "gold": 150
+ },
+ "8": {
+  "n": 2,
+  "nome": "Terra Gelada",
+  "ingles": "The Frozen Path",
+  "capital": false,
+  "incerto": true,
+  "gold": 150
+ },
+ "3": {
+  "n": 3,
+  "nome": "Garganta da Avalanche",
+  "ingles": "Avalanche Canyon",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "4": {
+  "n": 4,
+  "nome": "Montanha das Árvores",
+  "ingles": "Thousand Wood Ridge",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "5": {
+  "n": 5,
+  "nome": "Terra de Hades",
+  "ingles": "Haunted Path",
+  "capital": false,
+  "incerto": true,
+  "gold": 150
+ },
+ "6": {
+  "n": 6,
+  "nome": "Cidade da Perdição",
+  "ingles": "City of Misfortune",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "7": {
+  "n": 52,
+  "nome": "Cidade da Névoa Sombria",
+  "ingles": "Dawnglory",
+  "capital": true,
+  "incerto": false,
+  "gold": 300
+ },
+ "9": {
+  "n": 12,
+  "nome": "Montanha Desolada",
+  "ingles": "Ancient Peak",
+  "capital": false,
+  "incerto": true,
+  "gold": 150
+ },
+ "10": {
+  "n": 7,
+  "nome": "Cidade Universal",
+  "ingles": "City of a Thousand Streams",
+  "capital": true,
+  "incerto": false,
+  "gold": 600
+ },
+ "12": {
+  "n": 9,
+  "nome": "Planície da Vitória",
+  "ingles": "Broken Plain",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "13": {
+  "n": 10,
+  "nome": "Cidade das Espadas",
+  "ingles": "Etherblade",
+  "capital": true,
+  "incerto": false,
+  "gold": 300
+ },
+ "14": {
+  "n": 18,
+  "nome": "Montanha do Farol",
+  "ingles": "Mount Lantern",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "16": {
+  "n": 13,
+  "nome": "Vila do Fogo",
+  "ingles": "Immolation Camp",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "17": {
+  "n": 15,
+  "nome": "Campo dos Ventos",
+  "ingles": "Windswept Grasslands",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "18": {
+  "n": 14,
+  "nome": "Campo dos Lírios",
+  "ingles": "Plain of Farewells",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "19": {
+  "n": 16,
+  "nome": "Cidade do Vento Alísio",
+  "ingles": "Tradewind Village",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "21": {
+  "n": 19,
+  "nome": "Terra dos Dragões",
+  "ingles": "Dragon Wilderness",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "22": {
+  "n": 22,
+  "nome": "Cidade das Feras",
+  "ingles": "City of the Lost",
+  "capital": true,
+  "incerto": false,
+  "gold": 300
+ },
+ "23": {
+  "n": 24,
+  "nome": "Montanha da Seda",
+  "ingles": "Silk Ridge",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "24": {
+  "n": 25,
+  "nome": "Cidade do Rio",
+  "ingles": "Wellspring Village",
+  "capital": false,
+  "incerto": true,
+  "gold": 150
+ },
+ "25": {
+  "n": 27,
+  "nome": "Cidade do Dragão",
+  "ingles": "Archosaur",
+  "capital": true,
+  "incerto": false,
+  "gold": 600
+ },
+ "26": {
+  "n": 29,
+  "nome": "Monte Perfumado",
+  "ingles": "Fragrant Hills",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "27": {
+  "n": 20,
+  "nome": "Planalto do Pôr-do-Sol",
+  "ingles": "Sundown Highland",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "28": {
+  "n": 33,
+  "nome": "Caminho da Alegria",
+  "ingles": "Courage Path",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "29": {
+  "n": 26,
+  "nome": "Lago Celeste",
+  "ingles": "The Great Lake",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "30": {
+  "n": 21,
+  "nome": "Nascente Fraca",
+  "ingles": "Dribbling Spring",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "31": {
+  "n": 23,
+  "nome": "Declive do Dragão",
+  "ingles": "Dragon's End",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "33": {
+  "n": 35,
+  "nome": "Rochedo Celeste",
+  "ingles": "Stairway to Heaven",
+  "capital": false,
+  "incerto": true,
+  "gold": 150
+ },
+ "34": {
+  "n": 28,
+  "nome": "Vale das Orquídeas",
+  "ingles": "Hidden Orchid",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "35": {
+  "n": 30,
+  "nome": "Castelo Flor de Pessegueiro",
+  "ingles": "Sanctuary",
+  "capital": false,
+  "incerto": true,
+  "gold": 150
+ },
+ "36": {
+  "n": 31,
+  "nome": "Mar de Areia",
+  "ingles": "Deserted Sea",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "37": {
+  "n": 32,
+  "nome": "Montanha dos Cisnes",
+  "ingles": "Vibrant Cliffs",
+  "capital": false,
+  "incerto": true,
+  "gold": 150
+ },
+ "38": {
+  "n": 34,
+  "nome": "Cidade das Plumas",
+  "ingles": "City of the Plume",
+  "capital": true,
+  "incerto": false,
+  "gold": 300
+ },
+ "39": {
+  "n": 37,
+  "nome": "Pântano Desalmado",
+  "ingles": "Swamp of the Wraiths",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "40": {
+  "n": 38,
+  "nome": "Selva Obscura",
+  "ingles": "Forest of Haze",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "41": {
+  "n": 39,
+  "nome": "Cemitério",
+  "ingles": "Buried Bones",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "43": {
+  "n": 36,
+  "nome": "Reino do Yu",
+  "ingles": "King's Feast",
+  "capital": false,
+  "incerto": true,
+  "gold": 150
+ },
+ "45": {
+  "n": 40,
+  "nome": "Monte Nanping",
+  "ingles": "Southern Stronghold",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "47": {
+  "n": 41,
+  "nome": "Montanha Branca",
+  "ingles": "The White Ridge",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "48": {
+  "n": 42,
+  "nome": "Montanha Negra",
+  "ingles": "Black Mountain",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "49": {
+  "n": 43,
+  "nome": "Montanha dos Sonhos",
+  "ingles": "Dreaming Cloud",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "50": {
+  "n": 44,
+  "nome": "Porto dos Sonhos",
+  "ingles": "Dreamweaver Port",
+  "capital": true,
+  "incerto": false,
+  "gold": 300
+ },
+ "51": {
+  "n": 48,
+  "nome": "A Fenda",
+  "ingles": "The Fissure",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "52": {
+  "n": 49,
+  "nome": "Selva Estrelada",
+  "ingles": "Starry Wilds",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "53": {
+  "n": 50,
+  "nome": "Cidade de Tellus",
+  "ingles": "Tellus City",
+  "capital": true,
+  "incerto": false,
+  "gold": 300
+ },
+ "54": {
+  "n": 51,
+  "nome": "Montanha do Dragão de Gelo",
+  "ingles": "Snowdragon Heights",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "55": {
+  "n": 46,
+  "nome": "Ilha do Pesadelo",
+  "ingles": "Island of Broken Dreams",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ },
+ "56": {
+  "n": 45,
+  "nome": "Ilha Cirrus",
+  "ingles": "Shattered Cloud Island",
+  "capital": false,
+  "incerto": true,
+  "gold": 150
+ },
+ "57": {
+  "n": 47,
+  "nome": "Cidade das Tormentas",
+  "ingles": "City of Raging Tides",
+  "capital": true,
+  "incerto": false,
+  "gold": 300
+ },
+ "101": {
+  "n": 11,
+  "nome": "Cidade Quadrada",
+  "ingles": "Walled Stronghold",
+  "capital": false,
+  "incerto": true,
+  "gold": 150
+ },
+ "102": {
+  "n": 17,
+  "nome": "Tumba Verdejante",
+  "ingles": "Shining Tidewood",
+  "capital": false,
+  "incerto": true,
+  "gold": 150
+ },
+ "104": {
+  "n": 8,
+  "nome": "Grande Muralha Ancestral",
+  "ingles": "Ancient Wall",
+  "capital": false,
+  "incerto": false,
+  "gold": 150
+ }
+}

@@ -1,0 +1,133 @@
+<!doctype html><meta charset="utf-8"><title>Corrigir o mapa</title>
+<style>
+ :root{--bg:#0B0B1A;--surface:#13132A;--line:#2C2C4E;--text:#E8E8F4;--muted:#8F9BB8;--accent:#FFB454}
+ *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);
+   font-family:-apple-system,Helvetica,sans-serif;display:flex;gap:18px;padding:16px}
+ .mapa{position:relative;flex:0 0 auto;cursor:crosshair}
+ .mapa img{display:block;width:1000px;image-rendering:auto}
+ .mapa img.capa{position:absolute;inset:0;pointer-events:none}
+ .marca{position:absolute;transform:translate(-50%,-50%);pointer-events:none;
+   font:700 11px/1 -apple-system,sans-serif;color:#fff;background:#c62828;
+   border:2px solid #fff;border-radius:999px;padding:3px 6px;white-space:nowrap}
+ aside{flex:1;min-width:300px;position:sticky;top:16px;align-self:flex-start}
+ h1{font-size:17px;margin:0 0 4px} p{color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 12px}
+ button{background:var(--surface);color:var(--text);border:1px solid var(--line);
+   border-radius:8px;padding:9px 13px;font-size:13px;cursor:pointer;margin:0 6px 8px 0}
+ button.on{border-color:var(--accent);color:var(--accent)}
+ textarea{width:100%;height:280px;background:#0F0F22;color:var(--text);
+   border:1px solid var(--line);border-radius:8px;padding:10px;font:12px ui-monospace,Menlo,monospace}
+ kbd{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:11px}
+</style>
+
+<div class="mapa" id="mapa">
+  <img src="mapa.png" id="base">
+  <img src="divisas.png" class="capa">
+</div>
+
+<aside>
+  <h1>Corrigir o mapa</h1>
+  <p>As linhas vermelhas são as divisas que eu achei. Onde estiverem erradas,
+     me diga clicando — é mais preciso que descrever.</p>
+
+  <button id="bSem" class="on">semente</button>
+  <button id="bPar">parede</button>
+  <button id="bUndo">desfazer</button>
+  <p id="ajuda"><b>Semente:</b> clique no meio de um território que está faltando
+     ou que foi engolido pelo vizinho. Digite o nome dele.</p>
+
+  <p><b>Quando terminar</b>, use um dos dois botões. O download grava o arquivo
+     na sua pasta Downloads e eu leio direto de lá — não precisa colar nada.</p>
+  <button id="bBaixar" style="border-color:#FFB454;color:#FFB454">baixar arquivo</button>
+  <button id="bCopiar">copiar para a área de transferência</button>
+  <p id="aviso" style="color:#5FBAB9"></p>
+  <textarea id="saida" readonly></textarea>
+</aside>
+
+<script>
+const mapa = document.getElementById('mapa'), base = document.getElementById('base');
+const saida = document.getElementById('saida');
+let modo = 'semente', pendente = null;
+const sementes = [], paredes = [];
+
+function pos(e) {
+  const r = base.getBoundingClientRect();
+  // volta para as coordenadas da imagem original
+  const escala = base.naturalWidth / r.width;
+  return [Math.round((e.clientX - r.left) * escala), Math.round((e.clientY - r.top) * escala)];
+}
+function marcar(x, y, texto, cor) {
+  const r = base.getBoundingClientRect(), escala = r.width / base.naturalWidth;
+  const el = document.createElement('div');
+  el.className = 'marca'; el.textContent = texto;
+  el.style.left = (x * escala) + 'px'; el.style.top = (y * escala) + 'px';
+  if (cor) el.style.background = cor;
+  mapa.appendChild(el);
+}
+function atualizar() {
+  saida.value = JSON.stringify({ sementes, paredes }, null, 2);
+}
+mapa.addEventListener('click', e => {
+  const [x, y] = pos(e);
+  if (modo === 'semente') {
+    const nome = prompt('Nome do território (como aparece no mapa):');
+    if (!nome) return;
+    sementes.push({ nome, x, y });
+    marcar(x, y, nome);
+  } else {
+    if (!pendente) { pendente = [x, y]; marcar(x, y, '·', '#1565c0'); }
+    else { paredes.push({ de: pendente, ate: [x, y] }); marcar(x, y, '·', '#1565c0'); pendente = null; }
+  }
+  atualizar();
+});
+document.getElementById('bSem').onclick = () => { modo='semente'; troca(); };
+document.getElementById('bPar').onclick = () => { modo='parede'; troca(); };
+function troca() {
+  document.getElementById('bSem').classList.toggle('on', modo==='semente');
+  document.getElementById('bPar').classList.toggle('on', modo==='parede');
+  document.getElementById('ajuda').innerHTML = modo === 'semente'
+    ? '<b>Semente:</b> clique no meio de um território que está faltando ou que foi engolido pelo vizinho. Digite o nome dele.'
+    : '<b>Parede:</b> clique em dois pontos para traçar uma divisa que está faltando. A água não atravessa essa linha.';
+}
+document.getElementById('bUndo').onclick = () => {
+  if (modo === 'semente') sementes.pop(); else paredes.pop();
+  document.querySelectorAll('.marca').forEach(m => m.remove());
+  sementes.forEach(s => marcar(s.x, s.y, s.nome));
+  paredes.forEach(p => { marcar(p.de[0], p.de[1], '·', '#1565c0'); marcar(p.ate[0], p.ate[1], '·', '#1565c0'); });
+  atualizar();
+};
+atualizar();
+
+// Uma página não escreve em disco sozinha, mas pode oferecer um download — e
+// aí o arquivo cai em Downloads, que é onde eu consigo ler. Foi o que faltou
+// na primeira versão: as marcações ficavam presas na memória da página.
+document.getElementById('bBaixar').onclick = () => {
+  const blob = new Blob([saida.value], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'correcoes-mapa.json';
+  a.click();
+  aviso('Salvo em Downloads como correcoes-mapa.json — me avise que eu leio.');
+};
+document.getElementById('bCopiar').onclick = async () => {
+  await navigator.clipboard.writeText(saida.value);
+  aviso('Copiado. Agora é só colar na conversa.');
+};
+function aviso(t) {
+  const el = document.getElementById('aviso');
+  el.textContent = t;
+  setTimeout(() => { el.textContent = ''; }, 6000);
+}
+
+// Guarda o trabalho no próprio navegador: recarregar a página deixou de
+// apagar o que você marcou.
+const salvo = localStorage.getItem('correcoes-mapa');
+if (salvo) {
+  const d = JSON.parse(salvo);
+  d.sementes.forEach(s => { sementes.push(s); marcar(s.x, s.y, s.nome); });
+  d.paredes.forEach(p => { paredes.push(p); marcar(p.de[0], p.de[1], '·', '#1565c0');
+                           marcar(p.ate[0], p.ate[1], '·', '#1565c0'); });
+  atualizar();
+}
+const _at = atualizar;
+atualizar = function () { _at(); localStorage.setItem('correcoes-mapa', saida.value); };
+</script>

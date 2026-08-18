@@ -1,0 +1,321 @@
+{
+  "_comentario": "Correções apontadas a olho, uma a uma.",
+  "sementes_extra": {
+    "101": [
+      640,
+      180
+    ],
+    "102": [
+      628,
+      228
+    ],
+    "14": [
+      670,
+      232
+    ],
+    "103": [
+      707,
+      235
+    ],
+    "104": [
+      423,
+      182
+    ]
+  },
+  "fundir": [
+    [
+      2,
+      8
+    ],
+    [
+      44,
+      40
+    ],
+    [
+      103,
+      6
+    ],
+    [
+      11,
+      104
+    ]
+  ],
+  "paredes": [
+    {
+      "de": [
+        581,
+        488
+      ],
+      "ate": [
+        581,
+        566
+      ],
+      "_nota": "Black Mountain × Dreaming Cloud: a linha desenhada está em x=581, medida pela coluna mais escura. O Black Mountain invadia até 71 px."
+    },
+    {
+      "de": [
+        595,
+        193
+      ],
+      "ate": [
+        645,
+        193
+      ],
+      "_nota": "Walled Stronghold x Shining Tidewood, pelo clique em (645,193). Para em x=645 porque dali para a direita quem faz a divisa e a vertical do Mount Lantern."
+    },
+    {
+      "de": [
+        600,
+        253
+      ],
+      "ate": [
+        688,
+        253
+      ],
+      "_nota": "Base do Shining Tidewood e do Mount Lantern contra o Archosaur. Para em x=688: a faixa da direita e do City of Misfortune, que desce ate o Fragrant Hills, e nao pode ser fechada aqui."
+    },
+    {
+      "de": [
+        440,
+        135
+      ],
+      "ate": [
+        440,
+        217
+      ],
+      "_nota": "Ancient Wall x Broken Plain. Clique do Eduardo em (441,164) e a coluna x=440 com 45 das 50 linhas em tom de divisa, contra 19 das vizinhas."
+    },
+    {
+      "de": [
+        647,
+        152
+      ],
+      "ate": [
+        647,
+        194
+      ],
+      "_nota": "Walled Stronghold x Shining Tidewood. Cliques em (647,166) e (651,176). So ate y=194: dali para baixo quem faz a divisa e a horizontal."
+    },
+    {
+      "de": [
+        410,
+        173
+      ],
+      "ate": [
+        410,
+        215
+      ],
+      "_nota": "Ancient Wall x City of a Thousand Streams. Clique em (410,165), e o Eduardo confirma que esse lado e praticamente reto."
+    },
+    {
+      "de": [
+        645,
+        153
+      ],
+      "ate": [
+        645,
+        168
+      ],
+      "_nota": "Shining Tidewood x Mount Lantern, pelos cliques: (652,164) e o \"quadradinho\" do Mount Lantern; (657,172), (653,179), (668,196) e (663,226) do Shining Tidewood. A divisa salta para a direita entre y=164 e y=172."
+    },
+    {
+      "de": [
+        645,
+        168
+      ],
+      "ate": [
+        660,
+        172
+      ],
+      "_nota": "Shining Tidewood x Mount Lantern, pelos cliques: (652,164) e o \"quadradinho\" do Mount Lantern; (657,172), (653,179), (668,196) e (663,226) do Shining Tidewood. A divisa salta para a direita entre y=164 e y=172."
+    },
+    {
+      "de": [
+        660,
+        172
+      ],
+      "ate": [
+        662,
+        180
+      ],
+      "_nota": "Shining Tidewood x Mount Lantern, pelos cliques: (652,164) e o \"quadradinho\" do Mount Lantern; (657,172), (653,179), (668,196) e (663,226) do Shining Tidewood. A divisa salta para a direita entre y=164 e y=172."
+    },
+    {
+      "de": [
+        662,
+        180
+      ],
+      "ate": [
+        670,
+        196
+      ],
+      "_nota": "Shining Tidewood x Mount Lantern, pelos cliques: (652,164) e o \"quadradinho\" do Mount Lantern; (657,172), (653,179), (668,196) e (663,226) do Shining Tidewood. A divisa salta para a direita entre y=164 e y=172."
+    },
+    {
+      "de": [
+        670,
+        196
+      ],
+      "ate": [
+        665,
+        226
+      ],
+      "_nota": "Shining Tidewood x Mount Lantern, pelos cliques: (652,164) e o \"quadradinho\" do Mount Lantern; (657,172), (653,179), (668,196) e (663,226) do Shining Tidewood. A divisa salta para a direita entre y=164 e y=172."
+    },
+    {
+      "de": [
+        665,
+        226
+      ],
+      "ate": [
+        665,
+        254
+      ],
+      "_nota": "Shining Tidewood x Mount Lantern, pelos cliques: (652,164) e o \"quadradinho\" do Mount Lantern; (657,172), (653,179), (668,196) e (663,226) do Shining Tidewood. A divisa salta para a direita entre y=164 e y=172."
+    },
+    {
+      "de": [
+        600,
+        157
+      ],
+      "ate": [
+        606,
+        156
+      ],
+      "_nota": "Topo do Walled Stronghold. Nao e reta: tem uma cupula, medida na imagem - topo em x 616-632 na altura y=143, laterais descendo ate x=605 e x=645 em y=156. O Eduardo marcou o pico em (623,142)."
+    },
+    {
+      "de": [
+        606,
+        156
+      ],
+      "ate": [
+        613,
+        147
+      ],
+      "_nota": "Topo do Walled Stronghold. Nao e reta: tem uma cupula, medida na imagem - topo em x 616-632 na altura y=143, laterais descendo ate x=605 e x=645 em y=156. O Eduardo marcou o pico em (623,142)."
+    },
+    {
+      "de": [
+        613,
+        147
+      ],
+      "ate": [
+        617,
+        140
+      ],
+      "_nota": "Topo do Walled Stronghold. Nao e reta: tem uma cupula, medida na imagem - topo em x 616-632 na altura y=143, laterais descendo ate x=605 e x=645 em y=156. O Eduardo marcou o pico em (623,142)."
+    },
+    {
+      "de": [
+        617,
+        140
+      ],
+      "ate": [
+        631,
+        140
+      ],
+      "_nota": "Topo do Walled Stronghold. Nao e reta: tem uma cupula, medida na imagem - topo em x 616-632 na altura y=143, laterais descendo ate x=605 e x=645 em y=156. O Eduardo marcou o pico em (623,142)."
+    },
+    {
+      "de": [
+        631,
+        140
+      ],
+      "ate": [
+        637,
+        147
+      ],
+      "_nota": "Topo do Walled Stronghold. Nao e reta: tem uma cupula, medida na imagem - topo em x 616-632 na altura y=143, laterais descendo ate x=605 e x=645 em y=156. O Eduardo marcou o pico em (623,142)."
+    },
+    {
+      "de": [
+        637,
+        147
+      ],
+      "ate": [
+        645,
+        156
+      ],
+      "_nota": "Topo do Walled Stronghold. Nao e reta: tem uma cupula, medida na imagem - topo em x 616-632 na altura y=143, laterais descendo ate x=605 e x=645 em y=156. O Eduardo marcou o pico em (623,142)."
+    },
+    {
+      "de": [
+        645,
+        156
+      ],
+      "ate": [
+        726,
+        155
+      ],
+      "_nota": "Segue reta ate a direita: Ancient Peak e City of Misfortune acima, Mount Lantern abaixo."
+    },
+    {
+      "de": [
+        632,
+        104
+      ],
+      "ate": [
+        646,
+        111
+      ],
+      "_nota": "Ancient Peak x City of Misfortune. Cinco cliques do Eduardo formam uma diagonal: (645,114), (663,124), (671,136), (676,141) e (694,145). A parede passa 2 px acima deles, para que todos fiquem dentro do Ancient Peak - ele sobe mais do que eu tinha deixado na primeira tentativa."
+    },
+    {
+      "de": [
+        646,
+        111
+      ],
+      "ate": [
+        665,
+        121
+      ],
+      "_nota": "Ancient Peak x City of Misfortune. Cinco cliques do Eduardo formam uma diagonal: (645,114), (663,124), (671,136), (676,141) e (694,145). A parede passa 2 px acima deles, para que todos fiquem dentro do Ancient Peak - ele sobe mais do que eu tinha deixado na primeira tentativa."
+    },
+    {
+      "de": [
+        665,
+        121
+      ],
+      "ate": [
+        673,
+        133
+      ],
+      "_nota": "Ancient Peak x City of Misfortune. Cinco cliques do Eduardo formam uma diagonal: (645,114), (663,124), (671,136), (676,141) e (694,145). A parede passa 2 px acima deles, para que todos fiquem dentro do Ancient Peak - ele sobe mais do que eu tinha deixado na primeira tentativa."
+    },
+    {
+      "de": [
+        673,
+        133
+      ],
+      "ate": [
+        679,
+        138
+      ],
+      "_nota": "Ancient Peak x City of Misfortune. Cinco cliques do Eduardo formam uma diagonal: (645,114), (663,124), (671,136), (676,141) e (694,145). A parede passa 2 px acima deles, para que todos fiquem dentro do Ancient Peak - ele sobe mais do que eu tinha deixado na primeira tentativa."
+    },
+    {
+      "de": [
+        679,
+        138
+      ],
+      "ate": [
+        696,
+        143
+      ],
+      "_nota": "Ancient Peak x City of Misfortune. Cinco cliques do Eduardo formam uma diagonal: (645,114), (663,124), (671,136), (676,141) e (694,145). A parede passa 2 px acima deles, para que todos fiquem dentro do Ancient Peak - ele sobe mais do que eu tinha deixado na primeira tentativa."
+    },
+    {
+      "de": [
+        696,
+        143
+      ],
+      "ate": [
+        710,
+        153
+      ],
+      "_nota": "Ancient Peak x City of Misfortune. Cinco cliques do Eduardo formam uma diagonal: (645,114), (663,124), (671,136), (676,141) e (694,145). A parede passa 2 px acima deles, para que todos fiquem dentro do Ancient Peak - ele sobe mais do que eu tinha deixado na primeira tentativa."
+    }
+  ],
+  "_nota_103": "A faixa da direita e do City of Misfortune, mas o \"B\" do Mount Lantern e fraco demais para a agua respeitar. Semeia-se a faixa como regiao propria e funde-se com o 6: uma semente diz \"aqui e territorio\", a fusao diz \"e o mesmo territorio daquele\"."
+}

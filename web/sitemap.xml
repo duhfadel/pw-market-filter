@@ -2,7 +2,7 @@
 <!-- A home é uma tela do Flutter: um canvas, sem uma única tag de conteúdo no
      HTML e sem um link para lugar nenhum. Um buscador que chegue nela não tem
      como descobrir os guias sozinho, e é por isso que este arquivo existe. As
-     páginas HTML de verdade estão listadas abaixo, à mão — são quatro, e um
+     páginas HTML de verdade estão listadas abaixo, à mão — são cinco, e um
      gerador seria mais máquina do que o problema pede. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
@@ -14,6 +14,11 @@
     <loc>https://portalpw.net/guerras/</loc>
     <lastmod>2026-08-18</lastmod>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://portalpw.net/guerras/territorio/</loc>
+    <lastmod>2026-08-18</lastmod>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://portalpw.net/guias/</loc>

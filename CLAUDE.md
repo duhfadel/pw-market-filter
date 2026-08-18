@@ -170,9 +170,9 @@ the damage to one dated row.
 
 #### The map: RLS with a read policy, on purpose
 
-`territorios (numero, nome, capital, gold, guilda, atualizado_em)` and
-`guildas (nome, cor)` are the other case, and copying the counter's arrangement
-onto them would be wrong. Here the rows **are** the page's content, so both
+`territorios (numero, nome, capital, gold, guilda, em_guerra, texto, texto_em,
+atualizado_em)` and `guildas (nome, cor, brasao)` are the other case, and
+copying the counter's arrangement onto them would be wrong. Here the rows **are** the page's content, so both
 carry `for select to anon, authenticated using (true)` and an explicit
 `grant select`. What stays shut is writing: no insert, update or delete policy
 exists, so the anon role changes nothing and updating a conquest is editing a
@@ -188,7 +188,23 @@ read back intact and the count was still 52.
 actually changes**, so it dates the conquest and not the last time somebody
 touched the table. The page shows that date, and shows it only when at least
 one territory has an owner: on the day the table was created every row was
-"updated today" while nothing had been conquered.
+"updated today" while nothing had been conquered. `texto_em` is the same
+trigger for `texto`, and it is a second column rather than a reuse of the
+first because a corrected comma is not a conquest.
+
+`guildas.brasao` holds a **file name**, not an image. The art lives in
+`web/guerras/icones/` and ships in the deploy; the row says which file to use.
+So changing a guild's crest stays a dashboard edit and only *adding* new art
+costs a commit — the right frequency, since a guild is born far less often
+than a territory changes hands. A missing file leaves the territory with its
+colour and no symbol, never a broken box.
+
+**`texto` is written in the dashboard and rendered in the browser, so it is
+escaped and then given back a three-item vocabulary** — paragraph, `**bold**`,
+`[text](url)`. Accepting raw HTML there would hand anyone who can write to that
+column a script tag on the page. Probed with `<img onerror>` and `<script>` in
+the column: both come out as visible text, the title stays put, and no element
+is created.
 
 ## Gotchas
 
@@ -388,6 +404,28 @@ Each of these already cost something — measured on the live site, not guessed.
   wanted here — GitHub Pages serves files, so `/filtro` would 404 while
   `/#/filtro` is the same `index.html`. Do not call `usePathUrlStrategy`
   without adding a 404 fallback first.
+- **`<use>` renders into a shadow tree, so your CSS never reaches inside it.**
+  The war marker on the map is a circle and two strokes; `.selo-guerra circle
+  { fill: var(--guerra) }` was in the stylesheet and the circle still came out
+  black, because a `<use>` of a `<symbol>` clones its content into a shadow
+  tree that outside selectors cannot cross. Only inherited properties get in,
+  and `fill` alone would have painted the strokes too. The fix is a plain `<g>`
+  template plus `cloneNode(true)` — real nodes in the document, where the
+  selector applies — positioned with `transform: translate() scale()`.
+
+- **The top of a shape's bounding box is usually not inside the shape.**
+  Anchoring a crest at `ymin` put a third of them in the neighbour's territory:
+  the 52 outlines are irregular and several start in a spike. `ancoras.py`
+  scans by scanline instead, and it needed two more corrections that are worth
+  knowing before writing anything similar. Stopping at the *first* height that
+  fits is too early — territory 7 only has width in its left tip at y=65 and
+  opens up two pixels lower, so the search collects the candidates in the top
+  band and takes the one nearest the territory's centre. And the number is
+  already there: at 23 px, **34 of the 52** crests landed on top of their own
+  number, so the crest is sized by the band *above* the number, and in the
+  eight tightest territories the number yields 1–9 px. That position was never
+  sacred — it came from "deepest point of the shape", not from the game.
+
 - **Judge layout on the published site, not on `localhost`.** On this machine
   every page served from `localhost` renders shifted right, with a band of
   empty space on the left. The same build on GitHub Pages, in the same Chrome,

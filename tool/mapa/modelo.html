@@ -29,7 +29,7 @@
   <link rel="stylesheet" href="/guias/estilo.css">
 <style>
   /* The one colour the shell has no name for: a territory nobody holds. */
-  :root { --neutro:#343652 }
+  :root { --neutro:#343652; --guerra:#E5484D }
 
   /* The guides are a column of text at 760 px. A map is not. */
   main.mapa-largo { max-width:1180px }
@@ -46,6 +46,27 @@
   .t { fill:var(--neutro); stroke:var(--background); stroke-width:1.6; stroke-linejoin:round;
        cursor:pointer; transition:filter .12s ease }
   .t:hover, .t.on { filter:brightness(1.55); stroke:var(--accent); stroke-width:2.8 }
+
+  /* Território em guerra. O contorno é o sinal, e não o ícone: ele existe em
+     todo território, inclusive nos apertados demais para caberem um brasão, e
+     é visível sem passar o mouse. O ícone confirma de perto.
+
+     São duas cópias do contorno, uma escura por baixo e a tracejada por cima.
+     Com uma só, o vermelho da guerra sobre o vermelho de uma guilda vermelha
+     praticamente sumia — e um alerta que depende da cor do dono não é alerta.
+     Elas ficam numa camada própria, acima do mapa e sem capturar o mouse, para
+     não disputarem o contorno dourado do hover. */
+  .cerco { fill:none; pointer-events:none }
+  .cerco.base { stroke:var(--background); stroke-width:4.2 }
+  .cerco.linha { stroke:var(--guerra); stroke-width:2.4; stroke-dasharray:5 3;
+                 animation:ronda 1.6s linear infinite }
+  @keyframes ronda { to { stroke-dashoffset:-16 } }
+  @media (prefers-reduced-motion:reduce) { .cerco.linha { animation:none } }
+
+  .brasao { pointer-events:none }
+  .selo-guerra { pointer-events:none }
+  .selo-guerra circle { fill:var(--guerra) }
+  .selo-guerra path { stroke:#fff; stroke-linecap:round; fill:none }
 
   /* As nove capitais valem 300 ou 600 de gold contra 150 das outras. A marca
      dourada as separa sem competir com o realce do hover, que é o mesmo
@@ -84,9 +105,32 @@
   .item .g { color:var(--text-muted); font-size:11.5px; font-variant-numeric:tabular-nums }
   .item .g.alto { color:var(--accent) }
   .item .dot { width:9px; height:9px; border-radius:3px; background:var(--neutro); flex:0 0 auto }
+  .item .fogo { color:var(--guerra); font-size:11px; font-weight:700; letter-spacing:.06em }
+
+  .info .dono { display:flex; align-items:center; gap:7px }
+  .info .dono img { width:20px; height:20px; object-fit:contain }
+  .info .guerra { color:var(--guerra); font-size:12px; font-weight:700; margin-top:6px;
+                  letter-spacing:.05em }
+  .guild img { width:15px; height:15px; object-fit:contain; margin-left:-3px }
 </style>
 </head>
 <body>
+
+<!-- Duas espadas cruzadas, desenhadas aqui e não num arquivo: o marcador de
+     guerra é a informação mais urgente da página e não pode depender de um
+     download que pode faltar. O brasão pode — ele é arte de cada guilda.
+
+     É um <g> clonado, e não um <symbol> com <use>, porque <use> monta uma
+     shadow tree: `.selo-guerra circle` não atravessa ela, e o selo saiu preto
+     em vez de vermelho na primeira tentativa. Clonar deixa os nós no
+     documento, onde o CSS os alcança. Modelo de 24×24; quem usa aplica a
+     escala. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <g id="ic-guerra">
+    <circle cx="12" cy="12" r="11"/>
+    <path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5" stroke-width="2.8"/>
+  </g>
+</svg>
 
 <header class="topo">
   <div class="topo-interno">
@@ -136,15 +180,23 @@
 // capital são propriedades dele. Vêm no arquivo, e é por isso que a página
 // desenha inteira mesmo com a rede fora do ar.
 //
-// O que muda toda semana é o dono, e só ele vem do Supabase. Atualizar o mapa
-// é editar uma linha lá — não tem build, não tem deploy, não tem esperar CI.
+// O que muda vem do Supabase: o dono, o brasão da guilda, se o território está
+// em guerra e o texto da ficha. Atualizar qualquer um deles é editar uma linha
+// no painel — sem build, sem deploy, sem esperar CI.
 const territorios = /*BASE*/;
+
+// Onde cabe um brasão no alto de cada forma, calculado por tool/mapa/ancoras.py
+// contra a geometria real dos contornos. Ver o cabeçalho daquele arquivo: o
+// topo do retângulo que envolve um território quase nunca está dentro dele.
+const brasoes = /*BRASOES*/;
 
 const SUPABASE = 'https://yadfbwsolmkcaylbxviw.supabase.co/rest/v1';
 const CHAVE = 'sb_publishable_D2hgezeh5BbZVpt_QLeXwg_FowKweu2';
+const SVG = 'http://www.w3.org/2000/svg';
 
 let dono = {};      // numero -> nome da guilda
-let guildas = {};   // nome da guilda -> cor
+let guerra = {};    // numero -> true
+let guildas = {};   // nome da guilda -> { cor, brasao }
 
 async function carregar() {
   // `cache: 'no-store'` e não o `?t=<millis>` que o índice do filtro usa: o
@@ -155,16 +207,17 @@ async function carregar() {
       .then(r => r.ok ? r.json() : Promise.reject(r.status));
 
   const [linhas, gs] = await Promise.all([
-    pedir('/territorios?select=numero,nome,capital,gold,guilda,atualizado_em'),
-    pedir('/guildas?select=nome,cor'),
+    pedir('/territorios?select=numero,nome,capital,gold,guilda,em_guerra,atualizado_em'),
+    pedir('/guildas?select=nome,cor,brasao'),
   ]);
 
-  gs.forEach(g => guildas[g.nome] = g.cor);
+  gs.forEach(g => guildas[g.nome] = { cor: g.cor, brasao: g.brasao });
   let ultima = null;
   linhas.forEach(l => {
     // A tabela é a fonte também dos nomes: corrigir uma grafia no painel
     // aparece no site sem passar por aqui.
     territorios[l.numero] = { nome: l.nome, capital: l.capital, gold: l.gold };
+    if (l.em_guerra) guerra[l.numero] = true;
     if (l.guilda) {
       dono[l.numero] = l.guilda;
       // A data que interessa é a da última conquista, não a da última vez que
@@ -176,34 +229,94 @@ async function carregar() {
   return ultima;
 }
 
+const cor = (n) => guildas[dono[n]]?.cor || 'var(--neutro)';
+
 function pintar() {
+  const mapa = document.querySelector('.quadro svg');
+  document.getElementById('icones')?.remove();
+  const camada = document.createElementNS(SVG, 'g');
+  camada.id = 'icones';
+
   document.querySelectorAll('.t').forEach(p => {
-    const g = dono[p.id.slice(1)];
-    p.style.fill = g && guildas[g] ? guildas[g] : '';
+    const n = p.id.slice(1);
+    const g = guildas[dono[n]];
+    p.style.fill = g ? g.cor : '';
+    p.classList.toggle('guerra', !!guerra[n]);
+
+    if (guerra[n]) {
+      for (const camadaCerco of ['base', 'linha']) {
+        const c = p.cloneNode(false);
+        c.removeAttribute('id');
+        c.setAttribute('class', 'cerco ' + camadaCerco);
+        c.removeAttribute('style');
+        camada.appendChild(c);
+      }
+    }
+
+    const a = brasoes[n];
+    if (!a) return;
+    const [x, y, lado] = a;
+
+    if (g && g.brasao) {
+      const img = document.createElementNS(SVG, 'image');
+      img.setAttribute('href', 'icones/' + g.brasao);
+      img.setAttribute('x', x - lado / 2);
+      img.setAttribute('y', y);
+      img.setAttribute('width', lado);
+      img.setAttribute('height', lado);
+      // Um brasão que ainda não subiu deixa o território como estava, nunca um
+      // quadrado quebrado no meio do mapa.
+      img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+      img.setAttribute('class', 'brasao');
+      camada.appendChild(img);
+    }
+
+    if (guerra[n]) {
+      // Um território sem dono também entra em guerra, então o selo existe com
+      // ou sem brasão: encavalado no canto dele quando há um, sozinho e maior
+      // quando não há. Nos dois casos fica dentro do quadrado que ancoras.py
+      // já provou caber — encostar na divisa faz o selo parecer do vizinho.
+      const selo = g && g.brasao ? lado * 0.6 : lado * 0.9;
+      const cx = g && g.brasao ? x + lado / 2 - selo * 0.5 : x;
+      const cy = g && g.brasao ? y + lado - selo * 0.5 : y + lado / 2;
+      const marca = document.getElementById('ic-guerra').cloneNode(true);
+      marca.removeAttribute('id');
+      marca.setAttribute('class', 'selo-guerra');
+      marca.setAttribute('transform',
+        `translate(${cx - selo / 2} ${cy - selo / 2}) scale(${selo / 24})`);
+      camada.appendChild(marca);
+    }
   });
+  mapa.appendChild(camada);
 }
 
 function desenharLegenda() {
   const conta = {};
   Object.values(dono).forEach(g => conta[g] = (conta[g] || 0) + 1);
   const semDono = Object.keys(territorios).length - Object.keys(dono).length;
+  const emGuerra = Object.keys(guerra).length;
   document.getElementById('legenda').innerHTML =
     Object.entries(guildas)
       .sort((a, b) => (conta[b[0]] || 0) - (conta[a[0]] || 0))
-      .map(([n, c]) =>
-        `<div class="guild"><i style="background:${c}"></i>${n}<span class="qtd">${conta[n] || 0}</span></div>`)
+      .map(([n, g]) =>
+        `<div class="guild"><i style="background:${g.cor}"></i>`
+        + (g.brasao ? `<img src="icones/${g.brasao}" alt="">` : '')
+        + `${n}<span class="qtd">${conta[n] || 0}</span></div>`)
       .join('')
-    + `<div class="guild"><i style="background:var(--neutro)"></i>sem dono<span class="qtd">${semDono}</span></div>`;
+    + `<div class="guild"><i style="background:var(--neutro)"></i>sem dono<span class="qtd">${semDono}</span></div>`
+    + (emGuerra
+        ? `<div class="guild"><i style="background:var(--guerra)"></i>em guerra<span class="qtd">${emGuerra}</span></div>`
+        : '');
 }
 
 function desenharLista() {
   document.getElementById('lista').innerHTML = Object.entries(territorios)
     .sort((a, b) => a[0] - b[0]).map(([n, t]) => {
-      const g = dono[n], cor = g && guildas[g] ? guildas[g] : 'var(--neutro)';
       return `<div class="item${t.capital ? ' cap' : ''}" data-n="${n}">
-        <span class="dot" style="background:${cor}"></span>
+        <span class="dot" style="background:${cor(n)}"></span>
         <span class="id">${String(n).padStart(2, '0')}</span>
         <span class="nm">${t.nome}</span>
+        ${guerra[n] ? '<span class="fogo">GUERRA</span>' : ''}
         <span class="g${t.gold > 150 ? ' alto' : ''}">${t.gold}</span></div>`;
     }).join('');
   ligarEventos(document.querySelectorAll('.item'), el => el.dataset.n);
@@ -211,13 +324,17 @@ function desenharLista() {
 
 const info = document.getElementById('info');
 function mostrar(n) {
-  const t = territorios[n], g = dono[n];
+  const t = territorios[n], g = guildas[dono[n]];
   info.innerHTML =
     `<div class="num">TERRITÓRIO ${String(n).padStart(2, '0')} · ${t.gold} de gold</div>`
     + `<div class="nome">${t.nome}</div>`
     + (t.capital ? '<div class="cap">capital</div>' : '')
-    + (g ? `<div class="dono" style="color:${guildas[g] || 'inherit'}">${g}</div>`
-         : '<div class="dono vazio">sem dono</div>');
+    + (dono[n]
+        ? `<div class="dono" style="color:${g?.cor || 'inherit'}">`
+          + (g?.brasao ? `<img src="icones/${g.brasao}" alt="">` : '')
+          + `${dono[n]}</div>`
+        : '<div class="dono vazio">sem dono</div>')
+    + (guerra[n] ? '<div class="guerra">⚔ EM GUERRA</div>' : '');
 }
 
 function acender(n, liga) {
@@ -226,11 +343,13 @@ function acender(n, liga) {
 }
 
 // Os dois lados se acendem: passar na lista destaca no mapa, e vice-versa.
+// O clique, dos dois lados, abre a ficha do território.
 function ligarEventos(nos, numeroDe) {
   nos.forEach(el => {
     const n = numeroDe(el);
     el.addEventListener('mouseenter', () => { mostrar(n); acender(n, true); });
     el.addEventListener('mouseleave', () => acender(n, false));
+    el.addEventListener('click', () => location.href = 'territorio/?n=' + n);
   });
 }
 

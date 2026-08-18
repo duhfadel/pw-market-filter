@@ -10,7 +10,7 @@ python3 sementes.py    # acha o miolo de cada território (chama cresce.py)
 python3 bacia.py       # decide de quem é cada pixel, aplicando correcoes.json
 python3 svg.py         # converte as regiões em caminhos vetoriais
 python3 nomes.py       # casa cada região com o número e o nome do jogo
-python3 pagina.py      # monta web/guerras/index.html com o SVG e o modelo
+python3 pagina.py      # monta as duas paginas de web/guerras/
 ```
 
 Só precisa de `Pillow`. Cada passo grava um JSON que o seguinte lê.
@@ -52,8 +52,9 @@ mexer no algoritmo não invalida as correções.
 
 Em lugar nenhum daqui. `pagina.py` embute no HTML só a metade que **não muda** —
 nome, gold e capital são propriedades do mapa do jogo, não da guerra — e a
-página busca os donos no Supabase (`portal-pw`, tabelas `territorios` e
-`guildas`) ao carregar.
+página busca no Supabase (`portal-pw`, tabelas `territorios` e `guildas`) tudo
+que muda: o dono, o brasão dele, se o território está em guerra e o texto da
+ficha.
 
 É por isso que atualizar uma conquista não passa por este diretório, nem por um
 commit, nem por CI: é editar uma linha no painel. E é por isso que a página
@@ -62,6 +63,45 @@ desenha inteira, com os 52 nomes, mesmo com o banco fora do ar.
 `pagina-exemplo.html` continua aqui como a fonte do SVG — `pagina.py` copia o
 bloco `<svg>` dele. Os donos inventados que ela mostra (NUEMA, ESPADAS, CORVOS,
 AURORA) são só demonstração e não vão para o site.
+
+## Os dois ícones, e por que só um pode ser arquivo
+
+O **brasão** é arte de cada guilda e mora em `web/guerras/icones/`; a coluna
+`guildas.brasao` diz qual arquivo usar. Falta de arquivo deixa o território com
+a cor da guilda e sem símbolo — nunca um quadrado quebrado.
+
+O **marcador de guerra** é desenhado dentro do próprio SVG, e isso é de
+propósito: é a informação mais urgente da página, e não pode depender de um
+download que pode faltar. Ele é duas coisas ao mesmo tempo — o contorno
+tracejado da forma, que existe em todo território e se vê sem passar o mouse, e
+o selo de espadas, que confirma de perto.
+
+O contorno é desenhado **duas vezes**, uma escura por baixo da tracejada. Com
+uma só, o vermelho da guerra sobre o vermelho de uma guilda vermelha
+praticamente sumia, e um alerta que depende da cor do dono não é alerta.
+
+Duas armadilhas que custaram uma rodada cada:
+
+- **`<use>` com `<symbol>` monta uma shadow tree**, e `.selo-guerra circle` não
+  atravessa ela: o selo saiu preto em vez de vermelho, com o CSS certo no
+  arquivo. A marca é um `<g>` clonado com `cloneNode`, que deixa os nós no
+  documento onde o seletor os alcança.
+- **Remontar o `<text>` do número a partir do inteiro come o zero.** O
+  território 8 está escrito `08` no SVG; `desce_numeros` recoloca o rótulo como
+  estava em vez de formatá-lo de novo.
+
+## Onde cabe um brasão, e por que isso não é `ymin`
+
+`ancoras.py` responde isso, e o cabeçalho dele conta as três medições que
+viraram regra. O resumo: o topo do retângulo que envolve um território quase
+nunca está dentro dele; parar na primeira altura que serve põe o brasão numa
+ponta que parece do vizinho; e com 23 px de brasão, **34 dos 52** territórios
+ficavam com o ícone por cima do próprio número.
+
+A saída foi o número ceder. Em oito territórios ele desce de 1 a 9 px — o
+suficiente para os 52 caberem — e essa posição não era sagrada: veio de "ponto
+mais fundo da forma", não do jogo. É por isso que o SVG do site não é byte a
+byte o de `pagina-exemplo.html`.
 
 ## A distinção que a página faz questão de manter
 

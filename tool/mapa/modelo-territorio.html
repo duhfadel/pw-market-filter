@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Território — Guerras territoriais — Portal PW</title>
+  <meta name="description"
+        content="A ficha de um território das guerras territoriais do The Classic PW 1.8.7: quem domina, quanto rende e o que está acontecendo nele.">
+  <link rel="canonical" href="https://portalpw.net/guerras/territorio/">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Portal PW">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Guerras territoriais — Portal PW">
+  <meta property="og:description" content="Quem domina cada um dos 52 territórios de Pangu, e o que está acontecendo neles.">
+  <meta property="og:url" content="https://portalpw.net/guerras/territorio/">
+  <meta property="og:image" content="https://portalpw.net/og-v2.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2">
+  <link rel="stylesheet" href="/guias/estilo.css">
+<style>
+  :root { --neutro:#343652; --guerra:#E5484D }
+
+  .voltar { display:inline-block; color:var(--text-muted); font-size:13px;
+            text-decoration:none; margin-bottom:18px }
+  .voltar:hover { color:var(--accent) }
+
+  .cabeca { display:flex; gap:22px; align-items:flex-start; flex-wrap:wrap }
+  .cabeca .texto { flex:1; min-width:250px }
+  h1 { margin:0 0 6px }
+  .numero { color:var(--text-muted); font-size:12px; letter-spacing:.12em; margin:0 0 4px }
+
+  /* O mapinha responde "onde fica isso?", que é a primeira pergunta de quem
+     chega por um link e não decorou os 52 números. Não é interativo: quem quer
+     clicar volta para o mapa grande, e um segundo mapa clicável competiria
+     com ele. */
+  .mini { width:190px; flex:0 0 auto; background:var(--surface); border:1px solid var(--border);
+          border-radius:12px; padding:10px }
+  .mini svg { width:100%; height:auto; display:block }
+  .mini .t { fill:#22243c; stroke:var(--background); stroke-width:1.2; stroke-linejoin:round }
+  .mini .t.aqui { fill:var(--accent); stroke:#fff; stroke-width:2 }
+  .mini .n, .mini .coroa { display:none }
+  .mini figcaption { color:var(--text-muted); font-size:11px; text-align:center; margin-top:7px }
+
+  .fatos { display:flex; gap:10px; flex-wrap:wrap; margin:18px 0 4px }
+  .fato { background:var(--surface); border:1px solid var(--border); border-radius:9px;
+          padding:9px 13px; font-size:13px; display:flex; align-items:center; gap:8px }
+  .fato b { color:var(--text); font-weight:600 }
+  .fato img { width:20px; height:20px; object-fit:contain }
+  .fato i { width:11px; height:11px; border-radius:3px; display:inline-block }
+  .fato.guerra { border-color:var(--guerra); color:var(--guerra) }
+  .fato.guerra b { color:var(--guerra) }
+  /* A mesma marca do mapa, e não o caractere ⚔: sem o seletor de variação ele
+     cai num glifo fino que não se lê, e com ele vira emoji colorido de cada
+     sistema. Desenhada, é a mesma coisa nos dois lugares. */
+  .fato svg { width:16px; height:16px; flex:0 0 auto }
+  .fato svg circle { fill:var(--guerra) }
+  .fato svg path { stroke:#fff; stroke-width:2.8; fill:none; stroke-linecap:round }
+
+  .quando { color:var(--text-muted); font-size:12px; margin:14px 0 0 }
+
+  .corpo { margin-top:30px }
+  .corpo h2 { margin-top:0 }
+  .nada { color:var(--text-muted); font-size:14px }
+
+  .todos { columns:3; column-gap:24px; margin-top:20px }
+  @media (max-width:760px) { .todos { columns:2 } .mini { width:100% } }
+  @media (max-width:480px) { .todos { columns:1 } }
+  .todos a { display:block; break-inside:avoid; padding:5px 8px; border-radius:7px;
+             text-decoration:none; color:inherit; font-size:13.5px }
+  .todos a:hover { background:var(--surface-raised) }
+  .todos .id { color:var(--text-muted); font-variant-numeric:tabular-nums; font-size:12px;
+               margin-right:8px }
+</style>
+</head>
+<body>
+
+<header class="topo">
+  <div class="topo-interno">
+    <a href="/" title="Portal PW">
+      <img class="marca-larga" src="/assets/assets/images/portal-pw-logo-v2.webp" alt="Portal PW">
+      <img class="marca-curta" src="/assets/assets/images/pw-mark.webp" alt="Portal PW">
+    </a>
+    <span class="secao">Guerras territoriais</span>
+  </div>
+</header>
+
+<main>
+  <a class="voltar" href="/guerras/">← Voltar ao mapa</a>
+  <div id="ficha"></div>
+</main>
+
+<div class="publicidade">
+  <span class="rotulo">PUBLICIDADE</span>
+  <a class="casa" href="mailto:duhspain@gmail.com">Quer anunciar neste espaço? <strong>Clique aqui</strong></a>
+</div>
+
+<footer>
+  <p>
+    Projeto de fã, sem vínculo com o The Classic Games.<br>
+    <a href="/guerras/">Mapa das guerras</a> · <a href="/guias/">Todos os guias</a> ·
+    <a href="/">Voltar ao Portal</a>
+  </p>
+</footer>
+
+<script>
+// Os 52 nomes vêm no arquivo, como no mapa: assim a página sabe dizer de qual
+// território se trata mesmo se o banco não responder.
+const territorios = /*BASE*/;
+
+const SUPABASE = 'https://yadfbwsolmkcaylbxviw.supabase.co/rest/v1';
+const CHAVE = 'sb_publishable_D2hgezeh5BbZVpt_QLeXwg_FowKweu2';
+
+// `?n=10` e não `/territorio/10`: o GitHub Pages serve arquivos, então um
+// caminho que não existe em disco responde 404. Mesmo motivo do `#` nas rotas
+// do app.
+const n = new URLSearchParams(location.search).get('n');
+
+const escapa = (s) => s.replace(/[&<>"]/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+/**
+ * O texto que o Eduardo escreve, virando HTML sem virar um buraco.
+ *
+ * Escapa tudo primeiro e só então reconhece três coisas — parágrafo, **negrito**
+ * e [texto](link). É pouco de propósito: aceitar HTML cru num campo editado
+ * pelo painel é dar a qualquer um que consiga escrever ali a chance de rodar
+ * script na página, e a lista curta cobre o que uma notícia precisa.
+ */
+function formatar(txt) {
+  return txt.trim().split(/\n\s*\n/).map(p =>
+    '<p>' + escapa(p)
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" rel="noopener">$1</a>')
+      .replace(/\n/g, '<br>')
+    + '</p>').join('');
+}
+
+// As duas espadas cruzadas do mapa, redesenhadas aqui porque esta página não
+// carrega o mapa grande. Vinte e quatro por vinte e quatro, como lá.
+const MARCA_GUERRA =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11"/>'
+  + '<path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5"/></svg>';
+
+const ficha = document.getElementById('ficha');
+
+function listaCompleta(aviso) {
+  ficha.innerHTML = '<h1>Os 52 territórios</h1>'
+    + (aviso ? `<p class="nada">${aviso}</p>` : '<p class="resumo">Escolha um para ver a ficha.</p>')
+    + '<div class="todos">' + Object.entries(territorios).sort((a, b) => a[0] - b[0])
+        .map(([i, t]) => `<a href="?n=${i}"><span class="id">${String(i).padStart(2, '0')}</span>${t.nome}</a>`)
+        .join('') + '</div>';
+}
+
+function desenhar(t, guilda, texto) {
+  const cor = guilda ? guilda.cor : 'var(--neutro)';
+  document.title = t.nome + ' — Guerras territoriais — Portal PW';
+
+  const fatos = [
+    `<div class="fato">💰 <b>${t.gold}</b> de gold</div>`,
+    t.capital ? '<div class="fato">👑 <b>Capital</b></div>' : '',
+    guilda
+      ? `<div class="fato"><i style="background:${cor}"></i>`
+        + (guilda.brasao ? `<img src="../icones/${guilda.brasao}" alt="">` : '')
+        + `<b>${escapa(guilda.nome)}</b></div>`
+      : '<div class="fato">Sem dono</div>',
+    t.em_guerra
+      ? '<div class="fato guerra">' + MARCA_GUERRA + '<b>Em guerra</b></div>'
+      : '',
+  ].join('');
+
+  ficha.innerHTML = `
+    <div class="cabeca">
+      <div class="texto">
+        <p class="numero">TERRITÓRIO ${String(n).padStart(2, '0')}</p>
+        <h1>${escapa(t.nome)}</h1>
+        <div class="fatos">${fatos}</div>
+        ${t.atualizado_em && guilda
+          ? `<p class="quando">Conquistado em ${new Date(t.atualizado_em).toLocaleDateString('pt-BR')}.</p>`
+          : ''}
+      </div>
+      <figure class="mini">/*MINI*/<figcaption>Onde fica no mapa</figcaption></figure>
+    </div>
+    <div class="corpo">
+      <h2>O que está acontecendo</h2>
+      ${texto ? formatar(texto) : '<p class="nada">Nada escrito sobre este território ainda.</p>'}
+      ${t.texto_em && texto
+        ? `<p class="quando">Escrito em ${new Date(t.texto_em).toLocaleDateString('pt-BR')}.</p>` : ''}
+    </div>`;
+
+  document.getElementById('t' + n)?.classList.add('aqui');
+}
+
+if (!n || !territorios[n]) {
+  listaCompleta(n ? `Não existe território ${escapa(n)}. São de 1 a 52.` : '');
+} else {
+  const pedir = (rota) =>
+    fetch(SUPABASE + rota, { headers: { apikey: CHAVE }, cache: 'no-store' })
+      .then(r => r.ok ? r.json() : Promise.reject(r.status));
+
+  pedir(`/territorios?select=*&numero=eq.${encodeURIComponent(n)}`)
+    .then(async ([t]) => {
+      if (!t) throw 'território não encontrado';
+      let guilda = null;
+      if (t.guilda) {
+        const [g] = await pedir(
+          `/guildas?select=*&nome=eq.${encodeURIComponent(t.guilda)}`);
+        guilda = g || { nome: t.guilda, cor: null, brasao: null };
+      }
+      desenhar(t, guilda, t.texto);
+    })
+    .catch(erro => {
+      // O nome e o gold estão no arquivo, então a ficha ainda diz de que
+      // território se trata — o que ela não pode é inventar dono nem texto.
+      console.warn('território: não deu para ler do banco —', erro);
+      desenhar({ ...territorios[n] }, null, null);
+      document.querySelector('.corpo .nada').textContent =
+        'Não foi possível carregar o que há sobre este território agora.';
+    });
+}
+</script>
+
+</body>
+</html>

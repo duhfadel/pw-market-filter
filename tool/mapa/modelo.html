@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Guerras territoriais — Portal PW</title>
+  <meta name="description"
+        content="O mapa das guerras territoriais do The Classic PW 1.8.7: os 52 territórios, quem domina cada um e quanto de gold cada um rende.">
+  <link rel="canonical" href="https://portalpw.net/guerras/">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Portal PW">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Guerras territoriais — Portal PW">
+  <meta property="og:description" content="O mapa das guerras territoriais do The Classic PW 1.8.7: os 52 territórios, quem domina cada um e quanto de gold cada um rende.">
+  <meta property="og:url" content="https://portalpw.net/guerras/">
+  <meta property="og:image" content="https://portalpw.net/og-v2.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2">
+
+  <!-- The shell — bar, foot, ad space, palette — is the guides' stylesheet, not
+       a third copy of the colours. What is below it is only the map, which no
+       other page has. -->
+  <link rel="stylesheet" href="/guias/estilo.css">
+<style>
+  /* The one colour the shell has no name for: a territory nobody holds. */
+  :root { --neutro:#343652 }
+
+  /* The guides are a column of text at 760 px. A map is not. */
+  main.mapa-largo { max-width:1180px }
+
+  .sub { color:var(--text-muted); font-size:14px; margin:0 0 22px }
+  .sub b { color:var(--accent); font-weight:600 }
+
+  .grade { display:grid; gap:24px; grid-template-columns:minmax(0,1fr) 264px; align-items:start }
+  @media (max-width:880px) { .grade { grid-template-columns:1fr } }
+
+  .quadro { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px }
+  .quadro svg { width:100%; height:auto; display:block }
+
+  .t { fill:var(--neutro); stroke:var(--background); stroke-width:1.6; stroke-linejoin:round;
+       cursor:pointer; transition:filter .12s ease }
+  .t:hover, .t.on { filter:brightness(1.55); stroke:var(--accent); stroke-width:2.8 }
+
+  /* As nove capitais valem 300 ou 600 de gold contra 150 das outras. A marca
+     dourada as separa sem competir com o realce do hover, que é o mesmo
+     dourado porém no contorno. */
+  .n.cap { fill:var(--accent) }
+  .coroa { fill:var(--accent); opacity:.9; pointer-events:none }
+  .n { fill:#fff; font-size:12.5px; font-weight:700; text-anchor:middle; dominant-baseline:central;
+       pointer-events:none; paint-order:stroke; stroke:rgba(0,0,0,.6); stroke-width:2.6 }
+
+  aside h2 { font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-muted);
+             margin:0 0 12px; font-weight:600; font-family:inherit }
+  .guild { display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:8px; font-size:14px }
+  .guild i { width:13px; height:13px; border-radius:4px; flex:0 0 auto }
+  .guild .qtd { margin-left:auto; color:var(--text-muted); font-size:13px; font-variant-numeric:tabular-nums }
+
+  .info { margin-top:14px; background:var(--surface-raised); border:1px solid var(--border);
+          border-radius:10px; padding:13px 15px; min-height:104px }
+  .info .num { color:var(--text-muted); font-size:11px; letter-spacing:.11em }
+  .info .nome { font-size:17px; font-weight:600; margin:3px 0 4px }
+  .info .cap { color:var(--accent); font-size:11px; letter-spacing:.09em; text-transform:uppercase }
+  .info .dono { font-size:13px; margin-top:5px }
+  .vazio { color:var(--text-muted); font-size:13px }
+
+  /* A lista de nomes. O jogo mostra assim, e por um bom motivo: um nome como
+     "Castelo Flor de Pessegueiro" não cabe dentro do território mais apertado,
+     que tem 15 px de folga até a divisa. */
+  .lista-t { margin-top:24px; columns:3; column-gap:26px }
+  @media (max-width:880px) { .lista-t { columns:2 } }
+  @media (max-width:520px) { .lista-t { columns:1 } }
+  .item { break-inside:avoid; display:flex; align-items:baseline; gap:9px; padding:5px 8px;
+          border-radius:7px; font-size:13.5px; cursor:pointer }
+  .item:hover, .item.on { background:var(--surface-raised) }
+  .item .id { color:var(--text-muted); font-variant-numeric:tabular-nums; font-size:12px; min-width:19px }
+  .item .nm { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+  .item.cap .nm { color:var(--accent); font-weight:600 }
+  .item .g { color:var(--text-muted); font-size:11.5px; font-variant-numeric:tabular-nums }
+  .item .g.alto { color:var(--accent) }
+  .item .dot { width:9px; height:9px; border-radius:3px; background:var(--neutro); flex:0 0 auto }
+</style>
+</head>
+<body>
+
+<header class="topo">
+  <div class="topo-interno">
+    <a href="/" title="Portal PW">
+      <img class="marca-larga" src="/assets/assets/images/portal-pw-logo-v2.webp" alt="Portal PW">
+      <img class="marca-curta" src="/assets/assets/images/pw-mark.webp" alt="Portal PW">
+    </a>
+    <span class="secao">Guerras territoriais</span>
+  </div>
+</header>
+
+<main class="mapa-largo">
+  <h1>Guerras territoriais</h1>
+  <p class="sub" id="sub">Os 52 territórios de Pangu e quem domina cada um.</p>
+
+  <div class="grade">
+    <div class="quadro">
+/*SVG*/
+    </div>
+    <aside>
+      <h2>Guildas</h2>
+      <div id="legenda"></div>
+      <div class="info" id="info">
+        <span class="vazio">Passe o mouse sobre um território — no mapa ou na lista.</span>
+      </div>
+    </aside>
+  </div>
+
+  <h2>Os 52 territórios</h2>
+  <div class="lista-t" id="lista"></div>
+</main>
+
+<div class="publicidade">
+  <span class="rotulo">PUBLICIDADE</span>
+  <a class="casa" href="mailto:duhspain@gmail.com">Quer anunciar neste espaço? <strong>Clique aqui</strong></a>
+</div>
+
+<footer>
+  <p>
+    Projeto de fã, sem vínculo com o The Classic Games.<br>
+    <a href="/guias/">Todos os guias</a> · <a href="/">Voltar ao Portal</a>
+  </p>
+</footer>
+
+<script>
+// O mapa não muda: os 52 contornos são o desenho do jogo, e nome, gold e
+// capital são propriedades dele. Vêm no arquivo, e é por isso que a página
+// desenha inteira mesmo com a rede fora do ar.
+//
+// O que muda toda semana é o dono, e só ele vem do Supabase. Atualizar o mapa
+// é editar uma linha lá — não tem build, não tem deploy, não tem esperar CI.
+const territorios = /*BASE*/;
+
+const SUPABASE = 'https://yadfbwsolmkcaylbxviw.supabase.co/rest/v1';
+const CHAVE = 'sb_publishable_D2hgezeh5BbZVpt_QLeXwg_FowKweu2';
+
+let dono = {};      // numero -> nome da guilda
+let guildas = {};   // nome da guilda -> cor
+
+async function carregar() {
+  // `cache: 'no-store'` e não o `?t=<millis>` que o índice do filtro usa: o
+  // PostgREST lê qualquer parâmetro que não conheça como filtro de coluna, e
+  // `?t=123` responde PGRST100 em vez dos territórios. Medido, não suposto.
+  const pedir = (rota) =>
+    fetch(SUPABASE + rota, { headers: { apikey: CHAVE }, cache: 'no-store' })
+      .then(r => r.ok ? r.json() : Promise.reject(r.status));
+
+  const [linhas, gs] = await Promise.all([
+    pedir('/territorios?select=numero,nome,capital,gold,guilda,atualizado_em'),
+    pedir('/guildas?select=nome,cor'),
+  ]);
+
+  gs.forEach(g => guildas[g.nome] = g.cor);
+  let ultima = null;
+  linhas.forEach(l => {
+    // A tabela é a fonte também dos nomes: corrigir uma grafia no painel
+    // aparece no site sem passar por aqui.
+    territorios[l.numero] = { nome: l.nome, capital: l.capital, gold: l.gold };
+    if (l.guilda) {
+      dono[l.numero] = l.guilda;
+      // A data que interessa é a da última conquista, não a da última vez que
+      // alguém mexeu na tabela. Território sem dono não conta: senão a página
+      // anunciaria "atualizado hoje" no dia em que a tabela foi criada.
+      if (!ultima || l.atualizado_em > ultima) ultima = l.atualizado_em;
+    }
+  });
+  return ultima;
+}
+
+function pintar() {
+  document.querySelectorAll('.t').forEach(p => {
+    const g = dono[p.id.slice(1)];
+    p.style.fill = g && guildas[g] ? guildas[g] : '';
+  });
+}
+
+function desenharLegenda() {
+  const conta = {};
+  Object.values(dono).forEach(g => conta[g] = (conta[g] || 0) + 1);
+  const semDono = Object.keys(territorios).length - Object.keys(dono).length;
+  document.getElementById('legenda').innerHTML =
+    Object.entries(guildas)
+      .sort((a, b) => (conta[b[0]] || 0) - (conta[a[0]] || 0))
+      .map(([n, c]) =>
+        `<div class="guild"><i style="background:${c}"></i>${n}<span class="qtd">${conta[n] || 0}</span></div>`)
+      .join('')
+    + `<div class="guild"><i style="background:var(--neutro)"></i>sem dono<span class="qtd">${semDono}</span></div>`;
+}
+
+function desenharLista() {
+  document.getElementById('lista').innerHTML = Object.entries(territorios)
+    .sort((a, b) => a[0] - b[0]).map(([n, t]) => {
+      const g = dono[n], cor = g && guildas[g] ? guildas[g] : 'var(--neutro)';
+      return `<div class="item${t.capital ? ' cap' : ''}" data-n="${n}">
+        <span class="dot" style="background:${cor}"></span>
+        <span class="id">${String(n).padStart(2, '0')}</span>
+        <span class="nm">${t.nome}</span>
+        <span class="g${t.gold > 150 ? ' alto' : ''}">${t.gold}</span></div>`;
+    }).join('');
+  ligarEventos(document.querySelectorAll('.item'), el => el.dataset.n);
+}
+
+const info = document.getElementById('info');
+function mostrar(n) {
+  const t = territorios[n], g = dono[n];
+  info.innerHTML =
+    `<div class="num">TERRITÓRIO ${String(n).padStart(2, '0')} · ${t.gold} de gold</div>`
+    + `<div class="nome">${t.nome}</div>`
+    + (t.capital ? '<div class="cap">capital</div>' : '')
+    + (g ? `<div class="dono" style="color:${guildas[g] || 'inherit'}">${g}</div>`
+         : '<div class="dono vazio">sem dono</div>');
+}
+
+function acender(n, liga) {
+  document.getElementById('t' + n)?.classList.toggle('on', liga);
+  document.querySelector(`.item[data-n="${n}"]`)?.classList.toggle('on', liga);
+}
+
+// Os dois lados se acendem: passar na lista destaca no mapa, e vice-versa.
+function ligarEventos(nos, numeroDe) {
+  nos.forEach(el => {
+    const n = numeroDe(el);
+    el.addEventListener('mouseenter', () => { mostrar(n); acender(n, true); });
+    el.addEventListener('mouseleave', () => acender(n, false));
+  });
+}
+
+function assinatura(ultima, falhou) {
+  const sub = document.getElementById('sub');
+  if (falhou) {
+    // Um mapa sem dono nenhum é indistinguível de um mapa que ninguém tomou.
+    // A linha existe para que essa diferença não fique escondida.
+    sub.innerHTML = 'Os 52 territórios de Pangu. '
+      + '<b>Não foi possível carregar quem domina cada um agora</b> — recarregue a página.';
+  } else if (!ultima) {
+    sub.innerHTML = 'Os 52 territórios de Pangu. <b>As conquistas ainda não foram preenchidas.</b>';
+  } else {
+    const d = new Date(ultima);
+    sub.innerHTML = 'Os 52 territórios de Pangu e quem domina cada um · última mudança em <b>'
+      + d.toLocaleDateString('pt-BR') + '</b>';
+  }
+}
+
+ligarEventos(document.querySelectorAll('.t'), p => p.id.slice(1));
+desenharLista();
+
+carregar().then(ultima => {
+  pintar();
+  desenharLegenda();
+  desenharLista();
+  assinatura(ultima, false);
+}).catch(erro => {
+  console.warn('guerras: não deu para ler os donos —', erro);
+  desenharLegenda();
+  assinatura(null, true);
+});
+</script>
+
+</body>
+</html>

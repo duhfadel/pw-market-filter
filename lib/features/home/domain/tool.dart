@@ -73,9 +73,10 @@ const tools = <Tool>[
   Tool(
     name: 'Guerras territoriais',
     tagline:
-        'Fique por dentro do que está acontecendo: entrevistas e as últimas '
-        'notícias das guerras.',
+        'O mapa dos 52 territórios de Pangu: quem domina cada um e quanto '
+        'de gold rende.',
     icon: Icons.local_fire_department_outlined,
+    href: '/guerras/',
     art: 'assets/images/barbaro.webp',
   ),
   // The guides are listed one by one rather than behind a single "read the

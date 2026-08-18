@@ -10,6 +10,7 @@ python3 sementes.py    # acha o miolo de cada território (chama cresce.py)
 python3 bacia.py       # decide de quem é cada pixel, aplicando correcoes.json
 python3 svg.py         # converte as regiões em caminhos vetoriais
 python3 nomes.py       # casa cada região com o número e o nome do jogo
+python3 pagina.py      # monta web/guerras/index.html com o SVG e o modelo
 ```
 
 Só precisa de `Pillow`. Cada passo grava um JSON que o seguinte lê.
@@ -47,9 +48,30 @@ mexer no algoritmo não invalida as correções.
    território em dois. O que o separa é o laranja: nele R−B passa de 100, no
    papel fica em 54.
 
-## O que ainda não está aqui
+## Onde ficam os donos
 
-`pagina-exemplo.html` é a página pronta, mas com **donos inventados** — as
-guildas NUEMA, ESPADAS, CORVOS e AURORA são demonstração. Ela vive em `tool/`
-de propósito: mover para `web/guerras/` é o que a publica, e isso só deve
-acontecer com dados de verdade.
+Em lugar nenhum daqui. `pagina.py` embute no HTML só a metade que **não muda** —
+nome, gold e capital são propriedades do mapa do jogo, não da guerra — e a
+página busca os donos no Supabase (`portal-pw`, tabelas `territorios` e
+`guildas`) ao carregar.
+
+É por isso que atualizar uma conquista não passa por este diretório, nem por um
+commit, nem por CI: é editar uma linha no painel. E é por isso que a página
+desenha inteira, com os 52 nomes, mesmo com o banco fora do ar.
+
+`pagina-exemplo.html` continua aqui como a fonte do SVG — `pagina.py` copia o
+bloco `<svg>` dele. Os donos inventados que ela mostra (NUEMA, ESPADAS, CORVOS,
+AURORA) são só demonstração e não vão para o site.
+
+## A distinção que a página faz questão de manter
+
+Três estados, três frases diferentes, porque confundi-los é publicar mentira:
+
+| Situação | O que a página diz |
+|---|---|
+| Tem donos | "última mudança em DD/MM/AAAA" |
+| Tabela sem nenhum dono | "As conquistas ainda não foram preenchidas" |
+| Banco não respondeu | "Não foi possível carregar quem domina cada um agora" |
+
+Um mapa todo cinza porque ninguém conquistou nada e um mapa todo cinza porque a
+rede caiu são a mesma imagem. A linha embaixo do título é o que os separa.

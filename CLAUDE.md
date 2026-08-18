@@ -83,6 +83,7 @@ The two real pages the whole parser rests on are already saved:
 | `dart run tool/collect.dart --rebuild` | Rewrites the index from the saved state — no network, seconds |
 | `dart run tool/fetch_icons.dart` | Downloads class and item icons named by the index; skips what is already on disk |
 | `dart run tool/build_fixture_index.dart` | Builds an index from the saved fixtures — no network, for working on the screen |
+| `python3 tool/mapa/pagina.py` | Rebuilds `web/guerras/index.html` from the map's SVG and `tool/mapa/modelo.html` |
 | `flutter run -d chrome` | Runs the app |
 | `flutter test` | Runs every test |
 | `flutter analyze` | Static analysis |
@@ -131,11 +132,17 @@ depends on `market/` and `core/`, never on `collector/`. Nothing depends on
 
 ### The one server
 
-Everything above is static. The single exception is the visit counter in the
-footer, which a static site cannot compute, and which lives in a Supabase
-project called `portal-pw` (`yadfbwsolmkcaylbxviw`, São Paulo).
+Everything above is static. The exceptions are the visit counter in the footer,
+which a static site cannot compute, and the territory map's owners, which
+change weekly and must not cost a deploy. Both live in a Supabase project
+called `portal-pw` (`yadfbwsolmkcaylbxviw`, São Paulo).
 
-The whole schema is one table, `visit_days (day, hits)`, plus two functions.
+Three tables, and **the two halves are opposite on purpose**, which is the part
+to read before changing either.
+
+#### The counter: RLS with no policy
+
+`visit_days (day, hits)`, plus two functions.
 The publishable key is compiled into every visitor's browser and there is no
 hiding it, so the table — not the key — is what holds the line: RLS is on with
 **no policy at all**, which denies the anon role every direct read, insert and
@@ -160,6 +167,28 @@ Nothing prevents someone calling `register_visit` in a loop. On a static site
 there is no session and no server to rate-limit at, and the cost of being wrong
 is a wrong number in a footer, so it is accepted; `visit_days` at least keeps
 the damage to one dated row.
+
+#### The map: RLS with a read policy, on purpose
+
+`territorios (numero, nome, capital, gold, guilda, atualizado_em)` and
+`guildas (nome, cor)` are the other case, and copying the counter's arrangement
+onto them would be wrong. Here the rows **are** the page's content, so both
+carry `for select to anon, authenticated using (true)` and an explicit
+`grant select`. What stays shut is writing: no insert, update or delete policy
+exists, so the anon role changes nothing and updating a conquest is editing a
+row in the dashboard — no build, no CI, no deploy.
+
+Probed with curl before shipping, and the probe has a trap worth remembering:
+an anon `PATCH` or `DELETE` answers **204, not 403**, because RLS filters the
+row out rather than refusing the verb, and PostgREST reports zero rows changed
+as success. Believe the follow-up `select`, not the status code — the row was
+read back intact and the count was still 52.
+
+`atualizado_em` is maintained by a trigger that fires **only when `guilda`
+actually changes**, so it dates the conquest and not the last time somebody
+touched the table. The page shows that date, and shows it only when at least
+one territory has an owner: on the day the table was created every row was
+"updated today" while nothing had been conquered.
 
 ## Gotchas
 
@@ -424,6 +453,14 @@ Each of these already cost something — measured on the live site, not guessed.
   escapes this because `IndexRepository` appends `?t=<millis>`; that
   cache-buster is why the data is never the stale part, and it is why it must
   stay.
+
+  **That trick does not transfer to Supabase, and it fails loudly.** PostgREST
+  reads every query parameter it does not recognise as a filter on a column of
+  that name, so `?select=...&t=1755...` answers `PGRST100`,
+  *"failed to parse filter"* — no rows, no map. The equivalent there is
+  `fetch(url, {cache: 'no-store'})`, which is what `web/guerras/index.html`
+  uses. Supabase sends no `cache-control` at all on a REST read, so something
+  has to say it.
 
   Since the site moved behind Cloudflare this is fixable after all — a cache
   rule can override the browser TTL that GitHub sends. If the ten minutes ever

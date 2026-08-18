@@ -208,10 +208,16 @@ and no war was therefore clickable and opened an empty page — precisely the
 defect the rule exists to prevent. When a section's visibility gains a
 condition, the flag gains the same one.
 
-`streamers.url` becomes an `href`, so the table refuses anything that is not
-`http(s)` — a `javascript:` URL typed into the dashboard would otherwise be
-code on click. Verified: the check rejects it, and an anon insert never gets
-that far because RLS answers first.
+`streamers.url` becomes an `href`, and it is checked **twice on purpose**. The
+table refuses anything that is not `http(s)`, and the page checks the scheme
+again before rendering — otherwise the protection lives in one system and the
+risk in the other, and dropping the constraint would silently open the hole.
+Escaping does not help here: `javascript:alert(1)` contains none of the
+characters an HTML escaper replaces, so it would travel intact into the `href`.
+`enderecoWeb()` parses with `new URL` and keeps only `http:`/`https:`, which
+also turns away `data:`, `vbscript:`, `file:`, leading whitespace and mixed
+case. A streamer that fails is dropped rather than pointed at `#`: a dead link
+promises a broadcast that does not exist.
 
 `guildas.brasao` holds a **file name**, not an image. The art lives in
 `web/guerras/icones/` and ships in the deploy; the row says which file to use.

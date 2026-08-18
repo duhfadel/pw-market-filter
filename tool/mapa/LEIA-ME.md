@@ -143,7 +143,11 @@ quem escreve nele. Quebra de linha simples vira espaço e só linha em branco
 começa parágrafo — a regra do markdown: com `<br>`, texto colado do Discord,
 que vem quebrado na largura da janela de lá, saía em escadinha.
 
-`streamers.url` vira `href`, então a tabela recusa o que não for `http(s)`.
+`streamers.url` vira `href`, e é conferido **duas vezes de propósito**: a
+tabela recusa o que não for `http(s)`, e a página confere o esquema de novo
+antes de desenhar. Com uma só, a proteção fica num sistema e o risco no outro.
+Escapar não resolve — `javascript:alert(1)` não tem nenhum dos caracteres que
+um escapador troca, e passaria inteiro para dentro do `href`.
 
 ## A distinção que a página faz questão de manter
 

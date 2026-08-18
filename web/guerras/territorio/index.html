@@ -209,9 +209,10 @@ function desenhar(t, guilda, streamers) {
   // Quem transmite vem primeiro, e só enquanto a guerra está acontecendo: é a
   // única coisa da página que perde o valor daqui a uma hora. Comentário e
   // resumo continuam lá amanhã.
-  if (t.em_guerra && streamers.length) {
+  const aoVivo = t.em_guerra ? streamers.filter(st => enderecoWeb(st.url)) : [];
+  if (aoVivo.length) {
     seções.push('<h2>Assista à guerra</h2><div class="streams">'
-      + streamers.map(st => `<a class="stream" href="${escapa(st.url)}"
+      + aoVivo.map(st => `<a class="stream" href="${escapa(enderecoWeb(st.url))}"
             target="_blank" rel="noopener nofollow">
           <span class="ponto"></span>
           <span class="nome">${escapa(st.nome)}</span>
@@ -368,6 +369,26 @@ function desenhar(t, guilda, streamers) {
       || '<p class="nada">Ainda não há nada escrito sobre este território.</p>'}</div>`;
 
   document.getElementById('t' + n)?.classList.add('aqui');
+}
+
+/**
+ * A url, se for http(s). Qualquer outra coisa vira null e o streamer some.
+ *
+ * A tabela `streamers` já tem uma restrição que recusa o que não for http(s),
+ * e mesmo assim isto existe: a proteção estaria num sistema e o risco no
+ * outro. `escapa` não ajuda aqui — `javascript:alert(1)` não tem nenhum dos
+ * caracteres que ela troca, e passaria inteiro para dentro do href. Se a
+ * restrição um dia cair, ou o dado chegar por outro caminho, é esta linha que
+ * segura.
+ *
+ * Some em vez de virar `#`: um link que não leva a lugar nenhum promete uma
+ * transmissão que não existe.
+ */
+function enderecoWeb(url) {
+  try {
+    const u = new URL(url);
+    return (u.protocol === 'https:' || u.protocol === 'http:') ? u.href : null;
+  } catch { return null; }
 }
 
 /** "twitch.tv" a partir da url, para dizer onde é sem repetir o endereço. */

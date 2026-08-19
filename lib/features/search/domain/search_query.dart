@@ -1,3 +1,4 @@
+import '../../../market/market_index.dart';
 import 'item_criterion.dart';
 
 /// One control on the form.
@@ -14,6 +15,8 @@ enum FacetDimension {
   cards,
   items,
   criteria,
+  anecdotes,
+  owned,
 }
 
 /// How the results are ordered.
@@ -26,11 +29,32 @@ enum ResultOrder {
   cheapest('Menor preço'),
   dearest('Maior preço'),
   highestLevel('Maior nível'),
-  highestFame('Maior fama');
+  highestFame('Maior fama'),
+
+  /// The two that read the character's own page rather than his gear.
+  ///
+  /// [mostOwned] adds up the counted items that are **marked**, which is what
+  /// says which relic "mais relíquias" means — the market has three of them
+  /// and the order must not pick one on the visitor's behalf. It is offered
+  /// only while something is marked, for the same reason.
+  mostAnecdotes('Mais anedotas'),
+  mostOwned('Mais relíquias');
 
   const ResultOrder(this.label);
 
   final String label;
+
+  /// Whether this order can say anything about [query]'s results.
+  ///
+  /// An order nobody can read is worse than an absent one: it rearranges the
+  /// list by a number that is the same for everybody and looks like a bug.
+  bool offeredFor(MarketIndex index, SearchQuery query) => switch (this) {
+    ResultOrder.mostAnecdotes => index.characters.any(
+      (c) => c.anecdotes != null,
+    ),
+    ResultOrder.mostOwned => query.ownedOnCard.isNotEmpty,
+    _ => true,
+  };
 }
 
 /// Everything the form asks for. A field left `null` asks nothing.
@@ -47,6 +71,10 @@ class SearchQuery {
     this.cardRarity,
     this.cardsMaxed = false,
     this.criteria = const [],
+    this.minAnecdotes,
+    this.minimumOwned = const {},
+    this.shownOwned = const {},
+    this.anecdotesOnCard = false,
     this.order = ResultOrder.cheapest,
   });
 
@@ -78,6 +106,55 @@ class SearchQuery {
   /// same purchase as one at 80/80.
   final bool cardsMaxed;
 
+  /// How many anecdotes the character must have completed. It is the one
+  /// number on the page that measures time spent rather than money spent.
+  final int? minAnecdotes;
+
+  /// A counted item's **name** to how many of it the character must carry.
+  ///
+  /// By name and not by id, for the same reason the shared link writes the
+  /// attribute by name: the name is what `countedItemNames` holds and what a
+  /// link can carry across collections, and only the index knows which id this
+  /// collection found it under.
+  final Map<String, int> minimumOwned;
+
+  /// Counted items whose number the card should print, whether or not a
+  /// minimum is being asked for.
+  ///
+  /// Marking is not filtering. "Show me how many relics each of these carries"
+  /// is a different question from "only show me who carries five", and tying
+  /// them together forced a filter on anybody who just wanted to look. So this
+  /// is out of [isEmpty] and out of the count of filters in force, for the same
+  /// reason [order] is: it is how the list is read, not something that was
+  /// asked of the market.
+  ///
+  /// A minimum implies its own name is shown — a card that refuses to say why
+  /// a character passed is worse than one that says nothing.
+  final Set<String> shownOwned;
+
+  /// Every counted item the card should print for, in one place so the card
+  /// and the grid that sizes it cannot disagree.
+  Set<String> get ownedOnCard => {...shownOwned, ...minimumOwned.keys};
+
+  /// Print the anecdote progress on every card, asking nothing of the market.
+  ///
+  /// The counted items' checkbox, for the one thing that is not an item. It is
+  /// out of [isEmpty] and out of the count of filters in force for the same
+  /// reason [shownOwned] is.
+  final bool anecdotesOnCard;
+
+  /// Whether the card should print the anecdote progress.
+  ///
+  /// Marking says so outright. So does asking for a minimum — a card that will
+  /// not say why a character passed is worse than one that says nothing — and
+  /// so does ordering by it: the count is then why a card sits where it does,
+  /// and demanding a minimum as well, only to see the number, would throw away
+  /// every result below the cut.
+  bool get showsAnecdotes =>
+      anecdotesOnCard ||
+      minAnecdotes != null ||
+      order == ResultOrder.mostAnecdotes;
+
   final ResultOrder order;
 
   /// The order is not part of this: it is always set, and a query that only
@@ -93,7 +170,9 @@ class SearchQuery {
       comboName == null &&
       cardRarity == null &&
       !cardsMaxed &&
-      criteria.isEmpty;
+      criteria.isEmpty &&
+      minAnecdotes == null &&
+      minimumOwned.isEmpty;
 
   /// This query with [dimension] switched off, which is the population a
   /// control should read its options from.
@@ -121,6 +200,8 @@ class SearchQuery {
     ),
     FacetDimension.items => copyWith(itemBySlot: const {}),
     FacetDimension.criteria => copyWith(criteria: const []),
+    FacetDimension.anecdotes => copyWith(minAnecdotes: () => null),
+    FacetDimension.owned => copyWith(minimumOwned: const {}),
   };
 
   SearchQuery copyWith({
@@ -135,6 +216,10 @@ class SearchQuery {
     String? Function()? cardRarity,
     bool? cardsMaxed,
     List<ItemCriterion>? criteria,
+    int? Function()? minAnecdotes,
+    Map<String, int>? minimumOwned,
+    Set<String>? shownOwned,
+    bool? anecdotesOnCard,
     ResultOrder? order,
   }) => SearchQuery(
     characterClass: characterClass == null
@@ -150,6 +235,10 @@ class SearchQuery {
     cardRarity: cardRarity == null ? this.cardRarity : cardRarity(),
     cardsMaxed: cardsMaxed ?? this.cardsMaxed,
     criteria: criteria ?? this.criteria,
+    minAnecdotes: minAnecdotes == null ? this.minAnecdotes : minAnecdotes(),
+    minimumOwned: minimumOwned ?? this.minimumOwned,
+    shownOwned: shownOwned ?? this.shownOwned,
+    anecdotesOnCard: anecdotesOnCard ?? this.anecdotesOnCard,
     order: order ?? this.order,
   );
 }

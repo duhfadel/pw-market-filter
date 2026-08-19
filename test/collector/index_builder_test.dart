@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/collector/detail_parser.dart';
 import 'package:pw_market_filter/collector/index_builder.dart';
 import 'package:pw_market_filter/collector/listing_parser.dart';
+import 'package:pw_market_filter/market/counted_items.dart';
+import 'package:pw_market_filter/market/market_index.dart';
 
 ListingCard _card(int roleId) => ListingCard(
   roleId: roleId,
@@ -117,6 +121,115 @@ void main() {
       expect(index.items, hasLength(1));
       expect(index.characters, hasLength(2));
       expect(index.attributes, ['Nível de Ataque']);
+    });
+  });
+
+  group('anecdotes and counted items', () {
+    IndexBuilder builder() =>
+        IndexBuilder(server: 'pw187', collectedAt: DateTime.utc(2026, 8, 9));
+
+    const relic = ParsedStack(
+      itemId: 54687,
+      name: 'Relíquia Maravilha: Artefato',
+      count: 22,
+    );
+    const junk = ParsedStack(itemId: 60017, name: 'Pó Reparador', count: 5448);
+
+    test('keeps the count of a counted item and nothing else', () {
+      // The character owns 292 distinct items. Carrying all of them into the
+      // index would be a second inventory per character for the sake of four
+      // numbers the screen asks about.
+      final index =
+          (builder()..add(_card(1), const [], inventory: const [junk, relic]))
+              .build();
+
+      expect(index.characters.single.counts, {54687: 22});
+    });
+
+    test('resolves the counted name to the id the market actually used', () {
+      final index =
+          (builder()..add(_card(1), const [], inventory: const [relic]))
+              .build();
+
+      expect(index.countedItems['Relíquia Maravilha: Artefato'], 54687);
+    });
+
+    test('a name nobody carries is absent rather than guessed at', () {
+      // The `Chave da Sorte` may not be in the market at all, and its id is
+      // unknown. An invented one yields a filter that quietly matches nobody.
+      final index =
+          (builder()..add(_card(1), const [], inventory: const [relic]))
+              .build();
+
+      expect(index.countedItems.containsKey('Chave da Sorte'), isFalse);
+      expect(countedItemNames, contains('Chave da Sorte'));
+    });
+
+    test('carries the anecdote pair, and leaves it null when unread', () {
+      final index =
+          (builder()
+                ..add(
+                  _card(1),
+                  const [],
+                  anecdotes: const ParsedAnecdotes(
+                    done: 1265,
+                    total: 2756,
+                    lines: 107,
+                  ),
+                )
+                ..add(_card(2), const []))
+              .build();
+
+      expect(index.characters.first.anecdotes?.done, 1265);
+      expect(index.characters.first.anecdotes?.total, 2756);
+      expect(index.characters.last.anecdotes, isNull);
+    });
+
+    test('both survive a round trip through JSON', () {
+      final index =
+          (builder()..add(
+                _card(1),
+                const [],
+                anecdotes: const ParsedAnecdotes(
+                  done: 1265,
+                  total: 2756,
+                  lines: 107,
+                ),
+                inventory: const [relic],
+              ))
+              .build();
+
+      final restored = MarketIndex.fromJson(
+        jsonDecode(jsonEncode(index.toJson())) as Map<String, dynamic>,
+      );
+
+      expect(restored.countedItems, {'Relíquia Maravilha: Artefato': 54687});
+      expect(restored.characters.single.counts, {54687: 22});
+      expect(restored.characters.single.anecdotes?.done, 1265);
+    });
+
+    test('a read inventory carrying none of them says zero, not nothing', () {
+      // "Carries none" and "was never read" have to be different on the card:
+      // one prints `carrega 0` and the other prints no line at all. They were
+      // the same empty map until the counts were filled in at build time.
+      final index =
+          (builder()
+                ..add(_card(1), const [], inventory: const [junk])
+                ..add(_card(2), const [], inventory: const [relic]))
+              .build();
+
+      expect(index.characters.first.counts, {54687: 0});
+      expect(index.characters.last.counts, {54687: 22});
+    });
+
+    test('a character whose page never loaded keeps an empty map', () {
+      final index =
+          (builder()
+                ..add(_card(1), const [])
+                ..add(_card(2), const [], inventory: const [relic]))
+              .build();
+
+      expect(index.characters.first.counts, isEmpty);
     });
   });
 }

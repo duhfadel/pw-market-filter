@@ -17,8 +17,46 @@ List<MarketCharacter> runQuery(MarketIndex index, SearchQuery query) {
     ResultOrder.dearest => (a, b) => b.price.compareTo(a.price),
     ResultOrder.highestLevel => (a, b) => b.level.compareTo(a.level),
     ResultOrder.highestFame => (a, b) => b.fame.compareTo(a.fame),
+    // These two tie constantly — hundreds of characters carry the same number
+    // of relics, and none at all is the commonest answer of the lot. Falling
+    // back to the price keeps the cheapest of an equal row on top, which is
+    // the question the default order exists to answer.
+    ResultOrder.mostAnecdotes => (a, b) => _byPrice(
+      a,
+      b,
+      (b.anecdotes?.done ?? -1).compareTo(a.anecdotes?.done ?? -1),
+    ),
+    ResultOrder.mostOwned => (a, b) => _byPrice(
+      a,
+      b,
+      _ownedTotal(index, query, b).compareTo(_ownedTotal(index, query, a)),
+    ),
   });
   return matches;
+}
+
+int _byPrice(MarketCharacter a, MarketCharacter b, int primary) =>
+    primary != 0 ? primary : a.price.compareTo(b.price);
+
+/// How many of the marked counted items a character carries, added up.
+///
+/// `-1` when none of them was read, so a character whose page never loaded
+/// sits below one who was read and carries none. Zero is an answer; absent is
+/// not.
+int _ownedTotal(
+  MarketIndex index,
+  SearchQuery query,
+  MarketCharacter character,
+) {
+  var total = -1;
+  for (final name in query.ownedOnCard) {
+    final itemId = index.countedItems[name];
+    if (itemId == null) continue;
+    final count = character.counts[itemId];
+    if (count == null) continue;
+    total = total < 0 ? count : total + count;
+  }
+  return total;
 }
 
 /// Takes the index because an item's rank lives in its name, which only the
@@ -43,6 +81,7 @@ bool matchesQuery(
   if (query.maxPrice != null && character.price > query.maxPrice!) return false;
 
   if (!_matchesCards(character, query)) return false;
+  if (!_matchesInventory(index, character, query)) return false;
 
   final wearsEachChosenItem = query.itemBySlot.entries.every(
     (wanted) => character.equipped.any(
@@ -55,6 +94,35 @@ bool matchesQuery(
     (criterion) =>
         character.equipped.any((item) => _satisfies(index, item, criterion)),
   );
+}
+
+/// The anecdote progress and the counted items — the two things that come off
+/// the character's own page rather than off a piece of gear.
+///
+/// Both refuse a character the collection has not read. An unknown must not
+/// pass a filter that asks for a number: while a collection is in flight half
+/// the market has no anecdotes, and reporting those as matching would answer
+/// the question with the crawl's progress instead of the market's.
+bool _matchesInventory(
+  MarketIndex index,
+  MarketCharacter character,
+  SearchQuery query,
+) {
+  final minimum = query.minAnecdotes;
+  if (minimum != null) {
+    final anecdotes = character.anecdotes;
+    if (anecdotes == null || anecdotes.done < minimum) return false;
+  }
+
+  for (final wanted in query.minimumOwned.entries) {
+    // A name this collection never met belongs to nobody, so nobody passes.
+    // Skipping it instead would widen the search under the visitor's own
+    // filter, which is the same failure a dropped criterion avoids.
+    final itemId = index.countedItems[wanted.key];
+    if (itemId == null) return false;
+    if ((character.counts[itemId] ?? 0) < wanted.value) return false;
+  }
+  return true;
 }
 
 /// Cards are read off the six the character wears, never the collection.

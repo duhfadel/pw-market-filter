@@ -213,4 +213,78 @@ void main() {
       expect(back.criteria.single.minimum, 3);
     });
   });
+
+  group('anecdotes and counted items in a link', () {
+    test('both survive a round trip', () {
+      const query = SearchQuery(
+        minAnecdotes: 1000,
+        minimumOwned: {'Relíquia Maravilha: Arma': 5},
+      );
+
+      final restored = roundTrip(query);
+      expect(restored.minAnecdotes, 1000);
+      expect(restored.minimumOwned, {'Relíquia Maravilha: Arma': 5});
+    });
+
+    test('the counted item travels by name, readable in the address bar', () {
+      // The id is the collection's business. A link says what it asks for, and
+      // that is half of why anyone clicks it.
+      expect(
+        encodeQuery(
+          const SearchQuery(minimumOwned: {'Relíquia Maravilha: Arma': 5}),
+        ),
+        contains('Rel'),
+      );
+    });
+
+    test('marked anecdotes survive a round trip', () {
+      const query = SearchQuery(anecdotesOnCard: true);
+
+      expect(encodeQuery(query), contains('anedotas'));
+      expect(roundTrip(query).anecdotesOnCard, isTrue);
+      expect(roundTrip(query).minAnecdotes, isNull);
+    });
+
+    test('a minimum implies the mark without writing it twice', () {
+      const query = SearchQuery(minAnecdotes: 1000, anecdotesOnCard: true);
+
+      expect(encodeQuery(query), isNot(contains('mostra')));
+      expect(roundTrip(query).showsAnecdotes, isTrue);
+    });
+
+    test('a marked item survives a round trip on its own', () {
+      const query = SearchQuery(shownOwned: {'Chave da Sorte'});
+
+      expect(roundTrip(query).shownOwned, {'Chave da Sorte'});
+    });
+
+    test('an item with a minimum is not written twice', () {
+      // `tem` already implies the item is shown; saying it again in `mostra`
+      // would double the link's length for nothing.
+      const query = SearchQuery(
+        minimumOwned: {'Relíquia Maravilha: Arma': 5},
+        shownOwned: {'Relíquia Maravilha: Arma'},
+      );
+
+      expect(encodeQuery(query), isNot(contains('mostra')));
+      expect(roundTrip(query).ownedOnCard, {'Relíquia Maravilha: Arma'});
+    });
+
+    test('a minimum of zero is not a question and is left out', () {
+      expect(
+        encodeQuery(const SearchQuery(minimumOwned: {'Chave da Sorte': 0})),
+        '',
+      );
+    });
+
+    test('an unreadable entry is dropped rather than read as zero', () {
+      final query = decodeQuery({
+        'tem': ['sem separador nenhum'],
+        'anedotas': ['não é número'],
+      });
+
+      expect(query.minimumOwned, isEmpty);
+      expect(query.minAnecdotes, isNull);
+    });
+  });
 }

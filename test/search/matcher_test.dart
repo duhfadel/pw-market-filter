@@ -32,6 +32,8 @@ MarketCharacter _character(
   String characterClass = 'Guerreiro',
   String cultivation = 'Leal',
   List<EquippedItem> equipped = const [],
+  Anecdotes? anecdotes,
+  Map<int, int> counts = const {},
 }) => MarketCharacter(
   roleId: name.hashCode.abs(),
   name: name,
@@ -42,6 +44,8 @@ MarketCharacter _character(
   fame: 1000,
   cultivation: cultivation,
   equipped: equipped,
+  anecdotes: anecdotes,
+  counts: counts,
 );
 
 /// The catalogue the matcher consults for an item's rank. Its `characters` are
@@ -57,6 +61,10 @@ final _index = MarketIndex(
     38256: MarketItem(name: '★★★Coroa da Insanidade', grade: 0),
   },
   characters: const [],
+  countedItems: const {
+    'Relíquia Maravilha: Arma': 50410,
+    'Relíquia Maravilha: Artefato': 54687,
+  },
 );
 
 void main() {
@@ -559,6 +567,186 @@ void main() {
       );
 
       expect(matches, isEmpty);
+    });
+  });
+
+  group('anecdotes', () {
+    test(
+      'a minimum admits the character above it and refuses the one below',
+      () {
+        final ahead = _character(
+          'Leandrim',
+          anecdotes: const Anecdotes(done: 1265, total: 2756),
+        );
+        final behind = _character(
+          'Novato',
+          anecdotes: const Anecdotes(done: 300, total: 2756),
+        );
+
+        const query = SearchQuery(minAnecdotes: 1000);
+        expect(matchesQuery(_index, ahead, query), isTrue);
+        expect(matchesQuery(_index, behind, query), isFalse);
+      },
+    );
+
+    test('a character whose page predates the field fails the filter', () {
+      // Unknown is not "has enough". While a collection is in flight half the
+      // market has no anecdotes read, and those must not be reported as
+      // matching a number nobody measured.
+      final unread = _character('Antigo');
+
+      expect(
+        matchesQuery(_index, unread, const SearchQuery(minAnecdotes: 1)),
+        isFalse,
+      );
+      expect(matchesQuery(_index, unread, const SearchQuery()), isTrue);
+    });
+  });
+
+  group('counted items', () {
+    test('admits who carries enough and refuses who carries fewer', () {
+      final rich = _character('Leandrim', counts: const {50410: 16});
+      final poor = _character('Novato', counts: const {50410: 2});
+
+      const query = SearchQuery(minimumOwned: {'Relíquia Maravilha: Arma': 10});
+      expect(matchesQuery(_index, rich, query), isTrue);
+      expect(matchesQuery(_index, poor, query), isFalse);
+    });
+
+    test('carrying none of it is refused, not treated as unknown', () {
+      final empty = _character('Antigo');
+
+      expect(
+        matchesQuery(
+          _index,
+          empty,
+          const SearchQuery(minimumOwned: {'Relíquia Maravilha: Arma': 1}),
+        ),
+        isFalse,
+      );
+    });
+
+    test('a name this collection never found matches nobody', () {
+      // The market has none, so the honest answer for everyone is no — not a
+      // filter that quietly passes because the id could not be resolved.
+      final rich = _character('Leandrim', counts: const {50410: 16});
+
+      expect(
+        matchesQuery(
+          _index,
+          rich,
+          const SearchQuery(minimumOwned: {'Chave da Sorte': 1}),
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('ordering by what the page says about the character', () {
+    test('most anecdotes first, and an unread page sinks below zero', () {
+      final index = MarketIndex(
+        server: 'pw187',
+        collectedAt: DateTime.utc(2026, 8, 19),
+        attributes: const [],
+        items: const {},
+        characters: [
+          _character(
+            'Novato',
+            anecdotes: const Anecdotes(done: 40, total: 2756),
+          ),
+          _character('Antigo'),
+          _character(
+            'Leandrim',
+            anecdotes: const Anecdotes(done: 1265, total: 2756),
+          ),
+          _character(
+            'Zerado',
+            anecdotes: const Anecdotes(done: 0, total: 2756),
+          ),
+        ],
+      );
+
+      expect(
+        runQuery(
+          index,
+          const SearchQuery(order: ResultOrder.mostAnecdotes),
+        ).map((c) => c.name),
+        ['Leandrim', 'Novato', 'Zerado', 'Antigo'],
+      );
+    });
+
+    test('most of the marked relics first, added across the marks', () {
+      // Marking is what says which relic "mais relíquias" means. Without it
+      // the order would have to pick one on the visitor's behalf.
+      final index = MarketIndex(
+        server: 'pw187',
+        collectedAt: DateTime.utc(2026, 8, 19),
+        attributes: const [],
+        items: const {},
+        countedItems: const {
+          'Relíquia Maravilha: Arma': 50410,
+          'Relíquia Maravilha: Artefato': 54687,
+        },
+        characters: [
+          _character('Poucas', counts: const {50410: 2, 54687: 30}),
+          _character('Muitas', counts: const {50410: 16, 54687: 0}),
+          _character('Antigo'),
+        ],
+      );
+
+      expect(
+        runQuery(
+          index,
+          const SearchQuery(
+            order: ResultOrder.mostOwned,
+            shownOwned: {'Relíquia Maravilha: Arma'},
+          ),
+        ).map((c) => c.name),
+        ['Muitas', 'Poucas', 'Antigo'],
+      );
+
+      expect(
+        runQuery(
+          index,
+          const SearchQuery(
+            order: ResultOrder.mostOwned,
+            shownOwned: {
+              'Relíquia Maravilha: Arma',
+              'Relíquia Maravilha: Artefato',
+            },
+          ),
+        ).map((c) => c.name),
+        ['Poucas', 'Muitas', 'Antigo'],
+      );
+    });
+
+    test('a tie is broken by price, which is what the list is read for', () {
+      final index = MarketIndex(
+        server: 'pw187',
+        collectedAt: DateTime.utc(2026, 8, 19),
+        attributes: const [],
+        items: const {},
+        characters: [
+          _character(
+            'Caro',
+            price: 900,
+            anecdotes: const Anecdotes(done: 1265, total: 2756),
+          ),
+          _character(
+            'Barato',
+            price: 100,
+            anecdotes: const Anecdotes(done: 1265, total: 2756),
+          ),
+        ],
+      );
+
+      expect(
+        runQuery(
+          index,
+          const SearchQuery(order: ResultOrder.mostAnecdotes),
+        ).map((c) => c.name),
+        ['Barato', 'Caro'],
+      );
     });
   });
 }

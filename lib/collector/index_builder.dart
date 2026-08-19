@@ -1,3 +1,4 @@
+import '../market/counted_items.dart';
 import '../market/market_index.dart';
 import 'detail_parser.dart';
 import 'listing_parser.dart';
@@ -47,6 +48,19 @@ class IndexBuilder {
   final _items = <int, MarketItem>{};
   final _characters = <MarketCharacter>[];
 
+  /// Filled as the collection meets each name. See [countedItemNames] for why
+  /// the resolution runs this way round rather than from a table of ids.
+  final _countedIds = <String, int>{};
+
+  /// The count maps of every character whose inventory was read, held so
+  /// [build] can finish them.
+  ///
+  /// They cannot be finished on the way in: a name is resolved the first time
+  /// the crawl meets it, so a character read before anyone was seen carrying
+  /// the relic does not yet know the id to write a zero under. These are the
+  /// same map objects the characters hold, so filling them here fills theirs.
+  final _readCounts = <Map<int, int>>[];
+
   /// Adds one character. [items] is what the detail page yielded; a character
   /// whose page failed to load is simply never added.
   void add(
@@ -54,6 +68,8 @@ class IndexBuilder {
     List<ParsedItem> items, {
     String sex = '',
     List<ParsedCard> cards = const [],
+    ParsedAnecdotes? anecdotes,
+    List<ParsedStack> inventory = const [],
   }) {
     _characters.add(
       MarketCharacter(
@@ -66,6 +82,10 @@ class IndexBuilder {
         fame: card.fame,
         cultivation: card.cultivation,
         sex: sex,
+        anecdotes: anecdotes == null
+            ? null
+            : Anecdotes(done: anecdotes.done, total: anecdotes.total),
+        counts: _countsIn(inventory),
         equipped: items.map(_convert).toList(growable: false),
         cards: cards
             .map(
@@ -81,6 +101,33 @@ class IndexBuilder {
             .toList(growable: false),
       ),
     );
+  }
+
+  /// The counted items out of a whole inventory, and nothing else.
+  ///
+  /// The character owns hundreds of distinct items; four of them are asked
+  /// about. Carrying the rest would put a second inventory in the index for
+  /// the sake of four numbers — and the raw list is already in the collector's
+  /// state, where a new question costs `--rebuild` and no network.
+  Map<int, int> _countsIn(List<ParsedStack> inventory) {
+    final counts = <int, int>{};
+
+    // An inventory that was read and holds none of them still answers the
+    // question — with zero. Only a page that never loaded says nothing, and
+    // the card tells the two apart: `carrega 0` against no line at all.
+    if (inventory.isNotEmpty) _readCounts.add(counts);
+
+    for (final stack in inventory) {
+      if (!countedItemNames.contains(stack.name)) continue;
+      // First wearer names the id, exactly as items do. Two ids under one
+      // counted name would leave the second one's owners failing a filter
+      // silently, which is what `counted_items_test.dart` checks for.
+      _countedIds.putIfAbsent(stack.name, () => stack.itemId);
+      if (_countedIds[stack.name] == stack.itemId) {
+        counts[stack.itemId] = stack.count;
+      }
+    }
+    return counts;
   }
 
   EquippedItem _convert(ParsedItem item) {
@@ -112,6 +159,12 @@ class IndexBuilder {
       _attributeIds.putIfAbsent(name, () => _attributeIds.length);
 
   MarketIndex build() {
+    for (final counts in _readCounts) {
+      for (final id in _countedIds.values) {
+        counts.putIfAbsent(id, () => 0);
+      }
+    }
+
     final attributes = List<String>.filled(_attributeIds.length, '');
     for (final entry in _attributeIds.entries) {
       attributes[entry.value] = entry.key;
@@ -123,6 +176,7 @@ class IndexBuilder {
       attributes: attributes,
       items: _items,
       characters: _characters,
+      countedItems: _countedIds,
     );
   }
 }

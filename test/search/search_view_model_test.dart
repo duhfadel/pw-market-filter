@@ -166,5 +166,85 @@ void main() {
       expect(state.query.isEmpty, isTrue);
       expect(state.results, hasLength(2));
     });
+
+    test('an emptied count field stops asking instead of asking for zero', () {
+      // A minimum of zero matches everybody, so leaving it in the query would
+      // put a filter in the link and a line on every card for a question
+      // nobody is asking.
+      viewModel.setMinimumOwned('Relíquia Maravilha: Arma', 3);
+      expect((viewModel.state as SearchReady).query.minimumOwned, {
+        'Relíquia Maravilha: Arma': 3,
+      });
+
+      viewModel.setMinimumOwned('Relíquia Maravilha: Arma', null);
+      expect((viewModel.state as SearchReady).query.minimumOwned, isEmpty);
+
+      viewModel.setMinimumOwned('Relíquia Maravilha: Arma', 0);
+      expect((viewModel.state as SearchReady).query.minimumOwned, isEmpty);
+    });
+
+    test('a minimum of anecdotes goes into the query', () {
+      viewModel.setMinAnecdotes(500);
+
+      expect((viewModel.state as SearchReady).query.minAnecdotes, 500);
+    });
+
+    test('marking an item shows it without filtering anybody out', () {
+      // The whole point of the mark: "how many does each of them carry" is a
+      // question you can ask of the market without narrowing it first.
+      viewModel.setOwnedShown('Relíquia Maravilha: Arma', true);
+
+      final state = viewModel.state as SearchReady;
+      expect(state.query.ownedOnCard, {'Relíquia Maravilha: Arma'});
+      expect(state.query.minimumOwned, isEmpty);
+      expect(state.query.isEmpty, isTrue);
+      expect(state.results, hasLength(2));
+    });
+
+    test('typing a minimum marks the item too', () {
+      // A card that refuses to say why a character passed is worse than one
+      // that says nothing.
+      viewModel.setMinimumOwned('Relíquia Maravilha: Arma', 3);
+
+      expect((viewModel.state as SearchReady).query.shownOwned, {
+        'Relíquia Maravilha: Arma',
+      });
+    });
+
+    test('clearing the number keeps the item marked', () {
+      viewModel
+        ..setMinimumOwned('Relíquia Maravilha: Arma', 3)
+        ..setMinimumOwned('Relíquia Maravilha: Arma', null);
+
+      final state = viewModel.state as SearchReady;
+      expect(state.query.minimumOwned, isEmpty);
+      expect(state.query.shownOwned, {'Relíquia Maravilha: Arma'});
+    });
+
+    test('unmarking takes the minimum with it', () {
+      // A filter in force on an item the card no longer names is a result
+      // nobody can explain.
+      viewModel
+        ..setMinimumOwned('Relíquia Maravilha: Arma', 3)
+        ..setOwnedShown('Relíquia Maravilha: Arma', false);
+
+      final state = viewModel.state as SearchReady;
+      expect(state.query.minimumOwned, isEmpty);
+      expect(state.query.shownOwned, isEmpty);
+    });
+
+    test('a link ordering by relics with nothing marked still opens', () {
+      // A `DropdownButton` throws when its value is absent from its items, and
+      // a month-old link is how that happens. The order survives; it is the
+      // picker that has to keep offering it.
+      viewModel.requestUrl({
+        'ordem': ['mostOwned'],
+      });
+
+      final state = viewModel.state as SearchReady;
+      expect(state.query.order, ResultOrder.mostOwned);
+      expect(state.query.ownedOnCard, isEmpty);
+      expect(state.results, hasLength(2));
+    });
   });
 }

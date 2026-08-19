@@ -17,16 +17,21 @@ void main() {
   final listing = parseListing(
     File('test/fixtures/listing_pw187.html').readAsStringSync(),
   );
-  final items = parseEquippedItems(
-    File('test/fixtures/detail_64112.html').readAsStringSync(),
-  );
+  final page = File('test/fixtures/detail_64112.html').readAsStringSync();
+  final items = parseEquippedItems(page);
 
   final builder = IndexBuilder(
     server: 'pw187',
     collectedAt: DateTime.now().toUtc(),
   );
   for (final card in listing) {
-    builder.add(card, card.roleId == 64112 ? items : const []);
+    final his = card.roleId == 64112;
+    builder.add(
+      card,
+      his ? items : const [],
+      anecdotes: his ? parseAnecdotes(page) : null,
+      inventory: his ? parseInventory(page) : const [],
+    );
   }
 
   final index = builder.build();
@@ -40,5 +45,6 @@ void main() {
       '  com equipamento: '
       '${index.characters.where((c) => c.equipped.isNotEmpty).length}',
     )
-    ..writeln('  atributos: ${index.attributes.length}');
+    ..writeln('  atributos: ${index.attributes.length}')
+    ..writeln('  itens contados: ${index.countedItems.length}');
 }

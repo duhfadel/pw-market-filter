@@ -128,6 +128,87 @@ class SearchViewModel extends Cubit<SearchState> {
 
   void setOrder(ResultOrder order) => _apply(_query!.copyWith(order: order));
 
+  /// Asking for a minimum marks the anecdotes too, exactly as it does for a
+  /// counted item.
+  void setMinAnecdotes(int? minimum) => _apply(
+    _query!.copyWith(minAnecdotes: () => minimum, anecdotesOnCard: true),
+  );
+
+  /// Marks the anecdote progress to be printed on every card, or stops.
+  ///
+  /// Stopping has to undo everything that forces the line, or the box comes
+  /// unticked with the number still on screen: the minimum goes, and so does
+  /// the ordering, which is itself a way of asking.
+  void setAnecdotesShown(bool shown) {
+    final query = _query!;
+    if (shown) {
+      _apply(query.copyWith(anecdotesOnCard: true));
+      return;
+    }
+    _apply(
+      query.copyWith(
+        anecdotesOnCard: false,
+        minAnecdotes: () => null,
+        order: query.order == ResultOrder.mostAnecdotes
+            ? ResultOrder.cheapest
+            : query.order,
+      ),
+    );
+  }
+
+  /// An empty field — or a typed zero — stops asking, rather than asking for
+  /// at least zero. Zero matches everybody, so keeping it would put a filter
+  /// in the shared link for a question nobody asked. The item stays marked,
+  /// because clearing the number is editing the filter and not losing interest
+  /// in the item.
+  void setMinimumOwned(String name, int? minimum) {
+    final query = _query!;
+    final minimumOwned = {...query.minimumOwned};
+    if (minimum == null || minimum <= 0) {
+      minimumOwned.remove(name);
+    } else {
+      minimumOwned[name] = minimum;
+    }
+    _apply(
+      query.copyWith(
+        minimumOwned: minimumOwned,
+        shownOwned: {...query.shownOwned, name},
+      ),
+    );
+  }
+
+  /// Marks a counted item to be printed on the card, or stops.
+  ///
+  /// Unmarking takes the minimum with it: a filter in force on an item the
+  /// card no longer names is a result nobody can explain, which is the same
+  /// defect a collapsed section without its count has.
+  void setOwnedShown(String name, bool shown) {
+    final query = _query!;
+    final shownOwned = {...query.shownOwned};
+    final minimumOwned = {...query.minimumOwned};
+
+    if (shown) {
+      shownOwned.add(name);
+    } else {
+      shownOwned.remove(name);
+      minimumOwned.remove(name);
+    }
+    // Ordering by relics with nothing marked sorts by a number that is the
+    // same for everybody, which reads as a broken list rather than an order
+    // that stopped meaning anything.
+    final order = shownOwned.isEmpty && query.order == ResultOrder.mostOwned
+        ? ResultOrder.cheapest
+        : query.order;
+
+    _apply(
+      query.copyWith(
+        shownOwned: shownOwned,
+        minimumOwned: minimumOwned,
+        order: order,
+      ),
+    );
+  }
+
   void setCultivation(String? value) =>
       _apply(_query!.copyWith(cultivation: () => value));
 

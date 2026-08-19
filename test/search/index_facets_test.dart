@@ -216,4 +216,75 @@ void main() {
     expect(empty.lowestPrice, 0);
     expect(empty.exampleItemIn(10), '');
   });
+
+  group('the hints for anecdotes and counted items', () {
+    final index = MarketIndex(
+      server: 'pw187',
+      collectedAt: DateTime.utc(2026, 8, 19),
+      attributes: const [],
+      items: const {},
+      countedItems: const {'Relíquia Maravilha: Arma': 50410},
+      characters: const [
+        MarketCharacter(
+          roleId: 1,
+          name: 'Leandrim',
+          characterClass: 'Guerreiro',
+          occupation: 1,
+          level: 105,
+          price: 1000,
+          fame: 1,
+          cultivation: 'Leal',
+          equipped: [],
+          anecdotes: Anecdotes(done: 1265, total: 2756),
+          counts: {50410: 16},
+        ),
+        MarketCharacter(
+          roleId: 2,
+          name: 'Novato',
+          characterClass: 'Mago',
+          occupation: 2,
+          level: 60,
+          price: 10,
+          fame: 1,
+          cultivation: 'Leal',
+          equipped: [],
+          anecdotes: Anecdotes(done: 40, total: 2756),
+        ),
+        // Collected before the fields existed. It must not drag the floor of
+        // the hint down to zero for a number nobody measured.
+        MarketCharacter(
+          roleId: 3,
+          name: 'Antigo',
+          characterClass: 'Mago',
+          occupation: 2,
+          level: 60,
+          price: 10,
+          fame: 1,
+          cultivation: 'Leal',
+          equipped: [],
+        ),
+      ],
+    );
+
+    test('the anecdote range is read from who was actually measured', () {
+      final facets = IndexFacets(index);
+
+      expect(facets.lowestAnecdotes, 40);
+      expect(facets.highestAnecdotes, 1265);
+    });
+
+    test('the most anyone carries of a counted item', () {
+      expect(IndexFacets(index).mostOwned(50410), 16);
+    });
+
+    test('an item nobody carries reports zero rather than throwing', () {
+      expect(IndexFacets(index).mostOwned(99999), 0);
+    });
+
+    test('a scope with no anecdotes read at all reports zero', () {
+      final facets = IndexFacets(index, [index.characters.last]);
+
+      expect(facets.highestAnecdotes, 0);
+    });
+  });
 }

@@ -22,9 +22,8 @@ void main() {
     final listing = parseListing(
       File('test/fixtures/listing_pw187.html').readAsStringSync(),
     );
-    final items = parseEquippedItems(
-      File('test/fixtures/detail_64112.html').readAsStringSync(),
-    );
+    final page = File('test/fixtures/detail_64112.html').readAsStringSync();
+    final items = parseEquippedItems(page);
 
     final builder = IndexBuilder(
       server: 'pw187',
@@ -34,7 +33,13 @@ void main() {
     // gear. The rest go in bare, exactly as a half-finished collection would
     // leave them.
     for (final card in listing) {
-      builder.add(card, card.roleId == 64112 ? items : const []);
+      final his = card.roleId == 64112;
+      builder.add(
+        card,
+        his ? items : const [],
+        anecdotes: his ? parseAnecdotes(page) : null,
+        inventory: his ? parseInventory(page) : const [],
+      );
     }
     index = builder.build();
   });
@@ -117,5 +122,42 @@ void main() {
       isFalse,
     );
     expect(matchesQuery(index, bare, const SearchQuery()), isTrue);
+  });
+
+  test('the three relics travel from the page to a filter', () {
+    // The whole seam in one line: the inventory JSON on the page, summed by
+    // the parser, resolved by name in the builder, asked for by name here.
+    final carriers = runQuery(
+      index,
+      const SearchQuery(minimumOwned: {'Relíquia Maravilha: Artefato': 22}),
+    );
+
+    expect(carriers.map((c) => c.name), ['Leandrim']);
+    expect(
+      runQuery(
+        index,
+        const SearchQuery(minimumOwned: {'Relíquia Maravilha: Artefato': 23}),
+      ),
+      isEmpty,
+    );
+  });
+
+  test('the counted names the market showed are resolved, the rest absent', () {
+    expect(index.countedItems, {
+      'Relíquia Maravilha: Artefato': 54687,
+      'Relíquia Maravilha: Arma': 50410,
+      'Relíquia Maravilha: Armadura': 70020,
+    });
+  });
+
+  test('the anecdotes filter the market, and an unread page is not zero', () {
+    expect(
+      runQuery(index, const SearchQuery(minAnecdotes: 1265)).map((c) => c.name),
+      ['Leandrim'],
+    );
+    expect(runQuery(index, const SearchQuery(minAnecdotes: 1266)), isEmpty);
+    // The other 778 were never read. They fail the filter without pretending
+    // to be at zero.
+    expect(index.characters.where((c) => c.anecdotes == null), hasLength(778));
   });
 }

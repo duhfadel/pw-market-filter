@@ -298,6 +298,8 @@ class _FilterButton extends StatelessWidget {
       query.comboName != null,
       query.cardRarity != null,
       query.cardsMaxed,
+      query.minAnecdotes != null,
+      ...query.minimumOwned.keys.map((_) => true),
       ...query.itemBySlot.keys.map((_) => true),
       ...query.criteria.map((_) => true),
     ].where((asked) => asked).length;
@@ -533,6 +535,20 @@ class _OrderPicker extends StatelessWidget {
   final SearchReady state;
   final SearchViewModel viewModel;
 
+  /// The orders that can say something about these results — plus whatever is
+  /// in force, always.
+  ///
+  /// A `DropdownButton` throws when its value is absent from its own items,
+  /// and a link is the way that happens: `ordem=mostOwned` saved a month ago,
+  /// opened today with nothing marked, would take the screen down rather than
+  /// order it oddly.
+  List<ResultOrder> get _offered => [
+    for (final order in ResultOrder.values)
+      if (order == state.query.order ||
+          order.offeredFor(state.index, state.query))
+        order,
+  ];
+
   @override
   Widget build(BuildContext context) => DropdownButtonHideUnderline(
     child: DropdownButton<ResultOrder>(
@@ -542,7 +558,7 @@ class _OrderPicker extends StatelessWidget {
       style: const TextStyle(color: PWColors.text, fontSize: 13),
       icon: const Icon(Icons.sort, size: 18, color: PWColors.textMuted),
       items: [
-        for (final order in ResultOrder.values)
+        for (final order in _offered)
           DropdownMenuItem(value: order, child: Text(order.label)),
       ],
       onChanged: (order) {
@@ -634,7 +650,12 @@ class _Grid extends StatelessWidget {
       }
     }
 
-    final blocks = slots.length + anySlotCriteria;
+    // The anecdotes and each counted item draw a line of the same height,
+    // and they can never collapse into an item's block — they are not items.
+    final facts =
+        (state.query.showsAnecdotes ? 1 : 0) + state.query.ownedOnCard.length;
+
+    final blocks = slots.length + anySlotCriteria + facts;
     return _headerHeight + _dividerHeight + blocks * _matchLineHeight;
   }
 

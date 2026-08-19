@@ -9,6 +9,8 @@ import '../../domain/item_criterion.dart';
 import '../search_state.dart';
 import '../search_view_model.dart';
 import 'card_section.dart';
+import 'anecdote_section.dart';
+import 'counted_items_section.dart';
 import 'criterion_row.dart';
 import 'number_field.dart';
 import 'section_header.dart';
@@ -51,6 +53,8 @@ class FilterPanel extends StatelessWidget {
             startsOpen: i == 0,
           ),
         CardSection(state: state, viewModel: viewModel),
+        CountedItemsSection(state: state, viewModel: viewModel),
+        AnecdoteSection(state: state, viewModel: viewModel),
         const SizedBox(height: 12),
         const SectionHeader(title: 'Por atributo'),
         const SizedBox(height: 12),

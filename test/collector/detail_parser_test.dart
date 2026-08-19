@@ -89,4 +89,64 @@ void main() {
   test('a page with no paper doll yields nothing instead of throwing', () {
     expect(parseEquippedItems('<html><body></body></html>'), isEmpty);
   });
+
+  group('anecdotes', () {
+    test('reads the pair the summary prints, and the line count', () {
+      final anecdotes = parseAnecdotes(html)!;
+
+      expect(anecdotes.done, 1265);
+      expect(anecdotes.total, 2756);
+      expect(anecdotes.lines, 107);
+    });
+
+    test('a page without the panel yields null, not a zeroed pair', () {
+      // Zero of zero would read as a character who has completed nothing,
+      // which is a claim. Absent is not a number.
+      expect(parseAnecdotes('<html><body></body></html>'), isNull);
+    });
+  });
+
+  group('inventory', () {
+    test('counts the three relics the character carries', () {
+      final counts = {
+        for (final stack in parseInventory(html)) stack.itemId: stack.count,
+      };
+
+      expect(counts[54687], 22);
+      expect(counts[50410], 16);
+      expect(counts[70020], 16);
+    });
+
+    test('names each stack, so a counted item can be found by name', () {
+      final byName = {
+        for (final stack in parseInventory(html)) stack.name: stack.itemId,
+      };
+
+      expect(byName['Relíquia Maravilha: Artefato'], 54687);
+    });
+
+    test('sums the same item held in more than one place', () {
+      // The page lists 311 stacks over 292 distinct ids: a stack in the bag
+      // and another in the bank are the same item, counted once.
+      final stacks = parseInventory(html);
+
+      expect(stacks, hasLength(292));
+      expect(stacks.map((s) => s.itemId).toSet(), hasLength(292));
+    });
+
+    test('a page with no inventory yields nothing instead of throwing', () {
+      expect(parseInventory('<html><body></body></html>'), isEmpty);
+    });
+  });
+
+  test('reads the weapon level the item JSON carries', () {
+    // Not a quality rank — it is 17 for every common endgame weapon, one of
+    // which gives no attack level at all. Collected because the page is open
+    // and a second crawl costs fifty minutes, not because anything filters on
+    // it yet.
+    final weapon = parseEquippedItems(html).singleWhere((i) => i.slot == 10);
+
+    expect(weapon.weaponLevel, 17);
+    expect(weapon.requireLevel, 100);
+  });
 }

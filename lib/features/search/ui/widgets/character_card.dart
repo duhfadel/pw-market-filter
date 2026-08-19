@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/game_icon.dart';
+import '../../../../market/counted_items.dart';
 import '../../../../market/market_index.dart';
 import '../../../../market/slot_names.dart';
 import '../../domain/index_facets.dart';
@@ -28,6 +29,25 @@ class _Highlight {
   }
 
   String get text => notes.join('  ·  ');
+}
+
+/// One answer that came off the character's page rather than off a piece of
+/// gear: the anecdote progress, or how many of a counted item he carries.
+class _Fact {
+  const _Fact({
+    required this.title,
+    required this.detail,
+    this.itemId,
+    this.icon,
+  });
+
+  final String title;
+  final String detail;
+
+  /// The counted item's own art when there is one. The anecdotes have no item
+  /// and fall back to [icon].
+  final int? itemId;
+  final IconData? icon;
 }
 
 /// A character in the results.
@@ -107,31 +127,70 @@ class CharacterCard extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 2),
-                        Text(
-                          'nv ${character.level} · '
-                          '${character.characterClass}',
-                          style: const TextStyle(
-                            color: PWColors.textMuted,
-                            fontSize: 12,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                _statLine,
+                                style: const TextStyle(
+                                  color: PWColors.textMuted,
+                                  fontSize: 12,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            ..._sexGlyph,
+                          ],
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
-              if (_lines.isNotEmpty) ...[
+              if (_lines.isNotEmpty || _facts.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 const Divider(height: 1),
                 const SizedBox(height: 10),
                 ..._lines.map(_highlightLine),
+                ..._facts.map(_factLine),
               ],
             ],
           ),
         ),
       ),
     );
+  }
+
+  String get _statLine => 'nv ${character.level} · ${character.characterClass}';
+
+  /// The sex, as a glyph rather than the word.
+  ///
+  /// It is on the card at all because it cannot be read off the class: this
+  /// server locks sixteen of the seventeen to a gender and **Bardo has both**,
+  /// so the portrait answers the question for everyone except the class where
+  /// it is actually asked.
+  ///
+  /// A glyph and not `· Feminino` because the line beside it already
+  /// ellipsizes on a narrow card, and nine letters is what tips it over. This
+  /// way the sex costs 14 px, survives the ellipsis, and is read without being
+  /// read.
+  ///
+  /// The colour is the whole message, so the label carries it in words too —
+  /// it is the one thing on the card that is not written anywhere. And a value
+  /// the site does not print draws nothing: an index collected before the
+  /// field would otherwise get a glyph standing for "not known".
+  List<Widget> get _sexGlyph {
+    final (icon, colour) = switch (character.sex) {
+      'Masculino' => (Icons.male, PWColors.male),
+      'Feminino' => (Icons.female, PWColors.female),
+      _ => (null, null),
+    };
+    if (icon == null) return const [];
+
+    return [
+      const SizedBox(width: 4),
+      Icon(icon, size: 14, color: colour, semanticLabel: character.sex),
+    ];
   }
 
   /// What the card shows below the divider: the weapon, then everything the
@@ -201,6 +260,40 @@ class CharacterCard extends StatelessWidget {
     return byItem.values.toList(growable: false);
   }
 
+  /// What the character's own page answers, and only when the query asked.
+  ///
+  /// The rule is the matched item's: a card states what answered the question,
+  /// not everything it knows. Printing the anecdotes on every card would put a
+  /// number nobody asked for beside the one they did.
+  List<_Fact> get _facts {
+    final facts = <_Fact>[];
+
+    final anecdotes = character.anecdotes;
+    if (query.showsAnecdotes && anecdotes != null) {
+      facts.add(
+        _Fact(
+          icon: Icons.auto_stories_outlined,
+          title: 'Anedotas',
+          detail:
+              '${anecdotes.done} de ${anecdotes.total}'
+              '  ·  ${anecdotes.percent}%',
+        ),
+      );
+    }
+
+    for (final wanted in countedItemNames) {
+      if (!query.ownedOnCard.contains(wanted)) continue;
+      final itemId = index.countedItems[wanted];
+      if (itemId == null) continue;
+      // Absent is not zero. A character whose inventory was never read says
+      // nothing rather than claiming he carries none of them.
+      final count = character.counts[itemId];
+      if (count == null) continue;
+      facts.add(_Fact(itemId: itemId, title: wanted, detail: 'carrega $count'));
+    }
+    return facts;
+  }
+
   /// A weapon chosen by name still has to show its number, or the card hands
   /// back the confusion the dropdown's label removed.
   String _attackLevelNote(EquippedItem item) {
@@ -261,6 +354,44 @@ class CharacterCard extends StatelessWidget {
       ),
     );
   }
+
+  /// Same shape as a matched item's line, so the grid can reserve one height
+  /// for either — see `_Grid._cardHeight`, which counts both.
+  Widget _factLine(_Fact fact) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (fact.itemId != null)
+          ItemIcon(fact.itemId!, size: 30)
+        else
+          SizedBox(
+            width: 30,
+            height: 30,
+            child: Icon(fact.icon, size: 20, color: PWColors.textMuted),
+          ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                fact.title,
+                style: const TextStyle(fontSize: 13),
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                fact.detail,
+                style: const TextStyle(fontSize: 11, color: PWColors.ok),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 
   /// The site already draws the character sheet well; rebuilding it here would
   /// be work for no gain.

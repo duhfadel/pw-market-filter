@@ -22,6 +22,7 @@ Flutter web + Bloc + GetIt, fed by an offline index that a Dart CLI collects.
 | Index | the JSON contract between collector and app | **Done** |
 | Screen | criteria form, filtered cards, empty and stale states | **Done** |
 | First visit | front page, preset chips, phone filters, shareable link, preview | **Done** |
+| Anedotas e itens | progresso, contagem de relíquias e chaves, no índice e na tela | **Done, awaiting the collection** |
 
 The first full collection ran on 2026-08-09: 770 characters, no failures, 538
 distinct items, 101 attributes, 1.0 MB of index. All fourteen slots are named.
@@ -32,7 +33,7 @@ same tier — and 139 of the 770 characters carry one, from 130 TCC (tmzin,
 Tormentador) to 8000 (Gege, Espiritualista). Sixty times the price for the same
 weapon tier is the gap this tool exists to show.
 
-Open: results have no widget tests.
+Open: the results grid has no widget tests beyond the card itself.
 
 **The visit, done on 2026-08-17.** The site now receives people who have never
 seen it, through two doors and only two — the front page, from a link pasted in
@@ -52,20 +53,48 @@ recording first-seen and previous price costs no extra request — and it is the
 only thing here that earns a second visit. Spec:
 `docs/superpowers/specs/2026-08-17-primeira-visita-design.md`.
 
-**Deferred on 2026-08-09, by the user's call: the character's sex.** It is on
-the detail page (`Sexo / Masculino`) and nowhere else, so it costs a full
-re-collection — about 28 minutes. Worth knowing before anyone tries a shortcut:
-**it cannot be derived from the class.** Perfect World locks classes to a
-gender and this server mostly follows, but sampling two characters of each of
-the seventeen found **Bardo with both**, which is enough to kill the rule.
-Andarilho, Arcano, Arqueiro, Bárbaro and Ceifador came back male; Atiradora,
-Espiritualista and Feiticeira female.
+**The two filters from outside, written on 2026-08-19.** The first requests
+that came from someone other than the person who built the site: how many
+Anedotas a character has completed (`Progresso total 1265/2756`, in the
+`anecdote` panel) and how many of the counted items he carries — the three
+`Relíquia Maravilha` and the `Chave da Sorte`, out of the inventory's
+`data-item` JSON. Spec:
+`docs/superpowers/specs/2026-08-17-anedotas-e-itens-design.md`.
 
-When that re-collection happens, do it once and take everything the page offers
-that is currently discarded — `require_level` per piece (60/80/100/105, which
-would allow "level 105 gear"), `weapon_level`, and the sex — storing them raw in
-the state file the way attribute occurrences already are. Two re-collections
-were already paid on 2026-08-09 for exactly this reason.
+The code is shipped and the **collection is what is still owed**: neither field
+is in any state file written before them, so `CollectedPage.version` marks
+every stored entry stale and the next CI run re-fetches the whole market —
+about forty minutes, which is why `timeout-minutes` is 75. Until that run
+lands, `countedItems` is empty, the filters draw no section, and
+`counted_items_test` skips: an index that predates the fields must not fail the
+suite for being old.
+
+That run also takes everything else the page offers, as the rule says: the
+whole inventory — 292 distinct stacks on the fixture's character — stored by
+id so the next counted item costs `--rebuild` and no network, and
+`require_level` and `weapon_level` per worn piece, which the parser had been
+reading since 2026-08-09 and the **state had been throwing away**. The index
+made that visible and nothing else did: 969 characters carried a sex and only
+88 carried a `requireLevel`, because a live fetch kept it and every reload of
+the state lost it. A codec with no test is where a field goes to die, which is
+why `CollectedPage` now lives in `lib/` and has one.
+
+**The sex is on the card as a glyph**, blue or pink, beside `nv 105 · Bardo`
+and outside the text that ellipsizes — nine letters of `· Feminino` is what
+tips that line over on a narrow card, and 14 px is not. `PWColors.male` and
+`PWColors.female` are lifted towards the light end for the same reason every
+colour here is: at 7.3 and 7.1 against `surface` they sit with `textMuted`
+(6.5) and `ok` (8.0), where a saturated blue or pink would go muddy at 14 px.
+A value the site does not print draws nothing rather than a third colour, and
+the glyph carries `semanticLabel` because the colour is the whole message and
+it is the one thing on the card written nowhere. It was collected in August and
+shown nowhere until 2026-08-19 — which is worth noticing as a shape of waste:
+a field can sit correct and complete in the index, costing a full crawl, and
+answer nobody. It cannot be derived from the class either: Perfect World locks
+classes to a gender and this server mostly follows, but sampling two
+characters of each of the seventeen found **Bardo with both**, which is enough
+to kill the rule. Andarilho, Arcano, Arqueiro, Bárbaro and Ceifador came back
+male; Atiradora, Espiritualista and Feiticeira female.
 
 **Read the spec before starting any feature:**
 `docs/superpowers/specs/2026-08-09-filtro-por-itens-design.md`
@@ -303,6 +332,121 @@ Each of these already cost something — measured on the live site, not guessed.
   Fetching icons from `items` alone left every card blank with a 404 per card
   in the console — silent on screen, because `ItemIcon` falls back to an empty
   box.
+- **The inventory JSON is the wrong source for equipment and the right one for
+  counting, and the difference is not a matter of taste.** The same
+  `data-item` attributes that must never say what is *worn* — no slot number,
+  31 entries where 14 are worn, spares included — are the only place that says
+  what a character *owns*, with a `count` per stack. `parseInventory` reads
+  every one of them on the page: 311 stacks over 292 distinct ids on the
+  fixture, because a stack in the bag and another in the bank are the same
+  item and have to be summed. The paper doll stays the only source for the
+  fourteen worn pieces.
+
+  Two things came off the same JSON while it was open. `require_level` is
+  60/80/100/105 and joins by item id — and the fixture's weapon requires
+  **100, not 105**, which is worth knowing before writing that expectation
+  from memory. `weapon_level` is 17 for every common endgame weapon including
+  one that gives no attack level, so it is a crafting tier, not a rank; it is
+  stored raw and nothing filters on it.
+- **A counted item is found by name, and the name is the identity — which does
+  not contradict "the item name lies".** That rule is about worn equipment,
+  where three weapons share the word *Dilacerador* and give 30, 40 and 70. For
+  a consumable being counted there is no such ambiguity, and a name is the
+  only thing that can find an item whose id nobody knows: the `Chave da
+  Sorte`'s id was unavailable — no character in the fixture carries one and the
+  item database wants a game-context cookie before it will search — so a table
+  of ids would have had to guess, and a guessed id yields a filter that
+  matches nobody while looking like an answer.
+
+  `countedItemNames` is the list and `confirmedCountedItems` is the half a real
+  page has been seen to print. The split is the deploy: a confirmed name that
+  stops resolving is a bug and turns the suite red, while an unconfirmed one
+  finding nothing is a fact about a market that changes every twenty minutes,
+  and freezing the site for a sale would be the wrong trade. The collector
+  prints one line per counted name at the end of a run, and that is where the
+  question "does the Chave exist?" gets answered.
+- **Marking is not filtering, and they were one control until they had to be
+  two.** A counted item answers two different questions: *how many does each of
+  these carry* and *only show me who carries five*. While the number field was
+  the only control, the first question could not be asked — seeing anybody's
+  relic count meant demanding at least one and losing everyone else from the
+  results. So the item is marked first (`SearchQuery.shownOwned`, a checkbox,
+  prints the number on every card) and the minimum appears only after that.
+
+  `shownOwned` is deliberately outside `isEmpty` and outside the count of
+  filters in force, for the same reason `order` is: it is how the list is read,
+  not something asked of the market. A minimum implies its own item is marked —
+  a card that will not say why a character passed is worse than one that says
+  nothing — and unmarking takes the minimum with it, because a filter in force
+  on an item the card no longer names is a result nobody can explain.
+- **The anecdotes have the same checkbox, and unmarking has to undo whatever
+  was forcing the line.** Three things put the number on a card — the mark, a
+  minimum, and ordering by it — so the box is ticked by `showsAnecdotes` rather
+  than by its own field, and unticking it clears the minimum and drops the
+  order back to cheapest. Without that the box comes unticked with the number
+  still on screen, which is a control that visibly does not control what it
+  names.
+
+  In a link it rides in `mostra`, whose value `anedotas` is reserved for it —
+  `mostra` means "what the card prints", and a second parameter for the same
+  idea would be worse. Nothing can collide: every counted item is named
+  `Relíquia …` or `Chave …`.
+- **Ordering by something counts as asking for it.** The card's rule is that
+  it states what answered the question, and a sort is a question: with the list
+  ordered by anecdotes, the count is *why* a card sits where it does, so the
+  line is drawn without any minimum being set. Requiring a filter as well —
+  only to see the number — would throw away every result below the cut. That is
+  `SearchQuery.showsAnecdotes`, and the grid that sizes the cards reads the
+  same getter, because a card taller than its tile is clipped and one shorter
+  floats in a hole.
+
+  The line carries the share as well as the pair: `1265 de 2756 · 46%`. The
+  total is the same number for everybody, so the fraction is the only part that
+  separates one character from another, and nobody divides in their head while
+  scanning forty cards.
+- **The two new orders read the character's page, and one of them needs the
+  marks to mean anything.** *Mais anedotas* is straightforward. *Mais
+  relíquias* adds up the counted items that are **marked** — the market has
+  three of them and an order that picked one on the visitor's behalf would be
+  ordering by a question nobody asked. So it is offered only while something is
+  marked, and unmarking the last one puts the order back to cheapest rather
+  than leaving the list sorted by a number that is the same for everybody.
+
+  Both tie constantly — hundreds of characters carry none — so both fall back
+  to the price, which is the question the default order exists to answer.
+
+  `_OrderPicker` always offers whatever is in force, even when it makes no
+  sense here: a `DropdownButton` throws when its value is absent from its own
+  items, and `ordem=mostOwned` in a month-old link with nothing marked is
+  exactly how that happens. Same trap the class and item dropdowns already
+  guard against, arriving by a different door.
+- **`counts` carries an explicit zero, and that costs a second pass in
+  `IndexBuilder.build`.** "Carries none of them" and "the page was never read"
+  have to be different on screen: the first prints `carrega 0` and the second
+  prints no line at all. They were the same empty map until the zeros were
+  filled in, and they cannot be filled on the way in — a counted name is
+  resolved the first time the crawl meets it, so a character read before anyone
+  was seen carrying the relic does not yet know the id to write a zero under.
+  `_readCounts` holds the same map objects the characters hold, so finishing
+  them there finishes theirs.
+- **The collector's state file is stamped, and an unstamped entry is refetched
+  rather than adapted.** `CollectedPage.version` is what makes a re-collection
+  happen by itself: an entry written before the anecdotes existed cannot be
+  patched into one that has them, so it is dropped on load and its page is
+  fetched again. The stamp is deliberate rather than "is the anecdotes key
+  missing?" — a page may legitimately have no anecdote panel, and that
+  character would then be re-fetched on every run for ever.
+
+  It has one consequence worth guarding, and it is guarded: right after such a
+  change `--rebuild` has nothing left to build from, and writing the index
+  anyway would replace a good market with an empty one — which reads exactly
+  like everybody having left. It refuses and says to run `--resume` instead.
+- **Names in the state file live in one table, not in every character.** The
+  same three hundred item names repeat across 950 inventories; written out per
+  character they would be most of the file and none of the information.
+  `itemNamesOf` builds the table on save and `CollectedPage.fromJson` takes it
+  back on load — so the two halves have to be written together, and the round
+  trip is pinned by `collected_page_test`.
 - **Equipment lives in the page twice, and the richer copy is the wrong one.**
   The inventory panel's `<h4>Equipamento</h4>` section holds real JSON per item
   in a `data-item` attribute — and it is a trap. It carries **no slot number**,

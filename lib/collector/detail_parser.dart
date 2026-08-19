@@ -27,18 +27,21 @@ class ParsedItem {
     required this.stones,
     required this.attributes,
     this.requireLevel = 0,
+    this.weaponLevel = 0,
   });
 
-  ParsedItem withRequireLevel(int level) => ParsedItem(
-    slot: slot,
-    itemId: itemId,
-    grade: grade,
-    name: name,
-    refine: refine,
-    stones: stones,
-    attributes: attributes,
-    requireLevel: level,
-  );
+  ParsedItem withLevels({required int require, required int weapon}) =>
+      ParsedItem(
+        slot: slot,
+        itemId: itemId,
+        grade: grade,
+        name: name,
+        refine: refine,
+        stones: stones,
+        attributes: attributes,
+        requireLevel: require,
+        weaponLevel: weapon,
+      );
 
   final int slot;
   final int itemId;
@@ -55,6 +58,13 @@ class ParsedItem {
   /// id, checked across the fixture; and it is worth the exception because the
   /// paper doll's tooltip does not carry it at all.
   final int requireLevel;
+
+  /// The `weapon_level` of the same JSON, and **not** a quality rank: it is 17
+  /// for every common endgame weapon, including one that gives no attack level
+  /// at all. Read because the page is already open — a second crawl of the
+  /// market costs fifty minutes — and kept raw in the collector's state until
+  /// something turns out to want it. Zero on anything that is not a weapon.
+  final int weaponLevel;
 }
 
 /// One of the six War Avatar cards a character has equipped.
@@ -115,43 +125,160 @@ final _attributePattern = RegExp(r'➜\s*([^<]*?)\s*([+-]\d+)\s*(?=<|$)');
 /// and the extras sit in the middle, not at the end.
 List<ParsedItem> parseEquippedItems(String html) {
   final document = html_parser.parse(html);
-  final requireLevels = _requireLevelsById(document);
+  final levels = _levelsById(document);
 
   return document
       .querySelectorAll('ul.character-equip--list > li')
       .map(_readItem)
       .whereType<ParsedItem>()
-      .map(
-        (item) => requireLevels.containsKey(item.itemId)
-            ? item.withRequireLevel(requireLevels[item.itemId]!)
-            : item,
-      )
+      .map((item) {
+        final level = levels[item.itemId];
+        return level == null
+            ? item
+            : item.withLevels(require: level.require, weapon: level.weapon);
+      })
       .toList(growable: false);
 }
 
-/// Item id to the level it demands, read from the inventory panel's JSON.
+/// The two levels the inventory panel's JSON carries, per item id.
 ///
-/// The one thing taken from that panel. It has no slot numbers and lists
-/// spares, so it cannot say what is worn — but it does carry `require_level`,
-/// which the paper doll's tooltip never mentions.
-Map<int, int> _requireLevelsById(Document document) {
-  final levels = <int, int>{};
+/// The only thing taken from that panel for a worn piece. It has no slot
+/// numbers and lists spares, so it cannot say what is worn — but it does carry
+/// `require_level` and `weapon_level`, which the paper doll's tooltip never
+/// mentions.
+Map<int, ({int require, int weapon})> _levelsById(Document document) {
+  final levels = <int, ({int require, int weapon})>{};
 
+  for (final json in _inventoryJson(document)) {
+    final id = json['id'];
+    final decoded = json['decoded'] as Map<String, dynamic>?;
+    final require = decoded?['require_level'];
+    final weapon = decoded?['weapon_level'];
+    if (id is! int) continue;
+    levels[id] = (
+      require: require is int ? require : 0,
+      weapon: weapon is int ? weapon : 0,
+    );
+  }
+  return levels;
+}
+
+/// Every `data-item` on the page, decoded. One unreadable entry is skipped
+/// rather than costing the whole page.
+Iterable<Map<String, dynamic>> _inventoryJson(Document document) sync* {
   for (final element in document.querySelectorAll('li[data-item]')) {
     final raw = element.attributes['data-item'];
     if (raw == null) continue;
     try {
-      final json = jsonDecode(raw) as Map<String, dynamic>;
-      final id = json['id'];
-      final level =
-          (json['decoded'] as Map<String, dynamic>?)?['require_level'];
-      if (id is int && level is int) levels[id] = level;
+      final json = jsonDecode(raw);
+      if (json is Map<String, dynamic>) yield json;
     } on FormatException {
-      // One unreadable entry must not cost the whole page.
       continue;
     }
   }
-  return levels;
+}
+
+/// How far a character has got through the game's anecdotes.
+///
+/// The pair is printed as one string — `1265/2756` — and the two halves mean
+/// different things: [done] is the character's, [total] is the game's.
+class ParsedAnecdotes {
+  const ParsedAnecdotes({
+    required this.done,
+    required this.total,
+    required this.lines,
+  });
+
+  final int done;
+  final int total;
+
+  /// How many anecdote lines the character has met at all. Read because it is
+  /// beside the pair and free; nothing filters on it yet.
+  final int lines;
+}
+
+final _anecdoteProgressPattern = RegExp(r'(\d+)\s*/\s*(\d+)');
+
+/// Null when the page has no anecdote panel.
+///
+/// Null and not `0/0`: zero of zero would read as a character who has
+/// completed nothing, and that is a claim. A page that does not say says
+/// nothing.
+ParsedAnecdotes? parseAnecdotes(String html) {
+  final document = html_parser.parse(html);
+  final summary = document.querySelector('.pw187-anecdote-summary');
+  if (summary == null) return null;
+
+  var done = 0;
+  var total = 0;
+  var lines = 0;
+  var found = false;
+
+  for (final row in summary.querySelectorAll('li')) {
+    final label = row.querySelector('span')?.text.trim() ?? '';
+    final value = row.querySelector('strong')?.text.trim() ?? '';
+
+    if (label == 'Progresso total') {
+      final match = _anecdoteProgressPattern.firstMatch(value);
+      if (match == null) continue;
+      done = int.parse(match.group(1)!);
+      total = int.parse(match.group(2)!);
+      found = true;
+    } else if (label == 'Linhas') {
+      lines = int.tryParse(value) ?? 0;
+    }
+  }
+
+  return found ? ParsedAnecdotes(done: done, total: total, lines: lines) : null;
+}
+
+/// One stack of one item the character owns, wherever it is kept.
+class ParsedStack {
+  const ParsedStack({
+    required this.itemId,
+    required this.name,
+    required this.count,
+  });
+
+  final int itemId;
+  final String name;
+
+  /// Every copy the character holds, added across bag, bank and the rest.
+  final int count;
+}
+
+/// Everything the character owns, by item id.
+///
+/// This is the inventory JSON `CLAUDE.md` warns against — and counting is the
+/// one job it is right for. The warning is about *worn* equipment, where the
+/// panel carries no slot number and lists spares beside the real piece; the
+/// paper doll stays the only source for that. Here the spares are the point.
+///
+/// Ids repeat across the subpanels — a stack in the bag and another in the
+/// bank — so they are summed. The name is the first one seen, which is the
+/// same item's name every time.
+List<ParsedStack> parseInventory(String html) {
+  final document = html_parser.parse(html);
+  final counts = <int, int>{};
+  final names = <int, String>{};
+
+  for (final json in _inventoryJson(document)) {
+    final id = json['id'];
+    if (id is! int) continue;
+    final count = json['count'];
+    counts[id] = (counts[id] ?? 0) + (count is int ? count : 0);
+    final name = json['item_name'] ?? json['name'];
+    if (name is String) names.putIfAbsent(id, () => name);
+  }
+
+  return [
+    for (final entry in counts.entries)
+      ParsedStack(
+        itemId: entry.key,
+        name: names[entry.key] ?? '',
+        count: entry.value,
+      ),
+  ];
 }
 
 final _rarityPattern = RegExp(r'Nível ([SAB])<br>');

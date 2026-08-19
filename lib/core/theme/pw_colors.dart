@@ -28,6 +28,17 @@ abstract final class PWColors {
   static const glowViolet = Color(0xFF785ADC);
   static const glowDeep = Color(0xFF5A46C8);
   static const accentDim = Color(0xFF6B4E1F);
+
+  /// The two sexes the site prints, and nothing else — a value it does not
+  /// print draws no glyph rather than a third colour.
+  ///
+  /// Blue and pink because the convention is instant and this is a badge read
+  /// at a glance in a grid of forty cards; both are lifted towards the light
+  /// end so they hold against [surface] at 14 px, where a saturated hue goes
+  /// muddy.
+  static const male = Color(0xFF62A8F0);
+  static const female = Color(0xFFF07AB4);
+
   static const danger = Color(0xFFFF6B6B);
   static const ok = Color(0xFF5FBAB9);
 

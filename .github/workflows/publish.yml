@@ -31,7 +31,14 @@ jobs:
     runs-on: ubuntu-latest
     # A first run crawls all 770 pages at one request every 1.5 s. The rest
     # finish in under a minute.
-    timeout-minutes: 50
+    #
+    # Seventy-five and not fifty because of 2026-08-19: the anecdotes and the
+    # inventory are not in any state written before them, so every entry was
+    # stale and the whole market was fetched again — about forty minutes of
+    # crawling, plus analyze, test, build and deploy. If the job times out the
+    # cache is never written and the next run starts from zero, so the ceiling
+    # has to clear a full crawl with room to spare.
+    timeout-minutes: 75
 
     steps:
       - uses: actions/checkout@v4

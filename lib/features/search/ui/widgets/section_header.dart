@@ -17,6 +17,7 @@ class SectionHeader extends StatelessWidget {
   const SectionHeader({
     required this.title,
     this.emblem,
+    this.glyph,
     this.badge = 0,
     this.expanded,
     super.key,
@@ -28,6 +29,12 @@ class SectionHeader extends StatelessWidget {
   /// so does an id whose file was never fetched — `ItemIcon` falls back to an
   /// empty box, which costs a little space and never a broken row.
   final int? emblem;
+
+  /// For a section whose subject is not an item and so has no art of its own —
+  /// the anecdotes are a tab on the site, not a thing in a bag. Drawn in the
+  /// same chip as [emblem] so the column of headers keeps one rhythm. Ignored
+  /// when [emblem] is set.
+  final IconData? glyph;
 
   final int badge;
 
@@ -45,6 +52,19 @@ class SectionHeader extends StatelessWidget {
           color: PWColors.textMuted,
         ),
         const SizedBox(width: 4),
+      ],
+      if (emblem == null && glyph != null) ...[
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: PWColors.surfaceRaised,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          alignment: Alignment.center,
+          child: Icon(glyph, size: 18, color: PWColors.textMuted),
+        ),
+        const SizedBox(width: 9),
       ],
       if (emblem != null) ...[
         // On a raised chip, and bigger than it first shipped. At 22 px, loose

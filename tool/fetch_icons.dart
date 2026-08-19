@@ -44,11 +44,14 @@ Future<void> main() async {
       names: {for (final o in occupations) '$o': '$_classIcons/occu_$o.png'},
     );
 
-    // Equipment and War Avatar cards share one icon host and one id space, but
-    // **not** one index field: `items` holds only equipment. Reading just that
-    // left every card in the app with a blank square and a 404 in the console.
+    // Equipment, War Avatar cards and the counted items share one icon host
+    // and one id space, but **not** one index field: `items` holds only
+    // equipment. Reading just that left every card in the app with a blank
+    // square and a 404 in the console — and the relics would have gone the
+    // same way, since a `Relíquia Maravilha` is carried, never worn.
     final iconIds = {
       ...index.items.keys,
+      ...index.countedItems.values,
       for (final character in index.characters)
         for (final card in character.cards) card.cardId,
     };

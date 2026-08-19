@@ -111,6 +111,41 @@ class IndexFacets {
   late final int lowestLevel = _lowest((c) => c.level);
   late final int highestLevel = _highest((c) => c.level);
 
+  /// The anecdote range on offer, read only from the characters whose page was
+  /// actually read.
+  ///
+  /// A character collected before the field existed would otherwise drag the
+  /// floor to zero and tell the visitor the market starts at nobody, which is
+  /// the crawl's state and not the market's.
+  late final int lowestAnecdotes = _anecdoteRange.$1;
+  late final int highestAnecdotes = _anecdoteRange.$2;
+
+  late final (int, int) _anecdoteRange = () {
+    var lowest = 0;
+    var highest = 0;
+    var seen = false;
+
+    for (final character in scope) {
+      final done = character.anecdotes?.done;
+      if (done == null) continue;
+      if (!seen || done < lowest) lowest = done;
+      if (!seen || done > highest) highest = done;
+      seen = true;
+    }
+    return (lowest, highest);
+  }();
+
+  /// The most anyone in [scope] carries of one counted item — the hint that
+  /// says where to put a minimum before typing a number nobody can meet.
+  int mostOwned(int itemId) {
+    var most = 0;
+    for (final character in scope) {
+      final count = character.counts[itemId] ?? 0;
+      if (count > most) most = count;
+    }
+    return most;
+  }
+
   final _attributeCache = <int?, List<AttributeFacet>>{};
 
   /// Keyed by slot and class together — the same slot answers differently for

@@ -114,6 +114,15 @@ bool _matchesInventory(
     if (anecdotes == null || anecdotes.done < minimum) return false;
   }
 
+  for (final pet in query.pets) {
+    // Same rule as a counted name the collection never met: nobody has it, so
+    // nobody passes. Skipping it would widen the search under the visitor's
+    // own filter.
+    final itemId = index.countedItems[pet];
+    if (itemId == null) return false;
+    if ((character.counts[itemId] ?? 0) < 1) return false;
+  }
+
   for (final wanted in query.minimumOwned.entries) {
     // A name this collection never met belongs to nobody, so nobody passes.
     // Skipping it instead would widen the search under the visitor's own

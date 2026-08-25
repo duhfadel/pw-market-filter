@@ -231,5 +231,27 @@ void main() {
 
       expect(index.characters.first.counts, isEmpty);
     });
+
+    test('a pet is resolved by id, whatever its owner called it', () {
+      // The name on the page is a nickname. Matching by it would miss exactly
+      // the owners — naming the pet is what you do when you have one.
+      const apelidado = ParsedStack(itemId: 38587, name: 'GabirÚ', count: 1);
+
+      final index =
+          (builder()..add(_card(1), const [], inventory: const [apelidado]))
+              .build();
+
+      expect(index.countedItems['Harpia'], 38587);
+      expect(index.characters.single.counts[38587], 1);
+    });
+
+    test('a pet nobody in the market has stays absent', () {
+      final index =
+          (builder()..add(_card(1), const [], inventory: const [junk])).build();
+
+      expect(index.countedItems.containsKey('Hércules'), isFalse);
+      // And whoever was read gets the explicit zero for the ones that resolved.
+      expect(index.characters.single.counts, isEmpty);
+    });
   });
 }

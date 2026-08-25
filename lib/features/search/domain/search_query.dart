@@ -75,6 +75,7 @@ class SearchQuery {
     this.minimumOwned = const {},
     this.shownOwned = const {},
     this.anecdotesOnCard = false,
+    this.pets = const {},
     this.order = ResultOrder.cheapest,
   });
 
@@ -143,6 +144,16 @@ class SearchQuery {
   /// reason [shownOwned] is.
   final bool anecdotesOnCard;
 
+  /// Pets the character must have, by the label in [countedItemIds].
+  ///
+  /// A plain filter, unlike the counted items: a pet is a yes or a no, and
+  /// there is no quantity to compare across characters — so there is nothing
+  /// for a "show it" mark to add that passing the filter does not already say.
+  ///
+  /// Only the Feiticeira has combat pets, so asking for one narrows to that
+  /// class by itself; nothing here knows about classes.
+  final Set<String> pets;
+
   /// Whether the card should print the anecdote progress.
   ///
   /// Marking says so outright. So does asking for a minimum — a card that will
@@ -172,7 +183,8 @@ class SearchQuery {
       !cardsMaxed &&
       criteria.isEmpty &&
       minAnecdotes == null &&
-      minimumOwned.isEmpty;
+      minimumOwned.isEmpty &&
+      pets.isEmpty;
 
   /// This query with [dimension] switched off, which is the population a
   /// control should read its options from.
@@ -201,7 +213,7 @@ class SearchQuery {
     FacetDimension.items => copyWith(itemBySlot: const {}),
     FacetDimension.criteria => copyWith(criteria: const []),
     FacetDimension.anecdotes => copyWith(minAnecdotes: () => null),
-    FacetDimension.owned => copyWith(minimumOwned: const {}),
+    FacetDimension.owned => copyWith(minimumOwned: const {}, pets: const {}),
   };
 
   SearchQuery copyWith({
@@ -220,6 +232,7 @@ class SearchQuery {
     Map<String, int>? minimumOwned,
     Set<String>? shownOwned,
     bool? anecdotesOnCard,
+    Set<String>? pets,
     ResultOrder? order,
   }) => SearchQuery(
     characterClass: characterClass == null
@@ -239,6 +252,7 @@ class SearchQuery {
     minimumOwned: minimumOwned ?? this.minimumOwned,
     shownOwned: shownOwned ?? this.shownOwned,
     anecdotesOnCard: anecdotesOnCard ?? this.anecdotesOnCard,
+    pets: pets ?? this.pets,
     order: order ?? this.order,
   );
 }

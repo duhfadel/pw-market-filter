@@ -25,6 +25,27 @@ const countedItemNames = <String>[
   'Chave da Sorte',
 ];
 
+/// The pets worth filtering on, by **id** — the exact reverse of the rule
+/// above, and for a reason that only shows up on a real page.
+///
+/// A pet's name belongs to its owner. `38587` prints as *Ovo de Harpia* on
+/// three characters and as *GabirÚ* on a fourth, because the player renamed
+/// it — and `item_name`, `name` and `title` in the JSON all carry the nickname.
+/// Filtering by name would therefore miss exactly the people who own one,
+/// since naming the pet is what you do when you have it. The species survives
+/// in the tooltip (`Espécie: Ovo de Harpia`), but the id says the same thing
+/// and is already in the collector's state, so nothing has to be re-crawled.
+///
+/// Only the Feiticeira has combat pets, so asking for one narrows to that
+/// class on its own — no rule about classes is needed anywhere.
+///
+/// `Hércules` is the community's name; the game calls the species *Ovo Mascote
+/// Gigante Celestial*, and the class's own Hero Saga names the pet "Gigante
+/// Celestial Hércules", which is what ties the two together. Neither id was
+/// guessed: both were read off pages of characters on sale, and
+/// `counted_items_test.dart` fails if they stop resolving.
+const countedItemIds = <String, int>{'Hércules': 37905, 'Harpia': 38587};
+
 /// The names a real page has been seen to print, character for character.
 ///
 /// The three relics are in `test/fixtures/detail_64112.html`, so one of them

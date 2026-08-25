@@ -281,6 +281,13 @@ class CharacterCard extends StatelessWidget {
       );
     }
 
+    for (final pet in countedItemIds.keys) {
+      if (!query.pets.contains(pet)) continue;
+      final itemId = index.countedItems[pet];
+      if (itemId == null) continue;
+      facts.add(_Fact(itemId: itemId, title: pet, detail: 'mascote'));
+    }
+
     for (final wanted in countedItemNames) {
       if (!query.ownedOnCard.contains(wanted)) continue;
       final itemId = index.countedItems[wanted];

@@ -60,6 +60,20 @@ void main() {
     }
   });
 
+  test('a pet that resolved has somebody carrying it', () {
+    // The ids themselves are pinned against a real page in
+    // `test/collector/pets_test.dart`, which is the fixture that cannot go
+    // stale. This only asks that the live market agrees.
+    for (final label in countedItemIds.keys) {
+      if (index.countedItems[label] == null) continue;
+      expect(
+        runQuery(index, SearchQuery(pets: {label})),
+        isNotEmpty,
+        reason: label,
+      );
+    }
+  });
+
   test('a name the collection never met matches nobody, not everybody', () {
     expect(
       runQuery(index, const SearchQuery(minimumOwned: {'não existe': 1})),

@@ -270,6 +270,12 @@ void main() {
       expect(roundTrip(query).ownedOnCard, {'Relíquia Maravilha: Arma'});
     });
 
+    test('a required pet survives a round trip', () {
+      const query = SearchQuery(pets: {'Harpia', 'Hércules'});
+
+      expect(roundTrip(query).pets, {'Harpia', 'Hércules'});
+    });
+
     test('a minimum of zero is not a question and is left out', () {
       expect(
         encodeQuery(const SearchQuery(minimumOwned: {'Chave da Sorte': 0})),

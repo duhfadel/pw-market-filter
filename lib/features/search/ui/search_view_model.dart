@@ -134,6 +134,18 @@ class SearchViewModel extends Cubit<SearchState> {
     _query!.copyWith(minAnecdotes: () => minimum, anecdotesOnCard: true),
   );
 
+  /// A pet is a plain filter: ticked means the character has to have it.
+  void setPetRequired(String label, bool required) {
+    final query = _query!;
+    final pets = {...query.pets};
+    if (required) {
+      pets.add(label);
+    } else {
+      pets.remove(label);
+    }
+    _apply(query.copyWith(pets: pets));
+  }
+
   /// Marks the anecdote progress to be printed on every card, or stops.
   ///
   /// Stopping has to undo everything that forces the line, or the box comes

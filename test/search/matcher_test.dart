@@ -64,6 +64,7 @@ final _index = MarketIndex(
   countedItems: const {
     'Relíquia Maravilha: Arma': 50410,
     'Relíquia Maravilha: Artefato': 54687,
+    'Harpia': 38587,
   },
 );
 
@@ -746,6 +747,52 @@ void main() {
           const SearchQuery(order: ResultOrder.mostAnecdotes),
         ).map((c) => c.name),
         ['Barato', 'Caro'],
+      );
+    });
+  });
+
+  group('pets', () {
+    test('asking for one admits who has it and refuses who does not', () {
+      final dona = _character('Nihal', counts: const {38587: 1});
+      final sem = _character('Novata', counts: const {38587: 0});
+
+      const query = SearchQuery(pets: {'Harpia'});
+      expect(matchesQuery(_index, dona, query), isTrue);
+      expect(matchesQuery(_index, sem, query), isFalse);
+    });
+
+    test('a page never read is refused, not assumed empty', () {
+      expect(
+        matchesQuery(
+          _index,
+          _character('Antigo'),
+          const SearchQuery(pets: {'Harpia'}),
+        ),
+        isFalse,
+      );
+    });
+
+    test('a pet the collection never met matches nobody', () {
+      // Not everybody: asking for a pet the market has none of is answered
+      // "ninguem tem", never "todo mundo".
+      final dona = _character('Nihal', counts: const {38587: 1});
+
+      expect(
+        matchesQuery(_index, dona, const SearchQuery(pets: {'Hércules'})),
+        isFalse,
+      );
+    });
+
+    test('two pets are an and, as every other filter here is', () {
+      final so = _character('Nihal', counts: const {38587: 1});
+
+      expect(
+        matchesQuery(
+          _index,
+          so,
+          const SearchQuery(pets: {'Harpia', 'Hércules'}),
+        ),
+        isFalse,
       );
     });
   });

@@ -118,16 +118,31 @@ class IndexBuilder {
     if (inventory.isNotEmpty) _readCounts.add(counts);
 
     for (final stack in inventory) {
-      if (!countedItemNames.contains(stack.name)) continue;
-      // First wearer names the id, exactly as items do. Two ids under one
-      // counted name would leave the second one's owners failing a filter
-      // silently, which is what `counted_items_test.dart` checks for.
-      _countedIds.putIfAbsent(stack.name, () => stack.itemId);
-      if (_countedIds[stack.name] == stack.itemId) {
+      // Two ways in, and they are opposite on purpose. A counted item is found
+      // by its name, because its id was unknown; a pet is found by its id,
+      // because its name belongs to whoever owns it. See `counted_items.dart`.
+      final label = _labelFor(stack);
+      if (label == null) continue;
+
+      // First sighting names the id, exactly as items do. Two ids under one
+      // label would leave the second one's owners failing a filter silently,
+      // which is what `counted_items_test.dart` checks for.
+      _countedIds.putIfAbsent(label, () => stack.itemId);
+      if (_countedIds[label] == stack.itemId) {
         counts[stack.itemId] = stack.count;
       }
     }
     return counts;
+  }
+
+  /// What this stack is called in the index, or null when it is one of the
+  /// hundreds of things nobody asked about.
+  String? _labelFor(ParsedStack stack) {
+    if (countedItemNames.contains(stack.name)) return stack.name;
+    for (final entry in countedItemIds.entries) {
+      if (entry.value == stack.itemId) return entry.key;
+    }
+    return null;
   }
 
   EquippedItem _convert(ParsedItem item) {

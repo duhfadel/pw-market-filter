@@ -13,6 +13,7 @@ import 'anecdote_section.dart';
 import 'counted_items_section.dart';
 import 'criterion_row.dart';
 import 'number_field.dart';
+import 'pet_section.dart';
 import 'section_header.dart';
 import 'slot_section.dart';
 
@@ -53,6 +54,7 @@ class FilterPanel extends StatelessWidget {
             startsOpen: i == 0,
           ),
         CardSection(state: state, viewModel: viewModel),
+        PetSection(state: state, viewModel: viewModel),
         CountedItemsSection(state: state, viewModel: viewModel),
         AnecdoteSection(state: state, viewModel: viewModel),
         const SizedBox(height: 12),

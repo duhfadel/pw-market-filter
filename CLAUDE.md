@@ -99,9 +99,11 @@ male; Atiradora, Espiritualista and Feiticeira female.
 **Read the spec before starting any feature:**
 `docs/superpowers/specs/2026-08-09-filtro-por-itens-design.md`
 
-The two real pages the whole parser rests on are already saved:
-`test/fixtures/listing_pw187.html` (1.8 MB, 779 cards) and
-`test/fixtures/detail_64112.html` (1.1 MB, the character Leandrim).
+The three real pages the whole parser rests on are already saved:
+`test/fixtures/listing_pw187.html` (1.8 MB, 779 cards),
+`test/fixtures/detail_64112.html` (1.1 MB, the Guerreiro Leandrim) and
+`test/fixtures/detail_330640.html` (1.4 MB, the Feiticeira LeRato, who carries
+both legendary pets and has renamed both).
 
 ## Commands
 
@@ -348,6 +350,40 @@ Each of these already cost something — measured on the live site, not guessed.
   from memory. `weapon_level` is 17 for every common endgame weapon including
   one that gives no attack level, so it is a crafting tier, not a rank; it is
   stored raw and nothing filters on it.
+- **A pet is found by its id, because its name belongs to its owner — the
+  exact reverse of the counted items, in the same table.** `38587` prints as
+  *Ovo de Harpia* on three characters and as *GabirÚ* on a fourth, and
+  `item_name`, `name` and `title` in the JSON all carry the nickname. Filtering
+  by name would therefore miss precisely the people who own one, since naming
+  the pet is what you do when you have it. The species does survive, on a line
+  of the tooltip the JSON does not have — `Espécie: Ovo de Harpia` — but the id
+  says the same thing and is already in the state, so the id is what
+  `countedItemIds` holds.
+
+  `Hércules` is the community's word; the game calls the species *Ovo Mascote
+  Gigante Celestial*, and the Feiticeira's own Hero Saga names the pet "Gigante
+  Celestial Hércules", which is what ties them together. Neither id was
+  guessed — both were read off pages of characters on sale, and
+  `test/fixtures/detail_330640.html` is a Feiticeira carrying **both, both
+  renamed**, kept for exactly that reason.
+- **Every pet egg shares one picture, so art beside a pet name lies.** `37905`
+  and `38587` serve the same 32 px file, byte for byte — in the game the art
+  belongs to the creature and the item is the egg it comes out of, and none of
+  the two hosts publishes the creature (`/item/`, `/items/`, `/mob/`, `/pet/`
+  and `pw_pets/` all answer 404). Two identical eggs beside two different names
+  promise a difference that is not there, which is the same defect as naming an
+  item without its number. The egg sits on the section header, where it means
+  *mascotes* and is true; the rows carry names alone.
+- **Presence filters; quantity marks.** The pets are a plain checklist that
+  narrows the market, and not the counted items' *mark to show, type to
+  filter*, because a pet is a yes or a no: there is no number to compare across
+  characters, so a "show it" mark would add nothing that passing the filter
+  does not already say. Two controls of the same shape mean different things
+  one section apart, and that is the reason — quantity is worth showing, mere
+  presence is not.
+
+  It also needs no rule about classes: only the Feiticeira has combat pets, so
+  asking for one narrows to her by itself.
 - **A counted item is found by name, and the name is the identity — which does
   not contradict "the item name lies".** That rule is about worn equipment,
   where three weapons share the word *Dilacerador* and give 30, 40 and 70. For

@@ -48,6 +48,7 @@ const _shownParam = 'mostra';
 /// would be worse. No counted item can collide with it — they are all named
 /// `Relíquia …` or `Chave …` in [countedItemNames].
 const _anecdotesShown = 'anedotas';
+const _petParam = 'mascote';
 const _orderParam = 'ordem';
 
 /// What packs the fields of one criterion into one parameter.
@@ -105,6 +106,8 @@ String encodeQuery(SearchQuery query, [MarketIndex? index]) {
     ...query.shownOwned.where((name) => !query.minimumOwned.containsKey(name)),
   ];
   if (shown.isNotEmpty) params[_shownParam] = shown;
+
+  if (query.pets.isNotEmpty) params[_petParam] = query.pets.toList();
 
   if (query.itemBySlot.isNotEmpty) {
     params[_itemParam] = [
@@ -176,6 +179,11 @@ SearchQuery decodeQuery(
       .map((v) => v.trim())
       .contains(_anecdotesShown);
 
+  final pets = <String>{
+    for (final name in params[_petParam] ?? const <String>[])
+      if (name.trim().isNotEmpty) name.trim(),
+  };
+
   final criteria = <ItemCriterion>[];
   for (final entry in params[_criterionParam] ?? const <String>[]) {
     final criterion = _decodeCriterion(entry, index);
@@ -197,6 +205,7 @@ SearchQuery decodeQuery(
     minimumOwned: minimumOwned,
     shownOwned: shownOwned,
     anecdotesOnCard: anecdotesOnCard,
+    pets: pets,
     criteria: criteria,
     order: _decodeOrder(first(_orderParam)),
   );

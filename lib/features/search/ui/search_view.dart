@@ -299,6 +299,7 @@ class _FilterButton extends StatelessWidget {
       query.cardRarity != null,
       query.cardsMaxed,
       query.minAnecdotes != null,
+      ...query.pets.map((_) => true),
       ...query.minimumOwned.keys.map((_) => true),
       ...query.itemBySlot.keys.map((_) => true),
       ...query.criteria.map((_) => true),
@@ -653,7 +654,9 @@ class _Grid extends StatelessWidget {
     // The anecdotes and each counted item draw a line of the same height,
     // and they can never collapse into an item's block — they are not items.
     final facts =
-        (state.query.showsAnecdotes ? 1 : 0) + state.query.ownedOnCard.length;
+        (state.query.showsAnecdotes ? 1 : 0) +
+        state.query.ownedOnCard.length +
+        state.query.pets.length;
 
     final blocks = slots.length + anySlotCriteria + facts;
     return _headerHeight + _dividerHeight + blocks * _matchLineHeight;

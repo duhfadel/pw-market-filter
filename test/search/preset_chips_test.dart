@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:pw_market_filter/features/search/ui/search_state.dart';
 import 'package:pw_market_filter/features/search/ui/search_view.dart';
+import 'package:pw_market_filter/features/search/ui/widgets/active_filter_chips.dart';
+import 'package:pw_market_filter/features/search/ui/widgets/preset_chips.dart';
 import 'package:pw_market_filter/features/search/ui/search_view_model.dart';
 import 'package:pw_market_filter/market/index_repository.dart';
 import 'package:pw_market_filter/market/market_index.dart';
@@ -132,6 +134,21 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(_ready(viewModel).results, isEmpty);
-    expect(find.text('Portal de Nuema'), findsOneWidget);
+    // Twice on screen now, and both on purpose: the preset chip that was
+    // tapped, and the active-filter chip that can undo it.
+    expect(
+      find.descendant(
+        of: find.byType(PresetChips),
+        matching: find.text('Portal de Nuema'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(ActiveFilterChips),
+        matching: find.text('Portal de Nuema'),
+      ),
+      findsOneWidget,
+    );
   });
 }

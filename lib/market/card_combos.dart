@@ -239,6 +239,28 @@ const sabio = CardCombo(
   cardIds: {41828, 41829}, // Sábio Won, Sábio Anônimo
 );
 
+/// Named by the player and **kept off [cardCombos] on purpose**: one of its two
+/// cards, the *Imperador da Dinastia Guang*, is worn by nobody in the market —
+/// no card carries "Guang" or "Dinastia" in its name at all — so the option
+/// could only ever return an empty list. It goes on the list the day somebody
+/// appears with it.
+///
+/// It is also the one place where the player and PWpedia flatly disagree, and
+/// the player wins because this is his server: PWpedia files King Kisian under
+/// *Corona (3)* with Taomaster Kyno and Stargazer Kin Soz, and gives *Autumn
+/// Omen (2)* as Miss Chiu plus Yeh Kuhan. The market cannot arbitrate — Rei
+/// Kisian reaches no partner at all, sharing fewer than three characters with
+/// every other card — so there is nothing to weigh the wiki against.
+///
+/// Note that *Corona* names two different sets on PWpedia, sizes 2 and 3. The
+/// one offered here is the pair, confirmed by the player.
+const pressagioDeOutono = CardCombo(
+  name: 'Presságio de Outono',
+  rarity: 'A',
+  cardIds: {41859}, // Rei Kisian; o Imperador da Dinastia Guang falta
+  note: 'Falta confirmar o id do Imperador da Dinastia Guang.',
+);
+
 /// Biggest first, so the dropdown reads from the hardest set to the easiest.
 const cardCombos = <CardCombo>[
   nuema,

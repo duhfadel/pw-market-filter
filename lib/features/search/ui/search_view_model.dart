@@ -101,15 +101,22 @@ class SearchViewModel extends Cubit<SearchState> {
   /// Without this, picking Guerreiro while a Mago weapon is selected produces
   /// zero results and no explanation — and the dropdown would be showing a
   /// value that is no longer in its own list, which Flutter throws on.
+  ///
+  /// **Asked of the whole market, not of the current results.** "Does this
+  /// class wear this piece?" is a question about the game; asking it of the
+  /// filtered scope meant that a price range narrow enough to exclude every
+  /// Guerreiro wearing the weapon made the empty answer read as "Guerreiro
+  /// does not wear it", and the weapon was thrown away without a word.
   void setClass(String? value) {
     final ready = state as SearchReady;
     final query = ready.query;
 
     final surviving = <int, int>{};
     for (final chosen in query.itemBySlot.entries) {
-      final available = ready
-          .facetsFor(FacetDimension.items)
-          .itemsIn(chosen.key, characterClass: value);
+      final available = ready.allFacets.itemsIn(
+        chosen.key,
+        characterClass: value,
+      );
       if (available.any((item) => item.itemId == chosen.value)) {
         surviving[chosen.key] = chosen.value;
       }

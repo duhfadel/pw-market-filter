@@ -914,6 +914,31 @@ Each of these already cost something — measured on the live site, not guessed.
   the band landed on the priest's skirt. `Alignment(0, -0.6)` matches where the
   faces actually are. Replacing an image means checking this again — and
   checking it on the *widest* card, which is where a bad crop shows first.
+- **At zero results the faceted form forgets what it is asking, and that was a
+  dead end.** The exclusion rule below is right, and it has one failure mode:
+  when nothing passes, *every* control's scope is empty, so the option lists
+  are empty, sections that hide on an empty list disappear, and the price hints
+  collapse to `0 — 0`. A weapon could be filtering the market with no weapon
+  dropdown anywhere on screen, and the only way out was *limpar tudo*, which
+  throws away the parts you wanted to keep.
+
+  **The chips are the fix**, not a decoration: `activeFilters` builds them from
+  the query and never from the market, so a filter in force always has a way
+  out, one at a time. Marking a relic or the anecdotes gets no chip — it prints
+  a number and narrows nothing, the same reason it stays out of `isEmpty`.
+
+  The same emptiness **crashed the panel**, and the path there is ordinary:
+  choose a weapon, set a price nobody meets, change class. The class list has
+  no items while the value is `Guerreiro`, and `DropdownButton` asserts on a
+  value absent from its own items. Every list must therefore carry whatever is
+  chosen, whatever the scope says — the guard the order picker already had,
+  arriving through a different door.
+- **"Does this class wear this piece?" is a question about the game, not about
+  the current results.** `setClass` asked it of the filtered scope, so a price
+  range narrow enough to exclude every Guerreiro wearing the weapon made the
+  empty answer read as *Guerreiro does not wear it* — and the weapon was
+  dropped without a word. It asks `allFacets` now. The behaviour it exists for
+  is unchanged: changing class still drops what the new class cannot wear.
 - **Every control reads its options from the characters that pass every filter
   but its own.** Choose Portal de Nuema and the class list drops from
   seventeen to sixteen — no Paladino wears it — the level range collapses to

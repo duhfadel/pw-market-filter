@@ -8,6 +8,7 @@ import '../../domain/search_query.dart';
 import '../../domain/item_criterion.dart';
 import '../search_state.dart';
 import '../search_view_model.dart';
+import 'active_filter_chips.dart';
 import 'card_section.dart';
 import 'anecdote_section.dart';
 import 'counted_items_section.dart';
@@ -16,7 +17,6 @@ import 'number_field.dart';
 import 'pet_section.dart';
 import 'realm_section.dart';
 import 'rune_section.dart';
-import 'section_header.dart';
 import 'slot_section.dart';
 
 class FilterPanel extends StatelessWidget {
@@ -32,6 +32,8 @@ class FilterPanel extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        ActiveFilterChips(state: state, viewModel: viewModel),
+        _grupo('Personagem', primeiro: true),
         _classDropdown(
           state.facetsFor(FacetDimension.characterClass),
           query.characterClass,
@@ -48,6 +50,9 @@ class FilterPanel extends StatelessWidget {
           onChanged: viewModel.setPriceRange,
         ),
         const SizedBox(height: 12),
+        RealmSection(state: state, viewModel: viewModel),
+        AnecdoteSection(state: state, viewModel: viewModel),
+        _grupo('Equipamento'),
         for (var i = 0; i < slotGroups.length; i++)
           SlotSection(
             group: slotGroups[i],
@@ -58,13 +63,11 @@ class FilterPanel extends StatelessWidget {
             startsOpen: i == 0,
           ),
         CardSection(state: state, viewModel: viewModel),
-        RealmSection(state: state, viewModel: viewModel),
         RuneSection(state: state, viewModel: viewModel),
+        _grupo('Inventário'),
         PetSection(state: state, viewModel: viewModel),
         CountedItemsSection(state: state, viewModel: viewModel),
-        AnecdoteSection(state: state, viewModel: viewModel),
-        const SizedBox(height: 12),
-        const SectionHeader(title: 'Por atributo'),
+        _grupo('Avançado'),
         const SizedBox(height: 12),
         for (var i = 0; i < query.criteria.length; i++)
           CriterionRow(
@@ -85,20 +88,33 @@ class FilterPanel extends StatelessWidget {
             style: TextButton.styleFrom(foregroundColor: PWColors.accent),
           ),
         ),
-        if (!query.isEmpty) ...[
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              onPressed: viewModel.clear,
-              style: TextButton.styleFrom(foregroundColor: PWColors.textMuted),
-              child: const Text('limpar tudo'),
-            ),
-          ),
-        ],
       ],
     );
   }
+
+  /// The rule above a run of sections.
+  ///
+  /// Twelve collapsed headers of the same weight are a wall — you cannot tell
+  /// from the outside which of them is worth opening. Three names sort them
+  /// into what the character *is*, what he *wears*, and what he *carries*.
+  ///
+  /// Quieter than a `SectionHeader` on purpose: it is a signpost, not a
+  /// control, and it must not read as one more thing to click.
+  Widget _grupo(String nome, {bool primeiro = false}) => Padding(
+    // Ten at the bottom, not two: the first control under a heading is a
+    // dropdown, and its floating label sits above its own box — at two they
+    // printed on top of each other.
+    padding: EdgeInsets.only(top: primeiro ? 0 : 18, bottom: 10),
+    child: Text(
+      nome.toUpperCase(),
+      style: const TextStyle(
+        color: PWColors.accentDim,
+        fontSize: 10,
+        letterSpacing: 2,
+        fontWeight: FontWeight.w700,
+      ),
+    ),
+  );
 
   bool get _canAddCriterion => state.allFacets.slots.isNotEmpty;
 
@@ -112,28 +128,35 @@ class FilterPanel extends StatelessWidget {
   /// The class picker, with each class's portrait beside its name. It is the
   /// first thing anybody sets, and it is what narrows every item list below —
   /// every class has its own weapons and its own best one among them.
-  Widget _classDropdown(IndexFacets facets, String? value) =>
-      DropdownButtonFormField<String?>(
-        initialValue: value,
-        isExpanded: true,
-        decoration: const InputDecoration(labelText: 'Classe'),
-        dropdownColor: PWColors.surfaceRaised,
-        items: [
-          const DropdownMenuItem(value: null, child: Text('Todas as classes')),
-          for (final name in facets.classes)
-            DropdownMenuItem(
-              value: name,
-              child: Row(
-                children: [
-                  ClassIcon(facets.occupationOf[name] ?? -1, size: 22),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(name, overflow: TextOverflow.ellipsis)),
-                ],
-              ),
+  Widget _classDropdown(IndexFacets facets, String? value) {
+    // Whatever is chosen is always on the list, even when the scope that feeds
+    // the list is empty. A `DropdownButton` asserts when its value is absent
+    // from its own items, and the way there is ordinary: choose a weapon, set
+    // a price nobody meets, then change class — the panel used to throw.
+    final classes = {...facets.classes, ?value}.toList()..sort();
+
+    return DropdownButtonFormField<String?>(
+      initialValue: value,
+      isExpanded: true,
+      decoration: const InputDecoration(labelText: 'Classe'),
+      dropdownColor: PWColors.surfaceRaised,
+      items: [
+        const DropdownMenuItem(value: null, child: Text('Todas as classes')),
+        for (final name in classes)
+          DropdownMenuItem(
+            value: name,
+            child: Row(
+              children: [
+                ClassIcon(facets.occupationOf[name] ?? -1, size: 22),
+                const SizedBox(width: 8),
+                Expanded(child: Text(name, overflow: TextOverflow.ellipsis)),
+              ],
             ),
-        ],
-        onChanged: viewModel.setClass,
-      );
+          ),
+      ],
+      onChanged: viewModel.setClass,
+    );
+  }
 
   /// Beside the class, because that is what it is: a property of the
   /// character, chosen once and never mixed. Nobody in the market was found

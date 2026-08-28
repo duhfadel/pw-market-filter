@@ -31,6 +31,9 @@ void main() {
       his ? items : const [],
       anecdotes: his ? parseAnecdotes(page) : null,
       inventory: his ? parseInventory(page) : const [],
+      realm: his ? parseCelestialRealm(page) ?? '' : '',
+      path: his ? parsePath(page) ?? '' : '',
+      runes: his ? parseRunes(page) : const [],
     );
   }
 

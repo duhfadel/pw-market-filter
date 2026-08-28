@@ -1,4 +1,5 @@
 import '../../../market/card_combos.dart';
+import '../../../market/celestial_realm.dart';
 import '../../../market/market_index.dart';
 import 'item_criterion.dart';
 import 'search_query.dart';
@@ -31,9 +32,24 @@ List<MarketCharacter> runQuery(MarketIndex index, SearchQuery query) {
       b,
       _ownedTotal(index, query, b).compareTo(_ownedTotal(index, query, a)),
     ),
+    // Unread sinks to the bottom of **both** directions: -1 would float to the
+    // top of "menor céu" and answer the question with the crawl's progress.
+    ResultOrder.highestRealm => (a, b) => _byPrice(
+      a,
+      b,
+      _rung(b).compareTo(_rung(a)),
+    ),
+    ResultOrder.lowestRealm => (a, b) => _byPrice(
+      a,
+      b,
+      _rung(a, unread: 101).compareTo(_rung(b, unread: 101)),
+    ),
   });
   return matches;
 }
+
+int _rung(MarketCharacter character, {int unread = -1}) =>
+    CelestialRealm.parse(character.realm)?.ordinal ?? unread;
 
 int _byPrice(MarketCharacter a, MarketCharacter b, int primary) =>
     primary != 0 ? primary : a.price.compareTo(b.price);
@@ -49,7 +65,7 @@ int _ownedTotal(
   MarketCharacter character,
 ) {
   var total = -1;
-  for (final name in query.ownedOnCard) {
+  for (final name in query.shownOwned) {
     final itemId = index.countedItems[name];
     if (itemId == null) continue;
     final count = character.counts[itemId];
@@ -114,6 +130,22 @@ bool _matchesInventory(
     if (anecdotes == null || anecdotes.done < minimum) return false;
   }
 
+  final minRealm = query.minRealm;
+  if (minRealm != null) {
+    final realm = CelestialRealm.parse(character.realm);
+    if (realm == null || realm.ordinal < minRealm) return false;
+  }
+
+  // A path that was never read is neither. Sorting an unknown into one half
+  // would put it under somebody's filter without having measured it.
+  if (query.path != null && character.path != query.path) return false;
+
+  final runes = query.runes;
+  if (runes != null &&
+      _runesMatching(index, character, runes) < runes.minimum) {
+    return false;
+  }
+
   for (final pet in query.pets) {
     // Same rule as a counted name the collection never met: nobody has it, so
     // nobody passes. Skipping it would widen the search under the visitor's
@@ -123,15 +155,28 @@ bool _matchesInventory(
     if ((character.counts[itemId] ?? 0) < 1) return false;
   }
 
-  for (final wanted in query.minimumOwned.entries) {
-    // A name this collection never met belongs to nobody, so nobody passes.
-    // Skipping it instead would widen the search under the visitor's own
-    // filter, which is the same failure a dropped criterion avoids.
-    final itemId = index.countedItems[wanted.key];
-    if (itemId == null) return false;
-    if ((character.counts[itemId] ?? 0) < wanted.value) return false;
-  }
   return true;
+}
+
+/// How many of the character's runes answer [criterion].
+///
+/// Counted through `index.runes` rather than off the ids, because the same
+/// rune exists under two item ids — Áurea 5 is both 52179 and 200359 — and
+/// comparing ids would count one kind as two.
+int _runesMatching(
+  MarketIndex index,
+  MarketCharacter character,
+  RuneCriterion criterion,
+) {
+  var found = 0;
+  for (final itemId in character.runes) {
+    final kind = index.runes[itemId];
+    if (kind == null) continue;
+    if (kind.level < criterion.minimumLevel) continue;
+    if (criterion.type != null && kind.type != criterion.type) continue;
+    found++;
+  }
+  return found;
 }
 
 /// Cards are read off the six the character wears, never the collection.

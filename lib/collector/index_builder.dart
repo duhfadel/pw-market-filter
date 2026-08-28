@@ -61,6 +61,8 @@ class IndexBuilder {
   /// same map objects the characters hold, so filling them here fills theirs.
   final _readCounts = <Map<int, int>>[];
 
+  final _runeKinds = <int, RuneKind>{};
+
   /// Adds one character. [items] is what the detail page yielded; a character
   /// whose page failed to load is simply never added.
   void add(
@@ -70,6 +72,9 @@ class IndexBuilder {
     List<ParsedCard> cards = const [],
     ParsedAnecdotes? anecdotes,
     List<ParsedStack> inventory = const [],
+    String realm = '',
+    String path = '',
+    List<ParsedRune> runes = const [],
   }) {
     _characters.add(
       MarketCharacter(
@@ -86,6 +91,9 @@ class IndexBuilder {
             ? null
             : Anecdotes(done: anecdotes.done, total: anecdotes.total),
         counts: _countsIn(inventory),
+        realm: realm,
+        path: path,
+        runes: _runesOf(runes),
         equipped: items.map(_convert).toList(growable: false),
         cards: cards
             .map(
@@ -145,6 +153,17 @@ class IndexBuilder {
     return null;
   }
 
+  /// Registers each rune's kind once and keeps only the ids on the character.
+  List<int> _runesOf(List<ParsedRune> runes) {
+    for (final rune in runes) {
+      _runeKinds.putIfAbsent(
+        rune.itemId,
+        () => RuneKind(type: rune.type, level: rune.level),
+      );
+    }
+    return runes.map((r) => r.itemId).toList(growable: false);
+  }
+
   EquippedItem _convert(ParsedItem item) {
     if (item.itemId > 0) {
       // First wearer wins. The name and grade belong to the item, not to the
@@ -192,6 +211,7 @@ class IndexBuilder {
       items: _items,
       characters: _characters,
       countedItems: _countedIds,
+      runes: _runeKinds,
     );
   }
 }

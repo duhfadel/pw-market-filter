@@ -14,6 +14,7 @@ class MarketIndex {
     required this.items,
     required this.characters,
     this.countedItems = const {},
+    this.runes = const {},
   });
 
   final String server;
@@ -35,6 +36,15 @@ class MarketIndex {
   /// put on screen. Empty on an index collected before the counts existed.
   final Map<String, int> countedItems;
 
+  /// Every rune the market wears, by item id.
+  ///
+  /// A table rather than a copy on each character, for the reason the item
+  /// names are one: the same six kinds repeat across a thousand people. It
+  /// also settles a trap — `Áurea 5` exists under two ids (`52179` and
+  /// `200359`, serving byte-identical art), so a filter that compared ids
+  /// would treat one rune as two. Through this table both read as Áurea 5.
+  final Map<int, RuneKind> runes;
+
   static const _formatVersion = 1;
 
   Map<String, dynamic> toJson() => {
@@ -48,6 +58,11 @@ class MarketIndex {
     },
     'characters': characters.map((c) => c.toJson()).toList(),
     if (countedItems.isNotEmpty) 'countedItems': countedItems,
+    if (runes.isNotEmpty)
+      'runes': {
+        for (final entry in runes.entries)
+          entry.key.toString(): entry.value.toJson(),
+      },
   };
 
   /// Throws [IndexFormatException] naming the field it could not read, so the
@@ -76,6 +91,13 @@ class MarketIndex {
           .toList(),
       countedItems: (json['countedItems'] as Map<String, dynamic>? ?? const {})
           .map((name, id) => MapEntry(name, id as int)),
+      runes: {
+        for (final entry
+            in (json['runes'] as Map<String, dynamic>? ?? const {}).entries)
+          int.parse(entry.key): RuneKind.fromJson(
+            entry.value as Map<String, dynamic>,
+          ),
+      },
     );
   }
 }
@@ -111,6 +133,9 @@ class MarketCharacter {
     this.cards = const [],
     this.anecdotes,
     this.counts = const {},
+    this.realm = '',
+    this.path = '',
+    this.runes = const [],
   });
 
   final int roleId;
@@ -144,6 +169,21 @@ class MarketCharacter {
   /// way, so nothing is lost by not telling them apart.
   final Map<int, int> counts;
 
+  /// The `Reino Celestial` row, exactly as the site wrote it — `Céu Ápice
+  /// VIII`. Empty when the page was read before the field existed, or did not
+  /// say. `CelestialRealm.parse` turns it into a position on the scale.
+  final String realm;
+
+  /// `God`, `Evil`, or empty when unknown — read off whether the character has
+  /// `Erupção Celestial` or `Erupção Demoníaca`, since the sheet has no field
+  /// for it. Empty is not a third path: it is a character too low to have
+  /// chosen, or a page read before this was collected.
+  final String path;
+
+  /// The runes he has set, by item id, in slot order. Six is common and nine
+  /// exists; an empty list is a character with none, which is real.
+  final List<int> runes;
+
   Map<String, dynamic> toJson() => {
     'roleId': roleId,
     'name': name,
@@ -161,6 +201,9 @@ class MarketCharacter {
       'counts': {
         for (final entry in counts.entries) entry.key.toString(): entry.value,
       },
+    if (realm.isNotEmpty) 'realm': realm,
+    if (path.isNotEmpty) 'path': path,
+    if (runes.isNotEmpty) 'runes': runes,
   };
 
   factory MarketCharacter.fromJson(Map<String, dynamic> json) =>
@@ -189,7 +232,26 @@ class MarketCharacter {
               in (json['counts'] as Map<String, dynamic>? ?? const {}).entries)
             int.parse(entry.key): entry.value as int,
         },
+        realm: json['realm'] as String? ?? '',
+        path: json['path'] as String? ?? '',
+        runes: (json['runes'] as List<dynamic>? ?? const []).cast<int>(),
       );
+}
+
+/// What a rune is, independent of which copy of it somebody owns.
+class RuneKind {
+  const RuneKind({required this.type, required this.level});
+
+  /// `Argêntea`, `Áurea`, `Celeste`, `Escarlate` or `Verdejante`. A category
+  /// and not a grade: every colour was seen from level 4 to 9.
+  final String type;
+
+  final int level;
+
+  Map<String, dynamic> toJson() => {'type': type, 'level': level};
+
+  factory RuneKind.fromJson(Map<String, dynamic> json) =>
+      RuneKind(type: _string(json, 'type'), level: _int(json, 'level'));
 }
 
 /// A character's progress through the game's anecdotes.

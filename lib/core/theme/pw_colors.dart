@@ -39,6 +39,16 @@ abstract final class PWColors {
   static const male = Color(0xFF62A8F0);
   static const female = Color(0xFFF07AB4);
 
+  /// The two paths, on the badge beside the name.
+  ///
+  /// A badge and not a tinted card, which was tried and dropped: the card
+  /// already spends red and blue on item grades, so a red card buries the red
+  /// of a grade-6 name, and a character whose path was never read would become
+  /// a third state by accident — the one with no tint. The badge also carries
+  /// the word, so the colour is a shortcut rather than the only message.
+  static const god = Color(0xFF62A8F0);
+  static const evil = Color(0xFFFF6B6B);
+
   static const danger = Color(0xFFFF6B6B);
   static const ok = Color(0xFF5FBAB9);
 

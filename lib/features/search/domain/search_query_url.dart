@@ -25,6 +25,7 @@
 /// classes, cultivations, combos, item ids. The attribute was the one hole.
 library;
 
+import '../../../market/celestial_realm.dart';
 import '../../../market/market_index.dart';
 import 'item_criterion.dart';
 import 'search_query.dart';
@@ -39,7 +40,6 @@ const _rarityParam = 'raridade';
 const _maxedParam = 'maximas';
 const _criterionParam = 'c';
 const _anecdoteParam = 'anedotas';
-const _ownedParam = 'tem';
 const _shownParam = 'mostra';
 
 /// What `mostra` calls the anecdotes, which are the one thing it can carry
@@ -49,6 +49,9 @@ const _shownParam = 'mostra';
 /// `Relíquia …` or `Chave …` in [countedItemNames].
 const _anecdotesShown = 'anedotas';
 const _petParam = 'mascote';
+const _realmParam = 'ceu';
+const _pathParam = 'caminho';
+const _runeParam = 'runa';
 const _orderParam = 'ordem';
 
 /// What packs the fields of one criterion into one parameter.
@@ -90,12 +93,6 @@ String encodeQuery(SearchQuery query, [MarketIndex? index]) {
 
   // The counted item goes by name — the same reason the attribute does. The id
   // is this collection's, the name is the game's.
-  final owned = query.minimumOwned.entries.where((e) => e.value > 0).toList();
-  if (owned.isNotEmpty) {
-    params[_ownedParam] = [
-      for (final entry in owned) '${entry.key}$_fieldSeparator${entry.value}',
-    ];
-  }
 
   // Only what `tem` does not already carry: a minimum implies its own item is
   // shown, so writing both would say it twice.
@@ -103,11 +100,36 @@ String encodeQuery(SearchQuery query, [MarketIndex? index]) {
     // A minimum already implies its own item is shown; writing both would say
     // it twice.
     if (query.anecdotesOnCard && query.minAnecdotes == null) _anecdotesShown,
-    ...query.shownOwned.where((name) => !query.minimumOwned.containsKey(name)),
+    ...query.shownOwned,
   ];
   if (shown.isNotEmpty) params[_shownParam] = shown;
 
   if (query.pets.isNotEmpty) params[_petParam] = query.pets.toList();
+  put(_pathParam, query.path);
+
+  // The realm goes as `Majestoso~3`, never as the rung. The rung is a position
+  // in a list this app owns; the tier is the game's own word, and a link has
+  // to outlive our list.
+  final minRealm = query.minRealm;
+  if (minRealm != null) {
+    final tier = (minRealm - 1) ~/ 10;
+    final step = minRealm - tier * 10;
+    if (tier >= 0 && tier < celestialTiers.length) {
+      put(_realmParam, '${celestialTiers[tier]}$_fieldSeparator$step');
+    }
+  }
+
+  final runes = query.runes;
+  if (runes != null) {
+    put(
+      _runeParam,
+      [
+        runes.type ?? '',
+        runes.minimumLevel,
+        runes.minimum,
+      ].join(_fieldSeparator),
+    );
+  }
 
   if (query.itemBySlot.isNotEmpty) {
     params[_itemParam] = [
@@ -159,18 +181,6 @@ SearchQuery decodeQuery(
     if (slot != null && itemId != null) itemBySlot[slot] = itemId;
   }
 
-  final minimumOwned = <String, int>{};
-  for (final entry in params[_ownedParam] ?? const <String>[]) {
-    final separator = entry.lastIndexOf(_fieldSeparator);
-    if (separator <= 0) continue;
-    final name = entry.substring(0, separator).trim();
-    final minimum = int.tryParse(entry.substring(separator + 1));
-    // Zero asks nothing, and a name this collection lacks is left for the
-    // matcher to refuse — it is the only half that knows what the market has.
-    if (name.isEmpty || minimum == null || minimum <= 0) continue;
-    minimumOwned[name] = minimum;
-  }
-
   final shownOwned = <String>{
     for (final name in params[_shownParam] ?? const <String>[])
       if (name.trim().isNotEmpty && name.trim() != _anecdotesShown) name.trim(),
@@ -183,6 +193,33 @@ SearchQuery decodeQuery(
     for (final name in params[_petParam] ?? const <String>[])
       if (name.trim().isNotEmpty) name.trim(),
   };
+
+  int? minRealm;
+  final realmRaw = first(_realmParam);
+  if (realmRaw != null) {
+    final parts = realmRaw.split(_fieldSeparator);
+    final tier = celestialTiers.indexOf(parts.first.trim());
+    final step = parts.length > 1 ? int.tryParse(parts[1]) : null;
+    // A tier this version does not know is dropped rather than guessed at —
+    // the same call the attribute makes.
+    if (tier >= 0 && step != null && step >= 1 && step <= 10) {
+      minRealm = tier * 10 + step;
+    }
+  }
+
+  RuneCriterion? runes;
+  final runeRaw = first(_runeParam);
+  if (runeRaw != null) {
+    final parts = runeRaw.split(_fieldSeparator);
+    final level = parts.length > 1 ? int.tryParse(parts[1]) : null;
+    if (parts.length == 3 && level != null) {
+      runes = RuneCriterion(
+        type: parts[0].trim().isEmpty ? null : parts[0].trim(),
+        minimumLevel: level,
+        minimum: int.tryParse(parts[2]) ?? 1,
+      );
+    }
+  }
 
   final criteria = <ItemCriterion>[];
   for (final entry in params[_criterionParam] ?? const <String>[]) {
@@ -202,10 +239,12 @@ SearchQuery decodeQuery(
     cardRarity: first(_rarityParam),
     cardsMaxed: first(_maxedParam) == '1',
     minAnecdotes: int.tryParse(first(_anecdoteParam) ?? ''),
-    minimumOwned: minimumOwned,
     shownOwned: shownOwned,
     anecdotesOnCard: anecdotesOnCard,
     pets: pets,
+    minRealm: minRealm,
+    path: first(_pathParam),
+    runes: runes,
     criteria: criteria,
     order: _decodeOrder(first(_orderParam)),
   );

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/features/search/domain/item_criterion.dart';
 import 'package:pw_market_filter/features/search/domain/matcher.dart';
 import 'package:pw_market_filter/features/search/domain/search_query.dart';
+import 'package:pw_market_filter/market/celestial_realm.dart';
 import 'package:pw_market_filter/market/market_index.dart';
 
 /// Attribute ids used throughout, matching [_index]'s vocabulary.
@@ -34,6 +35,9 @@ MarketCharacter _character(
   List<EquippedItem> equipped = const [],
   Anecdotes? anecdotes,
   Map<int, int> counts = const {},
+  String realm = '',
+  String path = '',
+  List<int> runes = const [],
 }) => MarketCharacter(
   roleId: name.hashCode.abs(),
   name: name,
@@ -46,6 +50,9 @@ MarketCharacter _character(
   equipped: equipped,
   anecdotes: anecdotes,
   counts: counts,
+  realm: realm,
+  path: path,
+  runes: runes,
 );
 
 /// The catalogue the matcher consults for an item's rank. Its `characters` are
@@ -61,6 +68,12 @@ final _index = MarketIndex(
     38256: MarketItem(name: '★★★Coroa da Insanidade', grade: 0),
   },
   characters: const [],
+  runes: const {
+    52220: RuneKind(type: 'Argêntea', level: 6),
+    52181: RuneKind(type: 'Áurea', level: 7),
+    52183: RuneKind(type: 'Áurea', level: 9),
+    69810: RuneKind(type: 'Celeste', level: 8),
+  },
   countedItems: const {
     'Relíquia Maravilha: Arma': 50410,
     'Relíquia Maravilha: Artefato': 54687,
@@ -604,45 +617,6 @@ void main() {
     });
   });
 
-  group('counted items', () {
-    test('admits who carries enough and refuses who carries fewer', () {
-      final rich = _character('Leandrim', counts: const {50410: 16});
-      final poor = _character('Novato', counts: const {50410: 2});
-
-      const query = SearchQuery(minimumOwned: {'Relíquia Maravilha: Arma': 10});
-      expect(matchesQuery(_index, rich, query), isTrue);
-      expect(matchesQuery(_index, poor, query), isFalse);
-    });
-
-    test('carrying none of it is refused, not treated as unknown', () {
-      final empty = _character('Antigo');
-
-      expect(
-        matchesQuery(
-          _index,
-          empty,
-          const SearchQuery(minimumOwned: {'Relíquia Maravilha: Arma': 1}),
-        ),
-        isFalse,
-      );
-    });
-
-    test('a name this collection never found matches nobody', () {
-      // The market has none, so the honest answer for everyone is no — not a
-      // filter that quietly passes because the id could not be resolved.
-      final rich = _character('Leandrim', counts: const {50410: 16});
-
-      expect(
-        matchesQuery(
-          _index,
-          rich,
-          const SearchQuery(minimumOwned: {'Chave da Sorte': 1}),
-        ),
-        isFalse,
-      );
-    });
-  });
-
   group('ordering by what the page says about the character', () {
     test('most anecdotes first, and an unread page sinks below zero', () {
       final index = MarketIndex(
@@ -791,6 +765,147 @@ void main() {
           _index,
           so,
           const SearchQuery(pets: {'Harpia', 'Hércules'}),
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('the celestial realm', () {
+    test('a minimum admits from that rung up', () {
+      final alto = _character('Alto', realm: 'Céu Majestoso I');
+      final baixo = _character('Baixo', realm: 'Céu Ápice X');
+
+      // Majestoso I is one rung above Ápice X.
+      final corte = CelestialRealm.parse('Céu Majestoso I')!.ordinal;
+      expect(matchesQuery(_index, alto, SearchQuery(minRealm: corte)), isTrue);
+      expect(
+        matchesQuery(_index, baixo, SearchQuery(minRealm: corte)),
+        isFalse,
+      );
+    });
+
+    test('a realm nobody could read fails the filter', () {
+      final sem = _character('Antigo');
+      final estranho = _character('Estranho', realm: 'Céu Inventado I');
+
+      expect(
+        matchesQuery(_index, sem, const SearchQuery(minRealm: 1)),
+        isFalse,
+      );
+      expect(
+        matchesQuery(_index, estranho, const SearchQuery(minRealm: 1)),
+        isFalse,
+      );
+    });
+
+    test('orders both ways, and the unread sink to the bottom either way', () {
+      final index = MarketIndex(
+        server: 'pw187',
+        collectedAt: DateTime.utc(2026, 8, 28),
+        attributes: const [],
+        items: const {},
+        characters: [
+          _character('Meio', realm: 'Céu Real V'),
+          _character('Sem'),
+          _character('Alto', realm: 'Céu Soberano X'),
+          _character('Baixo', realm: 'Céu Arcano I'),
+        ],
+      );
+
+      expect(
+        runQuery(
+          index,
+          const SearchQuery(order: ResultOrder.highestRealm),
+        ).map((c) => c.name),
+        ['Alto', 'Meio', 'Baixo', 'Sem'],
+      );
+      expect(
+        runQuery(
+          index,
+          const SearchQuery(order: ResultOrder.lowestRealm),
+        ).map((c) => c.name),
+        ['Baixo', 'Meio', 'Alto', 'Sem'],
+      );
+    });
+  });
+
+  group('the path', () {
+    test('God and Evil are asked for by name', () {
+      final god = _character('Santa', path: 'God');
+      final evil = _character('Danada', path: 'Evil');
+
+      expect(matchesQuery(_index, god, const SearchQuery(path: 'God')), isTrue);
+      expect(
+        matchesQuery(_index, evil, const SearchQuery(path: 'God')),
+        isFalse,
+      );
+      expect(
+        matchesQuery(_index, evil, const SearchQuery(path: 'Evil')),
+        isTrue,
+      );
+    });
+
+    test('a character with no path read is not God by omission', () {
+      final sem = _character('Antigo');
+
+      expect(
+        matchesQuery(_index, sem, const SearchQuery(path: 'God')),
+        isFalse,
+      );
+      expect(
+        matchesQuery(_index, sem, const SearchQuery(path: 'Evil')),
+        isFalse,
+      );
+      expect(matchesQuery(_index, sem, const SearchQuery()), isTrue);
+    });
+  });
+
+  group('runes', () {
+    final rico = _character('Rico', runes: const [52181, 52183, 69810, 52220]);
+    final pobre = _character('Pobre', runes: const [52220]);
+
+    test('counts the runes at or above the level asked for', () {
+      const query = SearchQuery(
+        runes: RuneCriterion(minimumLevel: 7, minimum: 3),
+      );
+
+      expect(matchesQuery(_index, rico, query), isTrue);
+      expect(matchesQuery(_index, pobre, query), isFalse);
+    });
+
+    test('a colour narrows the count to that colour', () {
+      // Rico has two Áureas at 7+, so three of them is one too many.
+      expect(
+        matchesQuery(
+          _index,
+          rico,
+          const SearchQuery(
+            runes: RuneCriterion(type: 'Áurea', minimumLevel: 7, minimum: 2),
+          ),
+        ),
+        isTrue,
+      );
+      expect(
+        matchesQuery(
+          _index,
+          rico,
+          const SearchQuery(
+            runes: RuneCriterion(type: 'Áurea', minimumLevel: 7, minimum: 3),
+          ),
+        ),
+        isFalse,
+      );
+    });
+
+    test('a rune whose kind the index does not know counts for nothing', () {
+      final desconhecida = _character('Estranha', runes: const [99999]);
+
+      expect(
+        matchesQuery(
+          _index,
+          desconhecida,
+          const SearchQuery(runes: RuneCriterion(minimumLevel: 7)),
         ),
         isFalse,
       );

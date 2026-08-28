@@ -316,6 +316,13 @@ Each of these already cost something — measured on the live site, not guessed.
   type (Destruidor, Batalha, Durabilidade, Alma Primordial, Vida Primordial,
   Longevidade). Only the six matter; a combo is those six belonging to one set.
 - **A card's combo is not on the page, and the tooltip pretends otherwise.**
+  Proven to the end on 2026-08-28: **Hokka**, whose set the player names as
+  *Senhor de Todas as Feras*, prints `Seis Soberanos da Chama da Vela (6)` —
+  the same line every S, A and B card prints, 1142 times across fourteen
+  pages. The `(6)` is not that card's set size; it is part of a fixed string.
+  The game client shows the set in each card's description; this site does not,
+  and the item database has no card category to ask.
+
   Every S card prints `Seis Soberanos da Chama da Vela (6)`, including on a
   character wearing thirty-four distinct S cards — a six-card set cannot hold
   thirty-four, so the line identifies nothing. The item database has no card
@@ -323,6 +330,33 @@ Each of these already cost something — measured on the live site, not guessed.
   `test/combo_test.dart` pins every id in it against the collected market
   because an invented id yields a filter that matches nobody, and "nobody has
   this combo" is a believable answer.
+- **A combo is two, four or six cards — six was our sample, not the game.**
+  The six slots hold one six, or a four and a two, or three twos. The table
+  demanded six until 2026-08-28 purely because the only two known combos had
+  six; `isComplete` now accepts the three real sizes. The wiki also kills the
+  companion assumption: *"é normal existir combos com cartas de diferentes
+  Ranks"*, so nothing may depend on a combo being of one rarity, however true
+  that happens to be of all eleven.
+
+  With eleven entries a new mistake became possible that two could not make —
+  a card in two combos — so `combo_test` now forbids it.
+- **Naming the combos took five sources, and the market arbitrated between
+  them.** PWpedia's card list is the only published source that names the sets
+  and gives their members; a Trivia PW article lists which cards pair up
+  without naming the pairs; the player supplied the Portuguese; frequency
+  confirmed membership; and id blocks framed the search.
+
+  Two traps came out of it. **Type cannot be the join key with PWpedia** — it
+  is PWI data and this is a 1.8.7 build: Tsen is Vida Primordial here and
+  *Soulprime* there, Fen is Longevidade here and *Lifeprime* there. Match by
+  name. And **where the article and the market disagreed, the market won**: the
+  article pairs *Cidade das Espadas* with *Cidade do Dragão*, and no character
+  in the market wears those two together, while Cidade Universal with Cidade do
+  Dragão is the commonest pair there is — and is the player's *Observador do
+  Mundo*.
+
+  Card art does not help here either: `41801` and `41826` serve the same file
+  byte for byte, so a dropdown of combos has to carry the weight in the name.
 - **Frequency finds combos; it cannot name them.** Of 146 distinct six-card
   sets in the market, two are worn by 48 and 455 characters and the other 144
   appear once or twice — those are assemblies, not sets. What *named* the big
@@ -350,6 +384,52 @@ Each of these already cost something — measured on the live site, not guessed.
   from memory. `weapon_level` is 17 for every common endgame weapon including
   one that gives no attack level, so it is a crafting tier, not a rank; it is
   stored raw and nothing filters on it.
+- **The celestial realm's order came from the player, and the page's own order
+  is a trap.** `Reino Celestial` sits on the character sheet beside `Classe`
+  and `Sexo` — the same three-row list `parseSex` reads — and prints
+  `Céu Ápice VIII`. The ten realms also appear as anecdote chapters, listed in
+  a **completely different sequence**, and deriving the scale from that would
+  have ordered the market wrongly with nothing on screen to say so. The true
+  order is `celestialTiers`; each realm has ten steps, so the scale is a
+  hundred rungs and `CelestialRealm.ordinal` flattens it to one number.
+
+  Matching is by the distinctive word — `Miragem`, `Astral` — never the whole
+  phrase: eight of the ten have never been seen on a real sheet, so
+  `Céu da Miragem` against `Céu de Miragem` would drop a realm out of every
+  ordering in silence. The collector prints any realm the scale cannot place,
+  so an unforeseen spelling is reported on the first run.
+- **God and Evil are not a field; they are a skill's name.** The sheet has no
+  row for the path — `Sagrado` and `Demoníaco` appear only as item names — but
+  **Evil has `Erupção Demoníaca` and God has `Erupção Celestial`**, which is
+  the player's own test and the one the parser uses. The page carries a second
+  signal that agrees: path skills are prefixed `●`/`Φ` for God and `○`/`Ω` for
+  Evil, the God ones also carrying the CSS class `--sage`. Across fifteen
+  pages the two agreed every time, and the eruption is what is pinned, because
+  a name the game shows outlives a class name a redesign can rewrite.
+
+  Nobody mixes: fourteen of fifteen were wholly one or the other, and the
+  fifteenth was mid-conversion with the path already decided. A character with
+  neither eruption is **unknown**, never God by omission.
+
+  Read it through the parser, not over the source: the page writes
+  `Erup&ccedil;&atilde;o`, so `contains` on the raw HTML finds nothing and
+  reports the whole market as pathless.
+- **A rune is identified by its label and drawn by its id, and both matter.**
+  Six slots is common, nine exists, and each slot pairs a rune with the skill
+  it empowers. The level comes in two spellings on the same page — `Nv. 6` and
+  `Nível 8` — and reading only the first drops every level 8, which is the
+  band anyone filtering on runes cares about.
+
+  The same rune has two item ids: `Áurea 5` is both `52179` and `200359`,
+  serving byte-identical art. So `MarketIndex.runes` maps id to kind, and every
+  comparison goes through it — matching on ids would count one rune as two.
+  The art is worth fetching: unlike the pet eggs, each colour **and each level**
+  draws differently, so the strip on the card is read before it is counted.
+
+  *At least one rune of level 7+* took 93% of the market's dearest characters —
+  a filter that leaves the market on screen teaches nothing. Three of them
+  halves it, which is why the control asks for a quantity and offers no level
+  below 7.
 - **A pet is found by its id, because its name belongs to its owner — the
   exact reverse of the counted items, in the same table.** `38587` prints as
   *Ovo de Harpia* on three characters and as *GabirÚ* on a fourth, and
@@ -401,6 +481,14 @@ Each of these already cost something — measured on the live site, not guessed.
   and freezing the site for a sale would be the wrong trade. The collector
   prints one line per counted name at the end of a run, and that is where the
   question "does the Chave exist?" gets answered.
+- **The relics ended with no filter at all, and that was the right end.** The
+  *pelo menos N* field went away on the player's call: a relic count is a
+  number to compare, not a bar to clear, and *Mais relíquias* already sorts by
+  exactly what is marked. The whole `minimumOwned` half went with it — query
+  field, `tem=` link parameter, view-model setter and matcher branch — leaving
+  marking as the only relic concept.
+
+  It also removed the reason the two ever needed reconciling:
 - **Marking is not filtering, and they were one control until they had to be
   two.** A counted item answers two different questions: *how many does each of
   these carry* and *only show me who carries five*. While the number field was
@@ -795,6 +883,30 @@ Each of these already cost something — measured on the live site, not guessed.
   API was a bad trade even while it worked. And **a storage layer is not proved
   by a passing test**: open the built page and read `localStorage` in the
   console, or query the table and reload twice.
+- **The card was made calmer by taking things away, and the one thing added
+  back was the art.** It had gold on the price, red or blue on the path, red on
+  the item name, teal on the attribute and six saturated rune icons — nothing
+  led, so everything competed. What fixed it: the rune strip lost its heading
+  and its row of numbers (the level rides the corner of each icon); the item's
+  grade became a dot instead of colouring the whole name; the numbers moved
+  into one right-hand column; and the class portrait went from 38 px to 52,
+  because it is the best art the game gives and it was a thumbnail.
+
+  Two of those had to be corrected against a mockup before they shipped.
+  Putting the realm under the portrait broke `Céu Majestoso V` into three tiny
+  lines — worse than the line it replaced — so the realm stayed in the right
+  column. And the path badge beside the nickname stole enough width to
+  ellipsize every name in the grid; it lives on the stat line now, where it
+  sits with the other facts about the person instead of competing with the two
+  the card exists for.
+
+  **A `Spacer` beside a `Flexible` splits the free space with it.** That is how
+  the badge crushed the nicknames to `NI…` — the name needs `Expanded` and no
+  Spacer at all.
+
+  The rune strip is a `FittedBox`, not a `Row` that hopes: ten runes overflow
+  the card, and wrapping to a second line would make one card taller than its
+  tile, which a single grid height cannot express.
 - **The three class arts have their faces about a fifth of the way down, not
   at the centre.** `Alignment.center` looked right for a year of half-width
   cards, because their art box is tall enough that the crop reaches the face

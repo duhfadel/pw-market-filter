@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/features/search/domain/item_criterion.dart';
 import 'package:pw_market_filter/features/search/domain/search_query.dart';
 import 'package:pw_market_filter/features/search/domain/search_query_url.dart';
+import 'package:pw_market_filter/market/celestial_realm.dart';
 import 'package:pw_market_filter/market/market_index.dart';
 
 /// The link is the share. A search that cannot be written down can only be
@@ -215,23 +216,12 @@ void main() {
   });
 
   group('anecdotes and counted items in a link', () {
-    test('both survive a round trip', () {
-      const query = SearchQuery(
-        minAnecdotes: 1000,
-        minimumOwned: {'Relíquia Maravilha: Arma': 5},
-      );
-
-      final restored = roundTrip(query);
-      expect(restored.minAnecdotes, 1000);
-      expect(restored.minimumOwned, {'Relíquia Maravilha: Arma': 5});
-    });
-
     test('the counted item travels by name, readable in the address bar', () {
       // The id is the collection's business. A link says what it asks for, and
       // that is half of why anyone clicks it.
       expect(
         encodeQuery(
-          const SearchQuery(minimumOwned: {'Relíquia Maravilha: Arma': 5}),
+          const SearchQuery(shownOwned: {'Relíquia Maravilha: Arma'}),
         ),
         contains('Rel'),
       );
@@ -245,29 +235,10 @@ void main() {
       expect(roundTrip(query).minAnecdotes, isNull);
     });
 
-    test('a minimum implies the mark without writing it twice', () {
-      const query = SearchQuery(minAnecdotes: 1000, anecdotesOnCard: true);
-
-      expect(encodeQuery(query), isNot(contains('mostra')));
-      expect(roundTrip(query).showsAnecdotes, isTrue);
-    });
-
     test('a marked item survives a round trip on its own', () {
       const query = SearchQuery(shownOwned: {'Chave da Sorte'});
 
       expect(roundTrip(query).shownOwned, {'Chave da Sorte'});
-    });
-
-    test('an item with a minimum is not written twice', () {
-      // `tem` already implies the item is shown; saying it again in `mostra`
-      // would double the link's length for nothing.
-      const query = SearchQuery(
-        minimumOwned: {'Relíquia Maravilha: Arma': 5},
-        shownOwned: {'Relíquia Maravilha: Arma'},
-      );
-
-      expect(encodeQuery(query), isNot(contains('mostra')));
-      expect(roundTrip(query).ownedOnCard, {'Relíquia Maravilha: Arma'});
     });
 
     test('a required pet survives a round trip', () {
@@ -276,21 +247,60 @@ void main() {
       expect(roundTrip(query).pets, {'Harpia', 'Hércules'});
     });
 
-    test('a minimum of zero is not a question and is left out', () {
-      expect(
-        encodeQuery(const SearchQuery(minimumOwned: {'Chave da Sorte': 0})),
-        '',
-      );
-    });
-
     test('an unreadable entry is dropped rather than read as zero', () {
       final query = decodeQuery({
-        'tem': ['sem separador nenhum'],
         'anedotas': ['não é número'],
       });
 
-      expect(query.minimumOwned, isEmpty);
       expect(query.minAnecdotes, isNull);
+    });
+  });
+
+  group('the sheet in a link', () {
+    test('the realm travels by name and step, never as a raw rung', () {
+      // The rung is a position in a list this app owns; the tier is the game's
+      // word. Same reason the attribute travels by name.
+      final query = SearchQuery(
+        minRealm: CelestialRealm.parse('Céu Majestoso III')!.ordinal,
+      );
+
+      expect(encodeQuery(query), contains('Majestoso'));
+      expect(
+        roundTrip(query).minRealm,
+        CelestialRealm.parse('Céu Majestoso III')!.ordinal,
+      );
+    });
+
+    test('the path survives', () {
+      expect(roundTrip(const SearchQuery(path: 'Evil')).path, 'Evil');
+    });
+
+    test('a rune question survives whole', () {
+      const query = SearchQuery(
+        runes: RuneCriterion(type: 'Áurea', minimumLevel: 8, minimum: 2),
+      );
+
+      final restored = roundTrip(query).runes!;
+      expect(restored.type, 'Áurea');
+      expect(restored.minimumLevel, 8);
+      expect(restored.minimum, 2);
+    });
+
+    test('any colour is written as an empty field, not as a word', () {
+      const query = SearchQuery(runes: RuneCriterion(minimumLevel: 7));
+
+      expect(roundTrip(query).runes?.type, isNull);
+      expect(roundTrip(query).runes?.minimumLevel, 7);
+    });
+
+    test('a realm this app does not know drops rather than misreads', () {
+      final query = decodeQuery({
+        'ceu': ['Inventado~4'],
+        'runa': ['nada disso'],
+      });
+
+      expect(query.minRealm, isNull);
+      expect(query.runes, isNull);
     });
   });
 }

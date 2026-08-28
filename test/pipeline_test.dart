@@ -9,6 +9,7 @@ import 'package:pw_market_filter/features/search/domain/index_facets.dart';
 import 'package:pw_market_filter/features/search/domain/item_criterion.dart';
 import 'package:pw_market_filter/features/search/domain/matcher.dart';
 import 'package:pw_market_filter/features/search/domain/search_query.dart';
+import 'package:pw_market_filter/market/celestial_realm.dart';
 import 'package:pw_market_filter/market/market_index.dart';
 
 /// End to end over the real pages, with no network: listing → detail → index →
@@ -39,6 +40,9 @@ void main() {
         his ? items : const [],
         anecdotes: his ? parseAnecdotes(page) : null,
         inventory: his ? parseInventory(page) : const [],
+        realm: his ? parseCelestialRealm(page) ?? '' : '',
+        path: his ? parsePath(page) ?? '' : '',
+        runes: his ? parseRunes(page) : const [],
       );
     }
     index = builder.build();
@@ -124,22 +128,16 @@ void main() {
     expect(matchesQuery(index, bare, const SearchQuery()), isTrue);
   });
 
-  test('the three relics travel from the page to a filter', () {
+  test('the three relics travel from the page to the index', () {
     // The whole seam in one line: the inventory JSON on the page, summed by
-    // the parser, resolved by name in the builder, asked for by name here.
-    final carriers = runQuery(
-      index,
-      const SearchQuery(minimumOwned: {'Relíquia Maravilha: Artefato': 22}),
-    );
+    // the parser, resolved by name in the builder, counted here.
+    final leandrim = index.characters.singleWhere((c) => c.roleId == 64112);
 
-    expect(carriers.map((c) => c.name), ['Leandrim']);
     expect(
-      runQuery(
-        index,
-        const SearchQuery(minimumOwned: {'Relíquia Maravilha: Artefato': 23}),
-      ),
-      isEmpty,
+      leandrim.counts[index.countedItems['Relíquia Maravilha: Artefato']],
+      22,
     );
+    expect(leandrim.counts[index.countedItems['Relíquia Maravilha: Arma']], 16);
   });
 
   test('the counted names the market showed are resolved, the rest absent', () {
@@ -159,5 +157,56 @@ void main() {
     // The other 778 were never read. They fail the filter without pretending
     // to be at zero.
     expect(index.characters.where((c) => c.anecdotes == null), hasLength(778));
+  });
+
+  test('the sheet travels from the page to a filter and an order', () {
+    // Leandrim is Céu Ápice VIII and Evil, with six runes, and he is the only
+    // character in this index whose page was read.
+    final rung = CelestialRealm.parse('Céu Ápice VIII')!.ordinal;
+
+    expect(runQuery(index, SearchQuery(minRealm: rung)).map((c) => c.name), [
+      'Leandrim',
+    ]);
+    expect(runQuery(index, SearchQuery(minRealm: rung + 1)), isEmpty);
+    expect(
+      runQuery(index, const SearchQuery(path: 'Evil')).map((c) => c.name),
+      ['Leandrim'],
+    );
+    expect(runQuery(index, const SearchQuery(path: 'God')), isEmpty);
+  });
+
+  test('his runes are counted by kind, not by item id', () {
+    // Two of his six are level 7 or better — Argêntea 7 and Áurea 7 — so
+    // asking for three finds nobody.
+    expect(
+      runQuery(
+        index,
+        const SearchQuery(runes: RuneCriterion(minimumLevel: 7, minimum: 2)),
+      ).map((c) => c.name),
+      ['Leandrim'],
+    );
+    expect(
+      runQuery(
+        index,
+        const SearchQuery(runes: RuneCriterion(minimumLevel: 7, minimum: 3)),
+      ),
+      isEmpty,
+    );
+  });
+
+  test('ordering by realm puts the unread last in both directions', () {
+    final maior = runQuery(
+      index,
+      const SearchQuery(order: ResultOrder.highestRealm),
+    );
+    final menor = runQuery(
+      index,
+      const SearchQuery(order: ResultOrder.lowestRealm),
+    );
+
+    expect(maior.first.name, 'Leandrim');
+    expect(menor.first.name, 'Leandrim');
+    expect(maior.last.realm, isEmpty);
+    expect(menor.last.realm, isEmpty);
   });
 }

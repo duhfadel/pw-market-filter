@@ -19,6 +19,7 @@ import 'package:pw_market_filter/collector/collected_page.dart';
 import 'package:pw_market_filter/collector/detail_parser.dart';
 import 'package:pw_market_filter/collector/index_builder.dart';
 import 'package:pw_market_filter/collector/listing_parser.dart';
+import 'package:pw_market_filter/market/celestial_realm.dart';
 import 'package:pw_market_filter/market/counted_items.dart';
 
 const _server = 'pw187';
@@ -100,6 +101,9 @@ Future<void> main(List<String> arguments) async {
             sex: parseSex(page),
             anecdotes: parseAnecdotes(page),
             inventory: parseInventory(page),
+            realm: parseCelestialRealm(page) ?? '',
+            path: parsePath(page) ?? '',
+            runes: parseRunes(page),
           ),
         );
       }
@@ -225,6 +229,9 @@ void _writeIndex(List<ListingCard> listing, _CollectState state) {
         cards: collected.cards,
         anecdotes: collected.anecdotes,
         inventory: collected.inventory,
+        realm: collected.realm,
+        path: collected.path,
+        runes: collected.runes,
       );
     }
   }
@@ -232,6 +239,34 @@ void _writeIndex(List<ListingCard> listing, _CollectState state) {
   final index = builder.build();
   final file = File(_outputPath)..parent.createSync(recursive: true);
   file.writeAsStringSync(jsonEncode(index.toJson()));
+
+  // Realms the scale could not place. Eight of the ten tiers had never been
+  // seen on a real sheet when the table was written, so a spelling nobody
+  // predicted has to be reported on the first run — otherwise that character
+  // drops out of every ordering in silence.
+  final estranhos = <String>{};
+  for (final character in index.characters) {
+    if (character.realm.isEmpty) continue;
+    if (CelestialRealm.parse(character.realm) == null) {
+      estranhos.add(character.realm);
+    }
+  }
+  if (estranhos.isNotEmpty) {
+    stdout.writeln(
+      '  AVISO: ${estranhos.length} reino(s) que a escala não reconhece: '
+      '${estranhos.take(8).join(', ')}',
+    );
+  }
+
+  final semReino = index.characters.where((c) => c.realm.isEmpty).length;
+  final comRuna = index.characters.where((c) => c.runes.isNotEmpty).length;
+  stdout
+    ..writeln('  reinos lidos: ${index.characters.length - semReino}')
+    ..writeln('  com runas: $comRuna, tipos distintos: ${index.runes.length}')
+    ..writeln(
+      '  God: ${index.characters.where((c) => c.path == 'God').length}, '
+      'Evil: ${index.characters.where((c) => c.path == 'Evil').length}',
+    );
 
   // Which counted items this collection actually met. A name that finds
   // nothing is either misspelt or genuinely not on sale, and this line is

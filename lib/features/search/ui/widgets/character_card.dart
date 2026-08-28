@@ -19,16 +19,30 @@ import '../../domain/search_query.dart';
 /// are two questions about one piece of gear, and listing it twice reads as a
 /// character wearing two of them.
 class _Highlight {
-  _Highlight({required this.item, required String note}) : notes = [note];
+  _Highlight({required this.item, required _Note note}) : notes = [note];
 
   final EquippedItem item;
-  final List<String> notes;
+  final List<_Note> notes;
 
-  void addNote(String note) {
-    if (!notes.contains(note)) notes.add(note);
+  void addNote(_Note note) {
+    if (!notes.any((n) => n.label == note.label)) notes.add(note);
   }
 
-  String get text => notes.join('  ·  ');
+  String get text => notes.map((n) => n.label).join('  ·  ');
+
+  /// The number this line is really about, pulled out of the sentence so it
+  /// can sit in the card's right-hand column with the refine and the price.
+  /// Reading a column of numbers is comparing; reading them inside sentences
+  /// is not.
+  String? get value => notes.map((n) => n.value).nonNulls.firstOrNull;
+}
+
+/// A reason a piece is on the card, split where the number begins.
+class _Note {
+  const _Note(this.label, [this.value]);
+
+  final String label;
+  final String? value;
 }
 
 /// One answer that came off the character's page rather than off a piece of
@@ -97,7 +111,11 @@ class CharacterCard extends StatelessWidget {
                   // The portrait, because a grid of forty cards is scanned
                   // before it is read and seventeen faces separate faster than
                   // seventeen class names set in the same grey.
-                  ClassIcon(character.occupation, size: 38),
+                  // Bigger, because it is the best art the game gives us and
+                  // it was a thumbnail. The realm stays in the right column:
+                  // under a round portrait it broke into three tiny lines,
+                  // which was worse than the line it replaced.
+                  ClassIcon(character.occupation, size: 52),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -106,6 +124,10 @@ class CharacterCard extends StatelessWidget {
                       children: [
                         Row(
                           children: [
+                            // Expanded and not Flexible-plus-Spacer: a Spacer
+                            // is itself flexible, so the two split the free
+                            // room and the nickname lost half of it to empty
+                            // space — every name came out as `NI…`.
                             Expanded(
                               child: Text(
                                 character.name,
@@ -140,6 +162,7 @@ class CharacterCard extends StatelessWidget {
                               ),
                             ),
                             ..._sexGlyph,
+                            ..._pathBadge,
                           ],
                         ),
                       ],
@@ -147,6 +170,15 @@ class CharacterCard extends StatelessWidget {
                   ),
                 ],
               ),
+              if (character.realm.isNotEmpty)
+                Text(
+                  character.realm,
+                  style: const TextStyle(
+                    color: PWColors.textMuted,
+                    fontSize: 12,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               if (_lines.isNotEmpty || _facts.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 const Divider(height: 1),
@@ -154,9 +186,117 @@ class CharacterCard extends StatelessWidget {
                 ..._lines.map(_highlightLine),
                 ..._facts.map(_factLine),
               ],
+              if (character.runes.isNotEmpty) ..._runeStrip,
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// The path, as a badge that carries the word as well as the colour.
+  ///
+  /// On the stat line and not beside the name: up there it competed with the
+  /// two things the card exists to show — who and how much — and cost the
+  /// nickname enough width to ellipsize it. Down here it sits with the other
+  /// facts about the person.
+  ///
+  /// Absent when the path was never read, which is the case the tinted-card
+  /// idea could not express: "no tint" would have looked like a third path
+  /// nobody designed.
+  List<Widget> get _pathBadge {
+    final colour = switch (character.path) {
+      'God' => PWColors.god,
+      'Evil' => PWColors.evil,
+      _ => null,
+    };
+    if (colour == null) return const [];
+
+    return [
+      const SizedBox(width: 6),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+        decoration: BoxDecoration(
+          // The same colour at a sixth of its strength, so the chip reads as
+          // the word's own background rather than as a second object.
+          color: colour.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(9),
+        ),
+        child: Text(
+          character.path.toUpperCase(),
+          style: TextStyle(
+            color: colour,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.6,
+          ),
+        ),
+      ),
+    ];
+  }
+
+  /// The runes he has set, in slot order.
+  ///
+  /// The art carries colour **and** level — the Áurea series draws differently
+  /// at 5, 6, 7, 8 and 9 — so the strip is read before it is counted, and the
+  /// level rides the corner of each icon instead of sitting under it as a
+  /// second row of text.
+  ///
+  /// No heading above it either: six runes in a row say what they are, and the
+  /// words were the loudest thing on the quietest part of the card.
+  List<Widget> get _runeStrip => [
+    const SizedBox(height: 10),
+    // Scaled down rather than clipped or wrapped. Nine slots exist, ten would
+    // run off the right edge of the card — and a second row would make this
+    // card taller than its tile, which one grid height cannot express.
+    FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Row(
+        children: [
+          for (final itemId in character.runes) ...[
+            _rune(itemId),
+            const SizedBox(width: 6),
+          ],
+        ],
+      ),
+    ),
+  ];
+
+  Widget _rune(int itemId) {
+    final level = index.runes[itemId]?.level;
+
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          ItemIcon(itemId, size: 24),
+          if (level != null)
+            Positioned(
+              right: -2,
+              bottom: -3,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 3),
+                decoration: BoxDecoration(
+                  // The page's own ground, so the badge reads as a hole
+                  // punched in the art rather than a sticker stuck on it.
+                  color: PWColors.background,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '$level',
+                  style: const TextStyle(
+                    color: PWColors.text,
+                    fontSize: 9,
+                    height: 1.3,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -225,7 +365,7 @@ class CharacterCard extends StatelessWidget {
   List<_Highlight> get _highlights {
     final byItem = <String, _Highlight>{};
 
-    void note(EquippedItem item, String note) {
+    void note(EquippedItem item, _Note note) {
       final key = '${item.slot}:${item.itemId}';
       final existing = byItem[key];
       if (existing == null) {
@@ -252,9 +392,10 @@ class CharacterCard extends StatelessWidget {
         item,
         attributeId == null
             ? _attackLevelNote(item)
-            : '${slotLabel(item.slot)} · '
-                  '${index.attributes[attributeId]} '
-                  '${item.attributes[attributeId]}',
+            : _Note(
+                '${slotLabel(item.slot)} · ${index.attributes[attributeId]}',
+                '${item.attributes[attributeId]}',
+              ),
       );
     }
     return byItem.values.toList(growable: false);
@@ -289,7 +430,7 @@ class CharacterCard extends StatelessWidget {
     }
 
     for (final wanted in countedItemNames) {
-      if (!query.ownedOnCard.contains(wanted)) continue;
+      if (!query.shownOwned.contains(wanted)) continue;
       final itemId = index.countedItems[wanted];
       if (itemId == null) continue;
       // Absent is not zero. A character whose inventory was never read says
@@ -303,13 +444,13 @@ class CharacterCard extends StatelessWidget {
 
   /// A weapon chosen by name still has to show its number, or the card hands
   /// back the confusion the dropdown's label removed.
-  String _attackLevelNote(EquippedItem item) {
+  _Note _attackLevelNote(EquippedItem item) {
     final id = index.attributes.indexOf(IndexFacets.attackLevelName);
     final value = id < 0 ? null : item.attributes[id];
     final slot = slotLabel(item.slot);
     return value == null
-        ? slot
-        : '$slot · ${IndexFacets.attackLevelName} $value';
+        ? _Note(slot)
+        : _Note('$slot · ${IndexFacets.attackLevelName}', '$value');
   }
 
   Widget _highlightLine(_Highlight highlight) {
@@ -328,13 +469,23 @@ class CharacterCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
+                    // The rarity as a dot, and the name in plain text. The
+                    // colour said one thing while the card was also spending
+                    // red on the path badge and gold on the price; a dot says
+                    // it once and gives the name back its legibility.
+                    Container(
+                      width: 7,
+                      height: 7,
+                      margin: const EdgeInsets.only(right: 6),
+                      decoration: BoxDecoration(
+                        color: PWColors.grade(item?.grade ?? 0),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
                     Expanded(
                       child: Text(
                         item?.name ?? 'item ${highlight.item.itemId}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: PWColors.grade(item?.grade ?? 0),
-                        ),
+                        style: const TextStyle(fontSize: 13),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -348,11 +499,29 @@ class CharacterCard extends StatelessWidget {
                       ),
                   ],
                 ),
-                Text(
-                  highlight.text,
-                  style: const TextStyle(fontSize: 11, color: PWColors.ok),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        highlight.text,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: PWColors.ok,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (highlight.value != null)
+                      Text(
+                        highlight.value!,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: PWColors.ok,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                  ],
                 ),
               ],
             ),

@@ -20,6 +20,9 @@ class CollectedPage {
     required this.sex,
     this.anecdotes,
     this.inventory = const [],
+    this.realm = '',
+    this.path = '',
+    this.runes = const [],
   });
 
   /// What this version knows how to write. An entry stamped with anything else
@@ -29,7 +32,7 @@ class CollectedPage {
   /// A stamp, and not "is the anecdotes key there?": a page may legitimately
   /// have no anecdote panel, and that character would then be re-fetched on
   /// every run for ever.
-  static const version = 2;
+  static const version = 3;
 
   final List<ParsedItem> items;
   final List<ParsedCard> cards;
@@ -39,6 +42,20 @@ class CollectedPage {
   /// Everything the character owns, not only the counted items. With the whole
   /// list here, adding a counted item costs `--rebuild` and no network.
   final List<ParsedStack> inventory;
+
+  /// The `Reino Celestial` row, raw. Reduced to a position only in the app,
+  /// because the order of the ten realms is a fact about the game — and one
+  /// that had to be asked, since the page lists them in a different sequence.
+  /// Getting it wrong later must cost a rebuild, never a crawl.
+  final String realm;
+
+  /// `God` or `Evil`, from the eruption skill. Empty when the page has neither.
+  final String path;
+
+  /// The runes he has set, whole — kind, level, slot and the skill each sits
+  /// on. The index keeps only what a filter needs; this keeps what a future
+  /// question might.
+  final List<ParsedRune> runes;
 
   static bool isCurrent(Map<String, dynamic> json) => json['v'] == version;
 
@@ -59,6 +76,9 @@ class CollectedPage {
     'inventory': {
       for (final stack in inventory) stack.itemId.toString(): stack.count,
     },
+    if (realm.isNotEmpty) 'realm': realm,
+    if (path.isNotEmpty) 'path': path,
+    if (runes.isNotEmpty) 'runes': runes.map(_runeToJson).toList(),
   };
 
   /// [names] is the state's shared id-to-name table.
@@ -92,6 +112,11 @@ class CollectedPage {
             count: entry.value as int,
           ),
       ],
+      realm: json['realm'] as String? ?? '',
+      path: json['path'] as String? ?? '',
+      runes: (json['runes'] as List<dynamic>? ?? const [])
+          .map((r) => _runeFromJson(r as Map<String, dynamic>))
+          .toList(),
     );
   }
 }
@@ -135,6 +160,24 @@ ParsedItem _itemFromJson(Map<String, dynamic> json) => ParsedItem(
   ),
   requireLevel: json['requireLevel'] as int? ?? 0,
   weaponLevel: json['weaponLevel'] as int? ?? 0,
+);
+
+Map<String, dynamic> _runeToJson(ParsedRune rune) => {
+  'slot': rune.slot,
+  'itemId': rune.itemId,
+  'type': rune.type,
+  'level': rune.level,
+  'skillId': rune.skillId,
+  'skillName': rune.skillName,
+};
+
+ParsedRune _runeFromJson(Map<String, dynamic> json) => ParsedRune(
+  slot: json['slot'] as int,
+  itemId: json['itemId'] as int,
+  type: json['type'] as String,
+  level: json['level'] as int,
+  skillId: json['skillId'] as int? ?? 0,
+  skillName: json['skillName'] as String? ?? '',
 );
 
 Map<String, dynamic> _cardToJson(ParsedCard card) => {

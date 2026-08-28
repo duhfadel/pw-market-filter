@@ -52,6 +52,10 @@ Future<void> main() async {
     final iconIds = {
       ...index.items.keys,
       ...index.countedItems.values,
+      // Runes are the third field that shares the id space without sharing
+      // `items`, and the card draws them at 22 px — their art carries both the
+      // colour and the level, so a missing file loses real information.
+      ...index.runes.keys,
       for (final character in index.characters)
         for (final card in character.cards) card.cardId,
     };

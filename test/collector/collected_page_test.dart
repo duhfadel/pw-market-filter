@@ -23,6 +23,9 @@ void main() {
       sex: parseSex(html),
       anecdotes: parseAnecdotes(html),
       inventory: parseInventory(html),
+      realm: parseCelestialRealm(html) ?? '',
+      path: parsePath(html) ?? '',
+      runes: parseRunes(html),
     );
   });
 
@@ -90,5 +93,22 @@ void main() {
 
     expect(CollectedPage.isCurrent(json), isTrue);
     expect(CollectedPage.fromJson(json, const {}).anecdotes, isNull);
+  });
+
+  test('the sheet comes back: realm, path and every rune', () {
+    final restored = roundTrip(page);
+
+    expect(restored.realm, 'Céu Ápice VIII');
+    expect(restored.path, 'Evil');
+    expect(restored.runes, hasLength(6));
+    expect(restored.runes.first.type, 'Argêntea');
+    expect(restored.runes.first.level, 6);
+    expect(restored.runes.first.skillName, 'ΨIra do Paraíso');
+  });
+
+  test('the stamp moved, so every older entry is fetched again', () {
+    // Realm, path and runes are in no state written before them, which is what
+    // makes the re-collection happen by itself.
+    expect(CollectedPage.version, greaterThan(2));
   });
 }

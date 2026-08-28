@@ -134,6 +134,14 @@ class SearchViewModel extends Cubit<SearchState> {
     _query!.copyWith(minAnecdotes: () => minimum, anecdotesOnCard: true),
   );
 
+  void setMinRealm(int? rung) => _apply(_query!.copyWith(minRealm: () => rung));
+
+  void setPath(String? path) => _apply(_query!.copyWith(path: () => path));
+
+  /// `null` puts the rune question away entirely; anything else replaces it.
+  void setRunes(RuneCriterion? criterion) =>
+      _apply(_query!.copyWith(runes: () => criterion));
+
   /// A pet is a plain filter: ticked means the character has to have it.
   void setPetRequired(String label, bool required) {
     final query = _query!;
@@ -168,42 +176,18 @@ class SearchViewModel extends Cubit<SearchState> {
     );
   }
 
-  /// An empty field — or a typed zero — stops asking, rather than asking for
-  /// at least zero. Zero matches everybody, so keeping it would put a filter
-  /// in the shared link for a question nobody asked. The item stays marked,
-  /// because clearing the number is editing the filter and not losing interest
-  /// in the item.
-  void setMinimumOwned(String name, int? minimum) {
-    final query = _query!;
-    final minimumOwned = {...query.minimumOwned};
-    if (minimum == null || minimum <= 0) {
-      minimumOwned.remove(name);
-    } else {
-      minimumOwned[name] = minimum;
-    }
-    _apply(
-      query.copyWith(
-        minimumOwned: minimumOwned,
-        shownOwned: {...query.shownOwned, name},
-      ),
-    );
-  }
-
   /// Marks a counted item to be printed on the card, or stops.
   ///
-  /// Unmarking takes the minimum with it: a filter in force on an item the
-  /// card no longer names is a result nobody can explain, which is the same
-  /// defect a collapsed section without its count has.
+  /// Unmarking also gives up ordering by relics, since with nothing marked
+  /// that order sorts by a number that is the same for everybody.
   void setOwnedShown(String name, bool shown) {
     final query = _query!;
     final shownOwned = {...query.shownOwned};
-    final minimumOwned = {...query.minimumOwned};
 
     if (shown) {
       shownOwned.add(name);
     } else {
       shownOwned.remove(name);
-      minimumOwned.remove(name);
     }
     // Ordering by relics with nothing marked sorts by a number that is the
     // same for everybody, which reads as a broken list rather than an order
@@ -212,13 +196,7 @@ class SearchViewModel extends Cubit<SearchState> {
         ? ResultOrder.cheapest
         : query.order;
 
-    _apply(
-      query.copyWith(
-        shownOwned: shownOwned,
-        minimumOwned: minimumOwned,
-        order: order,
-      ),
-    );
+    _apply(query.copyWith(shownOwned: shownOwned, order: order));
   }
 
   void setCultivation(String? value) =>

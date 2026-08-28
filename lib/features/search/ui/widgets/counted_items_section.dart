@@ -3,23 +3,23 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/game_icon.dart';
 import '../../../../market/counted_items.dart';
-import '../../domain/search_query.dart';
 import '../search_state.dart';
 import '../search_view_model.dart';
-import 'number_field.dart';
 import 'section_header.dart';
 
 /// How many of the counted items a character is carrying — the three
 /// `Relíquia Maravilha` and the `Chave da Sorte`.
 ///
-/// Two questions per item, and they are not the same one. **Marking shows the
-/// number on every card; typing a minimum filters.** They used to be one
-/// control, which meant the only way to see how many relics somebody carries
-/// was to demand at least one and lose everybody else from the results.
+/// One question per item: **show me how many of this each character carries.**
 ///
-/// The number field appears only once the item is marked: you say which items
-/// interest you, and then, if you want, how many. Everything starts unmarked,
-/// so the section asks nothing and shows nothing until it is touched.
+/// There was a *pelo menos N* field under each one and it was dropped. A relic
+/// count is a number to compare, not a bar to clear — and *Mais relíquias*
+/// already sorts by exactly what is marked here, which answers the question
+/// without throwing anyone off the list. Two controls asked one question, and
+/// the filtering half was the one nobody wanted.
+///
+/// So nothing here narrows the market. Everything starts unmarked, and the
+/// section shows nothing until it is touched.
 class CountedItemsSection extends StatefulWidget {
   const CountedItemsSection({
     required this.state,
@@ -77,55 +77,30 @@ class _CountedItemsSectionState extends State<CountedItemsSection> {
         // The first counted item the collection found, so the emblem is a
         // picture of the thing rather than a glyph meaning "some section".
         emblem: counted.first.value,
-        badge: state.query.minimumOwned.length,
+        // Counts what is being shown, not what is being filtered — nothing
+        // in this section filters any more.
+        badge: state.query.shownOwned.length,
         expanded: _open,
       ),
     ),
   );
 
-  Widget _row(String name, int itemId) {
-    final shown = state.query.shownOwned.contains(name);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CheckboxListTile(
-          value: shown,
-          onChanged: (v) => widget.viewModel.setOwnedShown(name, v ?? false),
-          dense: true,
-          contentPadding: EdgeInsets.zero,
-          controlAffinity: ListTileControlAffinity.leading,
-          activeColor: PWColors.accent,
-          checkColor: PWColors.background,
-          // The item's own art beside its name, for the same reason the
-          // section headers carry one: a column of four long names that begin
-          // with the same two words is read by its pictures.
-          secondary: ItemIcon(itemId, size: 26),
-          title: Text(
-            name,
-            style: const TextStyle(fontSize: 13),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        if (shown) ...[
-          const SizedBox(height: 4),
-          _minimum(name, itemId),
-          const SizedBox(height: 6),
-        ],
-      ],
-    );
-  }
-
-  /// The hint is the most anyone in the current results carries, so nobody
-  /// types a number the market cannot meet.
-  Widget _minimum(String name, int itemId) {
-    final most = state.facetsFor(FacetDimension.owned).mostOwned(itemId);
-
-    return NumberField(
-      label: 'pelo menos',
-      hint: most == 0 ? null : 'qualquer, até $most',
-      value: state.query.minimumOwned[name],
-      onChanged: (value) => widget.viewModel.setMinimumOwned(name, value),
-    );
-  }
+  Widget _row(String name, int itemId) => CheckboxListTile(
+    value: state.query.shownOwned.contains(name),
+    onChanged: (v) => widget.viewModel.setOwnedShown(name, v ?? false),
+    dense: true,
+    contentPadding: EdgeInsets.zero,
+    controlAffinity: ListTileControlAffinity.leading,
+    activeColor: PWColors.accent,
+    checkColor: PWColors.background,
+    // The item's own art beside its name, for the same reason the section
+    // headers carry one: four long names that begin with the same two words
+    // are read by their pictures.
+    secondary: ItemIcon(itemId, size: 26),
+    title: Text(
+      name,
+      style: const TextStyle(fontSize: 13),
+      overflow: TextOverflow.ellipsis,
+    ),
+  );
 }

@@ -125,28 +125,6 @@ void main() {
     expect(find.text(_relic), findsOneWidget);
   });
 
-  testWidgets('the minimum appears only once the item is marked', (
-    tester,
-  ) async {
-    // Marking is "show me this number"; the minimum is "and only these
-    // characters". Asking both at once was the old control, and it made
-    // looking impossible without filtering.
-    final viewModel = await _pump(tester, collected: true);
-
-    await tester.tap(find.text('RELÍQUIAS E CHAVES'));
-    await tester.pumpAndSettle();
-    expect(find.text('pelo menos'), findsNothing);
-
-    await tester.tap(find.text(_relic));
-    await tester.pumpAndSettle();
-
-    final state = viewModel.state as SearchReady;
-    expect(state.query.shownOwned, {_relic});
-    expect(state.query.isEmpty, isTrue);
-    expect(state.results, hasLength(2));
-    expect(find.text('pelo menos'), findsOneWidget);
-  });
-
   testWidgets('typing a minimum narrows the results', (tester) async {
     final viewModel = await _pump(tester, collected: true);
 
@@ -169,24 +147,17 @@ void main() {
     expect(state.results.map((c) => c.name), ['Leandrim']);
   });
 
-  testWidgets('a closed section still says how much it is holding', (
+  testWidgets('a closed section still says how much it is marking', (
     tester,
   ) async {
-    // The rule the slot groups already follow: a filter in force with nothing
-    // on screen saying so makes the results look wrong for no visible reason.
+    // Nothing here filters any more, so the badge counts what is being shown.
     final viewModel = await _pump(tester, collected: true);
 
-    viewModel.setMinimumOwned(_relic, 5);
+    viewModel.setOwnedShown(_relic, true);
     await tester.pumpAndSettle();
 
     expect(find.text('RELÍQUIAS E CHAVES'), findsOneWidget);
-    // The badge counts filters, not marks: a marked item narrows nothing and
-    // must not read as a filter in force.
     expect(find.text('1'), findsOneWidget);
-
-    viewModel.setMinimumOwned(_relic, null);
-    await tester.pumpAndSettle();
-    expect(find.text('1'), findsNothing);
   });
 
   testWidgets('marking the anecdotes shows them without filtering', (

@@ -14,6 +14,8 @@ import 'counted_items_section.dart';
 import 'criterion_row.dart';
 import 'number_field.dart';
 import 'pet_section.dart';
+import 'realm_section.dart';
+import 'rune_section.dart';
 import 'section_header.dart';
 import 'slot_section.dart';
 
@@ -35,6 +37,8 @@ class FilterPanel extends StatelessWidget {
           query.characterClass,
         ),
         const SizedBox(height: 10),
+        _pathDropdown(query.path),
+        const SizedBox(height: 10),
         _range(
           label: 'Preço (TCC)',
           min: query.minPrice,
@@ -54,6 +58,8 @@ class FilterPanel extends StatelessWidget {
             startsOpen: i == 0,
           ),
         CardSection(state: state, viewModel: viewModel),
+        RealmSection(state: state, viewModel: viewModel),
+        RuneSection(state: state, viewModel: viewModel),
         PetSection(state: state, viewModel: viewModel),
         CountedItemsSection(state: state, viewModel: viewModel),
         AnecdoteSection(state: state, viewModel: viewModel),
@@ -128,6 +134,22 @@ class FilterPanel extends StatelessWidget {
         ],
         onChanged: viewModel.setClass,
       );
+
+  /// Beside the class, because that is what it is: a property of the
+  /// character, chosen once and never mixed. Nobody in the market was found
+  /// holding skills of both paths.
+  Widget _pathDropdown(String? value) => DropdownButtonFormField<String?>(
+    initialValue: value,
+    isExpanded: true,
+    decoration: const InputDecoration(labelText: 'Caminho'),
+    dropdownColor: PWColors.surfaceRaised,
+    items: const [
+      DropdownMenuItem(value: null, child: Text('God e Evil')),
+      DropdownMenuItem(value: 'God', child: Text('God')),
+      DropdownMenuItem(value: 'Evil', child: Text('Evil')),
+    ],
+    onChanged: viewModel.setPath,
+  );
 
   Widget _range({
     required String label,

@@ -48,13 +48,12 @@ void main() {
     }
   });
 
-  test('every counted item has somebody carrying at least one', () {
+  test('every counted item somebody carries is on the market', () {
     if (collectedBefore()) return;
 
     for (final entry in index.countedItems.entries) {
-      final carriers = runQuery(
-        index,
-        SearchQuery(minimumOwned: {entry.key: 1}),
+      final carriers = index.characters.where(
+        (c) => (c.counts[entry.value] ?? 0) > 0,
       );
       expect(carriers, isNotEmpty, reason: entry.key);
     }
@@ -72,13 +71,6 @@ void main() {
         reason: label,
       );
     }
-  });
-
-  test('a name the collection never met matches nobody, not everybody', () {
-    expect(
-      runQuery(index, const SearchQuery(minimumOwned: {'não existe': 1})),
-      isEmpty,
-    );
   });
 
   test('the anecdote pair is a pair: done never exceeds the total', () {

@@ -318,19 +318,130 @@ ParsedCard? _readCard(Element element) {
   );
 }
 
+/// One of the two paths the character committed to, or null when the page
+/// does not say.
+///
+/// Read off the name of a skill, which is the player's own test: **Evil has
+/// `Erupção Demoníaca`, God has `Erupção Celestial`**. There is no field for
+/// it anywhere on the sheet — `Sagrado` and `Demoníaco` appear only as item
+/// names — so it has to be derived, and this is the most legible way to derive
+/// it: a word the game prints on screen.
+///
+/// The page carries a second, redundant signal: the path's skills are prefixed
+/// `●`/`Φ` for God and `○`/`Ω` for Evil, and the God ones also carry the CSS
+/// class `pw187-skill-slot--sage`. Across fifteen pages the symbol and the
+/// eruption agreed every time, and `sheet_test` pins the eruption because a
+/// name the game shows outlives a class name a redesign can rewrite.
+///
+/// Null and not a guess: a character too low to have the skill has no path
+/// yet, and calling him God by omission would put half the market on the wrong
+/// side of a filter.
+String? parsePath(String html) {
+  // Through the parser, never over the raw bytes: the page writes the name as
+  // `Erup&ccedil;&atilde;o Demon&iacute;aca`, so a plain `contains` on the
+  // source finds nothing and reports every character as pathless.
+  for (final slot in html_parser.parse(html).querySelectorAll('[aria-label]')) {
+    final label = slot.attributes['aria-label'] ?? '';
+    if (label.contains('Erupção Demoníaca')) return 'Evil';
+    if (label.contains('Erupção Celestial')) return 'God';
+  }
+  return null;
+}
+
+/// The `Reino Celestial` row of the character sheet, exactly as the site
+/// writes it — `Céu Ápice VIII`.
+///
+/// Kept raw rather than reduced to a number here, for the reason the whole
+/// collector works this way: the ordering is a fact about the game, not about
+/// HTML, and a wrong order corrected later would otherwise cost a fresh crawl.
+/// `CelestialRealm` turns the string into a position.
+String? parseCelestialRealm(String html) =>
+    _sheetValue(html_parser.parse(html), 'Reino Celestial');
+
 /// `Masculino` or `Feminino`, empty when the page does not say.
 ///
 /// It cannot be derived from the class: Perfect World locks most classes to a
 /// gender and this server mostly follows, but Bardo has both — which is why
 /// this has to be read per character.
-String parseSex(String html) {
-  final document = html_parser.parse(html);
+String parseSex(String html) =>
+    _sheetValue(html_parser.parse(html), 'Sexo') ?? '';
 
+/// One labelled row of the character sheet — the short list that carries
+/// `Classe`, `Sexo` and `Reino Celestial` and nothing else.
+String? _sheetValue(Document document, String label) {
   for (final row in document.querySelectorAll('.character-info--list')) {
-    if (row.querySelector('.skill-desc')?.text.trim() != 'Sexo') continue;
-    return row.querySelector('.value')?.text.trim() ?? '';
+    if (row.querySelector('.skill-desc')?.text.trim() != label) continue;
+    return row.querySelector('.value')?.text.trim();
   }
-  return '';
+  return null;
+}
+
+/// One rune, and the skill it was set on.
+///
+/// The pair is the unit the page draws and the unit the game thinks in: a rune
+/// does nothing on its own, it empowers a skill.
+class ParsedRune {
+  const ParsedRune({
+    required this.slot,
+    required this.itemId,
+    required this.type,
+    required this.level,
+    required this.skillId,
+    required this.skillName,
+  });
+
+  final int slot;
+  final int itemId;
+
+  /// `Argêntea`, `Áurea`, `Celeste`, `Escarlate`, `Verdejante` — a category,
+  /// not a grade: every colour was seen from level 4 to 9.
+  final String type;
+
+  final int level;
+  final int skillId;
+  final String skillName;
+}
+
+// `Runa Áurea Nv. 6 · Slot 3` and `Runa Celeste Nível 8 · Slot 3` both occur,
+// on the same page. Reading only `Nv.` silently drops every level 8 — which is
+// exactly the band anybody filtering on runes cares about.
+final _runeLabelPattern = RegExp(r'Runa\s+(\S+)\s+(?:Nv\.|Nível)\s+(\d+)');
+
+/// The runes the character has set, one per slot, in slot order.
+///
+/// Six slots is the common case and nine exists; the count is read from the
+/// page rather than assumed. A character with none has the section drawn and
+/// empty, which is not an error and not an absence of the section.
+List<ParsedRune> parseRunes(String html) {
+  final document = html_parser.parse(html);
+  final runes = <ParsedRune>[];
+
+  for (final pair in document.querySelectorAll('.pw187-rune-pair')) {
+    final slot = int.tryParse(pair.attributes['data-rune-slot'] ?? '');
+    final rune = pair.querySelector('.pw187-rune-pair__rune');
+    final skill = pair.querySelector('.pw187-rune-pair__skill');
+    if (slot == null || rune == null) continue;
+
+    final match = _runeLabelPattern.firstMatch(
+      rune.attributes['aria-label'] ?? '',
+    );
+    if (match == null) continue;
+
+    final tooltip = skill?.attributes['data-pw187-skill-tooltip'] ?? '';
+    runes.add(
+      ParsedRune(
+        slot: slot,
+        itemId: int.tryParse(rune.attributes['data-item-id'] ?? '') ?? 0,
+        type: match.group(1)!,
+        level: int.parse(match.group(2)!),
+        skillId: int.tryParse(skill?.attributes['data-skill-id'] ?? '') ?? 0,
+        skillName: _titlePattern.firstMatch(tooltip)?.group(1)?.trim() ?? '',
+      ),
+    );
+  }
+
+  runes.sort((a, b) => a.slot.compareTo(b.slot));
+  return runes;
 }
 
 ParsedItem? _readItem(Element element) {

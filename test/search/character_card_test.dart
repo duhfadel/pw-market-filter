@@ -12,6 +12,10 @@ final _index = MarketIndex(
   attributes: const ['Nível de Ataque'],
   items: const {50206: MarketItem(name: '★★★Dilacerador Raivoso', grade: 6)},
   countedItems: const {'Relíquia Maravilha: Arma': 50410},
+  runes: const {
+    52220: RuneKind(type: 'Argêntea', level: 6),
+    52183: RuneKind(type: 'Áurea', level: 9),
+  },
   characters: const [],
 );
 
@@ -19,6 +23,9 @@ MarketCharacter _character({
   String sex = '',
   Map<int, int> counts = const {},
   Anecdotes? anecdotes,
+  String realm = '',
+  String path = '',
+  List<int> runes = const [],
 }) => MarketCharacter(
   roleId: 64112,
   name: 'Leandrim',
@@ -31,6 +38,9 @@ MarketCharacter _character({
   sex: sex,
   counts: counts,
   anecdotes: anecdotes,
+  realm: realm,
+  path: path,
+  runes: runes,
   equipped: const [
     EquippedItem(
       slot: 10,
@@ -179,5 +189,71 @@ void main() {
     await _pump(tester, _character(sex: 'Outro'));
 
     expect(_sexIcon(tester), isNull);
+  });
+
+  testWidgets('the realm sits under the class, as written', (tester) async {
+    await _pump(tester, _character(realm: 'Céu Majestoso II'));
+
+    expect(find.text('Céu Majestoso II'), findsOneWidget);
+  });
+
+  testWidgets('the path is a badge carrying the word and the colour', (
+    tester,
+  ) async {
+    await _pump(tester, _character(path: 'Evil'));
+
+    expect(find.text('EVIL'), findsOneWidget);
+  });
+
+  testWidgets('no path read draws no badge, not a third state', (tester) async {
+    // The whole reason the tinted-card idea was dropped: "no tint" would have
+    // read as a path of its own.
+    await _pump(tester, _character());
+
+    expect(find.text('EVIL'), findsNothing);
+    expect(find.text('GOD'), findsNothing);
+  });
+
+  testWidgets('the rune strip shows one level per slot, in order', (
+    tester,
+  ) async {
+    await _pump(tester, _character(runes: const [52220, 52183]));
+
+    // No heading any more: the level rides the corner of each icon.
+    expect(find.text('6'), findsOneWidget);
+    expect(find.text('9'), findsOneWidget);
+  });
+
+  testWidgets('a character with no runes grows no strip', (tester) async {
+    await _pump(tester, _character());
+
+    expect(find.byType(FittedBox), findsNothing);
+  });
+
+  testWidgets('ten runes are scaled to fit rather than run off the card', (
+    tester,
+  ) async {
+    // Nine slots exist in the market and ten would overflow the row; the strip
+    // shrinks instead of spilling past the border.
+    await _pump(
+      tester,
+      _character(
+        runes: const [
+          52220,
+          52220,
+          52220,
+          52220,
+          52220,
+          52220,
+          52220,
+          52220,
+          52220,
+          52183,
+        ],
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(FittedBox), findsOneWidget);
   });
 }

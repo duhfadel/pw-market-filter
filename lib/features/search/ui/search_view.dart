@@ -299,8 +299,10 @@ class _FilterButton extends StatelessWidget {
       query.cardRarity != null,
       query.cardsMaxed,
       query.minAnecdotes != null,
+      query.minRealm != null,
+      query.path != null,
+      query.runes != null,
       ...query.pets.map((_) => true),
-      ...query.minimumOwned.keys.map((_) => true),
       ...query.itemBySlot.keys.map((_) => true),
       ...query.criteria.map((_) => true),
     ].where((asked) => asked).length;
@@ -622,9 +624,20 @@ class _Grid extends StatelessWidget {
 
   /// Name, price and the stat line, plus one block per criterion: the item's
   /// name and the slot-attribute line beneath it.
-  static const _headerHeight = 78.0;
+  // 78 while the portrait was 38 px. It is 52 now, and the header is as tall
+  // as the taller of its two columns.
+  static const _headerHeight = 92.0;
   static const _matchLineHeight = 42.0;
   static const _dividerHeight = 21.0;
+
+  /// The realm sits under the class on every card, so it is reserved for every
+  /// tile — including the few whose page never said. A card an inch short of
+  /// its tile has air at the bottom; one an inch over is clipped, and only one
+  /// of those is recoverable.
+  static const _realmLineHeight = 16.0;
+
+  /// The strip alone: no heading now, and the level rides the icon.
+  static const _runeStripHeight = 36.0;
 
   /// One block per **item** the card will name, not per condition asked.
   ///
@@ -655,11 +668,24 @@ class _Grid extends StatelessWidget {
     // and they can never collapse into an item's block — they are not items.
     final facts =
         (state.query.showsAnecdotes ? 1 : 0) +
-        state.query.ownedOnCard.length +
+        state.query.shownOwned.length +
         state.query.pets.length;
 
     final blocks = slots.length + anySlotCriteria + facts;
-    return _headerHeight + _dividerHeight + blocks * _matchLineHeight;
+
+    // Conditioned on the collection, not on the query: both are drawn for
+    // everybody the moment the index carries them.
+    final index = state.index;
+    final realm = index.characters.any((c) => c.realm.isNotEmpty)
+        ? _realmLineHeight
+        : 0.0;
+    final runes = index.runes.isEmpty ? 0.0 : _runeStripHeight;
+
+    return _headerHeight +
+        realm +
+        runes +
+        _dividerHeight +
+        blocks * _matchLineHeight;
   }
 
   @override

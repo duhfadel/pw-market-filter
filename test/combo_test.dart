@@ -27,14 +27,33 @@ void main() {
     );
   });
 
-  test('every combo offered has all six cards', () {
-    // The player's rule: an incomplete combo is not a combo. Filtering on five
-    // would pass a character running the build with a foreign sixth card and
-    // report it as complete. Brado de Batalha waits in the source until its
-    // Durabilidade card is known.
+  test('every combo offered is a size the game has', () {
+    // Two, four or six — the six slots hold one six, or a four and a two, or
+    // three twos. Anything else is a half-written entry, and filtering on it
+    // would answer "nobody" for a reason the visitor cannot see.
     for (final combo in cardCombos) {
-      expect(combo.cardIds, hasLength(6), reason: combo.name);
+      expect(
+        const {2, 4, 6},
+        contains(combo.cardIds.length),
+        reason: combo.name,
+      );
       expect(combo.isComplete, isTrue, reason: combo.name);
+    }
+  });
+
+  test('no card belongs to two combos', () {
+    // A card in two sets would mean one of the two tables is wrong, and the
+    // filter would quietly report the same character under both.
+    final visto = <int, String>{};
+    for (final combo in cardCombos) {
+      for (final id in combo.cardIds) {
+        expect(
+          visto[id],
+          isNull,
+          reason: 'carta $id em ${combo.name} e em ${visto[id]}',
+        );
+        visto[id] = combo.name;
+      }
     }
   });
 

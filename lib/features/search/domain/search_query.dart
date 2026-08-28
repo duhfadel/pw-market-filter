@@ -1,3 +1,4 @@
+import '../../../market/celestial_realm.dart';
 import '../../../market/market_index.dart';
 import 'item_criterion.dart';
 
@@ -17,6 +18,9 @@ enum FacetDimension {
   criteria,
   anecdotes,
   owned,
+  realm,
+  path,
+  runes,
 }
 
 /// How the results are ordered.
@@ -38,7 +42,13 @@ enum ResultOrder {
   /// and the order must not pick one on the visitor's behalf. It is offered
   /// only while something is marked, for the same reason.
   mostAnecdotes('Mais anedotas'),
-  mostOwned('Mais relíquias');
+  mostOwned('Mais relíquias'),
+
+  /// Both directions, like the price and unlike everything else here. The two
+  /// are different searches: the most advanced character, and the cheapest one
+  /// still worth raising.
+  highestRealm('Maior céu'),
+  lowestRealm('Menor céu');
 
   const ResultOrder(this.label);
 
@@ -52,9 +62,43 @@ enum ResultOrder {
     ResultOrder.mostAnecdotes => index.characters.any(
       (c) => c.anecdotes != null,
     ),
-    ResultOrder.mostOwned => query.ownedOnCard.isNotEmpty,
+    ResultOrder.mostOwned => query.shownOwned.isNotEmpty,
+    ResultOrder.highestRealm ||
+    ResultOrder.lowestRealm => index.characters.any((c) => c.realm.isNotEmpty),
     _ => true,
   };
+}
+
+/// One question about the runes a character has set.
+///
+/// Colour **and** level, because that is how the question is asked in the
+/// game: a rune is not better for being any colour, but it is better for being
+/// level 9 — every colour was seen from 4 to 9, so the colour is a category
+/// and the level is the grade.
+///
+/// [minimum] is what makes it a filter worth having. Across the market's
+/// dearest characters, *at least one rune of level 7+* took 93% of them —
+/// a filter that leaves the market on screen teaches nothing. Three of them
+/// halves it.
+class RuneCriterion {
+  const RuneCriterion({this.type, this.minimumLevel = 7, this.minimum = 1});
+
+  /// `null` means any colour, which is the question that separates the market
+  /// rather than the one that describes a build.
+  final String? type;
+
+  final int minimumLevel;
+  final int minimum;
+
+  RuneCriterion copyWith({
+    String? Function()? type,
+    int? minimumLevel,
+    int? minimum,
+  }) => RuneCriterion(
+    type: type == null ? this.type : type(),
+    minimumLevel: minimumLevel ?? this.minimumLevel,
+    minimum: minimum ?? this.minimum,
+  );
 }
 
 /// Everything the form asks for. A field left `null` asks nothing.
@@ -72,10 +116,12 @@ class SearchQuery {
     this.cardsMaxed = false,
     this.criteria = const [],
     this.minAnecdotes,
-    this.minimumOwned = const {},
     this.shownOwned = const {},
     this.anecdotesOnCard = false,
     this.pets = const {},
+    this.minRealm,
+    this.path,
+    this.runes,
     this.order = ResultOrder.cheapest,
   });
 
@@ -111,31 +157,17 @@ class SearchQuery {
   /// number on the page that measures time spent rather than money spent.
   final int? minAnecdotes;
 
-  /// A counted item's **name** to how many of it the character must carry.
+  /// Counted items whose number the card should print.
   ///
-  /// By name and not by id, for the same reason the shared link writes the
-  /// attribute by name: the name is what `countedItemNames` holds and what a
-  /// link can carry across collections, and only the index knows which id this
-  /// collection found it under.
-  final Map<String, int> minimumOwned;
-
-  /// Counted items whose number the card should print, whether or not a
-  /// minimum is being asked for.
+  /// **Marking, and nothing else.** There was a *pelo menos N* filter beside
+  /// it and it was dropped: a relic count is a number to compare, not a bar to
+  /// clear, and *Mais relíquias* already sorts by it. Two controls asked one
+  /// question, and the filter half was the one nobody wanted.
   ///
-  /// Marking is not filtering. "Show me how many relics each of these carries"
-  /// is a different question from "only show me who carries five", and tying
-  /// them together forced a filter on anybody who just wanted to look. So this
-  /// is out of [isEmpty] and out of the count of filters in force, for the same
-  /// reason [order] is: it is how the list is read, not something that was
-  /// asked of the market.
-  ///
-  /// A minimum implies its own name is shown — a card that refuses to say why
-  /// a character passed is worse than one that says nothing.
+  /// Out of [isEmpty] and out of the count of filters in force, for the same
+  /// reason [order] is: it is how the list is read, not something asked of the
+  /// market.
   final Set<String> shownOwned;
-
-  /// Every counted item the card should print for, in one place so the card
-  /// and the grid that sizes it cannot disagree.
-  Set<String> get ownedOnCard => {...shownOwned, ...minimumOwned.keys};
 
   /// Print the anecdote progress on every card, asking nothing of the market.
   ///
@@ -153,6 +185,20 @@ class SearchQuery {
   /// Only the Feiticeira has combat pets, so asking for one narrows to that
   /// class by itself; nothing here knows about classes.
   final Set<String> pets;
+
+  /// The lowest rung of the celestial scale that still passes, as a
+  /// [CelestialRealm.ordinal] — 1 to 100.
+  ///
+  /// A number and not a pair of fields, because the scale is one ladder: the
+  /// tier and the step are how the game writes it, not how it compares.
+  final int? minRealm;
+
+  /// `God` or `Evil`. A character whose path could not be read fails either
+  /// one, rather than being sorted into the half he might not belong to.
+  final String? path;
+
+  /// One question about the runes he has set.
+  final RuneCriterion? runes;
 
   /// Whether the card should print the anecdote progress.
   ///
@@ -183,8 +229,10 @@ class SearchQuery {
       !cardsMaxed &&
       criteria.isEmpty &&
       minAnecdotes == null &&
-      minimumOwned.isEmpty &&
-      pets.isEmpty;
+      pets.isEmpty &&
+      minRealm == null &&
+      path == null &&
+      runes == null;
 
   /// This query with [dimension] switched off, which is the population a
   /// control should read its options from.
@@ -213,7 +261,10 @@ class SearchQuery {
     FacetDimension.items => copyWith(itemBySlot: const {}),
     FacetDimension.criteria => copyWith(criteria: const []),
     FacetDimension.anecdotes => copyWith(minAnecdotes: () => null),
-    FacetDimension.owned => copyWith(minimumOwned: const {}, pets: const {}),
+    FacetDimension.realm => copyWith(minRealm: () => null),
+    FacetDimension.path => copyWith(path: () => null),
+    FacetDimension.runes => copyWith(runes: () => null),
+    FacetDimension.owned => copyWith(shownOwned: const {}, pets: const {}),
   };
 
   SearchQuery copyWith({
@@ -229,10 +280,12 @@ class SearchQuery {
     bool? cardsMaxed,
     List<ItemCriterion>? criteria,
     int? Function()? minAnecdotes,
-    Map<String, int>? minimumOwned,
     Set<String>? shownOwned,
     bool? anecdotesOnCard,
     Set<String>? pets,
+    int? Function()? minRealm,
+    String? Function()? path,
+    RuneCriterion? Function()? runes,
     ResultOrder? order,
   }) => SearchQuery(
     characterClass: characterClass == null
@@ -249,10 +302,12 @@ class SearchQuery {
     cardsMaxed: cardsMaxed ?? this.cardsMaxed,
     criteria: criteria ?? this.criteria,
     minAnecdotes: minAnecdotes == null ? this.minAnecdotes : minAnecdotes(),
-    minimumOwned: minimumOwned ?? this.minimumOwned,
     shownOwned: shownOwned ?? this.shownOwned,
     anecdotesOnCard: anecdotesOnCard ?? this.anecdotesOnCard,
     pets: pets ?? this.pets,
+    minRealm: minRealm == null ? this.minRealm : minRealm(),
+    path: path == null ? this.path : path(),
+    runes: runes == null ? this.runes : runes(),
     order: order ?? this.order,
   );
 }

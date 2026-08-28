@@ -254,4 +254,87 @@ void main() {
       expect(index.characters.single.counts, isEmpty);
     });
   });
+
+  group('the sheet: realm, path and runes', () {
+    IndexBuilder builder() =>
+        IndexBuilder(server: 'pw187', collectedAt: DateTime.utc(2026, 8, 28));
+
+    const runa = ParsedRune(
+      slot: 0,
+      itemId: 52220,
+      type: 'Argêntea',
+      level: 6,
+      skillId: 3931,
+      skillName: 'ΨIra do Paraíso',
+    );
+
+    test('carries the realm and the path as the page wrote them', () {
+      final index =
+          (builder()..add(
+                _card(1),
+                const [],
+                realm: 'Céu Ápice VIII',
+                path: 'Evil',
+              ))
+              .build();
+
+      expect(index.characters.single.realm, 'Céu Ápice VIII');
+      expect(index.characters.single.path, 'Evil');
+    });
+
+    test('an unread sheet leaves both empty rather than inventing one', () {
+      final index = (builder()..add(_card(1), const [])).build();
+
+      expect(index.characters.single.realm, isEmpty);
+      expect(index.characters.single.path, isEmpty);
+    });
+
+    test('the runes go in by slot, and their kind into one table', () {
+      // The same kind has two item ids — Áurea 5 is both 52179 and 200359 —
+      // so the table is what lets a filter treat them as one rune.
+      final index =
+          (builder()..add(
+                _card(1),
+                const [],
+                runes: const [
+                  runa,
+                  ParsedRune(
+                    slot: 1,
+                    itemId: 200359,
+                    type: 'Áurea',
+                    level: 5,
+                    skillId: 1,
+                    skillName: 'x',
+                  ),
+                ],
+              ))
+              .build();
+
+      expect(index.characters.single.runes, [52220, 200359]);
+      expect(index.runes[52220]?.type, 'Argêntea');
+      expect(index.runes[52220]?.level, 6);
+      expect(index.runes[200359]?.level, 5);
+    });
+
+    test('all three survive a round trip through JSON', () {
+      final index =
+          (builder()..add(
+                _card(1),
+                const [],
+                realm: 'Céu Soberano X',
+                path: 'God',
+                runes: const [runa],
+              ))
+              .build();
+
+      final restored = MarketIndex.fromJson(
+        jsonDecode(jsonEncode(index.toJson())) as Map<String, dynamic>,
+      );
+
+      expect(restored.characters.single.realm, 'Céu Soberano X');
+      expect(restored.characters.single.path, 'God');
+      expect(restored.characters.single.runes, [52220]);
+      expect(restored.runes[52220]?.type, 'Argêntea');
+    });
+  });
 }

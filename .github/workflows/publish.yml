@@ -1,16 +1,25 @@
 name: Coletar e publicar
 
-# Every twenty minutes. The market gains or loses about three listings an hour,
-# so this misses one at worst — and each run is a single request for the
-# listing plus a detail page for whoever is new, because the collector's state
-# survives in the cache below. Only the very first run pays the full ~28
-# minutes.
+# Every thirty minutes, at :07 and :37 — and the odd minutes are the point.
 #
-# GitHub delays free-tier scheduled runs, often by ten or fifteen minutes. The
-# collection date is on screen for exactly that reason.
+# **`schedule` is best effort, and the measurement is much worse than the
+# docs suggest.** Asking for `*/20` never once delivered twenty minutes: over
+# 26–29/08 the gap between scheduled runs went from ~45 minutes to 2 hours to
+# 10, and one stretch reached 12h15 with no run at all. Nothing failed and
+# nothing was cancelled — the schedule simply did not fire. The repository is
+# public, so Actions minutes are unlimited; this is GitHub shedding load, and
+# a busier cron is the first thing it sheds.
+#
+# So the times avoid the top of the hour, which GitHub names as its worst
+# window, and the rate asks for less. Neither is a guarantee. If the gaps stay
+# in hours, the fix is not in this file: it is an external cron — a Cloudflare
+# Worker, where the site already lives — calling `workflow_dispatch`.
+#
+# The collection date is on screen for exactly this reason, and it is what
+# tells a visitor the market went stale.
 on:
   schedule:
-    - cron: '*/20 * * * *'
+    - cron: '7,37 * * * *'
   push:
     branches: [main]
   workflow_dispatch:

@@ -115,6 +115,7 @@ both legendary pets and has renamed both).
 | `dart run tool/fetch_icons.dart` | Downloads class and item icons named by the index; skips what is already on disk |
 | `dart run tool/build_fixture_index.dart` | Builds an index from the saved fixtures — no network, for working on the screen |
 | `python3 tool/mapa/pagina.py` | Rebuilds both pages of `web/guerras/` from the map's SVG and the models in `tool/mapa/` |
+| `gh workflow run publish.yml` | Collects and publishes now, when the schedule has gone quiet |
 | `flutter run -d chrome` | Runs the app |
 | `flutter test` | Runs every test |
 | `flutter analyze` | Static analysis |
@@ -307,7 +308,10 @@ Each of these already cost something — measured on the live site, not guessed.
   would stay in the same hands as the domain.
 
   `gh workflow run publish.yml` is the manual push when the market has gone
-  visibly stale.
+  visibly stale. The Worker that takes the clock away from GitHub is written
+  and waiting in `tool/cron/` — twenty lines, no public route on purpose, and
+  it needs a fine-grained token and one `wrangler deploy` that only the account
+  holder can do.
 - **A failed deploy is usually GitHub, and `gh run rerun --failed` makes it
   worse.** On 2026-08-17 the collect, analyze, test and build steps all passed
   and `actions/deploy-pages` answered **503 — "No server is currently available"**;

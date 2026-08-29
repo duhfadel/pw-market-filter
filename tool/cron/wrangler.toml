@@ -1,0 +1,14 @@
+name = "portalpw-cron"
+main = "worker.js"
+compatibility_date = "2026-08-29"
+
+# Sem endereço público. O Worker não atende requisição nenhuma — só o cron o
+# acorda. Ligar isso publicaria um `*.workers.dev` que dispararia a coleta
+# para quem soubesse a URL, e cada coleta são ~1000 requisições ao marketplace.
+workers_dev = false
+
+# :07 e :37, os mesmos minutos que o workflow pede ao GitHub, fora do topo da
+# hora. Se este Worker virar o relógio de verdade, o cron de lá pode cair para
+# algo raro — ver o LEIA-ME.
+[triggers]
+crons = ["7,37 * * * *"]

@@ -307,11 +307,22 @@ Each of these already cost something — measured on the live site, not guessed.
   Cloudflare Worker, since the site is already behind Cloudflare and the token
   would stay in the same hands as the domain.
 
-  `gh workflow run publish.yml` is the manual push when the market has gone
-  visibly stale. The Worker that takes the clock away from GitHub is written
-  and waiting in `tool/cron/` — twenty lines, no public route on purpose, and
-  it needs a fine-grained token and one `wrangler deploy` that only the account
-  holder can do.
+  **The clock is Cloudflare's now**, and the measurement settles it. Deployed
+  on 2026-08-29, the Worker in `tool/cron/` fired at `08:07:49` and `08:37:49`
+  — thirty minutes apart to the second, the same 49 s of lag both times, which
+  is what a real scheduler looks like. Against GitHub's own median of 49 min
+  and worst case of 12h14 that morning.
+
+  Two things that only showed up on the way in, both in `tool/cron/LEIA-ME.md`:
+  the account needs a `workers.dev` subdomain to exist before Cloudflare will
+  accept **any** trigger, cron included and `workers_dev = false`
+  notwithstanding (error `10063`, fixable by one API call and no dashboard);
+  and the fine-grained token expires, after which the Worker takes a 401 and
+  the site stops updating **silently** — the same symptom, a different cause,
+  and the first place to look.
+
+  GitHub's `schedule` stays in the workflow as a slow fallback, and
+  `gh workflow run publish.yml` is still the manual push.
 - **A failed deploy is usually GitHub, and `gh run rerun --failed` makes it
   worse.** On 2026-08-17 the collect, analyze, test and build steps all passed
   and `actions/deploy-pages` answered **503 — "No server is currently available"**;

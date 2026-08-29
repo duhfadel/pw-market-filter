@@ -37,6 +37,49 @@ e dispare o cron pelo painel da Cloudflare (Workers → portalpw-cron →
 Settings → Trigger Events → *Run*). Uma run nova tem que aparecer em
 `gh run list` com evento `workflow_dispatch`.
 
+## A pedra do caminho: o subdomínio
+
+O primeiro `wrangler deploy` sobe o script e **falha ao registrar o cron**:
+
+```
+✘ [ERROR] Trigger configuration for "portalpw-cron" was only partially updated:
+    Cron schedules:
+      - You need a workers.dev subdomain in order to proceed.  [code: 10063]
+```
+
+A conta precisa ter um subdomínio `workers.dev` antes de a Cloudflare aceitar
+**qualquer** gatilho — inclusive um cron, inclusive com `workers_dev = false`.
+Numa conta que nunca abriu a seção Workers, ele não existe.
+
+Resolvido em 29/08 pela API, sem abrir o painel:
+
+```
+curl -X PUT -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  --data '{"subdomain":"duhpicheth"}' \
+  https://api.cloudflare.com/client/v4/accounts/$CONTA/workers/subdomain
+```
+
+O `$TOKEN` é o `oauth_token` que o `wrangler login` grava em
+`~/Library/Preferences/.wrangler/config/default.toml`. Depois disso, repetir o
+deploy registra o cron.
+
+**Isso não expõe o Worker.** O subdomínio só precisa *existir* na conta; este
+Worker continua sem rota, e o cron segue sendo a única porta.
+
+## Quando o token expirar
+
+Ele é o único ponto que apodrece sozinho. No dia em que expirar, o Worker
+acorda, leva **401** e o site para de atualizar **em silêncio** — o mesmo
+sintoma que trouxe a gente até aqui, com outra causa. É o primeiro lugar a
+olhar se a coleta parar sem explicação, e o `wrangler tail` mostra o erro.
+
+Renovar é gerar outro token e repetir só o segredo; o deploy não precisa ser
+refeito:
+
+```
+npx wrangler secret put GITHUB_TOKEN
+```
+
 ## Depois que ele estiver de pé
 
 O cron do `publish.yml` vira **reserva**, não relógio principal. Sugestão:

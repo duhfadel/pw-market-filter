@@ -287,6 +287,27 @@ Each of these already cost something — measured on the live site, not guessed.
   `Connection refused` shows up, because that is the block's face and retrying
   through it only extends it. There is no fast mode to add later; a full pass
   is 779 pages and ~40 min, and that is the design.
+- **`schedule` is best effort, and on 2026-08-29 it was hours late, not
+  minutes.** The workflow asked for `*/20` and never once got twenty minutes:
+  measured over 26–29/08, the gap between scheduled runs grew from ~45 minutes
+  to two hours to ten, with one stretch of **12h15 without a run**. Nothing
+  failed and nothing was cancelled — GitHub simply did not fire it, and the
+  site sat five hours stale before anyone noticed.
+
+  What it is **not**: the repository is public, so Actions minutes are
+  unlimited; the workflow is `active`; the concurrency group cancels nothing
+  (a cancelled run would show as cancelled, and none did). It is GitHub
+  shedding load, and a busier cron is the first thing it sheds.
+
+  The cron now asks for thirty minutes at `:07` and `:37`, off the top of the
+  hour that GitHub names as its worst window. **Neither change is a
+  guarantee.** If the gaps stay in hours, the fix is not in that file — it is
+  an external cron calling `workflow_dispatch`, and the natural home is a
+  Cloudflare Worker, since the site is already behind Cloudflare and the token
+  would stay in the same hands as the domain.
+
+  `gh workflow run publish.yml` is the manual push when the market has gone
+  visibly stale.
 - **A failed deploy is usually GitHub, and `gh run rerun --failed` makes it
   worse.** On 2026-08-17 the collect, analyze, test and build steps all passed
   and `actions/deploy-pages` answered **503 — "No server is currently available"**;

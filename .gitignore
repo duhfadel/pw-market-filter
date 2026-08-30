@@ -57,3 +57,6 @@ web/market_index.json
 *.png
 !assets/icons/**/*.png
 !web/**/*.png
+
+# Cache local do wrangler — id da conta e artefatos de build do Worker
+tool/cron/.wrangler/

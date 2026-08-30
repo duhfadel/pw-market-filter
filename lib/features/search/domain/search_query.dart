@@ -1,4 +1,5 @@
 import '../../../market/celestial_realm.dart';
+import '../../../market/counted_items.dart';
 import '../../../market/market_index.dart';
 import 'item_criterion.dart';
 
@@ -37,10 +38,11 @@ enum ResultOrder {
 
   /// The two that read the character's own page rather than his gear.
   ///
-  /// [mostOwned] adds up the counted items that are **marked**, which is what
-  /// says which relic "mais relíquias" means — the market has three of them
-  /// and the order must not pick one on the visitor's behalf. It is offered
-  /// only while something is marked, for the same reason.
+  /// [mostOwned] adds the three relics, and the `Chave da Sorte` is not one of
+  /// them — it is a different kind of thing, and [relicNames] carries both the
+  /// player's reason and the measurement that agrees with him. It used to sum
+  /// whatever was **marked**, and to be offered only once something was, which
+  /// asked the visitor to jump a hoop for a question with one obvious meaning.
   mostAnecdotes('Mais anedotas'),
   mostOwned('Mais relíquias'),
 
@@ -62,7 +64,7 @@ enum ResultOrder {
     ResultOrder.mostAnecdotes => index.characters.any(
       (c) => c.anecdotes != null,
     ),
-    ResultOrder.mostOwned => query.shownOwned.isNotEmpty,
+    ResultOrder.mostOwned => relicNames.any(index.countedItems.containsKey),
     ResultOrder.highestRealm ||
     ResultOrder.lowestRealm => index.characters.any((c) => c.realm.isNotEmpty),
     _ => true,

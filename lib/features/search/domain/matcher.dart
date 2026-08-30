@@ -1,5 +1,6 @@
 import '../../../market/card_combos.dart';
 import '../../../market/celestial_realm.dart';
+import '../../../market/counted_items.dart';
 import '../../../market/market_index.dart';
 import 'item_criterion.dart';
 import 'search_query.dart';
@@ -30,7 +31,11 @@ List<MarketCharacter> runQuery(MarketIndex index, SearchQuery query) {
     ResultOrder.mostOwned => (a, b) => _byPrice(
       a,
       b,
-      _ownedTotal(index, query, b).compareTo(_ownedTotal(index, query, a)),
+      _countedTotal(
+        index,
+        relicNames,
+        b,
+      ).compareTo(_countedTotal(index, relicNames, a)),
     ),
     // Unread sinks to the bottom of **both** directions: -1 would float to the
     // top of "menor céu" and answer the question with the crawl's progress.
@@ -54,18 +59,18 @@ int _rung(MarketCharacter character, {int unread = -1}) =>
 int _byPrice(MarketCharacter a, MarketCharacter b, int primary) =>
     primary != 0 ? primary : a.price.compareTo(b.price);
 
-/// How many of the marked counted items a character carries, added up.
+/// How many of [names] a character carries, added up.
 ///
 /// `-1` when none of them was read, so a character whose page never loaded
 /// sits below one who was read and carries none. Zero is an answer; absent is
 /// not.
-int _ownedTotal(
+int _countedTotal(
   MarketIndex index,
-  SearchQuery query,
+  Set<String> names,
   MarketCharacter character,
 ) {
   var total = -1;
-  for (final name in query.shownOwned) {
+  for (final name in names) {
     final itemId = index.countedItems[name];
     if (itemId == null) continue;
     final count = character.counts[itemId];

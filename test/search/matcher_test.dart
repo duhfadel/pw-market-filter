@@ -77,6 +77,8 @@ final _index = MarketIndex(
   countedItems: const {
     'Relíquia Maravilha: Arma': 50410,
     'Relíquia Maravilha: Artefato': 54687,
+    'Relíquia Maravilha: Armadura': 70020,
+    'Chave da Sorte': 56274,
     'Harpia': 38587,
   },
 );
@@ -650,12 +652,13 @@ void main() {
       );
     });
 
-    test('most of the marked relics first, added across the marks', () {
-      // Marking is what says which relic "mais relíquias" means. Without it
-      // the order would have to pick one on the visitor's behalf.
+    test('relics are added across the three, whatever is marked', () {
+      // It used to sum only what the visitor had marked, and to be offered
+      // only once something was. The question has one obvious meaning, so the
+      // hoop went away.
       final index = MarketIndex(
         server: 'pw187',
-        collectedAt: DateTime.utc(2026, 8, 19),
+        collectedAt: DateTime.utc(2026, 8, 30),
         attributes: const [],
         items: const {},
         countedItems: const {
@@ -665,33 +668,15 @@ void main() {
         characters: [
           _character('Poucas', counts: const {50410: 2, 54687: 30}),
           _character('Muitas', counts: const {50410: 16, 54687: 0}),
-          _character('Antigo'),
         ],
       );
 
       expect(
         runQuery(
           index,
-          const SearchQuery(
-            order: ResultOrder.mostOwned,
-            shownOwned: {'Relíquia Maravilha: Arma'},
-          ),
+          const SearchQuery(order: ResultOrder.mostOwned),
         ).map((c) => c.name),
-        ['Muitas', 'Poucas', 'Antigo'],
-      );
-
-      expect(
-        runQuery(
-          index,
-          const SearchQuery(
-            order: ResultOrder.mostOwned,
-            shownOwned: {
-              'Relíquia Maravilha: Arma',
-              'Relíquia Maravilha: Artefato',
-            },
-          ),
-        ).map((c) => c.name),
-        ['Poucas', 'Muitas', 'Antigo'],
+        ['Poucas', 'Muitas'],
       );
     });
 
@@ -908,6 +893,89 @@ void main() {
           const SearchQuery(runes: RuneCriterion(minimumLevel: 7)),
         ),
         isFalse,
+      );
+    });
+  });
+
+  group('ordering by what a character hoards', () {
+    MarketIndex mercado(List<MarketCharacter> gente) => MarketIndex(
+      server: 'pw187',
+      collectedAt: DateTime.utc(2026, 8, 30),
+      attributes: const [],
+      items: const {},
+      countedItems: const {
+        'Relíquia Maravilha: Arma': 50410,
+        'Relíquia Maravilha: Artefato': 54687,
+        'Relíquia Maravilha: Armadura': 70020,
+        'Chave da Sorte': 56274,
+      },
+      characters: gente,
+    );
+
+    test('relics add the three, and the Chave never joins the sum', () {
+      // Measured on 2026-08-30: including it turned the ranking into a ranking
+      // of keys — the top five became people with 46 relics and 2982 keys,
+      // and the man with 290 relics fell out of it.
+      final index = mercado([
+        _character(
+          'Colecionador',
+          counts: const {50410: 100, 54687: 100, 70020: 90, 56274: 0},
+        ),
+        _character(
+          'Chaveiro',
+          counts: const {50410: 15, 54687: 15, 70020: 16, 56274: 2982},
+        ),
+      ]);
+
+      expect(
+        runQuery(
+          index,
+          const SearchQuery(order: ResultOrder.mostOwned),
+        ).map((c) => c.name),
+        ['Colecionador', 'Chaveiro'],
+      );
+    });
+
+    test('it is offered without anything being marked first', () {
+      // The old rule asked the visitor to mark a relic before it would sort by
+      // relics, which is a hoop for a question that has one obvious meaning.
+      final index = mercado([
+        _character('Alguém', counts: const {50410: 5}),
+      ]);
+
+      expect(
+        ResultOrder.mostOwned.offeredFor(index, const SearchQuery()),
+        isTrue,
+      );
+    });
+
+    test('a market that never counted them offers neither', () {
+      final index = MarketIndex(
+        server: 'pw187',
+        collectedAt: DateTime.utc(2026, 8, 30),
+        attributes: const [],
+        items: const {},
+        characters: [_character('Antigo')],
+      );
+
+      expect(
+        ResultOrder.mostOwned.offeredFor(index, const SearchQuery()),
+        isFalse,
+      );
+    });
+
+    test('a character never read sinks below one who carries none', () {
+      final index = mercado([
+        _character('Antigo'),
+        _character('Vazio', counts: const {50410: 0, 54687: 0, 70020: 0}),
+      ]);
+
+      expect(
+        runQuery(
+          index,
+          const SearchQuery(order: ResultOrder.mostOwned),
+        ).map((c) => c.name),
+        ['Vazio', 'Antigo'],
       );
     });
   });

@@ -46,6 +46,26 @@ const countedItemNames = <String>[
 /// `counted_items_test.dart` fails if they stop resolving.
 const countedItemIds = <String, int>{'Hércules': 37905, 'Harpia': 38587};
 
+/// The three that add up to one number. The `Chave da Sorte` is deliberately
+/// not among them.
+///
+/// **The player's reason is that it is not the same kind of thing**, and the
+/// market agrees with him twice over. Measured on 2026-08-30 across 996
+/// characters, the relics behave alike — 94–98% carry them, median 16 to 21,
+/// top around 120 — so their sum is a fair reading of how much somebody
+/// hoarded. The key is a different animal: 57% carry one, **half of those
+/// carry exactly one**, and the top reaches 2982. Adding it in stops the
+/// ranking being about relics at all: the top five became people with 46
+/// relics and 2982 keys, and the man with 290 relics fell out of it.
+///
+/// It still gets a checkbox, because printing how many somebody carries is a
+/// different job from ranking by it.
+const relicNames = <String>{
+  'Relíquia Maravilha: Artefato',
+  'Relíquia Maravilha: Arma',
+  'Relíquia Maravilha: Armadura',
+};
+
 /// The names a real page has been seen to print, character for character.
 ///
 /// The three relics are in `test/fixtures/detail_64112.html`, so one of them

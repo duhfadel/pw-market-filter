@@ -135,9 +135,8 @@ void main() {
     viewModel.setClass('Guerreiro');
     await tester.pumpAndSettle();
 
-    expect(
-      (viewModel.state as SearchReady).query.itemBySlot,
-      {weaponSlot: 50206},
-    );
+    expect((viewModel.state as SearchReady).query.itemBySlot, {
+      weaponSlot: 50206,
+    });
   });
 }

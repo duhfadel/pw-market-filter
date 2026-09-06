@@ -1,4 +1,5 @@
 import '../../../market/celestial_realm.dart';
+import '../../../market/counted_items.dart';
 import '../../../market/market_index.dart';
 import '../../../market/slot_names.dart';
 import 'item_criterion.dart';
@@ -27,7 +28,7 @@ class ActiveFilter {
 /// **Only filters.** Marking a relic or the anecdotes prints a number on the
 /// cards and narrows nothing, so it gets no chip — the same reason it stays
 /// out of `isEmpty` and out of the count of filters in force. Ordering is not
-/// a filter either.
+/// a filter either. A relic's *minimum* is, and it gets one.
 List<ActiveFilter> activeFilters(MarketIndex index, SearchQuery query) {
   final filters = <ActiveFilter>[];
 
@@ -76,6 +77,18 @@ List<ActiveFilter> activeFilters(MarketIndex index, SearchQuery query) {
     add(
       '${runes.minimum} runas$cor nível ${runes.minimumLevel}+',
       (q) => q.copyWith(runes: () => null),
+    );
+  }
+
+  for (final wanted in query.minimumOwned.entries) {
+    // The mark beside it gets no chip and this does, because they are not the
+    // same act: marking prints a number, a minimum takes people off the
+    // screen. Removing the minimum leaves the mark alone — the visitor asked
+    // to see the number, and stopping the filter is not asking to stop seeing
+    // it.
+    add(
+      '${shortCountedName(wanted.key)} · ${wanted.value} ou mais',
+      (q) => q.copyWith(minimumOwned: {...q.minimumOwned}..remove(wanted.key)),
     );
   }
 

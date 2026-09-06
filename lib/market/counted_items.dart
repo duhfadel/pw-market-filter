@@ -82,3 +82,17 @@ const confirmedCountedItems = <String>{
   'Relíquia Maravilha: Arma',
   'Relíquia Maravilha: Armadura',
 };
+
+/// The name a chip can carry.
+///
+/// The three relics differ only in their last word and a chip is capped at
+/// 190 px, so the full name followed by its number ellipsizes exactly where
+/// the difference lives — *Relíquia Maravilha: Arma · 31 ou…* names no relic
+/// and states no number. Dropping *Maravilha* keeps both the kind of thing and
+/// the word that tells the three apart.
+///
+/// It is not shortened to *Arma*: a criterion on the weapon slot already
+/// writes a chip beginning with that word, and the two would be one label for
+/// two different questions. Everywhere with room for it — the section, the
+/// card — still shows the name the game gives.
+String shortCountedName(String name) => name.replaceFirst('Maravilha: ', '');

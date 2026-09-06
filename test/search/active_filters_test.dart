@@ -105,6 +105,23 @@ void main() {
     expect(activeFilters(_index, query), isEmpty);
   });
 
+  test('a relic minimum is a filter, so it gets a chip that removes it', () {
+    // Unlike the mark beside it: this one takes people off the screen, and a
+    // section that is closed would hold it in force with nothing saying so.
+    const query = SearchQuery(
+      minimumOwned: {'Relíquia Maravilha: Arma': 30},
+      shownOwned: {'Relíquia Maravilha: Arma'},
+    );
+
+    final chip = activeFilters(_index, query).single;
+
+    // The name is shortened only where the chip's 190 px would ellipsize the
+    // word that says *which* relic — the number and that word both survive.
+    expect(chip.label, 'Relíquia Arma · 30 ou mais');
+    expect(chip.remove(query).minimumOwned, isEmpty);
+    expect(chip.remove(query).shownOwned, {'Relíquia Maravilha: Arma'});
+  });
+
   test('an item the index cannot name still gets a chip', () {
     // Otherwise a filter in force would have no way out, which is the whole
     // dead end this exists to close.

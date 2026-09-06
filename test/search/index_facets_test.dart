@@ -287,4 +287,64 @@ void main() {
       expect(facets.highestAnecdotes, 0);
     });
   });
+
+  group('the slider for a counted item', () {
+    MarketIndex mercado(List<int> contagens) => MarketIndex(
+      server: 'pw187',
+      collectedAt: DateTime.utc(2026, 9, 6),
+      attributes: const [],
+      items: const {},
+      countedItems: const {'Relíquia Maravilha: Arma': 50410},
+      characters: [
+        for (var i = 0; i < contagens.length; i++)
+          MarketCharacter(
+            roleId: i,
+            name: 'p$i',
+            characterClass: 'Guerreiro',
+            occupation: 1,
+            level: 105,
+            price: 100,
+            fame: 1,
+            cultivation: 'Leal',
+            equipped: const [],
+            counts: {50410: contagens[i]},
+          ),
+      ],
+    );
+
+    test('the track ends at the 95th percentile, not at the outlier', () {
+      // Ninety-nine people between 0 and 49, and one hoarder at 500. Ending
+      // the track at 500 would push every real choice into its first tenth.
+      final index = mercado([for (var i = 0; i < 99; i++) i % 50] + [500]);
+
+      final ceiling = IndexFacets(index).ceilingOwned(50410);
+      expect(ceiling, lessThan(100));
+      expect(ceiling, greaterThan(0));
+    });
+
+    test('a market where one person has any still gives a usable track', () {
+      // The percentile would be zero here, and a slider from 0 to 0 cannot be
+      // moved at all.
+      final index = mercado([0, 0, 0, 0, 7]);
+
+      expect(IndexFacets(index).ceilingOwned(50410), 7);
+    });
+
+    test('the count is what the choice costs, read from the scope', () {
+      final index = mercado([0, 5, 10, 30, 30, 40]);
+      final facets = IndexFacets(index);
+
+      expect(facets.carriersOwning(50410, 0), 6);
+      expect(facets.carriersOwning(50410, 10), 4);
+      expect(facets.carriersOwning(50410, 30), 3);
+      expect(facets.carriersOwning(50410, 41), 0);
+    });
+
+    test('an item nobody carries has no track and no carriers', () {
+      final index = mercado([0, 0, 0]);
+
+      expect(IndexFacets(index).ceilingOwned(99999), 0);
+      expect(IndexFacets(index).carriersOwning(99999, 1), 0);
+    });
+  });
 }

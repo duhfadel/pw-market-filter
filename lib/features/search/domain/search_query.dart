@@ -119,6 +119,7 @@ class SearchQuery {
     this.criteria = const [],
     this.minAnecdotes,
     this.shownOwned = const {},
+    this.minimumOwned = const {},
     this.anecdotesOnCard = false,
     this.pets = const {},
     this.minRealm,
@@ -158,6 +159,19 @@ class SearchQuery {
   /// How many anecdotes the character must have completed. It is the one
   /// number on the page that measures time spent rather than money spent.
   final int? minAnecdotes;
+
+  /// A counted item's **name** to the fewest of it a character may carry.
+  ///
+  /// Back after a week away, and the week taught what it is for. It was
+  /// removed because *Mais relíquias* seemed to answer the same question, and
+  /// it does not: ordering floats the rich to the top without removing anyone,
+  /// so combined with a class and a price the list still fills with people who
+  /// carry three. And the three relics do **not** move together — of the top
+  /// ten of each, only one name is in all three — so a minimum on the one you
+  /// care about reaches people the sum hides.
+  ///
+  /// A minimum of zero is not stored: it asks nothing.
+  final Map<String, int> minimumOwned;
 
   /// Counted items whose number the card should print.
   ///
@@ -232,6 +246,7 @@ class SearchQuery {
       criteria.isEmpty &&
       minAnecdotes == null &&
       pets.isEmpty &&
+      minimumOwned.isEmpty &&
       minRealm == null &&
       path == null &&
       runes == null;
@@ -266,7 +281,11 @@ class SearchQuery {
     FacetDimension.realm => copyWith(minRealm: () => null),
     FacetDimension.path => copyWith(path: () => null),
     FacetDimension.runes => copyWith(runes: () => null),
-    FacetDimension.owned => copyWith(shownOwned: const {}, pets: const {}),
+    FacetDimension.owned => copyWith(
+      shownOwned: const {},
+      minimumOwned: const {},
+      pets: const {},
+    ),
   };
 
   SearchQuery copyWith({
@@ -283,6 +302,7 @@ class SearchQuery {
     List<ItemCriterion>? criteria,
     int? Function()? minAnecdotes,
     Set<String>? shownOwned,
+    Map<String, int>? minimumOwned,
     bool? anecdotesOnCard,
     Set<String>? pets,
     int? Function()? minRealm,
@@ -305,6 +325,7 @@ class SearchQuery {
     criteria: criteria ?? this.criteria,
     minAnecdotes: minAnecdotes == null ? this.minAnecdotes : minAnecdotes(),
     shownOwned: shownOwned ?? this.shownOwned,
+    minimumOwned: minimumOwned ?? this.minimumOwned,
     anecdotesOnCard: anecdotesOnCard ?? this.anecdotesOnCard,
     pets: pets ?? this.pets,
     minRealm: minRealm == null ? this.minRealm : minRealm(),

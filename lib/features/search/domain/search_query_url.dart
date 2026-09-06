@@ -41,6 +41,7 @@ const _maxedParam = 'maximas';
 const _criterionParam = 'c';
 const _anecdoteParam = 'anedotas';
 const _shownParam = 'mostra';
+const _ownedParam = 'tem';
 
 /// What `mostra` calls the anecdotes, which are the one thing it can carry
 /// that is not a counted item. Reserved rather than given a parameter of its
@@ -103,6 +104,15 @@ String encodeQuery(SearchQuery query, [MarketIndex? index]) {
     ...query.shownOwned,
   ];
   if (shown.isNotEmpty) params[_shownParam] = shown;
+
+  // By name, like everything else that has to survive a collection: the id is
+  // this crawl's business, the name is the game's.
+  final owned = query.minimumOwned.entries.where((e) => e.value > 0);
+  if (owned.isNotEmpty) {
+    params[_ownedParam] = [
+      for (final entry in owned) '${entry.key}$_fieldSeparator${entry.value}',
+    ];
+  }
 
   if (query.pets.isNotEmpty) params[_petParam] = query.pets.toList();
   put(_pathParam, query.path);
@@ -221,6 +231,16 @@ SearchQuery decodeQuery(
     }
   }
 
+  final minimumOwned = <String, int>{};
+  for (final entry in params[_ownedParam] ?? const <String>[]) {
+    final separator = entry.lastIndexOf(_fieldSeparator);
+    if (separator <= 0) continue;
+    final name = entry.substring(0, separator).trim();
+    final minimum = int.tryParse(entry.substring(separator + 1));
+    if (name.isEmpty || minimum == null || minimum <= 0) continue;
+    minimumOwned[name] = minimum;
+  }
+
   final criteria = <ItemCriterion>[];
   for (final entry in params[_criterionParam] ?? const <String>[]) {
     final criterion = _decodeCriterion(entry, index);
@@ -240,6 +260,7 @@ SearchQuery decodeQuery(
     cardsMaxed: first(_maxedParam) == '1',
     minAnecdotes: int.tryParse(first(_anecdoteParam) ?? ''),
     shownOwned: shownOwned,
+    minimumOwned: minimumOwned,
     anecdotesOnCard: anecdotesOnCard,
     pets: pets,
     minRealm: minRealm,

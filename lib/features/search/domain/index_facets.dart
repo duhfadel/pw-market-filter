@@ -146,6 +146,39 @@ class IndexFacets {
     return most;
   }
 
+  /// Where the slider for a counted item should end.
+  ///
+  /// The 95th percentile of the whole market, **not** the maximum. Measured on
+  /// 2026-09-06: the relics top out around 130 while the median is 16 to 22,
+  /// so a track ending at the maximum spends its upper two thirds separating
+  /// 22% of the market from 0% — most of the gesture does nothing. Ending at
+  /// the 95th (47 to 60) puts a cut of 30 near the middle of the track, where
+  /// a thumb can reach it.
+  ///
+  /// Read from the whole index rather than the current scope, so the track
+  /// does not resize under the hand while the same slider is being dragged.
+  int ceilingOwned(int itemId) => _ceilingCache.putIfAbsent(itemId, () {
+    final counts = [for (final c in index.characters) c.counts[itemId] ?? 0]
+      ..sort();
+    if (counts.isEmpty) return 0;
+    final ceiling = counts[(counts.length * 95) ~/ 100];
+    // A market where almost nobody carries any would give a ceiling of zero,
+    // and a slider from 0 to 0 is a control that cannot be moved.
+    return ceiling < 1 ? counts.last : ceiling;
+  });
+
+  final _ceilingCache = <int, int>{};
+
+  /// How many in [scope] carry at least [minimum] of it — the number the
+  /// slider prints, so the gesture states its own consequence.
+  int carriersOwning(int itemId, int minimum) {
+    var found = 0;
+    for (final character in scope) {
+      if ((character.counts[itemId] ?? 0) >= minimum) found++;
+    }
+    return found;
+  }
+
   final _attributeCache = <int?, List<AttributeFacet>>{};
 
   /// Keyed by slot and class together — the same slot answers differently for

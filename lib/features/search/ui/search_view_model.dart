@@ -203,7 +203,35 @@ class SearchViewModel extends Cubit<SearchState> {
         ? ResultOrder.cheapest
         : query.order;
 
-    _apply(query.copyWith(shownOwned: shownOwned, order: order));
+    // Unmarking takes the minimum with it: the slider goes off the screen, and
+    // a filter in force with no control is the dead end the chips exist to
+    // close.
+    final minimumOwned = {...query.minimumOwned};
+    if (!shown) minimumOwned.remove(name);
+
+    _apply(
+      query.copyWith(
+        shownOwned: shownOwned,
+        minimumOwned: minimumOwned,
+        order: order,
+      ),
+    );
+  }
+
+  /// The fewest of [name] a character may carry, from the slider under the
+  /// mark.
+  ///
+  /// Zero is not stored. It is where the slider starts, and it is the answer
+  /// "I only wanted to see the number" — the mark's own meaning.
+  void setOwnedMinimum(String name, int minimum) {
+    final minimumOwned = {..._query!.minimumOwned};
+
+    if (minimum > 0) {
+      minimumOwned[name] = minimum;
+    } else {
+      minimumOwned.remove(name);
+    }
+    _apply(_query!.copyWith(minimumOwned: minimumOwned));
   }
 
   void setCultivation(String? value) =>

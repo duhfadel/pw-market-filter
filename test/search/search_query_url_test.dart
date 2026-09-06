@@ -241,6 +241,32 @@ void main() {
       expect(roundTrip(query).shownOwned, {'Chave da Sorte'});
     });
 
+    test('a relic minimum survives a round trip, by name', () {
+      const query = SearchQuery(
+        minimumOwned: {'Relíquia Maravilha: Artefato': 30},
+      );
+
+      expect(encodeQuery(query), contains('30'));
+      expect(roundTrip(query).minimumOwned, {
+        'Relíquia Maravilha: Artefato': 30,
+      });
+    });
+
+    test('a minimum of zero asks nothing and is not written', () {
+      const query = SearchQuery(minimumOwned: {'Chave da Sorte': 0});
+
+      expect(encodeQuery(query), isNot(contains('tem=')));
+      expect(roundTrip(query).minimumOwned, isEmpty);
+    });
+
+    test('a relic name carrying the separator survives', () {
+      // The names are split at the **last** separator, so the colon-and-space
+      // in "Relíquia Maravilha: Arma" is safe whatever the separator becomes.
+      const query = SearchQuery(minimumOwned: {'Relíquia Maravilha: Arma': 7});
+
+      expect(roundTrip(query).minimumOwned, {'Relíquia Maravilha: Arma': 7});
+    });
+
     test('a required pet survives a round trip', () {
       const query = SearchQuery(pets: {'Harpia', 'Hércules'});
 

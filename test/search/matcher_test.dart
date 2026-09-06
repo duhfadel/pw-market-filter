@@ -680,6 +680,56 @@ void main() {
       );
     });
 
+    test('a minimum on one relic keeps who clears it, and only that one', () {
+      // The three do not move together: of the top ten of each, one name is in
+      // all three. So a minimum on the artefact must not be answerable by a
+      // pile of weapons.
+      final index = MarketIndex(
+        server: 'pw187',
+        collectedAt: DateTime.utc(2026, 9, 6),
+        attributes: const [],
+        items: const {},
+        countedItems: const {
+          'Relíquia Maravilha: Arma': 50410,
+          'Relíquia Maravilha: Artefato': 54687,
+        },
+        characters: [
+          _character('Artefatos', counts: const {50410: 0, 54687: 40}),
+          _character('Armas', counts: const {50410: 90, 54687: 3}),
+        ],
+      );
+
+      expect(
+        runQuery(
+          index,
+          const SearchQuery(minimumOwned: {'Relíquia Maravilha: Artefato': 30}),
+        ).map((c) => c.name),
+        ['Artefatos'],
+      );
+    });
+
+    test('a relic this collection never met keeps nobody', () {
+      // The same call the pets make. Absent is not zero: answering "everybody"
+      // would put the whole market on screen under a filter nobody can see.
+      final index = MarketIndex(
+        server: 'pw187',
+        collectedAt: DateTime.utc(2026, 9, 6),
+        attributes: const [],
+        items: const {},
+        characters: [
+          _character('Qualquer', counts: const {50410: 90}),
+        ],
+      );
+
+      expect(
+        runQuery(
+          index,
+          const SearchQuery(minimumOwned: {'Relíquia Maravilha: Arma': 1}),
+        ),
+        isEmpty,
+      );
+    });
+
     test('a tie is broken by price, which is what the list is read for', () {
       final index = MarketIndex(
         server: 'pw187',

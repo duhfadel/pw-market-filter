@@ -98,16 +98,20 @@ void main() {
     }
   });
 
-  test('every combo offered has at least one wearer', () {
-    // A dropdown option that can only ever return nothing is worse than an
-    // absent one: it reads as "the market has none of these" when it means
-    // "this was never confirmed". Two candidates — Emissários and Mestres —
-    // are kept in the source and off the list for exactly this reason.
-    for (final combo in cardCombos) {
-      final wearers = runQuery(index, SearchQuery(comboName: combo.name));
-      expect(wearers, isNotEmpty, reason: combo.name);
-    }
-  });
+  // There is no test here that every combo has a wearer **today**, and the
+  // absence is deliberate. It was one, and on 2026-09-11 it stopped the site
+  // publishing for eight hours: *Corona* had exactly one owner in the market,
+  // he delisted at 02:07, and every run from then until it was noticed died
+  // green-collected and red-tested. The table had not changed — the market
+  // had.
+  //
+  // What the check was really for is still covered, twice over. An invented id
+  // is caught by *every card id in the table exists in the market*; a wrong
+  // **pair** of real ids — the Cidade das Espadas mistake — is caught by the
+  // collector, which prints the combos nobody wears at the end of a run, where
+  // a new entry showing up on its first run is unmistakably the table's fault.
+  // And a combo nobody wears no longer reaches a visitor at all: the dropdown
+  // offers what the market has, which is `combo_dropdown_test`.
 
   test('a character wearing five of six does not count as complete', () {
     final combo = cardCombos.first;

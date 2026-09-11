@@ -19,6 +19,7 @@ import 'package:pw_market_filter/collector/collected_page.dart';
 import 'package:pw_market_filter/collector/detail_parser.dart';
 import 'package:pw_market_filter/collector/index_builder.dart';
 import 'package:pw_market_filter/collector/listing_parser.dart';
+import 'package:pw_market_filter/market/card_combos.dart';
 import 'package:pw_market_filter/market/celestial_realm.dart';
 import 'package:pw_market_filter/market/counted_items.dart';
 
@@ -278,6 +279,33 @@ void _writeIndex(List<ListingCard> listing, _CollectState state) {
       id == null
           ? '  AVISO: "$name" não apareceu em nenhum inventário.'
           : '  "$name" = item $id',
+    );
+  }
+
+  // And which named combos nobody is wearing. Same job as the line above, and
+  // the same reason it is a line and not an assertion: `cardCombos` is written
+  // by hand from data, so a pair nobody wears is either a mistake in the table
+  // or a market where the one owner delisted — and on 2026-09-11 it was the
+  // second, which stopped the site publishing for eight hours.
+  //
+  // The two are told apart by *when* the line appears. A combo that has just
+  // been added and shows up here on its first run is a wrong pair; an old one
+  // that shows up is news about the market, and the dropdown drops it by
+  // itself.
+  final semDono = [
+    for (final combo in cardCombos)
+      if (!index.characters.any(
+        (c) => c.cards
+            .map((card) => card.cardId)
+            .toSet()
+            .containsAll(combo.cardIds),
+      ))
+        combo.name,
+  ];
+  if (semDono.isNotEmpty) {
+    stdout.writeln(
+      '  AVISO: combo(s) que ninguém está usando: ${semDono.join(', ')}. '
+      'Se algum acabou de entrar na tabela, o par está errado.',
     );
   }
 }

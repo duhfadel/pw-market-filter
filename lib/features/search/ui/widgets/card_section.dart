@@ -108,6 +108,22 @@ class _CardSectionState extends State<CardSection> {
             .length,
     };
 
+    // The table is written by hand and the market is not, so a combo can be
+    // real and have nobody selling it today — *Corona* had exactly one owner
+    // and he delisted. The list therefore offers what the market has, which is
+    // the rule every other control here already follows.
+    final byName = {for (final combo in cardCombos) combo.name: combo};
+    final offered = [
+      for (final combo in cardCombos)
+        if ((wearers[combo.name] ?? 0) > 0) combo.name,
+    ];
+    // Whatever is chosen stays on the list even when nobody wears it: a
+    // month-old link names a combo this collection has none of, and a
+    // DropdownButton whose value is absent from its own items throws. The same
+    // guard the class and item lists carry, reached by a different door — and
+    // a name from outside that no table knows still has to be removable.
+    if (value != null && !offered.contains(value)) offered.insert(0, value);
+
     return DropdownButtonFormField<String?>(
       initialValue: value,
       isExpanded: true,
@@ -116,44 +132,53 @@ class _CardSectionState extends State<CardSection> {
       dropdownColor: PWColors.surfaceRaised,
       selectedItemBuilder: (_) => [
         const Align(alignment: Alignment.centerLeft, child: Text('Qualquer')),
-        for (final combo in cardCombos)
-          Align(alignment: Alignment.centerLeft, child: Text(combo.name)),
+        for (final name in offered)
+          Align(alignment: Alignment.centerLeft, child: Text(name)),
       ],
       items: [
         const DropdownMenuItem(value: null, child: Text('Qualquer')),
-        for (final combo in cardCombos)
+        for (final name in offered)
           DropdownMenuItem(
-            value: combo.name,
-            child: Row(
-              children: [
-                for (final id in combo.cardIds.take(3)) ...[
-                  ItemIcon(id, size: 20),
-                  const SizedBox(width: 2),
-                ],
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(combo.name, overflow: TextOverflow.ellipsis),
-                      Text(
-                        '${combo.cardIds.length} cartas ${combo.rarity}'
-                        '  ·  ${wearers[combo.name]} personagens',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: PWColors.ok,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            value: name,
+            child: _comboEntry(byName[name], name, wearers[name] ?? 0),
           ),
       ],
       onChanged: viewModel.setCombo,
+    );
+  }
+
+  /// One row of the combo list: the art of its first cards, the name, and what
+  /// it costs in results.
+  ///
+  /// [combo] is null only for a name that came from outside and no table
+  /// knows — then there is nothing true to draw beside it, so the row is the
+  /// name alone rather than an invented picture.
+  Widget _comboEntry(CardCombo? combo, String name, int wearers) {
+    if (combo == null) return Text(name, overflow: TextOverflow.ellipsis);
+
+    return Row(
+      children: [
+        for (final id in combo.cardIds.take(3)) ...[
+          ItemIcon(id, size: 20),
+          const SizedBox(width: 2),
+        ],
+        const SizedBox(width: 6),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(name, overflow: TextOverflow.ellipsis),
+              Text(
+                '${combo.cardIds.length} cartas ${combo.rarity}'
+                '  ·  $wearers personagens',
+                style: const TextStyle(fontSize: 11, color: PWColors.ok),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

@@ -90,6 +90,39 @@ denuncia.
 Se você preferir depender só do Worker, apague o bloco `schedule` do workflow.
 `push` e `workflow_dispatch` continuam disparando.
 
+## O segundo modo de falha: a fila
+
+Em 13/09 o `schedule` não teve culpa nenhuma — o Worker disparou na hora, como
+sempre. A rodada das **04:07 UTC ficou 1h40 esperando uma máquina do GitHub**:
+sem runner, sem erro, sem nada vermelho, e o `githubstatus.com` dizendo *All
+Systems Operational* o tempo todo.
+
+O estrago vem do `concurrency: group: pages` do workflow, que é o certo a ter:
+só uma coleta por vez. A rodada travada segurou a vaga, as das 04:37 e 05:07
+foram canceladas ao chegar atrás dela, e o site ficou **duas horas** no mesmo
+índice. O conserto à mão foi matar o job morto — no segundo seguinte a rodada
+seguinte pegou máquina.
+
+E o pior número disso: **um job na fila só expira sozinho depois de 24 horas.**
+Sem alguém reparar, o site passaria um dia parado sem nenhuma run vermelha para
+denunciar.
+
+Por isso o Worker agora, **antes de pedir a próxima coleta**, cancela qualquer
+rodada que esteja na fila há mais de dez minutos (`destravarFila`). Três coisas
+que valem estar escritas:
+
+- **`in_progress` nunca é cancelado.** Uma coleta em andamento está
+  trabalhando, e uma recoleta inteira leva ~40 minutos por desenho. Quem a mata
+  quando trava de verdade é o `timeout-minutes: 75` do workflow.
+- **Dez minutos não pega ninguém são.** Uma coleta normal leva ~3 minutos e a
+  fila é instantânea quando há máquina. O que sobra acima de dez minutos é
+  rodada esperando em vão, ou rodada presa atrás de uma — e essa o GitHub ia
+  cancelar de qualquer jeito na próxima meia hora.
+- **Falhar ao ler a fila não cancela o disparo.** No pior caso a fila fica como
+  estava, que é exatamente o que acontecia antes deste bloco existir.
+
+O buraco máximo deixa de ser 24 horas e passa a ser trinta minutos.
+
 ## O que este Worker não faz
 
 **Não tem endereço público.** `workers_dev = false` no `wrangler.toml` é

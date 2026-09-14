@@ -6,7 +6,7 @@
 
   <title>Portal PW — fechado</title>
   <meta name="description"
-        content="O Portal PW está fechado. A equipe do The Classic respondeu que não tem interesse em parcerias externas, e sem autorização o site não continua.">
+        content="O Portal PW está fechado. A The Classic respondeu que não tem interesse em parcerias externas — e sozinho não dá para mudar isso. Se a ferramenta te ajudou, ajuda a pedir de volta.">
 
   <!-- O link é colado no Discord da comunidade, que é onde esta mensagem
        precisa chegar. Sem estas tags ele vira uma linha de texto ao lado de
@@ -22,7 +22,7 @@
   <meta property="og:url" content="https://portalpw.net/">
   <meta property="og:title" content="O Portal PW está fechado">
   <meta property="og:description"
-        content="Um mês de tickets pedindo uma parceria ao The Classic, e a resposta foi que não há interesse. Sem autorização, o site não continua.">
+        content="Um mês de tickets pedindo uma parceria, e a resposta foi que não há interesse. Sozinho não dá para mudar isso — se o Portal te ajudou, ajuda a pedir de volta.">
   <meta property="og:image" content="https://portalpw.net/og-v2.jpg">
   <meta name="twitter:card" content="summary_large_image">
 
@@ -88,6 +88,22 @@
 
     blockquote p { margin: 0; }
 
+    /* O contato é a única coisa nesta página que o leitor precisa levar
+       embora, então ele não pode ser mais um parágrafo. Fonte de código de
+       propósito: é um nome para copiar exatamente como está. */
+    .contato {
+      padding: 14px 18px;
+      background: var(--superficie);
+      border: 1px solid var(--borda);
+      border-left: 3px solid var(--destaque);
+      border-radius: 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 16px;
+      user-select: all;
+    }
+
+    .contato strong { color: var(--destaque); }
+
     .assinatura {
       margin-top: 36px;
       color: var(--apagado);
@@ -107,8 +123,9 @@
     <h1>O Portal PW está fechado.</h1>
 
     <p>Pessoal, ao longo do último mês abri vários tickets com a equipe do
-      The Classic pedindo uma parceria para manter este site. Nenhum teve
-      resposta. Hoje, um mês depois do primeiro, abri mais um — e veio esta:</p>
+      The Classic pedindo uma parceria para manter
+      este site. Nenhum teve resposta. Hoje, um mês depois do primeiro, abri
+      mais um, e veio esta:</p>
 
     <figure>
       <!-- Em 390 px o print (1490 de largura) encolhe para um borrão, e ele é
@@ -132,15 +149,26 @@
         Agradecemos a compreensão e tenha uma boa semana.</p>
     </blockquote>
 
-    <p>Então o site fica fechado. Não tenho forças para resolver isso sozinho,
-      e enquanto não puder fazer as coisas de forma legal, não me parece certo
-      continuar.</p>
+    <p>Então o site fica fechado. <strong>Sozinho eu não consigo mudar essa
+      resposta</strong>, e enquanto não puder fazer as coisas de forma legal,
+      não me parece certo continuar.</p>
 
-    <p>Se a comunidade quiser me ajudar a destravar isso, eu reabro com o maior
-      prazer — e com mais conteúdo do que tinha antes.</p>
+    <p>Se o Portal te ajudou a achar um personagem, comparar um preço ou
+      entender uma carta, o que faz diferença agora é a The Classic ouvir isso
+      de vocês, e não só de mim. Um ticket educado dizendo que a ferramenta era
+      útil e que vocês gostariam de vê-la de volta pesa mais do que tudo que eu
+      escreva sozinho.</p>
 
-    <p>Obrigado pelas quase mil visitas que o site recebeu sem que eu tivesse
-      nem conseguido divulgá-lo direito.</p>
+    <p>E se você quiser ajudar de perto — falar com quem decide, levar o
+      assunto adiante ou construir junto — me chama:</p>
+
+    <p class="contato">Discord: <strong>duh3972</strong></p>
+
+    <p>Estou à disposição. No dia em que houver um sim, o site volta no mesmo
+      dia — e com mais coisa do que tinha antes.</p>
+
+    <p>Obrigado pelas quase mil visitas que ele recebeu sem que eu tivesse nem
+      conseguido divulgá-lo direito.</p>
 
     <p class="assinatura">— Duh</p>
 

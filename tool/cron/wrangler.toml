@@ -7,8 +7,16 @@ compatibility_date = "2026-08-29"
 # para quem soubesse a URL, e cada coleta são ~1000 requisições ao marketplace.
 workers_dev = false
 
-# :07 e :37, os mesmos minutos que o workflow pede ao GitHub, fora do topo da
-# hora. Se este Worker virar o relógio de verdade, o cron de lá pode cair para
-# algo raro — ver o LEIA-ME.
+# **Desligado em 14/09/2026, junto com o fechamento do site.** Este Worker
+# existia para pedir a coleta de meia em meia hora; sem site publicado não há
+# o que coletar, e continuar varrendo o marketplace do The Classic depois de
+# ouvir que não há interesse em parceria seria dizer uma coisa na home e fazer
+# outra.
+#
+# A lista vazia é deliberada e é o que a Cloudflare aceita para remover o
+# gatilho num deploy — apagar o bloco inteiro **mantém** o cron que já está
+# registrado na conta. O código fica, e reabrir é devolver esta linha:
+#
+#     crons = ["7,37 * * * *"]
 [triggers]
-crons = ["7,37 * * * *"]
+crons = []

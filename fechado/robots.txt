@@ -1,0 +1,5 @@
+# O site está fechado e a única página é esta. O sitemap antigo listava os
+# guias, que não estão mais publicados — um sitemap apontando para 404 é pior
+# que nenhum, então ele saiu junto.
+User-agent: *
+Allow: /

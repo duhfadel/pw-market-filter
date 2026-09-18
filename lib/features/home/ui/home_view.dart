@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/pw_colors.dart';
 import '../../../core/theme/pw_theme.dart';
@@ -9,6 +12,8 @@ import '../../search/ui/search_view_model.dart';
 import '../domain/tool.dart';
 import '../domain/visit_label.dart';
 import 'visit_counter_view_model.dart';
+import '../domain/community.dart';
+import 'widgets/home_notice.dart';
 import 'widgets/market_pulse.dart';
 import 'widgets/tool_card.dart';
 
@@ -139,6 +144,8 @@ class HomeView extends StatelessWidget {
                     ),
                     SizedBox(height: large ? 38 : (wide ? 30 : 22)),
                     _Menu(wide: wide),
+                    SizedBox(height: wide ? 28 : 22),
+                    HomeNotice(wide: wide),
                     const AdSlot(),
                     SizedBox(height: wide ? 28 : 22),
                     const _Footer(),
@@ -312,6 +319,25 @@ class _Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     children: [
+      // The invite outlives the notice above it. That panel is about a
+      // reopening and will come down one day; the community's room is not
+      // news, it is part of the site, so it lives where the permanent things
+      // live.
+      TextButton.icon(
+        onPressed: () => unawaited(
+          launchUrl(
+            Uri.parse(discordInvite),
+            mode: LaunchMode.externalApplication,
+          ),
+        ),
+        icon: const Icon(Icons.forum_outlined, size: 16),
+        label: const Text('Discord do Portal PW'),
+        style: TextButton.styleFrom(
+          foregroundColor: PWColors.accent,
+          textStyle: const TextStyle(fontSize: 13),
+        ),
+      ),
+      const SizedBox(height: 6),
       const Text(
         'Projeto de fã, sem vínculo com o The Classic Games. Lê apenas páginas '
         'públicas do marketplace.',

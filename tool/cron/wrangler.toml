@@ -7,12 +7,20 @@ compatibility_date = "2026-08-29"
 # para quem soubesse a URL, e cada coleta são ~1000 requisições ao marketplace.
 workers_dev = false
 
-# :07 e :37, os mesmos minutos que o workflow pede ao GitHub, fora do topo da
-# hora. Se este Worker virar o relógio de verdade, o cron de lá pode cair para
-# algo raro — ver o LEIA-ME.
+# Dois gatilhos, e a separação é o ponto.
 #
-# Esteve em `crons = []` entre 14 e 18/09, enquanto o site ficou fechado. Se
-# for preciso fechar de novo, é essa linha que volta a ficar vazia — e o
-# `fechado/` continua no repositório, pronto.
+# `7,37` é a coleta: :07 e :37, os mesmos minutos que o workflow pede ao
+# GitHub, fora do topo da hora. **É esta linha que vai a `[]` quando o site
+# fecha** — foi o que se fez entre 14 e 18/09.
+#
+# `13 4` é o Supabase, e existe por causa do que aquele fechamento provou: com
+# o site fora do ar ninguém visita, ninguém chama o banco, e o projeto do plano
+# gratuito é pausado depois de 7 dias parado. O aviso chegou no quarto dia. Se
+# o ping morasse dentro da coleta, ele teria morrido junto com ela, justo
+# quando é mais necessário — o mapa e o contador precisam estar lá quando o
+# site voltar. Então ele tem gatilho próprio e **não se mexe nele ao fechar**.
+#
+# Uma vez por dia contra um limite de sete é folga de sobra; o que importa é
+# que a última chamada bem-sucedida nunca fique a mais de uma semana.
 [triggers]
-crons = ["7,37 * * * *"]
+crons = ["7,37 * * * *", "13 4 * * *"]

@@ -15,6 +15,19 @@
 const REPO = 'duhfadel/pw-market-filter';
 const WORKFLOW = 'publish.yml';
 
+// O cron da coleta. O outro, o do Supabase, é qualquer coisa que não seja
+// este — comparar contra o que acorda o Worker é o que separa as duas tarefas.
+const CRON_DA_COLETA = '7,37 * * * *';
+
+// O banco que guarda o contador de visitas e os donos dos territórios.
+//
+// A chave é a publicável, a mesma que já está compilada no bundle de todo
+// visitante — não é segredo e não tem por que virar um. Quem segura a porta é
+// o RLS: `visit_days` não tem policy nenhuma, então leitura e escrita diretas
+// são negadas, e as duas funções `security definer` são a única entrada.
+const SUPABASE = 'https://yadfbwsolmkcaylbxviw.supabase.co/rest/v1';
+const SUPABASE_KEY = 'sb_publishable_D2hgezeh5BbZVpt_QLeXwg_FowKweu2';
+
 // Uma rodada parada na fila por mais tempo que isto está travada, não ocupada.
 // Uma coleta normal leva ~3 minutos; a fila do GitHub é instantânea quando há
 // máquina. Dez minutos é folgado o bastante para nunca pegar uma rodada sã e
@@ -28,6 +41,13 @@ const NA_FILA = new Set(['queued', 'pending', 'waiting', 'requested']);
 
 export default {
   async scheduled(event, env, ctx) {
+    // Dois gatilhos, duas tarefas. O do Supabase não dispara coleta nenhuma:
+    // ele existe justamente para os períodos em que não há coleta.
+    if (event.cron !== CRON_DA_COLETA) {
+      await manterOBancoAcordado();
+      return;
+    }
+
     await destravarFila(env);
 
     const resposta = await github(
@@ -92,6 +112,39 @@ async function destravarFila(env) {
         `${Math.round(parada / 60000)} min: cancelamento ${cancelamento.status}`,
     );
   }
+}
+
+// Uma chamada por dia ao Supabase, para o projeto não ser pausado.
+//
+// O plano gratuito pausa depois de 7 dias sem atividade, e a atividade vinha
+// inteira dos visitantes: o site ficou quatro dias fechado em setembro e o
+// aviso de pausa chegou. Pausado, some o contador e some o mapa — 52
+// territórios, guildas e brasões — recuperáveis por 90 dias e não além.
+//
+// É `register_visit` por decisão do dono, ciente do custo: a chamada **soma
+// uma visita por dia** ao contador, uns 365 por ano. `visit_total` faria o
+// mesmo serviço sem escrever nada, e trocar é uma palavra aqui.
+async function manterOBancoAcordado() {
+  const resposta = await fetch(`${SUPABASE}/rpc/register_visit`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: '{}',
+  });
+
+  if (!resposta.ok) {
+    // Cai no `wrangler tail`. Uma falha isolada não é urgência — há sete dias
+    // de folga contra o limite —, mas sete falhas seguidas e em silêncio são
+    // exatamente como o projeto seria pausado sem ninguém ver.
+    console.error(
+      `ping do Supabase recusado: ${resposta.status} ${await resposta.text()}`,
+    );
+    return;
+  }
+  console.log(`Supabase acordado; total de visitas: ${await resposta.text()}`);
 }
 
 function github(env, caminho, method = 'GET', body) {

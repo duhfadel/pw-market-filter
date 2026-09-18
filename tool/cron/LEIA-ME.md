@@ -123,6 +123,37 @@ que valem estar escritas:
 
 O buraco máximo deixa de ser 24 horas e passa a ser trinta minutos.
 
+## O terceiro trabalho: manter o Supabase acordado
+
+O contador do rodapé e os donos dos territórios vivem num projeto Supabase do
+plano gratuito, **que é pausado depois de 7 dias sem atividade**. A atividade
+vinha inteira dos visitantes — e em setembro o site ficou quatro dias fechado,
+ninguém visitou, e o aviso de pausa chegou por e-mail no quarto dia.
+
+Pausado, some o contador e some o mapa: 52 territórios, guildas e brasões.
+Despausar pelo painel funciona por 90 dias; passado isso, só resta baixar os
+dados.
+
+Por isso o Worker tem **um segundo gatilho, `13 4 * * *`**, que chama
+`register_visit()` uma vez por dia. Três coisas que valem estar escritas:
+
+- **Ele é um gatilho separado de propósito.** Se o ping morasse dentro da
+  coleta, ele iria a zero junto com ela no dia em que o site fechasse — que é
+  exatamente quando ele mais importa. Ao fechar o site, mexe-se só no
+  `7,37 * * * *`.
+- **É `register_visit` por decisão do dono, ciente do custo:** soma uma visita
+  por dia ao contador, uns 365 por ano. `visit_total()` faria o mesmo serviço
+  sem escrever nada, e trocar é uma palavra no `worker.js`.
+- **Uma vez por dia contra um limite de sete é folga de sobra.** O que não
+  pode é a última chamada bem-sucedida passar de uma semana, então sete falhas
+  seguidas e em silêncio são o cenário a temer — elas aparecem no
+  `wrangler tail`.
+
+O roteamento entre os dois gatilhos é por `event.cron`, e foi provado antes de
+subir com `wrangler dev --test-scheduled` e uma cópia do Worker com a chamada
+ao GitHub trocada por um log: o cron da coleta não tocou no Supabase, e o do
+Supabase não tocou no GitHub.
+
 ## O que este Worker não faz
 
 **Não tem endereço público.** `workers_dev = false` no `wrangler.toml` é

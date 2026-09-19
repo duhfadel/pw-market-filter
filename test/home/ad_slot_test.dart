@@ -45,16 +45,25 @@ void main() {
   testWidgets('with nobody buying it, the space offers itself', (tester) async {
     await _pump(tester, const AdConfig(active: true));
 
-    expect(find.textContaining('Quer anunciar neste espaço'), findsOneWidget);
+    expect(find.textContaining('Discord do Portal PW'), findsOneWidget);
   });
 
-  testWidgets('the address is linked, never printed', (tester) async {
-    // A visible address is an address a spam harvester copies. What the
-    // visitor reads is an instruction; the mailto carries the rest.
+  testWidgets('the house ad still names what the space is for', (tester) async {
+    // It points at the community now, and the space is still for sale: the
+    // sponsor who would have written to the old address has to see that this
+    // door is theirs too, or the slot quietly stops looking for one.
+    await _pump(tester, const AdConfig(active: true));
+
+    expect(find.textContaining('parcerias'), findsOneWidget);
+  });
+
+  testWidgets('no address is printed on screen', (tester) async {
+    // A visible address is an address a spam harvester copies. It used to be a
+    // mailto behind "clique aqui"; the rule outlives it, because whatever goes
+    // in this space next must not put one in the open either.
     await _pump(tester, const AdConfig(active: true));
 
     expect(find.textContaining('@'), findsNothing);
-    expect(find.textContaining('Clique aqui'), findsOneWidget);
   });
 
   testWidgets('the compact slot is shorter than the full one', (tester) async {

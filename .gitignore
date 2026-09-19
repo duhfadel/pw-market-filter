@@ -61,6 +61,10 @@ web/market_index.json
 !assets/icons/**/*.png
 !web/**/*.png
 !fechado/**/*.png
+# Uma pasta de assets guarda assets: um .png aqui é para ser publicado. A regra
+# larga acima é para print de sessão, e já engoliu em silêncio duas imagens que
+# alguém quis comitar.
+!assets/images/**/*.png
 
 # Cache local do wrangler — id da conta e artefatos de build do Worker
 tool/cron/.wrangler/

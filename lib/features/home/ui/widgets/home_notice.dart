@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/brand_icon.dart';
+import '../../../../core/widgets/game_icon.dart';
 import '../../domain/community.dart';
 
 /// The body of the first news entry: the word from whoever made the site.
@@ -61,6 +62,11 @@ class HomeNotice extends StatelessWidget {
         // The one word on this line somebody has to copy into the game, so
         // it carries the weight the rest of the sentence does not.
         destaque: 'duhit',
+        // The game's own Emoticon de Tigre (26640), not the Unicode 🐯. The
+        // emoji renders through whatever the browser falls back to, so it is
+        // a different drawing on every machine and belongs to none of them;
+        // this one is the picture the player already knows from the chat.
+        selo: 26640,
       ),
       const _Ask(
         icone: Icon(Icons.lightbulb_outline, size: 17, color: PWColors.accent),
@@ -106,6 +112,7 @@ class _Ask extends StatelessWidget {
     required this.titulo,
     required this.texto,
     this.destaque,
+    this.selo,
   });
 
   /// A widget and not an `IconData`, because one of the four is a brand mask
@@ -117,6 +124,10 @@ class _Ask extends StatelessWidget {
   /// Closes the line in bold, for a value the reader has to take away — a
   /// nickname to type into the game is not prose.
   final String? destaque;
+
+  /// Item id drawn inline right after [destaque], the size of the text around
+  /// it.
+  final int? selo;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -146,6 +157,17 @@ class _Ask extends StatelessWidget {
                     style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       color: PWColors.accent,
+                    ),
+                  ),
+                if (selo != null)
+                  // A `WidgetSpan` and not a second `TextSpan`: the art is an
+                  // image, and it has to sit on the line's baseline like a
+                  // word rather than float above it.
+                  WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: ItemIcon(selo!, size: 17),
                     ),
                   ),
                 if (destaque != null) const TextSpan(text: '.'),

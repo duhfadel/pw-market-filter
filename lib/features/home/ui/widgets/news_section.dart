@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/pw_colors.dart';
+import '../../../../core/widgets/game_icon.dart';
 import '../../domain/news.dart';
 
 /// The front page's news, newest first.
@@ -78,8 +79,26 @@ class _NewsSectionState extends State<NewsSection> {
       ),
       child: Row(
         children: [
-          const Icon(Icons.campaign_outlined, size: 18, color: PWColors.accent),
-          const SizedBox(width: 9),
+          // The game's own Alto-Falante (item 12979), not a Material
+          // megaphone — the same choice the filter's section headers make, and
+          // for the same reason: a picture of the thing beats a glyph meaning
+          // "some section".
+          //
+          // On a raised chip at 28 px because it is a 32 px sprite carrying
+          // its own busy background: loose on the page and shrunk past about
+          // 22 it reads as a dark smudge, with no edge to say where the
+          // picture stops.
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: PWColors.surfaceRaised,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: const ItemIcon(12979, size: 28),
+          ),
+          const SizedBox(width: 10),
           const Text(
             'NOVIDADES',
             style: TextStyle(

@@ -130,14 +130,24 @@ so.
 A `registros` table in Supabase, read by the browser on load:
 
 ```
-aba text, ordem int, nome text, paginas int,
+aba text, ordem int, nome text, paginas int, sem_dados bool,
 atk_f int, atk_m int, def_f int, def_m int, acerto int, esquiva int, hp int
 ```
 
-`null` in an attribute means *not recorded*, and is not the same as `0`, which
-would mean *recorded as giving none*. The screen prints the first as an
-absence and the second as a zero — the same distinction `counts` already makes
-in the market index.
+**Zero is a number and not a gap.** A recipe that reads `Atk F +3, Acerto +6`
+gives no Def M, and saying so as `0` is the truth — the spreadsheet lists what
+a recipe gives, so everything it omits is a genuine nought.
+
+What zero cannot carry is the other case. Twenty-five recipes have no bonus
+text at all, and a row of zeros there would have the site **assert** that
+marriage grants nothing when the honest answer is that nobody has checked.
+That is one fact about the whole recipe, not seven facts about its attributes,
+so it is one column: `sem_dados`. The panel prints *ainda sem informação*
+instead of a rank of noughts, and clearing the flag is what a filled-in row
+looks like.
+
+It also makes the gaps countable, which is what turns them into a worklist
+rather than into silence.
 
 **Read open, write closed**, like `territorios`: a `select` policy for `anon`
 and no insert, update or delete policy at all. Fixing a value is editing a row
@@ -175,7 +185,10 @@ refuses to run against a non-empty table rather than duplicating rows.
 
 - The parser, against the real strings, including the lowercase, the stray full
   stop, the space inside `+ 29`, and HP. It reports what it cannot read.
-- `null` versus `0` survives the round trip and draws differently.
+- `sem_dados` versus a real zero draws differently: *ainda sem informação*
+  against `0`, never the same row.
+- An attribute a recipe does not grant is stored and drawn as `0`, because the
+  spreadsheet's omission is a statement, not a gap.
 - The grid keeps the game's order and its eight-wide shape, including the tabs
   whose last row is short.
 - A tab whose recipes are all without bonuses still draws its slots.

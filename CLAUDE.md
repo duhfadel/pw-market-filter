@@ -49,7 +49,7 @@ Flutter web + Bloc + GetIt, fed by an offline index that a Dart CLI collects.
 | Screen | criteria form, filtered cards, empty and stale states | **Done** |
 | First visit | front page, preset chips, phone filters, shareable link, preview | **Done** |
 | Anedotas e itens | progresso, contagem de relíquias e chaves, no índice e na tela | **Done, awaiting the collection** |
-| Registros | a janela do NPC, 126 receitas do Supabase, filtro por atributo | **Done** |
+| Registros | a janela do NPC, 126 receitas do Supabase, filtro por atributo | **Done, não anunciado** |
 
 The first full collection ran on 2026-08-09: 770 characters, no failures, 538
 distinct items, 101 attributes, 1.0 MB of index. All fourteen slots are named.
@@ -302,6 +302,11 @@ honesty of the screen: zero means *does not grant this*, which is true because
 the sheet lists what each recipe gives, so an omission is a real nought. A row
 of zeros on an unread recipe would have the site **assert** that marriage
 grants nothing, which nobody checked. One fact about the recipe, one column.
+
+**It is published and not announced.** `/registros` works and no card on the
+front page leads to it — the same state `/guerras/` was in: shown to a few
+people before it goes public. Linking the card is the gesture that announces
+it, and the commented-out `Tool` in `tool.dart` is the one line to uncomment.
 
 The grid is eight slots wide because the game's is — Área 1 and Área 2 are
 exactly 32, four rows of eight — and `ordem` exists so slot 1 is slot 1. The

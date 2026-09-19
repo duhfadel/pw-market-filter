@@ -5,6 +5,7 @@ import 'core/di/injection.dart';
 import 'core/theme/pw_theme.dart';
 import 'features/home/ui/home_view.dart';
 import 'features/home/ui/visit_counter_view_model.dart';
+import 'features/registros/ui/registros_view.dart';
 import 'features/search/ui/search_view.dart';
 import 'features/search/ui/search_view_model.dart';
 
@@ -44,6 +45,7 @@ class PortalPWApp extends StatelessWidget {
         settings: settings,
         builder: (_) => switch (route.path) {
           '/filtro' => SearchView(arriving: route.queryParametersAll),
+          '/registros' => const RegistrosView(),
           _ => const HomeView(),
         },
       );

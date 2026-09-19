@@ -68,3 +68,10 @@ web/market_index.json
 
 # Cache local do wrangler — id da conta e artefatos de build do Worker
 tool/cron/.wrangler/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example

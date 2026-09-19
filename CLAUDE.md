@@ -1,32 +1,30 @@
 # Portal PW
 
-> ## O site está fechado desde 14/09/2026
+> ## Fechado entre 14 e 18/09/2026, e reaberto
 >
-> Depois de um mês de tickets sem resposta, o suporte do The Classic respondeu
-> que **não tem interesse em parcerias externas**. Sem autorização, o dono do
-> projeto decidiu fechar: `portalpw.net` serve uma única página estática com a
-> mensagem e o print da resposta, em `fechado/`.
+> Depois de um mês de tickets, o suporte do The Classic respondeu que não tem
+> interesse em parcerias externas, e o site foi fechado: o `portalpw.net`
+> passou quatro dias servindo uma única página estática com a resposta. Em
+> 18/09 veio a segunda resposta, num ticket novo, e ela é a que vale:
+> **"Não iremos impedir ou bloquear as criações realizadas. No entanto, não
+> podemos nos responsabilizar por quaisquer problemas, perdas ou
+> eventualidades que possam ocorrer em decorrência delas."**
 >
-> O que foi desligado, e onde:
+> Não é parceria e não é aval — é permissão para existir, e é sob ela que o
+> site voltou ao ar. Qualquer texto do site que arredonde isso para "autorizado
+> pela The Classic" é mentira e custa o projeto.
 >
-> - `.github/workflows/publish.yml` — sem `schedule`, sem coleta, sem build.
->   Publica `fechado/` e mais nada, e copia a mesma página para `404.html` para
->   que todo link antigo (`/filtro`, `/guias`, `/guerras`) leia a mensagem.
-> - `tool/cron/wrangler.toml` — `crons = []`, e o deploy já foi feito: a
->   Cloudflare confirma zero gatilhos registrados. O Worker nunca mais acorda.
-> - `web/market_index.json` **deixou de ser publicado**. Bloquear a página e
->   continuar servindo 3 MB do mercado deles seria fechar a porta e deixar a
->   janela aberta.
+> **A pasta `fechado/` continua aqui, pronta.** Fechar de novo é publicá-la no
+> lugar de `build/web` no `publish.yml` e zerar `crons` no
+> `tool/cron/wrangler.toml` — os dois estão comentados dizendo isso. Foi o que
+> se fez em 14/09, e tirar o `market_index.json` do ar faz parte: bloquear a
+> página e continuar servindo 3 MB do mercado deles seria fechar a porta e
+> deixar a janela aberta.
 >
-> **Nada foi apagado.** Tudo o que está descrito abaixo continua no
-> repositório e continua verdadeiro sobre o código. Reabrir é desfazer o commit
-> que fechou, e devolver `crons = ["7,37 * * * *"]` com um `npx wrangler
-> deploy`. Reabrir custa também uma coleta cheia (~40 min): o cache do estado
-> no GitHub expira depois de sete dias sem uso.
->
-> Enquanto isso valer, **não rode o coletor.** Ele faz ~1000 requisições ao
-> site do The Classic, e é exatamente o que a mensagem na home diz que parou.
-
+> Uma armadilha que só apareceu no fechamento e vale para sempre: **os
+> artefatos de build do Actions carregam o `market_index.json` inteiro** e,
+> num repositório público, qualquer um baixa. Eles expiram em um dia; se o
+> site fechar de novo, apague-os na hora.
 
 A hub of tools for The Classic PW 1.8.7. One exists so far — the **Market
 Filter** — and `lib/features/home/domain/tool.dart` is the menu: a tool with a

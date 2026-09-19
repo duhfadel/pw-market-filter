@@ -49,6 +49,7 @@ Flutter web + Bloc + GetIt, fed by an offline index that a Dart CLI collects.
 | Screen | criteria form, filtered cards, empty and stale states | **Done** |
 | First visit | front page, preset chips, phone filters, shareable link, preview | **Done** |
 | Anedotas e itens | progresso, contagem de relíquias e chaves, no índice e na tela | **Done, awaiting the collection** |
+| Registros | a janela do NPC, 126 receitas do Supabase, filtro por atributo | **Done** |
 
 The first full collection ran on 2026-08-09: 770 characters, no failures, 538
 distinct items, 101 attributes, 1.0 MB of index. All fourteen slots are named.
@@ -141,6 +142,7 @@ both legendary pets and has renamed both).
 | `dart run tool/fetch_icons.dart` | Downloads class and item icons named by the index; skips what is already on disk |
 | `dart run tool/build_fixture_index.dart` | Builds an index from the saved fixtures — no network, for working on the screen |
 | `python3 tool/mapa/pagina.py` | Rebuilds both pages of `web/guerras/` from the map's SVG and the models in `tool/mapa/` |
+| `python3 tool/registros/semear.py` | Reads the registries spreadsheet and writes the SQL that seeds the table — one-off, already run |
 | `gh workflow run publish.yml` | Collects and publishes now, when the schedule has gone quiet |
 | `flutter run -d chrome` | Runs the app |
 | `flutter test` | Runs every test |
@@ -195,7 +197,7 @@ which a static site cannot compute, and the territory map's owners, which
 change weekly and must not cost a deploy. Both live in a Supabase project
 called `portal-pw` (`yadfbwsolmkcaylbxviw`, São Paulo).
 
-Four tables and a view, and **the two halves are opposite on purpose**, which is the part
+Five tables and a view, and **the two halves are opposite on purpose**, which is the part
 to read before changing either.
 
 #### The counter: RLS with no policy
@@ -276,6 +278,35 @@ characters an HTML escaper replaces, so it would travel intact into the `href`.
 also turns away `data:`, `vbscript:`, `file:`, leading whitespace and mixed
 case. A streamer that fails is dropped rather than pointed at `#`: a dead link
 promises a broadcast that does not exist.
+
+#### The registries: the same read-open, write-closed arrangement
+
+`registros (aba, ordem, nome, paginas, sem_dados, + seven attribute columns)`
+holds the 126 recipes of the *Registros de Assimilação* NPC, and it is in the
+database for the map's reason rather than the counter's: twenty-seven of them
+have no bonus recorded, and they will be filled in one at a time over months.
+Bundled in the app, each correction would be a commit, a CI run and a deploy
+for one number.
+
+**The numbers exist nowhere else.** The chain in the game is
+`Página de Registro: Assimilação` → `Registro: <lugar>` → nine or so titles →
+the stats, and `pwdatabase.theclassic.games` indexes **items, not titles** —
+searching `Mestre Desbravador` there answers *"Nenhum item encontrado"*. So
+the source is a spreadsheet somebody typed, and the tool is only ever as
+complete as that. `tool/registros/semear.py` is the one-off load and stays
+versioned so it is reproducible; after it ran, the spreadsheet is out of the
+loop and the table is the source. Editing both is how they diverge in silence.
+
+`sem_dados` is a column and not seven nulls, and the distinction is the whole
+honesty of the screen: zero means *does not grant this*, which is true because
+the sheet lists what each recipe gives, so an omission is a real nought. A row
+of zeros on an unread recipe would have the site **assert** that marriage
+grants nothing, which nobody checked. One fact about the recipe, one column.
+
+The grid is eight slots wide because the game's is — Área 1 and Área 2 are
+exactly 32, four rows of eight — and `ordem` exists so slot 1 is slot 1. The
+filter **dims** rather than removes, because a player is matching the page
+against the window on their own screen and removing slots would reflow it.
 
 `guildas.brasao` holds a **file name**, not an image. The art lives in
 `web/guerras/icones/` and ships in the deploy; the row says which file to use.

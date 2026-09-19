@@ -95,6 +95,16 @@ const tools = <Tool>[
     // andam juntos; fazer um só deixa o site incoerente consigo mesmo.
     art: 'assets/images/barbaro.webp',
   ),
+  Tool(
+    name: 'Registros de Assimilação',
+    tagline:
+        'O que cada receita do NPC dá, e quanto custa em páginas — o jogo '
+        'mostra 32 ícones iguais e não soma nada.',
+    icon: Icons.menu_book_outlined,
+    // A própria Página de Registro: Assimilação, que é a moeda da mecânica.
+    emblem: 83070,
+    route: '/registros',
+  ),
   // The guides are listed one by one rather than behind a single "read the
   // guides" card. There is one written, so this is one card — and that is the
   // point: a card that leads to a list of one is a click spent on nothing, and

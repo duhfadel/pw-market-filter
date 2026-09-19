@@ -6,12 +6,20 @@ import '../../domain/registro_filter.dart';
 
 /// Which attributes matter, as seven toggles.
 ///
+/// **A toggle that would empty the grid is disabled rather than hidden.** The
+/// filter is an *and*, so ticking two is a real narrowing, and free choice
+/// over an and walks somebody to zero results with no hint which tick did it.
+/// Disabled and not gone, because a vanishing control is a control the
+/// visitor cannot reason about: greyed out says *nothing here grants both*,
+/// which is an answer.
+///
 /// The long name and not `Atk F`: there is room here, and the short form is
 /// jargon to somebody who has not opened the NPC's window yet. The grid uses
 /// the short one, where the room is the constraint.
 class AtributoFiltros extends StatelessWidget {
   const AtributoFiltros({
     required this.query,
+    required this.disponiveis,
     required this.acesos,
     required this.total,
     required this.aoAlternar,
@@ -20,6 +28,9 @@ class AtributoFiltros extends StatelessWidget {
   });
 
   final RegistroQuery query;
+
+  /// What can still be ticked. Everything else greys out.
+  final Set<RegistroAtributo> disponiveis;
 
   /// How many slots the filter lights, and out of how many. Without it a
   /// filter that lights nothing looks like a broken grid instead of an answer
@@ -68,6 +79,7 @@ class AtributoFiltros extends StatelessWidget {
             _Toggle(
               rotulo: atributo.longo,
               ligado: query.atributos.contains(atributo),
+              possivel: disponiveis.contains(atributo),
               aoTocar: () => aoAlternar(atributo),
             ),
         ],
@@ -89,28 +101,35 @@ class _Toggle extends StatelessWidget {
   const _Toggle({
     required this.rotulo,
     required this.ligado,
+    required this.possivel,
     required this.aoTocar,
   });
 
   final String rotulo;
   final bool ligado;
+  final bool possivel;
   final VoidCallback aoTocar;
 
   @override
-  Widget build(BuildContext context) => Material(
-    color: ligado ? PWColors.accent : PWColors.surfaceRaised,
-    borderRadius: BorderRadius.circular(16),
-    child: InkWell(
+  Widget build(BuildContext context) => Opacity(
+    opacity: possivel ? 1 : 0.32,
+    child: Material(
+      color: ligado ? PWColors.accent : PWColors.surfaceRaised,
       borderRadius: BorderRadius.circular(16),
-      onTap: aoTocar,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
-        child: Text(
-          rotulo,
-          style: TextStyle(
-            fontSize: 12.5,
-            color: ligado ? PWColors.background : PWColors.textMuted,
-            fontWeight: ligado ? FontWeight.w700 : FontWeight.w400,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        // Null and not a no-op: the ripple has to stay quiet too, or the
+        // control looks alive and simply does nothing.
+        onTap: possivel ? aoTocar : null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+          child: Text(
+            rotulo,
+            style: TextStyle(
+              fontSize: 12.5,
+              color: ligado ? PWColors.background : PWColors.textMuted,
+              fontWeight: ligado ? FontWeight.w700 : FontWeight.w400,
+            ),
           ),
         ),
       ),

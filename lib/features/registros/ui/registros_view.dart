@@ -121,8 +121,9 @@ class _Pronto extends StatelessWidget {
             const SizedBox(height: 16),
             AtributoFiltros(
               query: state.query,
+              disponiveis: state.disponiveis,
               acesos: state.acesos,
-              total: state.grade.length,
+              total: state.daAba.length,
               aoAlternar: vm.alternarAtributo,
               aoLimpar: vm.limparAtributos,
             ),
@@ -136,11 +137,6 @@ class _Pronto extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             RegistroPanel(registro: state.selecionado),
-            const SizedBox(height: 14),
-            _Ordenacao(
-              ligado: state.query.porAproveitamento,
-              aoTrocar: vm.ordenarPorAproveitamento,
-            ),
             if (state.semDados > 0) ...[
               const SizedBox(height: 10),
               _Lacunas(quantas: state.semDados),
@@ -220,33 +216,6 @@ class _Aba extends StatelessWidget {
           ),
         ),
       ),
-    ),
-  );
-}
-
-/// The one control that breaks the grid's fidelity, and says so.
-class _Ordenacao extends StatelessWidget {
-  const _Ordenacao({required this.ligado, required this.aoTrocar});
-
-  final bool ligado;
-  final void Function(bool) aoTrocar;
-
-  @override
-  Widget build(BuildContext context) => CheckboxListTile(
-    value: ligado,
-    onChanged: (v) => aoTrocar(v ?? false),
-    dense: true,
-    contentPadding: EdgeInsets.zero,
-    controlAffinity: ListTileControlAffinity.leading,
-    activeColor: PWColors.accent,
-    checkColor: PWColors.background,
-    title: const Text(
-      'Ordenar por aproveitamento',
-      style: TextStyle(fontSize: 13),
-    ),
-    subtitle: const Text(
-      'Sai da ordem do NPC e põe a melhor troca primeiro.',
-      style: TextStyle(color: PWColors.textMuted, fontSize: 12),
     ),
   );
 }

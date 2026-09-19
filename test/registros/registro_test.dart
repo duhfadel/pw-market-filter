@@ -90,53 +90,7 @@ void main() {
     });
   });
 
-  group('what the numbers add up to', () {
-    test('the total is every point it grants', () {
-      final r = _registro(
-        pontos: const {
-          RegistroAtributo.atkF: 15,
-          RegistroAtributo.atkM: 25,
-          RegistroAtributo.defF: 39,
-          RegistroAtributo.defM: 39,
-        },
-      );
-
-      expect(r.total, 118);
-    });
-
-    test('points per page is the reading the game never offers', () {
-      final caro = _registro(
-        paginas: 100,
-        pontos: const {RegistroAtributo.hp: 90},
-      );
-      final barato = _registro(
-        paginas: 1,
-        pontos: const {RegistroAtributo.atkF: 118},
-      );
-
-      expect(caro.porPagina, 0.9);
-      expect(barato.porPagina, 118);
-    });
-
-    test(
-      'with no page count there is no rate, rather than a division by zero',
-      () {
-        expect(
-          _registro(
-            paginas: null,
-            pontos: const {RegistroAtributo.atkF: 5},
-          ).porPagina,
-          isNull,
-        );
-      },
-    );
-
-    test('an unchecked recipe has no rate even though its total is zero', () {
-      // Otherwise it would sort as the worst trade in the game, which is a
-      // claim about a recipe nobody has read.
-      expect(_registro(semDados: true).porPagina, isNull);
-    });
-  });
+  layout();
 
   group('the grid', () {
     test('slots keep the order the NPC shows, never alphabetical', () {
@@ -167,6 +121,42 @@ void main() {
       final tudo = [_registro(aba: 'Pescaria'), _registro(aba: 'Área 1')];
 
       expect(abasDe(tudo), ['Área 1', 'Pescaria']);
+    });
+  });
+}
+
+/// The slot layout, which the game does not fill in sequence.
+///
+/// Coletar has sixteen recipes and draws them 8, 2, 6 — so slots 11 to 16 of
+/// row two are empty and row three starts at slot 17. Reading `ordem` as "the
+/// nth recipe" put every icon after the eighth in the wrong place.
+void layout() {
+  group('slots and gaps', () {
+    test('a tab that fills every slot needs as many rows as it needs', () {
+      expect(linhasDaGrade([1, 2, 3, 4, 5, 6, 7, 8]), 1);
+      expect(linhasDaGrade([1, 8, 9]), 2);
+      expect(linhasDaGrade(List.generate(32, (i) => i + 1)), 4);
+    });
+
+    test('an empty last row is not drawn', () {
+      // The game shows four rows always. Drawing a row of nothing is fidelity
+      // to a frame rather than to the layout, and on a phone it is a screen of
+      // nothing.
+      expect(linhasDaGrade([1, 2, 9, 10, 17, 18]), 3);
+    });
+
+    test('a gap is a slot nobody claims, not a shifted neighbour', () {
+      // Coletar: 8, 2, 6.
+      final ocupados = [
+        ...List.generate(8, (i) => i + 1),
+        9,
+        10,
+        ...List.generate(6, (i) => 17 + i),
+      ];
+
+      expect(linhasDaGrade(ocupados), 3);
+      expect(ocupados, isNot(contains(11)));
+      expect(ocupados.last, 22);
     });
   });
 }

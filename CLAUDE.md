@@ -303,13 +303,42 @@ the sheet lists what each recipe gives, so an omission is a real nought. A row
 of zeros on an unread recipe would have the site **assert** that marriage
 grants nothing, which nobody checked. One fact about the recipe, one column.
 
+**The filter is an *and*, and every toggle that would empty the grid is
+disabled.** It was an *or* at first and that read backwards — ticking a second
+box lit *more* slots. An and is the question somebody building a character
+asks, and it only works with the facets: free choice over an and is how a form
+walks somebody to zero results with no hint which tick did it. What is already
+ticked stays enabled, or the box that emptied the grid becomes the one box
+nobody can untick.
+
+**The panel shows the attributes and the page cost, and nothing derived.** A
+bare sum and a points-per-page rate were there and both went, on the owner's
+call, along with an ordering by that rate. He is right about what they were:
+adding Atk F to Esquiva makes a number that is not a quantity of anything, so
+the sum said less than the chips already said, and said it with false
+precision. The ordering also broke the grid by construction, since anything
+that moves a slot stops it being the window. The idea is parked, not refuted.
+
 **It is published and not announced.** `/registros` works and no card on the
 front page leads to it — the same state `/guerras/` was in: shown to a few
 people before it goes public. Linking the card is the gesture that announces
 it, and the commented-out `Tool` in `tool.dart` is the one line to uncomment.
 
-The grid is eight slots wide because the game's is — Área 1 and Área 2 are
-exactly 32, four rows of eight — and `ordem` exists so slot 1 is slot 1. The
+The grid is eight slots wide because the game's is, and **`ordem` is the slot
+number rather than the nth recipe** — which is not a nicety. The NPC breaks a
+row when a group ends: Coletar draws 8, 2 and 6 with slots 11 to 16 empty, and
+Avançado skips an entire row. Filled left to right, every icon after the first
+row sits where it is not in the game, and nothing on screen says so — it took
+a photo of the window beside the page to see it. A gap is a slot number nobody
+claims, and the empty frame is drawn, because it is what holds the icons after
+it in place. The layouts live in `LINHAS_POR_ABA` in the seeder, counted off
+the photos; a tab that is not listed fills in sequence, which is still a guess
+for Casal.
+
+Moving all 126 into their real slots needed **two passes in one transaction** —
+everything to negative first, then to the final number. `unique (aba, ordem)`
+collides mid-flight otherwise: putting a recipe in slot 17 hits whoever has
+not left it yet. The
 filter **dims** rather than removes, because a player is matching the page
 against the window on their own screen and removing slots would reflow it.
 

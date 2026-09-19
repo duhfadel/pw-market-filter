@@ -11,6 +11,7 @@ class Tool {
     required this.name,
     required this.tagline,
     required this.icon,
+    this.emblem,
     this.route,
     this.href,
     this.art,
@@ -24,6 +25,15 @@ class Tool {
   final String tagline;
 
   final IconData icon;
+
+  /// Item id whose art stands for the tool, drawn in place of [icon].
+  ///
+  /// The game's own picture beats a Material glyph for the same reason the
+  /// filter's section headers use one: a card is scanned before it is read,
+  /// and `Icons.travel_explore` says "search" where a gold coin says *this is
+  /// about what things cost*. [icon] stays required as the fallback — an art
+  /// file that was never fetched must leave a card whole, not empty.
+  final int? emblem;
 
   /// A screen inside the app. `null` while the tool is still an idea, or when
   /// it lives at [href] instead.
@@ -67,6 +77,8 @@ const tools = <Tool>[
     // people who run that site are the audience here, not the competition.
     tagline: 'Busque seu próximo personagem por arma, cartas e atributos.',
     icon: Icons.travel_explore,
+    // Moeda de Ouro. The filter is about price as much as about gear.
+    emblem: 39873,
     route: '/filtro',
     art: 'assets/images/espiritualista.webp',
   ),
@@ -93,6 +105,8 @@ const tools = <Tool>[
         'Como ganhar nível: as quests vermelhas, o Vale da Fênix e as '
         'Anedotas.',
     icon: Icons.auto_stories_outlined,
+    // Pedra de Hiper EXP, which is what the guide is about: levelling fast.
+    emblem: 27424,
     href: '/guias/inicio-rapido',
     art: 'assets/images/guia-inicio-rapido.webp',
     // A landscape, not a portrait: it wants its middle.

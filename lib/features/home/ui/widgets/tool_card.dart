@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/pw_colors.dart';
+import '../../../../core/widgets/game_icon.dart';
 import '../../../../core/theme/pw_theme.dart';
 import '../../domain/tool.dart';
 
@@ -148,11 +149,19 @@ class _Body extends StatelessWidget {
               color: PWColors.surfaceRaised,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              tool.icon,
-              color: ready ? PWColors.accent : PWColors.textMuted,
-              size: 21,
-            ),
+            clipBehavior: Clip.antiAlias,
+            // The art fills the chip rather than sitting small inside it: a
+            // 32 px sprite carries its own busy background, and shrunk past
+            // about 22 it reads as a dark smudge with no edge saying where
+            // the picture stops. A glyph, having no background, wants the
+            // opposite — room around it.
+            child: tool.emblem != null
+                ? ItemIcon(tool.emblem!, size: 40)
+                : Icon(
+                    tool.icon,
+                    color: ready ? PWColors.accent : PWColors.textMuted,
+                    size: 21,
+                  ),
           ),
           const SizedBox(width: 12),
           Expanded(

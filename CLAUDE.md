@@ -313,6 +313,15 @@ exactly 32, four rows of eight — and `ordem` exists so slot 1 is slot 1. The
 filter **dims** rather than removes, because a player is matching the page
 against the window on their own screen and removing slots would reflow it.
 
+**Eight columns on a phone too, and dropping to four was the wrong call.** The
+reasoning for four was tap size: at 390 px a slot lands near 40 px, under the
+44 px a target wants. What it traded away was worth more. At eight the whole
+tab — all thirty-two — sits on one screen without scrolling, which is what the
+game shows and what makes the grid scannable at a glance; at four it was eight
+rows with half below the fold. The name under each slot takes the tap as well,
+so the real target is bigger than the icon. What shrinks on a narrow screen is
+the gaps and the type, never the number of columns.
+
 `guildas.brasao` holds a **file name**, not an image. The art lives in
 `web/guerras/icones/` and ships in the deploy; the row says which file to use.
 So changing a guild's crest stays a dashboard edit and only *adding* new art

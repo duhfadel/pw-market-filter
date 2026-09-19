@@ -21,11 +21,9 @@ import 'widgets/slot_grid.dart';
 class RegistrosView extends StatelessWidget {
   const RegistrosView({super.key});
 
-  /// Below this the grid drops to fewer columns: eight slots across a phone
-  /// would each be smaller than a fingertip, and a grid nobody can tap is
-  /// worse than a grid that does not match the game exactly.
-  static const _larguraDeOito = 720.0;
-  static const _larguraDeSeis = 520.0;
+  /// Below this the slots get tighter — but never fewer. Eight columns is the
+  /// game's window, and matching it is the point.
+  static const _telaEstreita = 620.0;
 
   @override
   Widget build(BuildContext context) => BlocProvider(
@@ -40,11 +38,7 @@ class _Tela extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final largura = MediaQuery.sizeOf(context).width;
-    final colunas = largura >= RegistrosView._larguraDeOito
-        ? 8
-        : largura >= RegistrosView._larguraDeSeis
-        ? 6
-        : 4;
+    final compacto = largura < RegistrosView._telaEstreita;
 
     return Scaffold(
       appBar: AppBar(
@@ -59,7 +53,7 @@ class _Tela extends StatelessWidget {
             child: CircularProgressIndicator(color: PWColors.accent),
           ),
           RegistrosUnreadable(:final detail) => _Falha(detail: detail),
-          RegistrosReady() => _Pronto(state: state, colunas: colunas),
+          RegistrosReady() => _Pronto(state: state, compacto: compacto),
         },
       ),
     );
@@ -101,10 +95,10 @@ class _Falha extends StatelessWidget {
 }
 
 class _Pronto extends StatelessWidget {
-  const _Pronto({required this.state, required this.colunas});
+  const _Pronto({required this.state, required this.compacto});
 
   final RegistrosReady state;
-  final int colunas;
+  final bool compacto;
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +108,12 @@ class _Pronto extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 900),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+          padding: EdgeInsets.fromLTRB(
+            compacto ? 10 : 16,
+            8,
+            compacto ? 10 : 16,
+            28,
+          ),
           children: [
             const _Explicacao(),
             const SizedBox(height: 18),
@@ -133,7 +132,7 @@ class _Pronto extends StatelessWidget {
               query: state.query,
               selecionado: state.selecionado,
               aoTocar: vm.selecionar,
-              colunas: colunas,
+              compacto: compacto,
             ),
             const SizedBox(height: 16),
             RegistroPanel(registro: state.selecionado),

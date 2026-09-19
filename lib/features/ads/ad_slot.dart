@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/theme/pw_colors.dart';
+import '../../core/widgets/brand_icon.dart';
+import '../home/domain/community.dart';
 
 /// The one place a paid banner can appear, and everything about it.
 ///
@@ -45,16 +47,17 @@ const adConfig = AdConfig(active: true, title: 'Publicidade');
 
 /// Where the house ad sends someone who wants to advertise.
 ///
-/// An address and not a Discord profile: a profile link opens nothing for
-/// somebody who shares no server with you, which is most of the people this
-/// space is meant to reach.
-const houseAdLink = 'mailto:$adEmail';
-
-/// The address behind the link. It is deliberately not printed on screen: what
-/// the visitor reads is "clique aqui", so a scraper harvesting visible text
-/// finds nothing to harvest, and the line stops being an address the eye has
-/// to parse before it knows what to do.
-const adEmail = 'duhspain@gmail.com';
+/// The server's invite, not an address. It used to be a `mailto:`, on the
+/// reasoning that a Discord link opens nothing for somebody who shares no
+/// server with you — true of a *profile*, and false of an invite, which is a
+/// public door anyone can walk through. The site now has one, so the same
+/// click that reaches the community reaches the person who sells the space.
+///
+/// It also retires a trap that cost an afternoon: Cloudflare rewrites every
+/// `mailto:` into `/cdn-cgi/l/email-protection#<token>` with a token that
+/// changes on every response, so the served bytes never match the build and
+/// the usual md5 check on a deploy reads as "it never arrived".
+const houseAdLink = discordInvite;
 
 /// A banner, or nothing at all.
 ///
@@ -150,21 +153,33 @@ class _HouseAd extends StatelessWidget {
       border: Border.all(color: PWColors.border),
     ),
     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-    child: const Text.rich(
-      TextSpan(
-        children: [
-          TextSpan(text: 'Quer anunciar neste espaço? '),
-          TextSpan(
-            text: 'Clique aqui',
-            style: TextStyle(
-              color: PWColors.accent,
-              fontWeight: FontWeight.w600,
+    // Two offers in one line, because the space has two jobs while nobody has
+    // bought it: find the next sponsor, and find the next player. Both end at
+    // the same door now, so neither costs the other a click.
+    child: const Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DiscordIcon(size: 17, color: PWColors.accent),
+        SizedBox(width: 10),
+        Flexible(
+          child: Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: 'Entre no Discord do Portal PW',
+                  style: TextStyle(
+                    color: PWColors.accent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                TextSpan(text: '  ·  novidades, ideias e parcerias'),
+              ],
             ),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: PWColors.textMuted, fontSize: 13),
           ),
-        ],
-      ),
-      textAlign: TextAlign.center,
-      style: TextStyle(color: PWColors.textMuted, fontSize: 13),
+        ),
+      ],
     ),
   );
 }

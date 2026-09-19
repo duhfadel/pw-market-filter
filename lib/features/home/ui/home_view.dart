@@ -13,7 +13,10 @@ import '../domain/tool.dart';
 import '../domain/visit_label.dart';
 import 'visit_counter_view_model.dart';
 import '../domain/community.dart';
-import 'widgets/home_notice.dart';
+import '../domain/news.dart';
+import '../../../core/widgets/brand_icon.dart';
+import 'widgets/discord_strip.dart';
+import 'widgets/news_section.dart';
 import 'widgets/market_pulse.dart';
 import 'widgets/tool_card.dart';
 
@@ -56,7 +59,18 @@ class HomeView extends StatelessWidget {
             child: IgnorePointer(child: _Aurora()),
           ),
           SafeArea(
-            child: Center(
+            // Centred across, pinned to the **top** down the page. It used to
+            // be a plain `Center`, from when the front page was a logo, a
+            // headline and three cards: short enough that sitting in the
+            // middle of the window looked composed rather than adrift.
+            //
+            // The page has grown since — figures, the news panel — and on a
+            // tall window the same rule opened a screen and a half of empty
+            // sky above the logo before anything was readable. Vertical
+            // centring is a rule about short pages, and this one stopped being
+            // one.
+            child: Align(
+              alignment: Alignment.topCenter,
               child: ConstrainedBox(
                 // 1040 and not 900 at the top step, and the reason is one line of
                 // type: at 900 the headline broke with "usando" alone on a second
@@ -74,6 +88,8 @@ class HomeView extends StatelessWidget {
                     vertical: wide ? 44 : 28,
                   ),
                   children: [
+                    DiscordStrip(wide: wide),
+                    SizedBox(height: wide ? 10 : 6),
                     Center(
                       child: Image.asset(
                         'assets/images/portal-pw-logo-v2.webp',
@@ -142,10 +158,10 @@ class HomeView extends StatelessWidget {
                         large: large,
                       ),
                     ),
-                    SizedBox(height: large ? 38 : (wide ? 30 : 22)),
+                    SizedBox(height: large ? 32 : (wide ? 26 : 20)),
+                    NewsSection(entries: portalNews, wide: wide),
+                    SizedBox(height: large ? 32 : (wide ? 26 : 20)),
                     _Menu(wide: wide),
-                    SizedBox(height: wide ? 28 : 22),
-                    HomeNotice(wide: wide),
                     const AdSlot(),
                     SizedBox(height: wide ? 28 : 22),
                     const _Footer(),
@@ -319,25 +335,6 @@ class _Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      // The invite outlives the notice above it. That panel is about a
-      // reopening and will come down one day; the community's room is not
-      // news, it is part of the site, so it lives where the permanent things
-      // live.
-      TextButton.icon(
-        onPressed: () => unawaited(
-          launchUrl(
-            Uri.parse(discordInvite),
-            mode: LaunchMode.externalApplication,
-          ),
-        ),
-        icon: const Icon(Icons.forum_outlined, size: 16),
-        label: const Text('Discord do Portal PW'),
-        style: TextButton.styleFrom(
-          foregroundColor: PWColors.accent,
-          textStyle: const TextStyle(fontSize: 13),
-        ),
-      ),
-      const SizedBox(height: 6),
       const Text(
         'Projeto de fã, sem vínculo com o The Classic Games. Lê apenas páginas '
         'públicas do marketplace.',
@@ -345,6 +342,27 @@ class _Footer extends StatelessWidget {
         style: TextStyle(color: PWColors.textMuted, fontSize: 12, height: 1.5),
       ),
       const _VisitCount(),
+      // The mark alone, in the corner. The invitation is spelled out three
+      // times higher up the page; a fourth would be nagging. What a footer
+      // icon is for is the visitor who has already decided and is looking for
+      // the door — and it carries a tooltip and a semantic label, because a
+      // lone glyph with no words is exactly the thing a screen reader cannot
+      // guess.
+      Align(
+        alignment: Alignment.centerRight,
+        child: IconButton(
+          onPressed: () => unawaited(
+            launchUrl(
+              Uri.parse(discordInvite),
+              mode: LaunchMode.externalApplication,
+            ),
+          ),
+          tooltip: 'Discord do Portal PW',
+          icon: const DiscordIcon(size: 19, color: PWColors.textMuted),
+          padding: const EdgeInsets.all(10),
+          constraints: const BoxConstraints(),
+        ),
+      ),
     ],
   );
 }

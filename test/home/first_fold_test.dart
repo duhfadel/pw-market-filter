@@ -54,6 +54,17 @@ final _index = MarketIndex(
 
 /// Pumps the front page and records every route it asks for.
 Future<List<String>> _pumpHome(WidgetTester tester) async {
+  // Taller than the default 800×600, and the reason is the harness rather than
+  // the page: in `flutter_test` every glyph is a square of the font size, so
+  // the front page measures far taller here than in any browser. At 600 the
+  // figures landed at y=604 and `tap` refused them as off-screen — a failure
+  // about the test window, not about the layout. What these tests are for is
+  // that a figure carries its own search; the window must not be the thing
+  // under test.
+  tester.view.physicalSize = const Size(1100, 1400);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+
   final pushed = <String>[];
   final client = MockClient(
     (_) async =>

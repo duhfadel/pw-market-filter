@@ -39,17 +39,29 @@ void main() {
       expect(atende(comAtaque, so), isFalse);
     });
 
-    test('two attributes mean either, never both at once', () {
-      // An "and" would answer a question nobody asked: somebody after evasion
-      // wants what grants it, not what grants it *together with* the other
-      // box they happened to tick.
+    test('two attributes mean both, and narrow instead of widening', () {
+      // An "or" widens: ticking a second box would light *more* slots, which
+      // reads as the filter going backwards. Both is what somebody building a
+      // character asks — "which of these gives me evasion *and* attack".
       const dois = RegistroQuery(
         aba: 'Área 1',
         atributos: {RegistroAtributo.esquiva, RegistroAtributo.atkF},
       );
 
-      expect(atende(comEsquiva, dois), isTrue);
-      expect(atende(comAtaque, dois), isTrue);
+      expect(atende(comEsquiva, dois), isFalse);
+      expect(atende(comAtaque, dois), isFalse);
+      expect(
+        atende(
+          _r(
+            pontos: const {
+              RegistroAtributo.esquiva: 6,
+              RegistroAtributo.atkF: 3,
+            },
+          ),
+          dois,
+        ),
+        isTrue,
+      );
     });
 
     test('a recipe nobody checked is lit by nothing', () {
@@ -76,23 +88,6 @@ void main() {
       expect(paraGrade(tudo, query).map((r) => r.ordem), [1, 2, 3]);
     });
 
-    test('by value it is the best trade first', () {
-      const query = RegistroQuery(aba: 'Área 1', porAproveitamento: true);
-
-      // 118 por página, 10, e 0,9 por último.
-      expect(paraGrade(tudo, query).map((r) => r.ordem), [3, 1, 2]);
-    });
-
-    test('a slot with no rate sinks instead of sorting as the worst', () {
-      final comBranco = [
-        ...tudo.where((r) => r.aba == 'Área 1'),
-        _r(ordem: 5, semDados: true),
-      ];
-      const query = RegistroQuery(aba: 'Área 1', porAproveitamento: true);
-
-      expect(paraGrade(comBranco, query).last.ordem, 5);
-    });
-
     test('the filter never removes a slot, only the light on it', () {
       // The grid has to keep the game's shape: a player is looking at the same
       // window on another screen and has to find the same slot in the same
@@ -106,6 +101,61 @@ void main() {
       expect(
         paraGrade(tudo, query).where((r) => atende(r, query)),
         hasLength(1),
+      );
+    });
+  });
+
+  group('which attributes can still be added', () {
+    // The same rule the market's filter follows: a control offers what still
+    // leads somewhere. Ticking a box that empties the grid teaches nothing and
+    // gives no hint which choice did it.
+    final daAba = [
+      _r(
+        ordem: 1,
+        pontos: const {RegistroAtributo.atkF: 3, RegistroAtributo.esquiva: 6},
+      ),
+      _r(ordem: 2, pontos: const {RegistroAtributo.hp: 30}),
+      _r(ordem: 3, semDados: true),
+    ];
+
+    test('with nothing chosen, every attribute somebody grants is offered', () {
+      const nada = RegistroQuery(aba: 'Área 1');
+
+      expect(atributosDisponiveis(daAba, nada), {
+        RegistroAtributo.atkF,
+        RegistroAtributo.esquiva,
+        RegistroAtributo.hp,
+      });
+    });
+
+    test('choosing one drops what no surviving recipe also grants', () {
+      // Nothing gives Atk F and HP together, so HP stops being offered — the
+      // question it would ask has no answer.
+      const so = RegistroQuery(
+        aba: 'Área 1',
+        atributos: {RegistroAtributo.atkF},
+      );
+
+      expect(atributosDisponiveis(daAba, so), {
+        RegistroAtributo.atkF,
+        RegistroAtributo.esquiva,
+      });
+    });
+
+    test('what is already chosen stays offered, so it can be turned off', () {
+      // Otherwise the last choice becomes a trap: the box that emptied the
+      // grid would be the one box nobody can untick.
+      const so = RegistroQuery(aba: 'Área 1', atributos: {RegistroAtributo.hp});
+
+      expect(atributosDisponiveis(daAba, so), contains(RegistroAtributo.hp));
+    });
+
+    test('an attribute nobody in the tab grants is never offered', () {
+      const nada = RegistroQuery(aba: 'Área 1');
+
+      expect(
+        atributosDisponiveis(daAba, nada),
+        isNot(contains(RegistroAtributo.defM)),
       );
     });
   });

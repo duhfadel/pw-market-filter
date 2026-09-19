@@ -9,6 +9,13 @@ import '../../domain/registro.dart';
 /// another slot swaps the contents, so two recipes can be compared without
 /// opening and closing anything. A floating tooltip would cover the grid on a
 /// phone, which is the one place comparing is already hardest.
+///
+/// It showed a bare sum and a points-per-page rate under the chips, and both
+/// are gone on the owner's call. He is right about what they were: adding
+/// Atk F to Esquiva produces a number that is not a quantity of anything, so
+/// the sum said less than the chips above it already said — and said it with
+/// false precision. What is left is what a visitor is actually deciding
+/// between: which attributes, and how many pages.
 class RegistroPanel extends StatelessWidget {
   const RegistroPanel({required this.registro, super.key});
 
@@ -56,10 +63,17 @@ class _Conteudo extends StatelessWidget {
           height: 1.3,
         ),
       ),
-      const SizedBox(height: 4),
+      const SizedBox(height: 5),
+      // The cost, and it carries weight now that it is the only number here
+      // besides the chips. It is also what the visitor is spending: the
+      // recipe is free to want and the pages are not.
       Text(
         _custo(registro),
-        style: const TextStyle(color: PWColors.textMuted, fontSize: 13),
+        style: const TextStyle(
+          color: PWColors.accent,
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+        ),
       ),
       const SizedBox(height: 14),
       if (registro.semDados)
@@ -88,8 +102,6 @@ class _Conteudo extends StatelessWidget {
               _Chip(atributo: ponto.key, valor: ponto.value),
           ],
         ),
-        const SizedBox(height: 14),
-        _Rodape(registro: registro),
       ],
     ],
   );
@@ -132,41 +144,4 @@ class _Chip extends StatelessWidget {
       style: const TextStyle(color: PWColors.textMuted, fontSize: 13),
     ),
   );
-}
-
-/// The sum and the rate — the two numbers the game's window never shows.
-class _Rodape extends StatelessWidget {
-  const _Rodape({required this.registro});
-
-  final Registro registro;
-
-  @override
-  Widget build(BuildContext context) {
-    final taxa = registro.porPagina;
-
-    return Text.rich(
-      TextSpan(
-        children: [
-          TextSpan(text: '${registro.total} pontos no total'),
-          if (taxa != null) ...[
-            const TextSpan(text: '  ·  '),
-            TextSpan(
-              // One decimal, and only when it says something: "118" reads
-              // better than "118.0", and 0.9 has to keep its nine.
-              text: '${_curto(taxa)} por página',
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-          ],
-        ],
-      ),
-      style: const TextStyle(
-        color: PWColors.textMuted,
-        fontSize: 13,
-        height: 1.4,
-      ),
-    );
-  }
-
-  static String _curto(double v) =>
-      v == v.roundToDouble() ? v.round().toString() : v.toStringAsFixed(1);
 }

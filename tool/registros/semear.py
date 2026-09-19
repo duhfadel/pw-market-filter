@@ -34,6 +34,50 @@ NOMES_DE_ABA = {
     "Casal": "Casal",
 }
 
+# Quantas receitas o NPC põe em cada linha da grade, aba por aba.
+#
+# **Ele não preenche em sequência.** Quando um grupo acaba, a linha quebra:
+# Coletar desenha 8, 2 e 6, deixando os slots 11 a 16 vazios, e Avançado pula
+# uma linha inteira. Lido como "a enésima receita", todo ícone depois da
+# primeira linha cai num lugar onde ele não está no jogo.
+#
+# Contado das fotos da janela, uma por aba. Uma aba que não esteja aqui
+# preenche em sequência — que é o caso de Área 1 e Área 2, com 32 receitas
+# fechando quatro linhas de oito sem sobra.
+LINHAS_POR_ABA = {
+    "Coletar": [8, 2, 6],
+    "Avançado": [8, 5, 0, 4],
+    "MA": [8, 4, 6],
+}
+
+COLUNAS = 8
+
+
+def slots_da_aba(nome_aba, quantas):
+    """Os números de slot que as receitas desta aba ocupam, em ordem.
+
+    Sem layout conhecido, é 1, 2, 3… — o que está certo para uma aba cheia e
+    é a suposição menos arriscada para uma que ainda não foi fotografada: os
+    ícones ficam juntos em vez de se espalharem por posições inventadas.
+    """
+    linhas = LINHAS_POR_ABA.get(nome_aba)
+    if not linhas:
+        return list(range(1, quantas + 1))
+
+    slots = []
+    for i, na_linha in enumerate(linhas):
+        base = i * COLUNAS
+        slots.extend(range(base + 1, base + 1 + na_linha))
+
+    if len(slots) != quantas:
+        print(
+            f"-- AVISO: {nome_aba} tem {quantas} receitas e o layout descreve "
+            f"{len(slots)} slots. A planilha e a foto discordam.",
+            file=sys.stderr,
+        )
+    return slots
+
+
 # As sete colunas de atributo, na ordem em que a tela as mostra.
 ATRIBUTOS = {
     "atk f": "atk_f",
@@ -144,12 +188,14 @@ def main():
 
     for nome_aba, linhas in abas(livro):
         aba = NOMES_DE_ABA.get(nome_aba, nome_aba)
-        ordem = 0
-        for celulas in linhas:
-            receita = celulas.get("A", "")
-            if not receita.startswith("Registro"):
-                continue
-            ordem += 1
+        receitas = [
+            c for c in linhas if c.get("A", "").startswith("Registro")
+        ]
+        slots = slots_da_aba(nome_aba, len(receitas))
+
+        for i, celulas in enumerate(receitas):
+            receita = celulas["A"]
+            ordem = slots[i] if i < len(slots) else i + 1
             total += 1
 
             # Casal guarda a contagem em B; as demais põem o bônus em B e a

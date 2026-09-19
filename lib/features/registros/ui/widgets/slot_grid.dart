@@ -19,6 +19,12 @@ import '../../domain/registro_filter.dart';
 /// instead of a list. At 390 px a slot lands near 40 px, under the 44 px a tap
 /// target wants, and that is the price of the match.
 ///
+/// **The gaps are drawn.** The NPC breaks a row when a group ends — Coletar
+/// is 8, 2 and 6, and Avançado skips an entire row — so filling left to right
+/// would put every icon after the first row somewhere it is not. An empty
+/// frame is cheap and it keeps every neighbour where the player's eye expects
+/// it.
+///
 /// **Each slot carries its name.** The game does not, and this is the one
 /// place the copy deliberately departs from it: thirty-two identical icons is
 /// a limitation to leave behind, not to reproduce. A phone has no hover, so a
@@ -33,7 +39,8 @@ class SlotGrid extends StatelessWidget {
     super.key,
   });
 
-  final List<Registro> slots;
+  /// One entry per cell, `null` where the window shows an empty frame.
+  final List<Registro?> slots;
   final RegistroQuery query;
   final Registro? selecionado;
   final void Function(Registro) aoTocar;
@@ -61,15 +68,20 @@ class SlotGrid extends StatelessWidget {
       // height, because the name wraps sooner.
       childAspectRatio: compacto ? 0.56 : 0.72,
     ),
-    itemBuilder: (context, i) => _Slot(
-      registro: slots[i],
-      aceso: atende(slots[i], query),
-      escolhido:
-          slots[i].ordem == selecionado?.ordem &&
-          slots[i].aba == selecionado?.aba,
-      aoTocar: () => aoTocar(slots[i]),
-      compacto: compacto,
-    ),
+    itemBuilder: (context, i) {
+      final registro = slots[i];
+      if (registro == null) return _Vazio(compacto: compacto);
+
+      return _Slot(
+        registro: registro,
+        aceso: atende(registro, query),
+        escolhido:
+            registro.ordem == selecionado?.ordem &&
+            registro.aba == selecionado?.aba,
+        aoTocar: () => aoTocar(registro),
+        compacto: compacto,
+      );
+    },
   );
 }
 
@@ -172,5 +184,32 @@ class _Slot extends StatelessWidget {
         ),
       ),
     ),
+  );
+}
+
+/// A slot the NPC leaves empty.
+///
+/// Drawn and not skipped: it is what holds the icons after it in the place the
+/// game puts them. Quiet on purpose — a frame, no art, nothing to tap.
+class _Vazio extends StatelessWidget {
+  const _Vazio({required this.compacto});
+
+  final bool compacto;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      AspectRatio(
+        aspectRatio: 1,
+        child: Container(
+          decoration: BoxDecoration(
+            color: PWColors.surface,
+            borderRadius: BorderRadius.circular(compacto ? 6 : 9),
+            border: Border.all(color: PWColors.border),
+          ),
+        ),
+      ),
+    ],
   );
 }

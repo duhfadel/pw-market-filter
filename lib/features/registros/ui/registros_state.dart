@@ -33,11 +33,18 @@ class RegistrosReady extends RegistrosState {
 
   List<String> get abas => abasDe(todos);
 
-  /// The slots of the open tab, already in drawing order.
-  List<Registro> get grade => paraGrade(todos, query);
+  /// The recipes of the open tab, in slot order.
+  List<Registro> get daAba => paraGrade(todos, query);
+
+  /// The open tab laid out as the game lays it: one entry per cell, `null`
+  /// where the window shows an empty frame.
+  List<Registro?> get grade => emSlots(daAba);
 
   /// How many of the drawn slots the filter lights.
-  int get acesos => grade.where((r) => atende(r, query)).length;
+  int get acesos => daAba.where((r) => atende(r, query)).length;
+
+  /// Which toggles still lead somewhere, read off the open tab.
+  Set<RegistroAtributo> get disponiveis => atributosDisponiveis(daAba, query);
 
   /// Recipes still waiting for somebody to record what they grant. It is on
   /// screen because a gap nobody counts is a gap nobody fills.

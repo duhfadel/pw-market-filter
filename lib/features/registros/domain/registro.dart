@@ -42,8 +42,17 @@ class Registro {
 
   final String aba;
 
-  /// Its slot within the tab, from 1. This is why the grid can be the game's
-  /// grid: the row knows where it sits.
+  /// **Which slot it occupies**, from 1, counting left to right and top to
+  /// bottom across a grid eight wide.
+  ///
+  /// The slot and not "the nth recipe", and the difference is the whole
+  /// layout: the NPC breaks a row when a group ends, so Coletar draws 8, 2
+  /// and 6 with slots 11 to 16 left empty, and Avançado skips an entire row.
+  /// Read as a running count, every icon after the first row landed in the
+  /// wrong place.
+  ///
+  /// A gap is therefore a number nobody claims, never a neighbour shifted
+  /// left.
   final int ordem;
 
   final String nome;
@@ -78,20 +87,6 @@ class Registro {
           atributo: (json[atributo.coluna] as num).toInt(),
     },
   );
-
-  /// Every point it grants, added up. The game never sums them.
-  int get total => pontos.values.fold(0, (soma, v) => soma + v);
-
-  /// Points per page — the reading the window cannot give.
-  ///
-  /// `null` rather than zero when there is no cost or no data. A recipe nobody
-  /// has read would otherwise sort as the worst trade in the game, which is a
-  /// verdict on a blank row.
-  double? get porPagina {
-    final custo = paginas;
-    if (semDados || custo == null || custo == 0) return null;
-    return total / custo;
-  }
 }
 
 /// The recipes of one tab, in the slot order the NPC uses.
@@ -110,4 +105,35 @@ List<String> abasDe(List<Registro> registros) {
     ...abasDoNpc.where(presentes.contains),
     ...presentes.where((a) => !abasDoNpc.contains(a)),
   ];
+}
+
+/// How many rows of eight a tab needs to show every slot it uses.
+///
+/// Measured from the **last occupied** slot, so a trailing empty row is not
+/// drawn: the game always frames four, and copying an empty one is fidelity
+/// to the furniture rather than to the layout — on a phone it is a screen of
+/// nothing. A gap *between* rows is different and is kept, because that one
+/// moves every icon after it.
+int linhasDaGrade(List<int> ocupados) {
+  if (ocupados.isEmpty) return 0;
+  final ultimo = ocupados.reduce((a, b) => a > b ? a : b);
+  return (ultimo + colunasDaGrade - 1) ~/ colunasDaGrade;
+}
+
+/// Eight, which is what the NPC's window uses.
+const colunasDaGrade = 8;
+
+/// The tab laid out as the game lays it: one entry per slot, `null` where the
+/// window shows an empty frame.
+List<Registro?> emSlots(List<Registro> daAba) {
+  final linhas = linhasDaGrade([for (final r in daAba) r.ordem]);
+  final celulas = List<Registro?>.filled(linhas * colunasDaGrade, null);
+
+  for (final registro in daAba) {
+    final i = registro.ordem - 1;
+    // A slot number past the grid would silently vanish; better to widen the
+    // grid than to lose a recipe nobody can see is missing.
+    if (i >= 0 && i < celulas.length) celulas[i] = registro;
+  }
+  return celulas;
 }

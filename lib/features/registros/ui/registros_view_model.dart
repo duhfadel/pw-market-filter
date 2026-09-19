@@ -67,12 +67,4 @@ class RegistrosViewModel extends Cubit<RegistrosState> {
     if (pronto is! RegistrosReady) return;
     emit(pronto.copyWith(query: pronto.query.copyWith(atributos: const {})));
   }
-
-  void ordenarPorAproveitamento(bool ligado) {
-    final pronto = state;
-    if (pronto is! RegistrosReady) return;
-    emit(
-      pronto.copyWith(query: pronto.query.copyWith(porAproveitamento: ligado)),
-    );
-  }
 }

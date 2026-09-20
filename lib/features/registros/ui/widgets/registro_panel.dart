@@ -17,11 +17,21 @@ import '../../domain/registro.dart';
 /// false precision. What is left is what a visitor is actually deciding
 /// between: which attributes, and how many pages.
 class RegistroPanel extends StatelessWidget {
-  const RegistroPanel({required this.registro, super.key});
+  const RegistroPanel({
+    required this.registro,
+    required this.marcado,
+    required this.aoMarcar,
+    super.key,
+  });
 
   /// `null` before the first tap. The panel then invites one rather than
   /// standing as an empty frame.
   final Registro? registro;
+
+  /// Whether the shown recipe is already in the plan.
+  final bool marcado;
+
+  final VoidCallback aoMarcar;
 
   @override
   Widget build(BuildContext context) {
@@ -40,15 +50,25 @@ class RegistroPanel extends StatelessWidget {
               'Toque num registro para ver o que ele dá.',
               style: TextStyle(color: PWColors.textMuted, fontSize: 13),
             )
-          : _Conteudo(registro: escolhido),
+          : _Conteudo(
+              registro: escolhido,
+              marcado: marcado,
+              aoMarcar: aoMarcar,
+            ),
     );
   }
 }
 
 class _Conteudo extends StatelessWidget {
-  const _Conteudo({required this.registro});
+  const _Conteudo({
+    required this.registro,
+    required this.marcado,
+    required this.aoMarcar,
+  });
 
   final Registro registro;
+  final bool marcado;
+  final VoidCallback aoMarcar;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -103,6 +123,28 @@ class _Conteudo extends StatelessWidget {
           ],
         ),
       ],
+      const SizedBox(height: 16),
+      // The decision to include belongs here and not on the slot, because this
+      // is where the numbers are. Tapping a slot stays a way to *look*, so
+      // nobody builds a plan by browsing.
+      Align(
+        alignment: Alignment.centerLeft,
+        child: marcado
+            ? OutlinedButton.icon(
+                onPressed: aoMarcar,
+                icon: const Icon(Icons.check, size: 17),
+                label: const Text('Na minha lista'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: PWColors.accent,
+                  side: const BorderSide(color: PWColors.accent),
+                ),
+              )
+            : FilledButton.icon(
+                onPressed: aoMarcar,
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Somar à minha lista'),
+              ),
+      ),
     ],
   );
 

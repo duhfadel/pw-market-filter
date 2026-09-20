@@ -1,13 +1,19 @@
+import 'dart:async';
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/di/injection.dart';
 import '../../../core/theme/pw_colors.dart';
 import '../../../core/theme/pw_theme.dart';
 import '../../ads/ad_slot.dart';
+import '../../home/domain/community.dart';
 import 'registros_state.dart';
 import 'registros_view_model.dart';
 import 'widgets/atributo_filtros.dart';
+import 'widgets/plano_resumo.dart';
 import 'widgets/registro_panel.dart';
 import 'widgets/slot_grid.dart';
 
@@ -132,15 +138,30 @@ class _Pronto extends StatelessWidget {
               slots: state.grade,
               query: state.query,
               selecionado: state.selecionado,
+              marcados: state.marcados,
               aoTocar: vm.selecionar,
               compacto: compacto,
             ),
             const SizedBox(height: 16),
-            RegistroPanel(registro: state.selecionado),
-            if (state.semDados > 0) ...[
-              const SizedBox(height: 10),
-              _Lacunas(quantas: state.semDados),
-            ],
+            RegistroPanel(
+              registro: state.selecionado,
+              marcado:
+                  state.selecionado != null &&
+                  state.marcados.contains(state.selecionado!.chave),
+              aoMarcar: () {
+                final escolhido = state.selecionado;
+                if (escolhido != null) vm.alternarMarca(escolhido);
+              },
+            ),
+            const SizedBox(height: 14),
+            PlanoResumo(
+              plano: state.plano,
+              temQueMarcar: state.temQueMarcar,
+              aoMarcarAba: vm.marcarAba,
+              aoLimpar: vm.limparMarcas,
+            ),
+            const SizedBox(height: 16),
+            _Creditos(semDados: state.semDados),
             const AdSlot(compact: true),
           ],
         ),
@@ -220,32 +241,110 @@ class _Aba extends StatelessWidget {
   );
 }
 
-/// The gaps, counted. A gap nobody counts is a gap nobody fills.
-class _Lacunas extends StatelessWidget {
-  const _Lacunas({required this.quantas});
+/// Where the numbers came from, and what to do when one is wrong.
+///
+/// **The gaps and the errors ask the same favour**, so they are one block and
+/// not two: a page saying "me avisa no Discord" twice, three lines apart,
+/// reads as nagging rather than asking.
+///
+/// The credit is unresolved on purpose. Somebody built the table and the
+/// owner does not know who; saying so and offering to name them is more
+/// honest than a silence that reads as authorship.
+class _Creditos extends StatelessWidget {
+  const _Creditos({required this.semDados});
 
-  final int quantas;
+  final int semDados;
+
+  /// The spreadsheet the 126 recipes were read from, once.
+  ///
+  /// Linked even though it is no longer the source — the Supabase table is —
+  /// because this is a credit, not a data path. Whoever wants to check a
+  /// number against where it came from should be able to.
+  static const _tabela =
+      'https://docs.google.com/spreadsheets/d/'
+      '1nN0cUkxMXS3eOP8ajNpGJjGZWDAgXP3VJLD7LwV-IOA/edit';
 
   @override
-  Widget build(BuildContext context) => Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Padding(
-        padding: EdgeInsets.only(top: 2),
-        child: Icon(Icons.help_outline, size: 15, color: PWColors.textMuted),
-      ),
-      const SizedBox(width: 9),
-      Expanded(
-        child: Text(
-          '$quantas registros ainda sem bônus conhecido. Se você souber o que '
-          'algum deles dá, me conta no Discord que eu coloco aqui.',
-          style: const TextStyle(
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: PWColors.surface,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: PWColors.border),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'AGRADECIMENTOS',
+          style: TextStyle(
             color: PWColors.textMuted,
-            fontSize: 12,
-            height: 1.5,
+            fontSize: 10,
+            letterSpacing: 1.3,
+            fontWeight: FontWeight.w700,
           ),
         ),
+        const SizedBox(height: 9),
+        Text.rich(
+          TextSpan(
+            children: [
+              const TextSpan(text: 'Os números vêm desta '),
+              _link('tabela', _tabela),
+              const TextSpan(
+                text:
+                    ', e eu não sei quem a montou. Se for sua, me diz que '
+                    'eu credito.',
+              ),
+            ],
+          ),
+          style: const TextStyle(
+            color: PWColors.textMuted,
+            fontSize: 13,
+            height: 1.55,
+          ),
+        ),
+        const SizedBox(height: 9),
+        Text.rich(
+          TextSpan(
+            children: [
+              if (semDados > 0)
+                TextSpan(
+                  text:
+                      '$semDados registros ainda estão sem bônus. Achou '
+                      'algum errado, ou sabe o que falta? ',
+                )
+              else
+                const TextSpan(text: 'Achou algum número errado? '),
+              _link('Me avisa no Discord', discordInvite),
+              const TextSpan(text: ' que eu corrijo.'),
+            ],
+          ),
+          style: const TextStyle(
+            color: PWColors.textMuted,
+            fontSize: 13,
+            height: 1.55,
+          ),
+        ),
+      ],
+    ),
+  );
+
+  /// A word that opens something.
+  ///
+  /// Underlined as well as coloured: colour alone is the whole message, and
+  /// somebody who does not see it has nothing to fall back on.
+  static TextSpan _link(String texto, String url) => TextSpan(
+    text: texto,
+    style: const TextStyle(
+      color: PWColors.accent,
+      fontWeight: FontWeight.w600,
+      decoration: TextDecoration.underline,
+      decorationColor: PWColors.accent,
+    ),
+    recognizer: TapGestureRecognizer()
+      ..onTap = () => unawaited(
+        launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
       ),
-    ],
   );
 }

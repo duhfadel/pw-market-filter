@@ -1,3 +1,4 @@
+import '../domain/plano.dart';
 import '../domain/registro.dart';
 import '../domain/registro_filter.dart';
 
@@ -22,6 +23,7 @@ class RegistrosReady extends RegistrosState {
     required this.todos,
     required this.query,
     required this.selecionado,
+    this.marcados = const {},
   });
 
   final List<Registro> todos;
@@ -30,6 +32,13 @@ class RegistrosReady extends RegistrosState {
   /// The slot whose numbers the panel is showing. `null` before the first
   /// click — the panel then invites one instead of standing empty.
   final Registro? selecionado;
+
+  /// What the visitor has marked to do, by [Registro.chave].
+  ///
+  /// It spans tabs on purpose: somebody planning does not stop at Área 1, and
+  /// a total that resets when you look at Coletar would answer a question
+  /// nobody asked.
+  final Set<String> marcados;
 
   List<String> get abas => abasDe(todos);
 
@@ -50,13 +59,25 @@ class RegistrosReady extends RegistrosState {
   /// screen because a gap nobody counts is a gap nobody fills.
   int get semDados => todos.where((r) => r.semDados).length;
 
+  /// The bill for what is marked, across every tab.
+  Plano get plano => planoDe(todos, marcados);
+
+  /// Whether the open tab still has a lit slot left to mark.
+  ///
+  /// It drives the label on the button: once everything visible is marked,
+  /// offering to mark it again is a control that does nothing.
+  bool get temQueMarcar =>
+      daAba.any((r) => atende(r, query) && !marcados.contains(r.chave));
+
   RegistrosReady copyWith({
     RegistroQuery? query,
     Registro? selecionado,
+    Set<String>? marcados,
     bool limparSelecao = false,
   }) => RegistrosReady(
     todos: todos,
     query: query ?? this.query,
     selecionado: limparSelecao ? null : (selecionado ?? this.selecionado),
+    marcados: marcados ?? this.marcados,
   );
 }

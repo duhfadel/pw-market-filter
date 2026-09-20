@@ -34,6 +34,7 @@ class SlotGrid extends StatelessWidget {
     required this.slots,
     required this.query,
     required this.selecionado,
+    required this.marcados,
     required this.aoTocar,
     required this.compacto,
     super.key,
@@ -43,6 +44,11 @@ class SlotGrid extends StatelessWidget {
   final List<Registro?> slots;
   final RegistroQuery query;
   final Registro? selecionado;
+
+  /// What is in the plan, by [Registro.chave]. Shown on the slot so the plan
+  /// is visible on the grid instead of only in the total below it.
+  final Set<String> marcados;
+
   final void Function(Registro) aoTocar;
 
   /// A narrow screen. The eight columns stay, so what gives is the breathing
@@ -79,6 +85,7 @@ class SlotGrid extends StatelessWidget {
             registro.ordem == selecionado?.ordem &&
             registro.aba == selecionado?.aba,
         aoTocar: () => aoTocar(registro),
+        marcado: marcados.contains(registro.chave),
         compacto: compacto,
       );
     },
@@ -91,6 +98,7 @@ class _Slot extends StatelessWidget {
     required this.aceso,
     required this.escolhido,
     required this.aoTocar,
+    required this.marcado,
     required this.compacto,
   });
 
@@ -98,6 +106,7 @@ class _Slot extends StatelessWidget {
   final bool aceso;
   final bool escolhido;
   final VoidCallback aoTocar;
+  final bool marcado;
   final bool compacto;
 
   /// Every recipe in the window draws the same page art, so the icon is the
@@ -147,6 +156,27 @@ class _Slot extends StatelessWidget {
                     // A recipe nobody has read says so on the slot and not
                     // only in the panel, or the gaps stay invisible until
                     // somebody taps each one.
+                    // The plan, on the grid. Top-left so it never sits on
+                    // the "no data" mark in the opposite corner — a slot can
+                    // carry both, and two glyphs in one corner would hide
+                    // each other.
+                    if (marcado)
+                      Align(
+                        alignment: Alignment.topLeft,
+                        child: Container(
+                          margin: const EdgeInsets.all(2),
+                          padding: const EdgeInsets.all(1),
+                          decoration: const BoxDecoration(
+                            color: PWColors.accent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.check,
+                            size: compacto ? 8 : 11,
+                            color: PWColors.background,
+                          ),
+                        ),
+                      ),
                     if (registro.semDados)
                       Align(
                         alignment: Alignment.bottomRight,

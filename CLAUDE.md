@@ -197,7 +197,7 @@ which a static site cannot compute, and the territory map's owners, which
 change weekly and must not cost a deploy. Both live in a Supabase project
 called `portal-pw` (`yadfbwsolmkcaylbxviw`, São Paulo).
 
-Five tables and a view, and **the two halves are opposite on purpose**, which is the part
+Six tables and a view, and **the two halves are opposite on purpose**, which is the part
 to read before changing either.
 
 #### The counter: RLS with no policy
@@ -278,6 +278,51 @@ characters an HTML escaper replaces, so it would travel intact into the `href`.
 also turns away `data:`, `vbscript:`, `file:`, leading whitespace and mixed
 case. A streamer that fails is dropped rather than pointed at `#`: a dead link
 promises a broadcast that does not exist.
+
+#### The streamers: a third table, and the Worker as the only writer
+
+`canais_twitch (canal, nome, ativo, ao_vivo, titulo, jogo, espectadores,
+thumb, visto_em)` holds who from the community is streaming. The browser
+cannot ask Twitch this — the Helix API needs a secret, and a secret compiled
+into the bundle is not a secret — so the Cloudflare Worker asks every five
+minutes on its own cron and writes the answer here.
+
+It is the first table the site **reads but never writes**: the select policy
+is open and there is no insert, update or delete policy, so the publishable
+key cannot touch it. What writes is the Worker, with `SUPABASE_SERVICE_KEY` —
+the service role, which bypasses RLS entirely and therefore lives only in
+`wrangler secret`. That key was never typed: the Supabase CLI was already
+authenticated on the machine, so it was piped straight into
+`wrangler secret put` and appeared in no screen, log or file.
+
+**`visto_em` is the column that stops the likely lie.** The day the Worker
+dies — token expired, cron switched off — the last rows keep saying *ao vivo*
+until somebody notices, and the page would announce a stream that ended on
+Tuesday. Anything older than twelve minutes, three missed rounds, is treated
+as unknown. One wrong badge costs more than the card earns: whoever clicks and
+lands on an offline channel stops believing the next one.
+
+**A failed Twitch call writes nothing at all.** Marking everybody offline
+would turn a network problem into a false statement — absence of an answer is
+not absence of a stream.
+
+Twitch permits this in writing, which is worth recording after the month of
+tickets with The Classic: the Developer Agreement grants a licence to "use and
+reproduce the Program Materials … to operate Your Services", and Section VI
+allows the data for "creating compelling benefits that improve the end user
+experience". It is revocable at their sole discretion, and the data may not be
+sold or licensed on. The Client ID is public by Twitch's own documentation;
+the secret is not.
+
+**The card sits below the tools and above the advert, and that placement is
+the point.** It started as one grey line above the menu, and the owner opened
+the page and could not find it: asked for *discreet*, it came out
+**invisible**. Discreet is not shouting; invisible is not doing the job, and
+the job is helping the people who stream. It has a heading and a frame now,
+and still no thumbnail and no animation beyond a slow swap, because nobody
+paid for it and it must not read as bought placement. The stream title is
+deliberately dropped — written for Twitch, full of emoji and coupon codes, it
+reads as spam pasted onto somebody else's site.
 
 #### The registries: the same read-open, write-closed arrangement
 

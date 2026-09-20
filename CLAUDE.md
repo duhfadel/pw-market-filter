@@ -319,10 +319,25 @@ the sum said less than the chips already said, and said it with false
 precision. The ordering also broke the grid by construction, since anything
 that moves a slot stops it being the window. The idea is parked, not refuted.
 
-**It is published and not announced.** `/registros` works and no card on the
-front page leads to it — the same state `/guerras/` was in: shown to a few
-people before it goes public. Linking the card is the gesture that announces
-it, and the commented-out `Tool` in `tool.dart` is the one line to uncomment.
+**It is announced.** `/registros` has a card on the front page under
+**Ferramentas**, named *Títulos* — the word players use; *registro* is what
+the item is called, and the title is what they are after. The card borrows
+`sacerdote.webp`, which the code says out loud: a priest has nothing to do
+with titles, it was sitting unused, and it fills the card until a screenshot
+of the titles screen arrives.
+
+**The front page groups by section, and the *novo* badge carries a date.**
+Tools and guides filed together made the menu say "here are four things"; the
+headings make it say what the site does and what it explains. The badge is a
+`DateTime` rather than a flag on purpose — a "novo" nobody remembers to remove
+stops being true within weeks, and a badge that has lied once is a badge
+nobody believes again. It expires by itself.
+
+**The totals are two sums, and both are real.** Pages are one currency, so
+they add. Attributes add *within* an attribute — three Atk F plus fifteen is
+eighteen Atk F, which is what the character ends up with. What is never added
+is one attribute to another; that was the number taken off the panel and it
+stays off. Marking spans tabs, because planning does.
 
 The grid is eight slots wide because the game's is, and **`ordem` is the slot
 number rather than the nth recipe** — which is not a nicety. The NPC breaks a

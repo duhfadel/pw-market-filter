@@ -332,8 +332,8 @@ row sits where it is not in the game, and nothing on screen says so — it took
 a photo of the window beside the page to see it. A gap is a slot number nobody
 claims, and the empty frame is drawn, because it is what holds the icons after
 it in place. The layouts live in `LINHAS_POR_ABA` in the seeder, counted off
-the photos; a tab that is not listed fills in sequence, which is still a guess
-for Casal.
+the photos; a tab that is not listed fills in sequence, which is what Casal
+does — checked against the window, not assumed.
 
 Moving all 126 into their real slots needed **two passes in one transaction** —
 everything to negative first, then to the final number. `unique (aba, ordem)`

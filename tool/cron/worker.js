@@ -25,6 +25,19 @@ const CRON_DA_COLETA = '7,37 * * * *';
 // visitante — não é segredo e não tem por que virar um. Quem segura a porta é
 // o RLS: `visit_days` não tem policy nenhuma, então leitura e escrita diretas
 // são negadas, e as duas funções `security definer` são a única entrada.
+// A cada quanto o Worker pergunta à Twitch quem está ao vivo.
+//
+// Cinco minutos e não um: uma live que começou há três minutos não é notícia
+// urgente, e o atraso é invisível para quem chega no site. O que não pode é
+// crescer muito — um banner que anuncia alguém que já saiu do ar é pior que
+// banner nenhum.
+const CRON_DA_TWITCH = '*/5 * * * *';
+
+// Público por decisão da Twitch, não por descuido: a documentação diz que o
+// Client ID "is considered public and can be embedded in a web page's source".
+// O que não pode aparecer é o secret, e ele vive no `wrangler secret`.
+const TWITCH_CLIENT_ID = 'g5aijijz2yef9fx7wonix8ht6cj36y';
+
 const SUPABASE = 'https://yadfbwsolmkcaylbxviw.supabase.co/rest/v1';
 const SUPABASE_KEY = 'sb_publishable_D2hgezeh5BbZVpt_QLeXwg_FowKweu2';
 
@@ -43,6 +56,11 @@ export default {
   async scheduled(event, env, ctx) {
     // Dois gatilhos, duas tarefas. O do Supabase não dispara coleta nenhuma:
     // ele existe justamente para os períodos em que não há coleta.
+    if (event.cron === CRON_DA_TWITCH) {
+      await atualizarQuemEstaAoVivo(env);
+      return;
+    }
+
     if (event.cron !== CRON_DA_COLETA) {
       await manterOBancoAcordado();
       return;
@@ -145,6 +163,145 @@ async function manterOBancoAcordado() {
     return;
   }
   console.log(`Supabase acordado; total de visitas: ${await resposta.text()}`);
+}
+
+// Pergunta à Twitch quem dos canais cadastrados está ao vivo e grava.
+//
+// **Uma falha nunca apaga ninguém.** Se a Twitch não responder, o certo é
+// deixar a tabela como está e não gravar nada: marcar todo mundo offline
+// transformaria um problema de rede numa afirmação falsa, e o carimbo
+// `visto_em` já faz a página tratar dado velho como desconhecido. Ausência de
+// resposta não é ausência de live.
+async function atualizarQuemEstaAoVivo(env) {
+  const canais = await canaisAtivos(env);
+  if (!canais.length) return;
+
+  const token = await tokenDaTwitch(env);
+  if (!token) return;
+
+  // Um pedido só resolve até cem canais, então a lista inteira cabe numa
+  // chamada e vai caber por muito tempo.
+  const busca = canais.map((c) => `user_login=${encodeURIComponent(c)}`).join('&');
+  const resposta = await fetch(`https://api.twitch.tv/helix/streams?${busca}`, {
+    headers: {
+      'Client-Id': TWITCH_CLIENT_ID,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!resposta.ok) {
+    console.error(
+      `Twitch recusou: ${resposta.status} ${await resposta.text()}`,
+    );
+    return;
+  }
+
+  const { data = [] } = await resposta.json();
+  const aoVivo = new Map(
+    data.map((s) => [String(s.user_login).toLowerCase(), s]),
+  );
+  const agora = new Date().toISOString();
+
+  // Uma linha por canal, inclusive os que estão fora do ar — é assim que
+  // alguém que acabou de encerrar volta a ser `false` em vez de ficar
+  // eternamente ao vivo.
+  const linhas = canais.map((canal) => {
+    const live = aoVivo.get(canal);
+    return {
+      canal,
+      nome: live ? live.user_name : undefined,
+      ao_vivo: Boolean(live),
+      titulo: live ? live.title : null,
+      jogo: live ? live.game_name : null,
+      espectadores: live ? live.viewer_count : null,
+      // A miniatura vem com {width} e {height} para quem pede o tamanho.
+      thumb: live
+        ? String(live.thumbnail_url)
+            .replace('{width}', '440')
+            .replace('{height}', '248')
+        : null,
+      visto_em: agora,
+    };
+  });
+
+  await gravarNoSupabase(env, linhas);
+  console.log(`Twitch: ${aoVivo.size} de ${canais.length} ao vivo`);
+}
+
+/// Os canais que o dono deixou ligados, em minúsculo.
+async function canaisAtivos(env) {
+  const resposta = await supabase(
+    env,
+    '/canais_twitch?select=canal&ativo=is.true',
+  );
+  if (!resposta.ok) {
+    console.error(`não deu para ler os canais: ${resposta.status}`);
+    return [];
+  }
+  return (await resposta.json()).map((linha) => linha.canal);
+}
+
+// Um token de aplicativo, pedido a cada rodada.
+//
+// A Twitch recomenda guardar e reusar, e um Worker não tem onde guardar sem
+// adicionar um KV só para isso. Um pedido a mais a cada cinco minutos é ruído
+// perto do que a conta permite, e o que se ganha é não ter mais uma peça que
+// pode ficar dessincronizada.
+async function tokenDaTwitch(env) {
+  const resposta = await fetch('https://id.twitch.tv/oauth2/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: TWITCH_CLIENT_ID,
+      client_secret: env.TWITCH_SECRET,
+      grant_type: 'client_credentials',
+    }),
+  });
+
+  if (!resposta.ok) {
+    // O primeiro lugar a olhar quando o banner sumir: um secret errado
+    // responde 403 aqui e nada mais acontece.
+    console.error(
+      `token da Twitch recusado: ${resposta.status} ${await resposta.text()}`,
+    );
+    return null;
+  }
+  return (await resposta.json()).access_token;
+}
+
+// Grava as linhas por cima das que existem, casando por `canal`.
+async function gravarNoSupabase(env, linhas) {
+  const resposta = await supabase(env, '/canais_twitch?on_conflict=canal', {
+    method: 'POST',
+    // `merge-duplicates` é o upsert do PostgREST: sem isso, a segunda rodada
+    // bate na chave única e não grava nada.
+    prefer: 'resolution=merge-duplicates,return=minimal',
+    body: linhas,
+  });
+
+  if (!resposta.ok) {
+    console.error(
+      `Supabase recusou a gravação: ${resposta.status} ${await resposta.text()}`,
+    );
+  }
+}
+
+// A chave de serviço, que é a única que escreve.
+//
+// A tabela tem RLS com policy só de leitura, então a chave publicável do site
+// não grava nada — de propósito. Esta fura o RLS e por isso vive no
+// `wrangler secret`, nunca no repositório e nunca no navegador.
+function supabase(env, caminho, { method = 'GET', prefer, body } = {}) {
+  return fetch(`${SUPABASE}${caminho}`, {
+    method,
+    headers: {
+      apikey: env.SUPABASE_SERVICE_KEY,
+      Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      ...(prefer ? { Prefer: prefer } : {}),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
 }
 
 function github(env, caminho, method = 'GET', body) {

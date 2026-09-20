@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:pw_market_filter/features/home/data/ao_vivo_repository.dart';
+import 'package:pw_market_filter/features/home/ui/ao_vivo_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/home_view.dart';
 import 'package:pw_market_filter/features/search/domain/search_query_url.dart';
 import 'package:pw_market_filter/features/search/ui/search_view_model.dart';
@@ -52,6 +54,9 @@ final _index = MarketIndex(
   ],
 );
 
+/// A client that answers nothing, for the widgets this test is not about.
+MockClient _semRede() => MockClient((_) async => http.Response('[]', 200));
+
 /// Pumps the front page and records every route it asks for.
 Future<List<String>> _pumpHome(WidgetTester tester) async {
   // Taller than the default 800×600, and the reason is the harness rather than
@@ -73,8 +78,16 @@ Future<List<String>> _pumpHome(WidgetTester tester) async {
   final viewModel = SearchViewModel(IndexRepository(client));
 
   await tester.pumpWidget(
-    BlocProvider.value(
-      value: viewModel..load(),
+    MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: viewModel..load()),
+        // A faixa de quem está ao vivo lê daqui. Sem repositório de verdade:
+        // o cubit nasce vazio e a faixa some, que é exatamente o estado em
+        // que a home fica quando ninguém está transmitindo.
+        BlocProvider(
+          create: (_) => AoVivoViewModel(AoVivoRepository(_semRede())),
+        ),
+      ],
       child: MaterialApp(
         onGenerateRoute: (settings) {
           final name = settings.name ?? '/';

@@ -22,5 +22,10 @@ workers_dev = false
 #
 # Uma vez por dia contra um limite de sete é folga de sobra; o que importa é
 # que a última chamada bem-sucedida nunca fique a mais de uma semana.
+#
+# `*/5` é a Twitch: quem da comunidade está ao vivo. Ele escreve no Supabase a
+# cada cinco minutos, o que de quebra torna o ping diário redundante enquanto
+# existir — o ping fica mesmo assim, porque é ele que segura o banco no dia em
+# que os streamers saírem da página.
 [triggers]
-crons = ["7,37 * * * *", "13 4 * * *"]
+crons = ["7,37 * * * *", "13 4 * * *", "*/5 * * * *"]

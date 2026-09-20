@@ -52,6 +52,18 @@ abstract final class PWColors {
   static const danger = Color(0xFFFF6B6B);
   static const ok = Color(0xFF5FBAB9);
 
+  /// The dot that says somebody is streaming *now*.
+  ///
+  /// A green of its own rather than [ok], which is a teal and reads as
+  /// "correct" instead of "online" — green is the signal everybody already
+  /// knows from every chat app, and borrowing the wrong one costs the whole
+  /// message.
+  ///
+  /// Lifted towards the light end like every colour here: at 7.6 against
+  /// `surface` it sits between [textMuted] (6.5) and [ok] (8.0), where
+  /// Discord's own #3BA55D would land at 5.8 and go muddy on a dark panel.
+  static const live = Color(0xFF5FBA7D);
+
   /// Item grades, following the game's own rarity colours.
   static const gradeColors = <int, Color>{
     0: Color(0xFFB9C0D4),

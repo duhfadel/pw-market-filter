@@ -15,6 +15,7 @@ import 'visit_counter_view_model.dart';
 import '../domain/community.dart';
 import '../domain/news.dart';
 import '../../../core/widgets/brand_icon.dart';
+import 'widgets/ao_vivo_strip.dart';
 import 'widgets/discord_strip.dart';
 import 'widgets/news_section.dart';
 import 'widgets/market_pulse.dart';
@@ -162,6 +163,11 @@ class HomeView extends StatelessWidget {
                     NewsSection(entries: portalNews, wide: wide),
                     SizedBox(height: large ? 32 : (wide ? 26 : 20)),
                     _Menu(wide: wide),
+                    // Depois das ferramentas e antes da publicidade. É o
+                    // lugar que combina com o que a coisa é: cortesia a quem
+                    // transmite, não o motivo de alguém ter vindo. Em cima
+                    // disputaria com as ferramentas; no rodapé ninguém veria.
+                    AoVivoStrip(wide: wide),
                     const AdSlot(),
                     SizedBox(height: wide ? 28 : 22),
                     const _Footer(),

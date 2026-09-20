@@ -67,4 +67,41 @@ class RegistrosViewModel extends Cubit<RegistrosState> {
     if (pronto is! RegistrosReady) return;
     emit(pronto.copyWith(query: pronto.query.copyWith(atributos: const {})));
   }
+
+  /// Adds or removes one recipe from the plan.
+  void alternarMarca(Registro registro) {
+    final pronto = state;
+    if (pronto is! RegistrosReady) return;
+
+    final marcados = {...pronto.marcados};
+    if (!marcados.remove(registro.chave)) marcados.add(registro.chave);
+    emit(pronto.copyWith(marcados: marcados));
+  }
+
+  /// Marks every **lit** slot of the open tab.
+  ///
+  /// Lit and not every slot: with Esquiva on, this answers "what does all the
+  /// evasion in this tab cost", which is a real question. Marking the dimmed
+  /// ones too would make the button ignore the filter sitting right above it.
+  void marcarAba() {
+    final pronto = state;
+    if (pronto is! RegistrosReady) return;
+
+    emit(
+      pronto.copyWith(
+        marcados: {
+          ...pronto.marcados,
+          for (final r in pronto.daAba)
+            if (atende(r, pronto.query)) r.chave,
+        },
+      ),
+    );
+  }
+
+  /// Empties the plan — every tab, not only the one on screen.
+  void limparMarcas() {
+    final pronto = state;
+    if (pronto is! RegistrosReady) return;
+    emit(pronto.copyWith(marcados: const {}));
+  }
 }

@@ -11,7 +11,9 @@ class Tool {
     required this.name,
     required this.tagline,
     required this.icon,
+    this.secao = 'Ferramentas',
     this.emblem,
+    this.novoAte,
     this.route,
     this.href,
     this.art,
@@ -25,6 +27,22 @@ class Tool {
   final String tagline;
 
   final IconData icon;
+
+  /// Which heading it sits under on the front page.
+  ///
+  /// The guides are not tools, and filing them together made the menu say
+  /// "here are four things" where it should say "here is what the site does,
+  /// and here is what it explains".
+  final String secao;
+
+  /// Until when the card wears a *novo* badge, or `null` for no badge.
+  ///
+  /// A date and not a flag, and that is the whole point: a badge nobody has
+  /// to remember to remove is a badge that stops being true. This one expires
+  /// on its own, which is the only kind of "new" a site can promise.
+  final DateTime? novoAte;
+
+  bool novoEm(DateTime agora) => novoAte != null && agora.isBefore(novoAte!);
 
   /// Item id whose art stands for the tool, drawn in place of [icon].
   ///
@@ -65,12 +83,16 @@ class Tool {
   bool get isReady => route != null || href != null;
 }
 
-/// The three sections of the Portal.
+/// Everything the front page lists, in the order it lists them.
 ///
-/// Only the first is built. The other two are listed and dimmed so the page
-/// shows the shape of the place from the start — and so shipping one is a
-/// route away, not a redesign.
-const tools = <Tool>[
+/// A tool that does not exist yet belongs here too, dimmed: the page shows the
+/// shape of the place from the start, and shipping one is a route away rather
+/// than a redesign.
+///
+/// `final` and not `const` because of [Tool.novoAte] — a `DateTime` is not a
+/// compile-time constant, which is the price of a badge that expires by
+/// itself.
+final tools = <Tool>[
   Tool(
     name: 'Filtro do Marketplace',
     // Says what you gain, never what the official marketplace lacks. The
@@ -82,6 +104,31 @@ const tools = <Tool>[
     route: '/filtro',
     art: 'assets/images/espiritualista.webp',
   ),
+  Tool(
+    name: 'Títulos',
+    // Um mês de badge. A data vence sozinha, então ninguém precisa lembrar
+    // de tirar — e "novo" para de ser verdade muito antes de alguém reparar.
+    novoAte: _ateOutubro,
+    // O nome que a comunidade usa. "Registros de Assimilação" é como o item
+    // se chama; o que o jogador quer são os títulos que ele destrava, e o
+    // card tem que dizer a coisa pelo nome que ele procura.
+    tagline:
+        'O que cada registro dá de atributo e quanto custa em páginas — o '
+        'NPC mostra 32 ícones iguais e não soma nada.',
+    icon: Icons.workspace_premium_outlined,
+    // A própria Página de Registro: Assimilação, que é a moeda da mecânica.
+    emblem: 83070,
+    route: '/registros',
+    // Arte de empréstimo, e vale saber que é: um sacerdote não tem relação
+    // com títulos. Estava no repositório sem uso e enche o card enquanto não
+    // chega uma captura da tela de títulos, que é o que a ferramenta trata.
+    // Trocar é este caminho e mais nada.
+    art: 'assets/images/sacerdote.webp',
+  ),
+  // The guides are listed one by one rather than behind a single "read the
+  // guides" card. There is one written, so this is one card — and that is the
+  // point: a card that leads to a list of one is a click spent on nothing, and
+  // as guides are written the front page fills itself.
   Tool(
     name: 'Guerras territoriais',
     tagline:
@@ -95,30 +142,13 @@ const tools = <Tool>[
     // andam juntos; fazer um só deixa o site incoerente consigo mesmo.
     art: 'assets/images/barbaro.webp',
   ),
-  // Os Registros de Assimilação **existem e funcionam**, em `/registros`, e
-  // ainda não estão aqui — de propósito, como o mapa das guerras esteve. A
-  // ferramenta está sendo mostrada a poucas pessoas antes de ser anunciada, e
-  // ligar o card é o gesto que a torna pública. Quando for a hora, é isto:
-  //
-  //   Tool(
-  //     name: 'Registros de Assimilação',
-  //     tagline:
-  //         'O que cada receita do NPC dá, e quanto custa em páginas — o jogo '
-  //         'mostra 32 ícones iguais e não soma nada.',
-  //     icon: Icons.menu_book_outlined,
-  //     emblem: 83070,
-  //     route: '/registros',
-  //   ),
-  // The guides are listed one by one rather than behind a single "read the
-  // guides" card. There is one written, so this is one card — and that is the
-  // point: a card that leads to a list of one is a click spent on nothing, and
-  // as guides are written the front page fills itself.
   Tool(
     name: 'Início rápido',
     tagline:
         'Como ganhar nível: as quests vermelhas, o Vale da Fênix e as '
         'Anedotas.',
     icon: Icons.auto_stories_outlined,
+    secao: 'Guias',
     // Pedra de Hiper EXP, which is what the guide is about: levelling fast.
     emblem: 27424,
     href: '/guias/inicio-rapido',
@@ -126,4 +156,26 @@ const tools = <Tool>[
     // A landscape, not a portrait: it wants its middle.
     artAlignment: Alignment.center,
   ),
+];
+
+/// Quando o selo de *novo* dos Títulos vence.
+final _ateOutubro = DateTime.utc(2026, 10, 20);
+
+/// As seções na ordem em que a home as mostra, cada uma uma vez.
+///
+/// Lida da lista e não escrita à parte: uma segunda lista das seções seria
+/// uma segunda coisa para manter em acordo, e a que fica para trás é sempre a
+/// que ninguém olha.
+List<String> get secoesDaHome {
+  final vistas = <String>{};
+  return [
+    for (final tool in tools)
+      if (vistas.add(tool.secao)) tool.secao,
+  ];
+}
+
+/// Os cards de uma seção, na ordem da lista.
+List<Tool> toolsDe(String secao) => [
+  for (final tool in tools)
+    if (tool.secao == secao) tool,
 ];

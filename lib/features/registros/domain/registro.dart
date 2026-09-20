@@ -75,6 +75,12 @@ class Registro {
   /// off a phone.
   final Map<RegistroAtributo, int> pontos;
 
+  /// Identifies this recipe across tabs.
+  ///
+  /// The tab has to be in it: slot 1 exists six times, once per tab, and a
+  /// plan spanning tabs would otherwise count one of them as all of them.
+  String get chave => '$aba#$ordem';
+
   factory Registro.fromJson(Map<String, dynamic> json) => Registro(
     aba: (json['aba'] as String?) ?? '',
     ordem: (json['ordem'] as num?)?.toInt() ?? 0,

@@ -244,14 +244,63 @@ class _Aurora extends StatelessWidget {
   );
 }
 
-/// Two per row when there is room, one when there is not.
+/// The menu, under one heading per section.
 ///
-/// A grid rather than a list because the menu is meant to be scanned, not read:
-/// four tools side by side answer "what is here?" in one glance, where four
+/// A grid rather than a list because it is meant to be scanned, not read: four
+/// cards side by side answer "what is here?" in one glance, where four
 /// full-width rows answer it in four.
+///
+/// **The headings separate what the site does from what it explains.** Filed
+/// together, the menu said "here are four things"; split, it says "here are
+/// the tools, and here is what they are about" — and a guide stops competing
+/// with a tool for the same attention.
 class _Menu extends StatelessWidget {
   const _Menu({required this.wide});
 
+  final bool wide;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      for (final secao in secoesDaHome) ...[
+        _Secao(nome: secao),
+        SizedBox(height: wide ? 12 : 10),
+        _Cards(tools: toolsDe(secao), wide: wide),
+        SizedBox(height: wide ? 26 : 20),
+      ],
+    ],
+  );
+}
+
+/// The rule above a group of cards.
+class _Secao extends StatelessWidget {
+  const _Secao({required this.nome});
+
+  final String nome;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Text(
+        nome.toUpperCase(),
+        style: const TextStyle(
+          color: PWColors.textMuted,
+          fontSize: 11,
+          letterSpacing: 1.6,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      const SizedBox(width: 12),
+      const Expanded(child: Divider(color: PWColors.border, height: 1)),
+    ],
+  );
+}
+
+class _Cards extends StatelessWidget {
+  const _Cards({required this.tools, required this.wide});
+
+  final List<Tool> tools;
   final bool wide;
 
   @override

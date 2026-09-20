@@ -175,6 +175,29 @@ class _Body extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          // The badge sits before the arrow, where the eye finishes the
+          // title. It expires by its own date, so nobody has to remember to
+          // take it down — a "novo" that outlives the news is a small lie the
+          // whole page pays for.
+          if (tool.novoEm(DateTime.now())) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: PWColors.accent,
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: const Text(
+                'novo',
+                style: TextStyle(
+                  color: PWColors.background,
+                  fontSize: 10,
+                  letterSpacing: 0.6,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            const SizedBox(width: 9),
+          ],
           if (ready)
             const Icon(Icons.arrow_forward, size: 18, color: PWColors.accent)
           else

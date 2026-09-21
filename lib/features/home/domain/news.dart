@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../ui/widgets/home_notice.dart';
+import '../ui/widgets/news_titulos.dart';
 
 /// One dated entry on the front page.
 ///
@@ -39,6 +40,11 @@ class NewsEntry {
 /// `final` and not `const` because a `DateTime` is not a compile-time
 /// constant — the one thing every entry must carry.
 final portalNews = <NewsEntry>[
+  NewsEntry(
+    date: DateTime.utc(2026, 9, 21),
+    title: 'Títulos e streamers ao vivo',
+    body: (context, wide) => NewsTitulos(wide: wide),
+  ),
   NewsEntry(
     date: DateTime.utc(2026, 9, 18),
     title: 'Estamos de volta!',

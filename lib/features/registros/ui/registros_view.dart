@@ -177,9 +177,10 @@ class _Explicacao extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Text(
-    'Cada receita troca Páginas de Registro: Assimilação por atributos '
-    'permanentes. O jogo não soma o que cada uma dá, e o custo vai de 1 a 100 '
-    'páginas — então a melhor troca rende mais de cem vezes a pior.',
+    'A Gerente de Eventos, na Cidade do Dragão (551, 636), troca Páginas de '
+    'Registro: Assimilação por atributos permanentes. O jogo não soma o que '
+    'cada uma dá, e o custo vai de 1 a 100 páginas — então a melhor troca '
+    'rende mais de cem vezes a pior.',
     style: TextStyle(color: PWColors.textMuted, fontSize: 13, height: 1.55),
   );
 }

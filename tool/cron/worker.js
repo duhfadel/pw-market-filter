@@ -181,7 +181,9 @@ async function atualizarQuemEstaAoVivo(env) {
 
   // Um pedido só resolve até cem canais, então a lista inteira cabe numa
   // chamada e vai caber por muito tempo.
-  const busca = canais.map((c) => `user_login=${encodeURIComponent(c)}`).join('&');
+  const busca = canais
+    .map(({ canal }) => `user_login=${encodeURIComponent(canal)}`)
+    .join('&');
   const resposta = await fetch(`https://api.twitch.tv/helix/streams?${busca}`, {
     headers: {
       'Client-Id': TWITCH_CLIENT_ID,
@@ -205,11 +207,23 @@ async function atualizarQuemEstaAoVivo(env) {
   // Uma linha por canal, inclusive os que estão fora do ar — é assim que
   // alguém que acabou de encerrar volta a ser `false` em vez de ficar
   // eternamente ao vivo.
-  const linhas = canais.map((canal) => {
+  const linhas = canais.map(({ canal, nome }) => {
     const live = aoVivo.get(canal);
     return {
       canal,
-      nome: live ? live.user_name : undefined,
+      // Sempre presente, nunca `undefined`.
+      //
+      // **O PostgREST exige que todos os objetos de um lote tenham as mesmas
+      // chaves** — `All object keys must match`, PGRST102 — e `undefined`
+      // some no `JSON.stringify`. Com um canal só isso nunca aparecia: um
+      // objeto sozinho sempre combina consigo mesmo. Bastou o segundo, com um
+      // ao vivo e outro não, para o lote inteiro ser recusado e ninguém ser
+      // gravado.
+      //
+      // Offline mantém o nome que já estava: ele vem da Twitch, é estável, e
+      // apagá-lo faria o card perder a grafia própria do streamer até a
+      // próxima live.
+      nome: live ? live.user_name : nome,
       ao_vivo: Boolean(live),
       titulo: live ? live.title : null,
       jogo: live ? live.game_name : null,
@@ -226,19 +240,83 @@ async function atualizarQuemEstaAoVivo(env) {
 
   await gravarNoSupabase(env, linhas);
   console.log(`Twitch: ${aoVivo.size} de ${canais.length} ao vivo`);
+
+  await batizarOsNovos(env, token, canais);
 }
 
-/// Os canais que o dono deixou ligados, em minúsculo.
+// Descobre o nome próprio de quem ainda não tem, e denuncia canal que não
+// existe.
+//
+// **É o detector de erro de digitação.** O nome só chegaria pelo `/streams`,
+// que só responde por quem está ao vivo — então um canal escrito errado
+// ficaria offline para sempre, em silêncio, e ninguém saberia a diferença
+// entre "não transmite" e "não existe". O `/users` responde sempre, e o login
+// que ele não devolve é um login que não existe.
+//
+// Só para quem falta, então custa zero requisição no dia a dia: é uma chamada
+// a mais na primeira rodada depois de alguém ser adicionado, e nunca mais.
+async function batizarOsNovos(env, token, canais) {
+  const semNome = canais.filter(({ nome }) => !nome);
+  if (!semNome.length) return;
+
+  const busca = semNome
+    .map(({ canal }) => `login=${encodeURIComponent(canal)}`)
+    .join('&');
+  const resposta = await fetch(`https://api.twitch.tv/helix/users?${busca}`, {
+    headers: {
+      'Client-Id': TWITCH_CLIENT_ID,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!resposta.ok) {
+    console.error(`/users recusado: ${resposta.status}`);
+    return;
+  }
+
+  const { data = [] } = await resposta.json();
+  const achados = new Map(
+    data.map((u) => [String(u.login).toLowerCase(), u.display_name]),
+  );
+
+  const inexistentes = semNome
+    .map(({ canal }) => canal)
+    .filter((canal) => !achados.has(canal));
+  if (inexistentes.length) {
+    console.error(
+      `AVISO: a Twitch não conhece ${inexistentes.join(', ')} — ` +
+        'provavelmente o login está escrito errado.',
+    );
+  }
+
+  if (!achados.size) return;
+
+  await gravarNoSupabase(
+    env,
+    [...achados].map(([canal, nome]) => ({ canal, nome })),
+  );
+  console.log(`nomes descobertos: ${[...achados.values()].join(', ')}`);
+}
+
+// Os canais ligados, com o nome que já se sabe deles.
+//
+// O nome vem junto porque a gravação precisa mandá-lo mesmo para quem está
+// offline — ver o comentário em `nome` acima.
 async function canaisAtivos(env) {
   const resposta = await supabase(
     env,
-    '/canais_twitch?select=canal&ativo=is.true',
+    '/canais_twitch?select=canal,nome&ativo=is.true',
   );
   if (!resposta.ok) {
     console.error(`não deu para ler os canais: ${resposta.status}`);
     return [];
   }
-  return (await resposta.json()).map((linha) => linha.canal);
+  return (await resposta.json()).map(({ canal, nome }) => ({
+    canal,
+    // `null` viraria a string "null" em nada, mas deixa a chave presente, que
+    // é o que o lote exige.
+    nome: nome ?? null,
+  }));
 }
 
 // Um token de aplicativo, pedido a cada rodada.

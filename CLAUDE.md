@@ -302,6 +302,26 @@ Tuesday. Anything older than twelve minutes, three missed rounds, is treated
 as unknown. One wrong badge costs more than the card earns: whoever clicks and
 lands on an offline channel stops believing the next one.
 
+**A bulk upsert to PostgREST needs identical keys on every object, and the
+one that breaks it is `undefined`.** Offline channels were sent without a
+`nome` key — `JSON.stringify` drops undefined — so the moment one channel was
+live and another was not, the whole batch came back `PGRST102: All object keys
+must match` and **nobody** was written, not even the rows that were fine. With
+a single channel it was invisible for a day: one object always matches itself.
+The field is always sent now, falling back to the name already stored.
+
+Two of my own checks failed around it, and both are the same mistake. A curl
+reproduction with all three channels *offline* answered 200 — identical keys,
+so it exercised the case that works instead of the case that fails. And one
+channel passing for a day was treated as proof the shape was right.
+
+**A login nobody ever sees live is indistinguishable from a typo**, because
+`/helix/streams` only answers for channels that are on air. So the Worker also
+calls `/helix/users` for any channel with no name yet: it answers regardless
+of live status, the display name gets stored, and a login it does not return
+is logged as *"a Twitch não conhece …"*. It costs nothing in steady state —
+only the first round after somebody is added.
+
 **A failed Twitch call writes nothing at all.** Marking everybody offline
 would turn a network problem into a false statement — absence of an answer is
 not absence of a stream.

@@ -35,6 +35,14 @@ class Preset {
 /// return nothing for the other sixteen, which is the failure this whole
 /// screen exists to avoid.
 ///
+/// **Seventy stopped being the ceiling.** The game added an 80 tier after this
+/// file was written, and for a while the site swallowed it in silence: the
+/// chip asked for `minimum: 70`, so the 80s came back inside the results and
+/// were counted as 70s, and nothing on any screen said a tier above existed.
+/// Measured on 2026-09-21: attack 70+ finds 663 characters at a median of 400
+/// TCC, attack 80 finds 10 at a median of 8000. Twenty times the price — the
+/// same shape that made this site exist, one step up, and invisible.
+///
 /// The five were chosen against the collected market, not from taste. Measured
 /// on 2026-08-17 over 830 listings: attack level 70 finds 205, the same under
 /// 500 TCC finds 82, six S cards 78, Portal de Nuema 48, and 100 TCC 288 —
@@ -50,30 +58,50 @@ class Preset {
 List<Preset> presetsFor(MarketIndex index) {
   final weapon = strongWeaponQuery(index);
 
+  final topo = weaponQuery(index, 'Nível de Ataque', 80);
+  final defesa = weaponQuery(index, 'Nível de Defesa', 80);
+
   return [
     if (weapon != null) ...[
-      Preset('Arma de 70 de ataque', weapon),
+      Preset('Arma de 70 ou mais', weapon),
       Preset('Arma de 70 até 500 TCC', weapon.copyWith(maxPrice: () => 500)),
     ],
+    // O patamar novo. Dez personagens em 1449, mediana de 8000 TCC contra 400
+    // do 70 — vinte vezes o preço, que é a mesma história que fez este site
+    // existir, um degrau acima.
+    if (topo != null) Preset('Arma de 80 de ataque', topo),
+    // Nove personagens, e até aqui invisível: nenhum número e nenhum atalho
+    // falavam dela, então quem procura arma defensiva não tinha como achar.
+    if (defesa != null) Preset('Defesa de 80 na arma', defesa),
     const Preset('Seis cartas S', SearchQuery(cardRarity: 'S')),
     Preset('Portal de Nuema', nuemaQuery),
     const Preset('Até 100 TCC', SearchQuery(maxPrice: 100)),
   ];
 }
 
-/// The one weapon tier that decides a purchase: 70 attack level.
+/// The tier that decides most purchases: 70 attack level, 45% of the market.
 ///
-/// Every class has its own weapon capping there — seventeen names for one tier
-/// — which is why this asks for the attribute and never for an item. `null`
-/// when the index does not carry the attribute at all, which only a broken
-/// collection would produce.
-SearchQuery? strongWeaponQuery(MarketIndex index) {
-  final attackLevel = index.attributes.indexOf('Nível de Ataque');
-  if (attackLevel < 0) return null;
+/// It asks for the attribute and never for an item, because seventeen classes
+/// carry seventeen different names for the same tier — a preset built on one
+/// item id would work for Guerreiro and quietly return nothing for the other
+/// sixteen.
+SearchQuery? strongWeaponQuery(MarketIndex index) =>
+    weaponQuery(index, 'Nível de Ataque', 70);
+
+/// A weapon asking [minimo] of the attribute called [atributo].
+///
+/// `null` when this collection does not carry that attribute — which is not
+/// only the broken-collection case any more. **Eighty is a tier the game
+/// added after this site was written**, and a tier the market has not reached
+/// yet simply has no attribute to point at, so the chip does not exist rather
+/// than existing and finding nobody.
+SearchQuery? weaponQuery(MarketIndex index, String atributo, int minimo) {
+  final id = index.attributes.indexOf(atributo);
+  if (id < 0) return null;
 
   return SearchQuery(
     criteria: [
-      ItemCriterion(slot: weaponSlot, attributeId: attackLevel, minimum: 70),
+      ItemCriterion(slot: weaponSlot, attributeId: id, minimum: minimo),
     ],
   );
 }

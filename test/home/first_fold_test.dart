@@ -6,7 +6,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:pw_market_filter/features/home/data/ao_vivo_repository.dart';
+import 'package:pw_market_filter/features/home/data/novidade_repository.dart';
 import 'package:pw_market_filter/features/home/ui/ao_vivo_view_model.dart';
+import 'package:pw_market_filter/features/home/data/visit_memory.dart';
+import 'package:pw_market_filter/features/home/data/visit_repository.dart';
+import 'package:pw_market_filter/features/home/ui/novidades_view_model.dart';
+import 'package:pw_market_filter/features/home/ui/visit_counter_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/home_view.dart';
 import 'package:pw_market_filter/features/search/domain/search_query_url.dart';
 import 'package:pw_market_filter/features/search/ui/search_view_model.dart';
@@ -54,6 +59,10 @@ final _index = MarketIndex(
   ],
 );
 
+/// Uma memória que não lembra de nada, para o contador não tocar em
+/// localStorage num teste.
+VisitMemory _semMemoria() => VisitMemory.platform();
+
 /// A client that answers nothing, for the widgets this test is not about.
 MockClient _semRede() => MockClient((_) async => http.Response('[]', 200));
 
@@ -86,6 +95,19 @@ Future<List<String>> _pumpHome(WidgetTester tester) async {
         // que a home fica quando ninguém está transmitindo.
         BlocProvider(
           create: (_) => AoVivoViewModel(AoVivoRepository(_semRede())),
+        ),
+        // As novidades vêm do Discord por uma tabela, e aqui não há rede: a
+        // seção nasce vazia, que é como a home fica quando ninguém postou.
+        BlocProvider(
+          create: (_) => NovidadesViewModel(NovidadeRepository(_semRede())),
+        ),
+        // O contador do rodapé. Ele sempre esteve na árvore e o teste nunca o
+        // forneceu — passava porque a exceção caía num ramo que ninguém
+        // alcançava. Mexer na ordem da home trouxe o ramo para o caminho.
+        BlocProvider(
+          create: (_) => VisitCounterViewModel(
+            VisitRepository(client: _semRede(), memory: _semMemoria()),
+          ),
         ),
       ],
       child: MaterialApp(
@@ -142,7 +164,7 @@ void main() {
     // with a form to fill in.
     final pushed = await _pumpHome(tester);
 
-    await tester.tap(find.text('com arma de 70 de ataque'));
+    await tester.tap(find.text('com arma de 70 ou mais'));
     await tester.pumpAndSettle();
 
     expect(pushed, hasLength(1));

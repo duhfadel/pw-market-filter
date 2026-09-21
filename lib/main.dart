@@ -5,6 +5,7 @@ import 'core/di/injection.dart';
 import 'core/theme/pw_theme.dart';
 import 'features/home/ui/home_view.dart';
 import 'features/home/ui/ao_vivo_view_model.dart';
+import 'features/home/ui/novidades_view_model.dart';
 import 'features/home/ui/visit_counter_view_model.dart';
 import 'features/registros/ui/registros_view.dart';
 import 'features/search/ui/search_view.dart';
@@ -65,6 +66,7 @@ class PortalPWApp extends StatelessWidget {
         // Uma consulta por visita, não uma por tela: a faixa é a mesma em
         // qualquer lugar e o dado muda de cinco em cinco minutos.
         BlocProvider(create: (_) => getIt<AoVivoViewModel>()..load()),
+        BlocProvider(create: (_) => getIt<NovidadesViewModel>()..load()),
       ],
       child: child ?? const SizedBox.shrink(),
     ),

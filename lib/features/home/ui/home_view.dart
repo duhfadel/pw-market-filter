@@ -13,8 +13,9 @@ import '../domain/tool.dart';
 import '../domain/visit_label.dart';
 import 'visit_counter_view_model.dart';
 import '../domain/community.dart';
-import '../domain/news.dart';
+import '../domain/novidade.dart';
 import '../../../core/widgets/brand_icon.dart';
+import 'novidades_view_model.dart';
 import 'widgets/ao_vivo_strip.dart';
 import 'widgets/discord_strip.dart';
 import 'widgets/news_section.dart';
@@ -160,7 +161,10 @@ class HomeView extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: large ? 32 : (wide ? 26 : 20)),
-                    NewsSection(entries: portalNews, wide: wide),
+                    BlocBuilder<NovidadesViewModel, List<Novidade>>(
+                      builder: (context, novidades) =>
+                          NewsSection(entries: novidades, wide: wide),
+                    ),
                     SizedBox(height: large ? 32 : (wide ? 26 : 20)),
                     _Menu(wide: wide),
                     // Depois das ferramentas e antes da publicidade. É o

@@ -45,12 +45,17 @@ final _index = MarketIndex(
 );
 
 Future<SearchViewModel> _pumpFilter(WidgetTester tester) async {
-  // Wide enough for four of the five chips to be built. The row scrolls
-  // horizontally, and the test font draws every glyph as a square of the font
-  // size — "Arma de 70 até 500 TCC" measures 286 px here against roughly 150
-  // in a browser — so a chip that is comfortably on screen in the app can be
-  // past the edge in a test. Nothing below depends on the fifth.
-  tester.view.physicalSize = const Size(1400, 900);
+  // Wide enough for every chip to be built, which is wider than it looks: the
+  // test font draws each glyph as a square of the font size, so
+  // "Arma de 70 até 500 TCC" measures 286 px here against roughly 150 in a
+  // browser. The row scrolls horizontally and only builds what fits, so a chip
+  // that sits comfortably on screen in the app is simply absent from the tree
+  // in a test.
+  //
+  // It was 1400 and that was enough for five chips. The 80 tier made six, and
+  // Portal de Nuema fell off the end — a failure about the test window rather
+  // than about the page.
+  tester.view.physicalSize = const Size(2200, 900);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
 
@@ -79,7 +84,7 @@ void main() {
   ) async {
     await _pumpFilter(tester);
 
-    expect(find.text('Arma de 70 de ataque'), findsOneWidget);
+    expect(find.text('Arma de 70 ou mais'), findsOneWidget);
     expect(find.text('Portal de Nuema'), findsOneWidget);
   });
 
@@ -98,9 +103,9 @@ void main() {
     // switched on is a dead end on a screen whose whole job is narrowing.
     final viewModel = await _pumpFilter(tester);
 
-    await tester.tap(find.text('Arma de 70 de ataque'));
+    await tester.tap(find.text('Arma de 70 ou mais'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Arma de 70 de ataque'));
+    await tester.tap(find.text('Arma de 70 ou mais'));
     await tester.pumpAndSettle();
 
     expect(_ready(viewModel).query.isEmpty, isTrue);

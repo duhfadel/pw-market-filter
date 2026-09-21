@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/game_icon.dart';
-import '../../domain/news.dart';
+import 'novidade_texto.dart';
+import '../../domain/novidade.dart';
 
 /// The front page's news, newest first.
 ///
@@ -16,7 +17,7 @@ import '../../domain/news.dart';
 class NewsSection extends StatefulWidget {
   const NewsSection({required this.entries, required this.wide, super.key});
 
-  final List<NewsEntry> entries;
+  final List<Novidade> entries;
   final bool wide;
 
   @override
@@ -128,7 +129,7 @@ class _NewsSectionState extends State<NewsSection> {
     ),
   );
 
-  Widget _entrada(NewsEntry entry, {required bool primeira}) => Padding(
+  Widget _entrada(Novidade entry, {required bool primeira}) => Padding(
     padding: EdgeInsets.fromLTRB(
       widget.wide ? 24 : 18,
       primeira ? (widget.wide ? 14 : 12) : 0,
@@ -142,7 +143,7 @@ class _NewsSectionState extends State<NewsSection> {
         // three things rather than as one long column.
         if (!primeira) ...[const Divider(color: PWColors.border, height: 28)],
         Text(
-          entry.label,
+          _data(entry.publicadaEm),
           style: const TextStyle(
             color: PWColors.textMuted,
             fontSize: 12,
@@ -150,18 +151,31 @@ class _NewsSectionState extends State<NewsSection> {
           ),
         ),
         const SizedBox(height: 3),
-        Text(
-          entry.title,
-          style: TextStyle(
-            color: PWColors.text,
-            fontSize: widget.wide ? 19 : 17,
-            fontWeight: FontWeight.w700,
-            height: 1.3,
+        // Uma novidade sem título é um recado, não um anúncio, e desenhar
+        // a primeira linha como manchete transformaria "coletei agora" num
+        // grito.
+        if (entry.titulo != null) ...[
+          Text(
+            entry.titulo!,
+            style: TextStyle(
+              color: PWColors.text,
+              fontSize: widget.wide ? 19 : 17,
+              fontWeight: FontWeight.w700,
+              height: 1.3,
+            ),
           ),
-        ),
-        SizedBox(height: widget.wide ? 12 : 10),
-        entry.body(context, widget.wide),
+          SizedBox(height: widget.wide ? 12 : 10),
+        ] else
+          const SizedBox(height: 6),
+        NovidadeTexto(corpo: entry.corpo),
       ],
     ),
   );
+
+  /// `21/09/2026`, a mesma forma que a data da coleta usa no filtro.
+  static String _data(DateTime quando) {
+    final local = quando.toLocal();
+    return '${local.day.toString().padLeft(2, '0')}/'
+        '${local.month.toString().padLeft(2, '0')}/${local.year}';
+  }
 }

@@ -197,7 +197,7 @@ which a static site cannot compute, and the territory map's owners, which
 change weekly and must not cost a deploy. Both live in a Supabase project
 called `portal-pw` (`yadfbwsolmkcaylbxviw`, São Paulo).
 
-Six tables and a view, and **the two halves are opposite on purpose**, which is the part
+Seven tables and a view, and **the two halves are opposite on purpose**, which is the part
 to read before changing either.
 
 #### The counter: RLS with no policy
@@ -278,6 +278,34 @@ characters an HTML escaper replaces, so it would travel intact into the `href`.
 also turns away `data:`, `vbscript:`, `file:`, leading whitespace and mixed
 case. A streamer that fails is dropped rather than pointed at `#`: a dead link
 promises a broadcast that does not exist.
+
+#### The news: written in Discord, read from Supabase
+
+`novidades (mensagem_id, autor, texto, publicada_em, visivel, vista_em)` holds
+what the owner posts in `#📢・novidades`. The Worker copies the channel every
+five minutes; **nothing on the front page is written in code any more**, which
+also means nothing waits for a deploy.
+
+**Its safety is a Discord permission and not a column.** Whoever can post in
+that channel publishes on the home page, so the channel is restricted to the
+owner. No parsing on this side could replace that.
+
+Three words survive the trip — paragraph, bold, link — and everything else
+arrives as the characters somebody typed. A first line that is *wholly* bold
+becomes the heading: bold mid-sentence is emphasis, and promoting it would
+turn a remark into a title with the rest orphaned beneath. A message with no
+bold first line draws as a paragraph, because a short note is not a shout.
+Only a blank line starts a paragraph, for the reason the war map already
+learned: Discord hard-wraps as you type.
+
+Deleting in Discord hides it here, within the twenty-message window the Worker
+reads. Older than that and it is left alone — out of range is not a decision
+to remove something.
+
+**The `MESSAGE CONTENT INTENT` is the one that has to be on.** Without it
+Discord returns the messages with `content` empty — no error, no warning — so
+the channel looks empty and the bug looks like a wrong channel ID. The log
+counts `N vieram, M com texto` precisely to tell those two apart.
 
 #### The streamers: a third table, and the Worker as the only writer
 

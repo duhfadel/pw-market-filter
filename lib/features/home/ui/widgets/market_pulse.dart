@@ -62,12 +62,7 @@ class MarketPulse extends StatelessWidget {
       final strong = runQuery(index, weapon);
       if (strong.isNotEmpty) {
         figures.add(
-          _Figure(
-            '${strong.length}',
-            'com arma de 70 de ataque',
-            weapon,
-            index,
-          ),
+          _Figure('${strong.length}', 'com arma de 70 ou mais', weapon, index),
         );
         // `runQuery` orders by cheapest first, which is the default and also
         // what this figure is asking for.
@@ -78,6 +73,23 @@ class MarketPulse extends StatelessWidget {
             weapon,
             index,
           ),
+        );
+      }
+    }
+
+    // O patamar de 80, que o site não mencionava em lugar nenhum enquanto o
+    // atalho de 70 o engolia em silêncio — as armas de 80 entravam nos
+    // resultados contadas como 70. Aqui ele aparece como o que é: dez
+    // personagens numa mediana de 8000 TCC, contra 400 do 70.
+    //
+    // Sai da tela sozinho no dia em que a coleta não achar nenhuma, que é
+    // também como ele vai entrar quando a próxima faixa surgir.
+    final topo = weaponQuery(index, 'Nível de Ataque', 80);
+    if (topo != null) {
+      final donos = runQuery(index, topo);
+      if (donos.isNotEmpty) {
+        figures.add(
+          _Figure('${donos.length}', 'com arma de 80 de ataque', topo, index),
         );
       }
     }

@@ -38,6 +38,21 @@ const CRON_DA_TWITCH = '*/5 * * * *';
 // O que não pode aparecer é o secret, e ele vive no `wrangler secret`.
 const TWITCH_CLIENT_ID = 'g5aijijz2yef9fx7wonix8ht6cj36y';
 
+// O canal cujas mensagens viram novidade no site: #📢・novidades.
+//
+// **A segurança disto é a permissão do canal, não este código.** O Worker
+// copia o que estiver lá, então quem puder escrever no canal publica na home
+// — e é por isso que ele é restrito ao dono. Trocar por um canal aberto
+// entrega a página para o servidor inteiro.
+const CANAL_DAS_NOVIDADES = '1550593679503269948';
+
+// Quantas mensagens o Worker olha por rodada.
+//
+// Vinte e não todas: é a janela dentro da qual uma mensagem apagada no
+// Discord também some do site. Mais fundo custaria requisição para reler
+// coisa que nunca muda; menos deixaria um apagado recente sobreviver.
+const JANELA_DAS_NOVIDADES = 20;
+
 const SUPABASE = 'https://yadfbwsolmkcaylbxviw.supabase.co/rest/v1';
 const SUPABASE_KEY = 'sb_publishable_D2hgezeh5BbZVpt_QLeXwg_FowKweu2';
 
@@ -54,10 +69,12 @@ const NA_FILA = new Set(['queued', 'pending', 'waiting', 'requested']);
 
 export default {
   async scheduled(event, env, ctx) {
+
     // Dois gatilhos, duas tarefas. O do Supabase não dispara coleta nenhuma:
     // ele existe justamente para os períodos em que não há coleta.
     if (event.cron === CRON_DA_TWITCH) {
       await atualizarQuemEstaAoVivo(env);
+      await lerAsNovidades(env);
       return;
     }
 
@@ -380,6 +397,100 @@ function supabase(env, caminho, { method = 'GET', prefer, body } = {}) {
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+}
+
+// Copia o canal de novidades do Discord para a tabela.
+//
+// **Uma falha não apaga nada**, pela mesma razão da Twitch: se o Discord não
+// responder, o certo é deixar como está. Sumir com as novidades porque a rede
+// falhou seria transformar um problema de rede numa página vazia.
+async function lerAsNovidades(env) {
+  const resposta = await fetch(
+    `https://discord.com/api/v10/channels/${CANAL_DAS_NOVIDADES}` +
+      `/messages?limit=${JANELA_DAS_NOVIDADES}`,
+    { headers: { Authorization: `Bot ${env.DISCORD_TOKEN}` } },
+  );
+
+  if (!resposta.ok) {
+    console.error(
+      `Discord recusou: ${resposta.status} ${await resposta.text()}`,
+    );
+    return;
+  }
+
+  const mensagens = await resposta.json();
+  const agora = new Date().toISOString();
+
+  // Só mensagem de gente com texto. Entrada de membro, fixação e mensagem de
+  // bot têm `type` diferente de 0 e não são novidade nenhuma.
+  const uteis = mensagens.filter(
+    (m) => m.type === 0 && !m.author?.bot && String(m.content || '').trim(),
+  );
+
+  if (uteis.length) {
+    await gravarNoSupabase2(env, '/novidades?on_conflict=mensagem_id', uteis.map((m) => ({
+      mensagem_id: m.id,
+      autor: m.author?.global_name || m.author?.username || null,
+      texto: String(m.content).trim(),
+      // A data da mensagem, não a da leitura: ela não pode mudar porque o
+      // Worker reiniciou.
+      publicada_em: m.timestamp,
+      visivel: true,
+      vista_em: agora,
+    })));
+  }
+
+  await esconderApagadas(env, mensagens, uteis);
+  // Quantas vieram contra quantas serviram. As duas causas de "zero" se
+  // parecem na tabela e não no log: canal errado devolve nenhuma mensagem,
+  // e falta da intent de conteúdo devolve todas com o texto vazio.
+  const comTexto = mensagens.filter((m) => String(m.content || '').trim()).length;
+  console.log(
+    `novidades: ${mensagens.length} vieram, ${comTexto} com texto, ` +
+      `${uteis.length} aproveitadas`,
+  );
+}
+
+// Some do site o que foi apagado no Discord.
+//
+// Só dentro da janela lida: uma linha mais antiga que a mensagem mais velha
+// desta rodada simplesmente saiu do alcance, e sumir com ela seria apagar
+// história por falta de informação, não por decisão de ninguém.
+async function esconderApagadas(env, mensagens, uteis) {
+  if (!mensagens.length) return;
+
+  const maisVelha = mensagens[mensagens.length - 1].id;
+  const vivas = new Set(uteis.map((m) => m.id));
+
+  const r = await supabase(
+    env,
+    `/novidades?select=mensagem_id&visivel=is.true&mensagem_id=gte.${maisVelha}`,
+  );
+  if (!r.ok) return;
+
+  const sumidas = (await r.json())
+    .map((linha) => linha.mensagem_id)
+    .filter((id) => !vivas.has(id));
+  if (!sumidas.length) return;
+
+  await supabase(
+    env,
+    `/novidades?mensagem_id=in.(${sumidas.join(',')})`,
+    { method: 'PATCH', prefer: 'return=minimal', body: { visivel: false } },
+  );
+  console.log(`novidades apagadas no Discord: ${sumidas.length}`);
+}
+
+// Grava em qualquer tabela, com o mesmo upsert que os streamers usam.
+async function gravarNoSupabase2(env, caminho, linhas) {
+  const r = await supabase(env, caminho, {
+    method: 'POST',
+    prefer: 'resolution=merge-duplicates,return=minimal',
+    body: linhas,
+  });
+  if (!r.ok) {
+    console.error(`Supabase recusou: ${r.status} ${await r.text()}`);
+  }
 }
 
 function github(env, caminho, method = 'GET', body) {

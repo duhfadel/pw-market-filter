@@ -42,8 +42,8 @@ class _PetSectionState extends State<PetSection> {
   /// "this collection never saw one".
   List<MapEntry<String, int>> get _pets => [
     for (final name in countedItemIds.keys)
-      if (state.index.countedItems[name] != null)
-        MapEntry(name, state.index.countedItems[name]!),
+      if (state.index.countedItems[name]?.isNotEmpty ?? false)
+        MapEntry(name, state.index.countedItems[name]!.first),
   ];
 
   @override

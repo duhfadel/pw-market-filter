@@ -51,7 +51,8 @@ Future<void> main() async {
     // same way, since a `Relíquia Maravilha` is carried, never worn.
     final iconIds = {
       ...index.items.keys,
-      ...index.countedItems.values,
+      // A label can gather several ids, and each draws its own sprite.
+      ...index.countedItems.values.expand((ids) => ids),
       // Runes are the third field that shares the id space without sharing
       // `items`, and the card draws them at 22 px — their art carries both the
       // colour and the level, so a missing file loses real information.

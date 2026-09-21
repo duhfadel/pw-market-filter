@@ -57,6 +57,32 @@ void main() {
     expect(index.attributes, contains('Nível de Ataque'));
   });
 
+  test(
+    'an index written before a label could hold several ids still reads',
+    () {
+      // The site serves whatever collection last landed, and one written before
+      // `countedItems` became a list says `"name": 54687` rather than
+      // `"name": [54687]`. That is still a true answer about that market, so it
+      // is read rather than refused — refusing it would open the page empty for
+      // the ten minutes between a deploy and the next collection.
+      final antigo =
+          jsonDecode(jsonEncode(index.toJson())) as Map<String, dynamic>;
+      antigo['countedItems'] = {
+        for (final entry
+            in (antigo['countedItems'] as Map<String, dynamic>).entries)
+          entry.key: (entry.value as List).first,
+      };
+
+      final restored = MarketIndex.fromJson(antigo);
+      final leandrim = restored.characters.singleWhere(
+        (c) => c.roleId == 64112,
+      );
+
+      expect(restored.countedItems['Relíquia Maravilha: Artefato'], [54687]);
+      expect(restored.countOf(leandrim, 'Relíquia Maravilha: Artefato'), 22);
+    },
+  );
+
   test('survives a round trip through JSON unchanged', () {
     final restored = MarketIndex.fromJson(
       jsonDecode(jsonEncode(index.toJson())) as Map<String, dynamic>,
@@ -133,18 +159,15 @@ void main() {
     // the parser, resolved by name in the builder, counted here.
     final leandrim = index.characters.singleWhere((c) => c.roleId == 64112);
 
-    expect(
-      leandrim.counts[index.countedItems['Relíquia Maravilha: Artefato']],
-      22,
-    );
-    expect(leandrim.counts[index.countedItems['Relíquia Maravilha: Arma']], 16);
+    expect(index.countOf(leandrim, 'Relíquia Maravilha: Artefato'), 22);
+    expect(index.countOf(leandrim, 'Relíquia Maravilha: Arma'), 16);
   });
 
   test('the counted names the market showed are resolved, the rest absent', () {
     expect(index.countedItems, {
-      'Relíquia Maravilha: Artefato': 54687,
-      'Relíquia Maravilha: Arma': 50410,
-      'Relíquia Maravilha: Armadura': 70020,
+      'Relíquia Maravilha: Artefato': [54687],
+      'Relíquia Maravilha: Arma': [50410],
+      'Relíquia Maravilha: Armadura': [70020],
     });
   });
 

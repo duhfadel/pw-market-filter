@@ -48,7 +48,11 @@ MarketIndex _index({required bool collected}) => MarketIndex(
   collectedAt: DateTime.utc(2026, 8, 19),
   attributes: const [],
   items: const {},
-  countedItems: collected ? const {_relic: 50410} : const {},
+  countedItems: collected
+      ? const {
+          _relic: [50410],
+        }
+      : const {},
   characters: [
     if (collected) ...[
       _character(

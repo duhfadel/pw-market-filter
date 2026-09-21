@@ -708,6 +708,43 @@ Each of these already cost something — measured on the live site, not guessed.
 
   It also needs no rule about classes: only the Feiticeira has combat pets, so
   asking for one narrows to her by itself.
+- **A counted label can be several names and several ids, and binding it to
+  the first one met loses the rest in silence.** `MarketIndex.countedItems`
+  maps a label to **every** id the collection found under it, and
+  `MarketIndex.countOf` is the only place the arithmetic lives — the card and
+  the matcher both call it, for the reason `bestMatchFor` exists.
+
+  Two different things forced it, and they are one correction. *Essência
+  Dracônica* is **two items** in the game's database (`50264` and `63051`)
+  wearing one name; and it is asked about as one number that the game spreads
+  over three names — the essence, the raw essence (`50265`) and the chest
+  (`200325`). `countedItemGroups` is label → the page names that feed it, and
+  a plain relic is simply a group of one.
+
+  The chest is counted on the player's call, taken against the
+  recommendation: a chest is a container and not the thing, so it flatters
+  whoever has not opened theirs. It is his market, and the reason is written
+  next to the entry.
+
+  **The comment that said `counted_items_test.dart` guarded this was wrong** —
+  no test in that file ever detected two ids under one name, and the hazard
+  was live the whole time. The guard is now `index_builder_test`, which pins
+  both halves: two ids under one name are both counted, and a group adds up
+  every name that feeds it.
+
+  Two traps met on the way. The analyzer does **not** catch this widening:
+  `Map<int, int>[]` takes an `Object?`, so `character.counts[listOfIds]`
+  compiles and quietly answers `null` for everybody — the matcher was broken
+  and `flutter analyze` was clean. And an id is still fine for **art**: a row
+  needs one sprite and the label's items are one thing to a reader, so the
+  sections draw `ids.first` and count through `countOf`. Naming a number off
+  one id is the bug; drawing a picture from it is not.
+
+  It cost no collection. The state file keeps the whole inventory by id, with
+  the names in a shared table, so a new counted name is `--rebuild` — seconds,
+  no network. `CollectedPage.version` is untouched on purpose: nothing about a
+  stored page became unreadable.
+
 - **A counted item is found by name, and the name is the identity — which does
   not contradict "the item name lies".** That rule is about worn equipment,
   where three weapons share the word *Dilacerador* and give 30, 40 and 70. For

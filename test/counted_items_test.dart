@@ -51,11 +51,11 @@ void main() {
   test('every counted item somebody carries is on the market', () {
     if (collectedBefore()) return;
 
-    for (final entry in index.countedItems.entries) {
+    for (final label in index.countedItems.keys) {
       final carriers = index.characters.where(
-        (c) => (c.counts[entry.value] ?? 0) > 0,
+        (c) => (index.countOf(c, label) ?? 0) > 0,
       );
-      expect(carriers, isNotEmpty, reason: entry.key);
+      expect(carriers, isNotEmpty, reason: label);
     }
   });
 

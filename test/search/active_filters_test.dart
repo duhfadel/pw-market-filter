@@ -17,7 +17,9 @@ final _index = MarketIndex(
   collectedAt: DateTime.utc(2026, 8, 28),
   attributes: const ['Nível de Ataque'],
   items: const {50206: MarketItem(name: '★★★Dilacerador Raivoso', grade: 6)},
-  countedItems: const {'Harpia': 38587},
+  countedItems: const {
+    'Harpia': [38587],
+  },
   characters: const [],
 );
 

@@ -50,7 +50,7 @@ class IndexBuilder {
 
   /// Filled as the collection meets each name. See [countedItemNames] for why
   /// the resolution runs this way round rather than from a table of ids.
-  final _countedIds = <String, int>{};
+  final _countedIds = <String, List<int>>{};
 
   /// The count maps of every character whose inventory was read, held so
   /// [build] can finish them.
@@ -132,13 +132,18 @@ class IndexBuilder {
       final label = _labelFor(stack);
       if (label == null) continue;
 
-      // First sighting names the id, exactly as items do. Two ids under one
-      // label would leave the second one's owners failing a filter silently,
-      // which is what `counted_items_test.dart` checks for.
-      _countedIds.putIfAbsent(label, () => stack.itemId);
-      if (_countedIds[label] == stack.itemId) {
-        counts[stack.itemId] = stack.count;
+      // **Every** id the label is met under, not the first one. A label can
+      // genuinely be several items — two are called `Essência Dracônica`, and
+      // a group gathers several names besides — and keeping only the first
+      // left the rest's owners failing the filter with nothing saying why.
+      //
+      // A stack is summed rather than assigned: the same item sits in the bag
+      // and in the bank, and two rows of one id are one pile.
+      (_countedIds[label] ??= <int>[]);
+      if (!_countedIds[label]!.contains(stack.itemId)) {
+        _countedIds[label]!.add(stack.itemId);
       }
+      counts[stack.itemId] = (counts[stack.itemId] ?? 0) + stack.count;
     }
     return counts;
   }
@@ -146,7 +151,9 @@ class IndexBuilder {
   /// What this stack is called in the index, or null when it is one of the
   /// hundreds of things nobody asked about.
   String? _labelFor(ParsedStack stack) {
-    if (countedItemNames.contains(stack.name)) return stack.name;
+    // The label, not the page name: several names can feed one counted line.
+    final group = countedGroupOf(stack.name);
+    if (group != null) return group;
     for (final entry in countedItemIds.entries) {
       if (entry.value == stack.itemId) return entry.key;
     }
@@ -194,8 +201,10 @@ class IndexBuilder {
 
   MarketIndex build() {
     for (final counts in _readCounts) {
-      for (final id in _countedIds.values) {
-        counts.putIfAbsent(id, () => 0);
+      for (final ids in _countedIds.values) {
+        for (final id in ids) {
+          counts.putIfAbsent(id, () => 0);
+        }
       }
     }
 

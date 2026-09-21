@@ -29,12 +29,19 @@ class MarketIndex {
 
   final List<MarketCharacter> characters;
 
-  /// The name of each counted item to the id this collection found it under.
+  /// Each counted label to **every** id this collection found under it.
   ///
   /// A name from `countedItemNames` that no character carried is simply absent
   /// — the market has none, so there is nothing to filter on and no field to
   /// put on screen. Empty on an index collected before the counts existed.
-  final Map<String, int> countedItems;
+  ///
+  /// **It is a list because one label is genuinely several ids**, and binding
+  /// it to the first one met dropped the rest in silence: their owners failed
+  /// the filter and nothing on screen said why. Two items are called
+  /// *Essência Dracônica* (50264 and 63051), and a group gathers several names
+  /// besides — see `countedItemGroups`. Read it through [countOf], never by
+  /// taking `.first`.
+  final Map<String, List<int>> countedItems;
 
   /// Every rune the market wears, by item id.
   ///
@@ -44,6 +51,31 @@ class MarketIndex {
   /// `200359`, serving byte-identical art), so a filter that compared ids
   /// would treat one rune as two. Through this table both read as Áurea 5.
   final Map<int, RuneKind> runes;
+
+  /// How many of [label] this character carries, added across every id and
+  /// every name the label gathers.
+  ///
+  /// **`null` and `0` are different answers and both matter.** `null` is a
+  /// page that was never read, or a label this market has none of; `0` is a
+  /// character who was read and carries none. The card prints `carrega 0` for
+  /// the second and draws no line at all for the first, and collapsing them
+  /// would turn "we do not know" into "he has none".
+  ///
+  /// This is the one place the arithmetic lives. The card and the matcher both
+  /// call it, for the reason `bestMatchFor` exists: a card naming a number the
+  /// filter did not use is worse than a card naming nothing.
+  int? countOf(MarketCharacter character, String label) {
+    final ids = countedItems[label];
+    if (ids == null) return null;
+
+    int? total;
+    for (final id in ids) {
+      final count = character.counts[id];
+      if (count == null) continue;
+      total = (total ?? 0) + count;
+    }
+    return total;
+  }
 
   static const _formatVersion = 1;
 
@@ -90,7 +122,15 @@ class MarketIndex {
           .map((c) => MarketCharacter.fromJson(c as Map<String, dynamic>))
           .toList(),
       countedItems: (json['countedItems'] as Map<String, dynamic>? ?? const {})
-          .map((name, id) => MapEntry(name, id as int)),
+          .map(
+            // An index written before a label could hold several ids says
+            // `"name": 54687` rather than `"name": [54687]`. It is still a
+            // true answer about that market, and the site serves whatever
+            // collection last landed — so it is read, not rejected.
+            (name, ids) => MapEntry(name, <int>[
+              if (ids is int) ids else ...(ids as List).cast<int>(),
+            ]),
+          ),
       runes: {
         for (final entry
             in (json['runes'] as Map<String, dynamic>? ?? const {}).entries)

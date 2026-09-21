@@ -50,10 +50,14 @@ class _CountedItemsSectionState extends State<CountedItemsSection> {
   /// A name the market has none of gets no field: it could only ever return
   /// nothing, which reads as "the market has none of these" when it means
   /// "this collection never saw one".
+  /// The id is only the picture. A label can gather several ids and the
+  /// count adds them all up (`MarketIndex.countOf`), but the row needs one
+  /// sprite and they are the same item to a reader — so the first is as true
+  /// as any, and nothing here is counted from it.
   List<MapEntry<String, int>> get _counted => [
-    for (final name in countedItemNames)
-      if (state.index.countedItems[name] != null)
-        MapEntry(name, state.index.countedItems[name]!),
+    for (final label in countedItemGroups.keys)
+      if (state.index.countedItems[label]?.isNotEmpty ?? false)
+        MapEntry(label, state.index.countedItems[label]!.first),
   ];
 
   @override

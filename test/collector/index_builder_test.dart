@@ -151,7 +151,7 @@ void main() {
           (builder()..add(_card(1), const [], inventory: const [relic]))
               .build();
 
-      expect(index.countedItems['Relíquia Maravilha: Artefato'], 54687);
+      expect(index.countedItems['Relíquia Maravilha: Artefato'], [54687]);
     });
 
     test('a name nobody carries is absent rather than guessed at', () {
@@ -163,6 +163,68 @@ void main() {
 
       expect(index.countedItems.containsKey('Chave da Sorte'), isFalse);
       expect(countedItemNames, contains('Chave da Sorte'));
+    });
+
+    test('one name with two ids counts both, rather than dropping one', () {
+      // The market has two items called `Essência Dracônica`, 50264 and
+      // 63051. Binding the label to whichever the crawl happened to meet
+      // first left the other one's owners failing the filter with nothing on
+      // screen saying why — and the test this file was said to carry for that
+      // case did not exist.
+      const comum = ParsedStack(
+        itemId: 50264,
+        name: 'Essência Dracônica',
+        count: 3,
+      );
+      const outra = ParsedStack(
+        itemId: 63051,
+        name: 'Essência Dracônica',
+        count: 4,
+      );
+
+      final index =
+          (builder()..add(_card(1), const [], inventory: const [comum, outra]))
+              .build();
+
+      expect(
+        index.countedItems['Essência Dracônica'],
+        containsAll(<int>[50264, 63051]),
+      );
+      expect(index.countOf(index.characters.single, 'Essência Dracônica'), 7);
+    });
+
+    test('a group adds up every name that feeds it', () {
+      // The player's call, taken against the recommendation and recorded as
+      // his: the raw essence and the chest count towards the same number as
+      // the essence itself, because the question being asked is how much
+      // dragon essence somebody is sitting on.
+      const pura = ParsedStack(
+        itemId: 50264,
+        name: 'Essência Dracônica',
+        count: 1,
+      );
+      const bruta = ParsedStack(
+        itemId: 50265,
+        name: 'Essência Dracônica Bruta',
+        count: 5,
+      );
+      const bau = ParsedStack(
+        itemId: 200325,
+        name: 'Baú Essência Dracônica',
+        count: 2,
+      );
+
+      final index =
+          (builder()
+                ..add(_card(1), const [], inventory: const [pura, bruta, bau]))
+              .build();
+
+      expect(index.countOf(index.characters.single, 'Essência Dracônica'), 8);
+      expect(
+        index.countedItems.containsKey('Essência Dracônica Bruta'),
+        isFalse,
+        reason: 'a name that feeds a group is not a line of its own',
+      );
     });
 
     test('carries the anecdote pair, and leaves it null when unread', () {
@@ -203,7 +265,9 @@ void main() {
         jsonDecode(jsonEncode(index.toJson())) as Map<String, dynamic>,
       );
 
-      expect(restored.countedItems, {'Relíquia Maravilha: Artefato': 54687});
+      expect(restored.countedItems, {
+        'Relíquia Maravilha: Artefato': [54687],
+      });
       expect(restored.characters.single.counts, {54687: 22});
       expect(restored.characters.single.anecdotes?.done, 1265);
     });
@@ -241,7 +305,7 @@ void main() {
           (builder()..add(_card(1), const [], inventory: const [apelidado]))
               .build();
 
-      expect(index.countedItems['Harpia'], 38587);
+      expect(index.countedItems['Harpia'], [38587]);
       expect(index.characters.single.counts[38587], 1);
     });
 

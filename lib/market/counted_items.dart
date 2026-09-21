@@ -14,16 +14,52 @@
 /// and 70 attack level — there the name does not identify the thing that
 /// matters. For a consumable being counted, the name is the identity.
 ///
-/// The collector resolves each name to the id the market used and stores it in
-/// `MarketIndex.countedItems`; nothing here is compiled into a query.
+/// The collector resolves each name to the ids the market used and stores them
+/// in `MarketIndex.countedItems`; nothing here is compiled into a query.
+///
+/// **A label can gather several names, and a name several ids.** Both are the
+/// same correction: binding a label to the first id a crawl met dropped every
+/// other one in silence, so its owners failed the filter with nothing on
+/// screen saying why. Read a count through `MarketIndex.countOf`, never by
+/// taking one id out of the list.
 library;
 
-const countedItemNames = <String>[
-  'Relíquia Maravilha: Artefato',
-  'Relíquia Maravilha: Arma',
-  'Relíquia Maravilha: Armadura',
-  'Chave da Sorte',
-];
+/// The counted lines, each one a label and the page names that feed it.
+///
+/// **Most labels are fed by a single name, and one is not.** *Essência
+/// Dracônica* is asked about as one number — how much dragon essence somebody
+/// is sitting on — and the game spreads it over three names: the essence, the
+/// raw essence and the chest. Counting them apart would put three lines on the
+/// card for one question and make every one of them wrong as an answer to it.
+///
+/// The chest is in on the player's call, taken against the recommendation and
+/// recorded here as his: a chest is a container and not the thing, so it
+/// inflates the number against anyone who has already opened theirs. He wants
+/// it counted, and it is his market.
+const countedItemGroups = <String, List<String>>{
+  'Relíquia Maravilha: Artefato': ['Relíquia Maravilha: Artefato'],
+  'Relíquia Maravilha: Arma': ['Relíquia Maravilha: Arma'],
+  'Relíquia Maravilha: Armadura': ['Relíquia Maravilha: Armadura'],
+  'Chave da Sorte': ['Chave da Sorte'],
+  'Essência Dracônica': [
+    'Essência Dracônica',
+    'Essência Dracônica Bruta',
+    'Baú Essência Dracônica',
+  ],
+};
+
+/// Every name worth looking for on a page — the groups, flattened.
+final countedItemNames = <String>{
+  for (final names in countedItemGroups.values) ...names,
+};
+
+/// The label a page name is counted under, or null when nobody asked about it.
+String? countedGroupOf(String name) {
+  for (final entry in countedItemGroups.entries) {
+    if (entry.value.contains(name)) return entry.key;
+  }
+  return null;
+}
 
 /// The pets worth filtering on, by **id** — the exact reverse of the rule
 /// above, and for a reason that only shows up on a real page.

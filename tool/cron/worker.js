@@ -453,18 +453,33 @@ async function lerAsNovidades(env) {
 
 // Some do site o que foi apagado no Discord.
 //
-// Só dentro da janela lida: uma linha mais antiga que a mensagem mais velha
-// desta rodada simplesmente saiu do alcance, e sumir com ela seria apagar
-// história por falta de informação, não por decisão de ninguém.
+// **Quando a leitura traz menos que o limite, o canal inteiro foi visto** — e
+// aí não existe "fora de alcance": qualquer linha visível que não veio na
+// resposta foi apagada. Foi o que a primeira versão errou: ela sempre exigia
+// que a linha fosse mais nova que a mensagem mais velha da rodada, então num
+// canal com duas mensagens o teste apagado ficava abaixo do piso e sobrevivia
+// para sempre. Levou uma hora no ar para aparecer, porque o sintoma é a
+// ausência de uma mudança.
+//
+// Com o limite cheio pode haver mensagem mais antiga que ninguém leu, e aí o
+// piso volta a valer: sumir com uma linha por falta de informação seria
+// apagar história sem decisão de ninguém.
 async function esconderApagadas(env, mensagens, uteis) {
   if (!mensagens.length) return;
 
-  const maisVelha = mensagens[mensagens.length - 1].id;
   const vivas = new Set(uteis.map((m) => m.id));
+  const vimosTudo = mensagens.length < JANELA_DAS_NOVIDADES;
+
+  // Snowflakes são texto nesta coluna, então `gte` compara como string. Isso
+  // só acerta porque todos têm o mesmo comprimento — verdade desde 2016 e por
+  // muitos anos ainda, mas é a razão de o piso existir só quando precisa.
+  const piso = vimosTudo
+    ? ''
+    : `&mensagem_id=gte.${mensagens[mensagens.length - 1].id}`;
 
   const r = await supabase(
     env,
-    `/novidades?select=mensagem_id&visivel=is.true&mensagem_id=gte.${maisVelha}`,
+    `/novidades?select=mensagem_id&visivel=is.true${piso}`,
   );
   if (!r.ok) return;
 

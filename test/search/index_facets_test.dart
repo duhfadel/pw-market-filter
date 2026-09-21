@@ -223,7 +223,9 @@ void main() {
       collectedAt: DateTime.utc(2026, 8, 19),
       attributes: const [],
       items: const {},
-      countedItems: const {'Relíquia Maravilha: Arma': 50410},
+      countedItems: const {
+        'Relíquia Maravilha: Arma': [50410],
+      },
       characters: const [
         MarketCharacter(
           roleId: 1,
@@ -294,7 +296,9 @@ void main() {
       collectedAt: DateTime.utc(2026, 9, 6),
       attributes: const [],
       items: const {},
-      countedItems: const {'Relíquia Maravilha: Arma': 50410},
+      countedItems: const {
+        'Relíquia Maravilha: Arma': [50410],
+      },
       characters: [
         for (var i = 0; i < contagens.length; i++)
           MarketCharacter(

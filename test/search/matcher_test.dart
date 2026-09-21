@@ -75,11 +75,11 @@ final _index = MarketIndex(
     69810: RuneKind(type: 'Celeste', level: 8),
   },
   countedItems: const {
-    'Relíquia Maravilha: Arma': 50410,
-    'Relíquia Maravilha: Artefato': 54687,
-    'Relíquia Maravilha: Armadura': 70020,
-    'Chave da Sorte': 56274,
-    'Harpia': 38587,
+    'Relíquia Maravilha: Arma': [50410],
+    'Relíquia Maravilha: Artefato': [54687],
+    'Relíquia Maravilha: Armadura': [70020],
+    'Chave da Sorte': [56274],
+    'Harpia': [38587],
   },
 );
 
@@ -662,8 +662,8 @@ void main() {
         attributes: const [],
         items: const {},
         countedItems: const {
-          'Relíquia Maravilha: Arma': 50410,
-          'Relíquia Maravilha: Artefato': 54687,
+          'Relíquia Maravilha: Arma': [50410],
+          'Relíquia Maravilha: Artefato': [54687],
         },
         characters: [
           _character('Poucas', counts: const {50410: 2, 54687: 30}),
@@ -690,8 +690,8 @@ void main() {
         attributes: const [],
         items: const {},
         countedItems: const {
-          'Relíquia Maravilha: Arma': 50410,
-          'Relíquia Maravilha: Artefato': 54687,
+          'Relíquia Maravilha: Arma': [50410],
+          'Relíquia Maravilha: Artefato': [54687],
         },
         characters: [
           _character('Artefatos', counts: const {50410: 0, 54687: 40}),
@@ -954,10 +954,10 @@ void main() {
       attributes: const [],
       items: const {},
       countedItems: const {
-        'Relíquia Maravilha: Arma': 50410,
-        'Relíquia Maravilha: Artefato': 54687,
-        'Relíquia Maravilha: Armadura': 70020,
-        'Chave da Sorte': 56274,
+        'Relíquia Maravilha: Arma': [50410],
+        'Relíquia Maravilha: Artefato': [54687],
+        'Relíquia Maravilha: Armadura': [70020],
+        'Chave da Sorte': [56274],
       },
       characters: gente,
     );

@@ -273,12 +273,34 @@ void _writeIndex(List<ListingCard> listing, _CollectState state) {
   // nothing is either misspelt or genuinely not on sale, and this line is
   // where that question gets answered — the suite cannot tell the two apart
   // and must not stop the deploy for a market fact.
-  for (final name in countedItemNames) {
-    final id = index.countedItems[name];
+  for (final label in countedItemGroups.keys) {
+    final ids = index.countedItems[label];
+    if (ids == null || ids.isEmpty) {
+      stdout.writeln('  AVISO: "$label" não apareceu em nenhum inventário.');
+      continue;
+    }
+
+    // Named, not just counted. These items are rare enough that "how many
+    // carry one" can be a single digit, and a name is what lets the player
+    // open that character's page and check the number against the site —
+    // which is the only verification available for an item no fixture holds.
+    final portadores = index.characters
+        .where((c) => (index.countOf(c, label) ?? 0) > 0)
+        .toList();
+    final melhor = portadores.isEmpty
+        ? null
+        : portadores.reduce(
+            (a, b) =>
+                (index.countOf(b, label) ?? 0) > (index.countOf(a, label) ?? 0)
+                ? b
+                : a,
+          );
+
     stdout.writeln(
-      id == null
-          ? '  AVISO: "$name" não apareceu em nenhum inventário.'
-          : '  "$name" = item $id',
+      '  "$label" = ${ids.join(', ')} · '
+      '${portadores.length} portadores'
+      '${melhor == null ? '' : ' · maior: ${melhor.name} '
+                '(${index.countOf(melhor, label)}, id ${melhor.roleId})'}',
     );
   }
 

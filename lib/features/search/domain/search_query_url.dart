@@ -46,8 +46,9 @@ const _ownedParam = 'tem';
 /// What `mostra` calls the anecdotes, which are the one thing it can carry
 /// that is not a counted item. Reserved rather than given a parameter of its
 /// own: `mostra` means "what the card prints", and two parameters for one idea
-/// would be worse. No counted item can collide with it — they are all named
-/// `Relíquia …` or `Chave …` in [countedItemNames].
+/// would be worse. No counted item can collide with it — every label in
+/// [countedItemGroups] is a name out of the game, and none of them is a bare
+/// Portuguese plural.
 const _anecdotesShown = 'anedotas';
 const _petParam = 'mascote';
 const _realmParam = 'ceu';

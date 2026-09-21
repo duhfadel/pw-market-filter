@@ -38,7 +38,11 @@ MarketIndex _index({required bool withPets}) => MarketIndex(
   collectedAt: DateTime.utc(2026, 8, 25),
   attributes: const [],
   items: const {},
-  countedItems: withPets ? const {'Harpia': 38587} : const {},
+  countedItems: withPets
+      ? const {
+          'Harpia': [38587],
+        }
+      : const {},
   characters: [
     _character(
       1,

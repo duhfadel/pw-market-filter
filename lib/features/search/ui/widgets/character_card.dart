@@ -424,20 +424,27 @@ class CharacterCard extends StatelessWidget {
 
     for (final pet in countedItemIds.keys) {
       if (!query.pets.contains(pet)) continue;
-      final itemId = index.countedItems[pet];
-      if (itemId == null) continue;
-      facts.add(_Fact(itemId: itemId, title: pet, detail: 'mascote'));
+      final ids = index.countedItems[pet];
+      if (ids == null || ids.isEmpty) continue;
+      facts.add(_Fact(itemId: ids.first, title: pet, detail: 'mascote'));
     }
 
-    for (final wanted in countedItemNames) {
+    for (final wanted in countedItemGroups.keys) {
       if (!query.shownOwned.contains(wanted)) continue;
-      final itemId = index.countedItems[wanted];
-      if (itemId == null) continue;
+      final ids = index.countedItems[wanted];
+      if (ids == null || ids.isEmpty) continue;
       // Absent is not zero. A character whose inventory was never read says
       // nothing rather than claiming he carries none of them.
-      final count = character.counts[itemId];
+      //
+      // The number comes from `countOf` and never from one id: a label can
+      // gather several, and the icon is only the first because a row needs one
+      // picture. The card and the filter read the same call, which is the rule
+      // `bestMatchFor` exists for.
+      final count = index.countOf(character, wanted);
       if (count == null) continue;
-      facts.add(_Fact(itemId: itemId, title: wanted, detail: 'carrega $count'));
+      facts.add(
+        _Fact(itemId: ids.first, title: wanted, detail: 'carrega $count'),
+      );
     }
     return facts;
   }

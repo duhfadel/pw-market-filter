@@ -40,7 +40,9 @@ final _index = MarketIndex(
   collectedAt: DateTime.utc(2026, 9, 6),
   attributes: const [],
   items: const {},
-  countedItems: const {_relic: _relicId},
+  countedItems: const {
+    _relic: [_relicId],
+  },
   characters: [for (var i = 0; i < 20; i++) _character(i + 1, i)],
 );
 

@@ -11,7 +11,9 @@ final _index = MarketIndex(
   collectedAt: DateTime.utc(2026, 8, 19),
   attributes: const ['Nível de Ataque'],
   items: const {50206: MarketItem(name: '★★★Dilacerador Raivoso', grade: 6)},
-  countedItems: const {'Relíquia Maravilha: Arma': 50410},
+  countedItems: const {
+    'Relíquia Maravilha: Arma': [50410],
+  },
   runes: const {
     52220: RuneKind(type: 'Argêntea', level: 6),
     52183: RuneKind(type: 'Áurea', level: 9),

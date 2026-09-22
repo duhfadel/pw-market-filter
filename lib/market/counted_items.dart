@@ -61,6 +61,21 @@ String? countedGroupOf(String name) {
   return null;
 }
 
+/// The labels still being checked against the game, drawn with a BETA TEST
+/// badge beside the name.
+///
+/// It is a set and not a flag on one entry because the question recurs: a
+/// counted item is only ever as right as the names somebody typed, and the
+/// first collection is where a misspelling or a second id shows up. Saying so
+/// on screen costs one badge and buys the right to ship before the answer is
+/// certain — the alternative is holding the feature back until nobody can
+/// check it, which is how a name stays unverified for months.
+///
+/// **Take a name out of here the day its numbers have been read against a
+/// character's own page.** A badge that outlives its doubt teaches visitors to
+/// ignore badges, which is the same failure the *novo* date exists to avoid.
+const countedItemsInTest = <String>{'Essência Dracônica'};
+
 /// The pets worth filtering on, by **id** — the exact reverse of the rule
 /// above, and for a reason that only shows up on a real page.
 ///

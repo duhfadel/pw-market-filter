@@ -321,7 +321,9 @@ void main() {
       // the track at 500 would push every real choice into its first tenth.
       final index = mercado([for (var i = 0; i < 99; i++) i % 50] + [500]);
 
-      final ceiling = IndexFacets(index).ceilingOwned(50410);
+      final ceiling = IndexFacets(
+        index,
+      ).ceilingOwned('Relíquia Maravilha: Arma');
       expect(ceiling, lessThan(100));
       expect(ceiling, greaterThan(0));
     });
@@ -331,24 +333,64 @@ void main() {
       // moved at all.
       final index = mercado([0, 0, 0, 0, 7]);
 
-      expect(IndexFacets(index).ceilingOwned(50410), 7);
+      expect(IndexFacets(index).ceilingOwned('Relíquia Maravilha: Arma'), 7);
     });
 
     test('the count is what the choice costs, read from the scope', () {
       final index = mercado([0, 5, 10, 30, 30, 40]);
       final facets = IndexFacets(index);
 
-      expect(facets.carriersOwning(50410, 0), 6);
-      expect(facets.carriersOwning(50410, 10), 4);
-      expect(facets.carriersOwning(50410, 30), 3);
-      expect(facets.carriersOwning(50410, 41), 0);
+      expect(facets.carriersOwning('Relíquia Maravilha: Arma', 0), 6);
+      expect(facets.carriersOwning('Relíquia Maravilha: Arma', 10), 4);
+      expect(facets.carriersOwning('Relíquia Maravilha: Arma', 30), 3);
+      expect(facets.carriersOwning('Relíquia Maravilha: Arma', 41), 0);
+    });
+
+    test('a label of several ids measures the sum, not one of them', () {
+      // The slider has to agree with the number the card prints. Reading one
+      // id while `countOf` adds up four put the track and the count on
+      // different scales — a man with eleven essences and two raw ones passes
+      // "13 ou mais" on the card and fails it on the slider.
+      final index = MarketIndex(
+        server: 'pw187',
+        collectedAt: DateTime.utc(2026, 9, 21),
+        attributes: const [],
+        items: const {},
+        countedItems: const {
+          'Essência Dracônica': [50264, 50265],
+        },
+        characters: [
+          for (final par in const [
+            [11, 2],
+            [0, 0],
+            [3, 0],
+          ])
+            MarketCharacter(
+              roleId: par[0],
+              name: 'p${par[0]}',
+              characterClass: 'Guerreiro',
+              occupation: 1,
+              level: 105,
+              price: 100,
+              fame: 1,
+              cultivation: 'Leal',
+              equipped: const [],
+              counts: {50264: par[0], 50265: par[1]},
+            ),
+        ],
+      );
+      final facets = IndexFacets(index);
+
+      expect(facets.ceilingOwned('Essência Dracônica'), 13);
+      expect(facets.carriersOwning('Essência Dracônica', 13), 1);
+      expect(facets.carriersOwning('Essência Dracônica', 3), 2);
     });
 
     test('an item nobody carries has no track and no carriers', () {
       final index = mercado([0, 0, 0]);
 
-      expect(IndexFacets(index).ceilingOwned(99999), 0);
-      expect(IndexFacets(index).carriersOwning(99999, 1), 0);
+      expect(IndexFacets(index).ceilingOwned('Não existe'), 0);
+      expect(IndexFacets(index).carriersOwning('Não existe', 1), 0);
     });
   });
 }

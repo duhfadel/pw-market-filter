@@ -135,42 +135,45 @@ class IndexFacets {
     return (lowest, highest);
   }();
 
-  /// The most anyone in [scope] carries of one counted item — the hint that
-  /// says where to put a minimum before typing a number nobody can meet.
-  int mostOwned(int itemId) {
-    var most = 0;
-    for (final character in scope) {
-      final count = character.counts[itemId] ?? 0;
-      if (count > most) most = count;
-    }
-    return most;
-  }
-
-  /// Where the slider for a counted item should end.
+  /// Where the slider for a counted item should end: **the most anybody in
+  /// [scope] actually carries.**
   ///
-  /// The 95th percentile of the whole market, **not** the maximum. Measured on
-  /// 2026-09-06: the relics top out around 130 while the median is 16 to 22,
+  /// It was the 95th percentile of the whole market until 2026-09-22, for a
+  /// measured reason — the relics top out near 130 with a median of 16 to 22,
   /// so a track ending at the maximum spends its upper two thirds separating
-  /// 22% of the market from 0% — most of the gesture does nothing. Ending at
-  /// the 95th (47 to 60) puts a cut of 30 near the middle of the track, where
-  /// a thumb can reach it.
+  /// 22% of the market from nobody. The owner was right that the cure costs
+  /// more than the disease: it also made the top of the market **unaskable**,
+  /// and the man with 290 relics is precisely who somebody is looking for. A
+  /// coarse track that can reach him beats a fine one that cannot.
   ///
-  /// Read from the whole index rather than the current scope, so the track
-  /// does not resize under the hand while the same slider is being dragged.
+  /// **From [scope], so choosing a class narrows it.** The old note here
+  /// worried that a scoped track would resize under the hand mid-drag, and
+  /// that worry does not apply: the slider reads
+  /// `facetsFor(FacetDimension.owned)`, whose scope already excludes every
+  /// owned filter, so dragging this slider cannot change its own ceiling. What
+  /// does change it is a class or a price — and a track ending above what the
+  /// people still on screen carry offers a number none of them can meet.
+  ///
+  /// **The `Chave da Sorte` pays for this and the owner took the bill
+  /// knowingly.** Measured the day it changed: 875 carry one, the median
+  /// carrier has 3, and the top has 3977 — so its track runs 0 to 3977 with
+  /// 655 of the 875 living inside the first 1.3%. A log scale was offered and
+  /// turned down: every millimetre worth the same number is a property worth
+  /// more than fine control on the one item that is shaped like that, and the
+  /// chosen value is written out beside the track either way.
+  ///
   /// Takes the **label**, not an id, and that is not a nicety. A label can
   /// gather several ids — `Essência Dracônica` is the essence, the raw one and
   /// the chest — and reading one of them would put the track and the number
   /// the card prints on different scales: a man with eleven essences and two
   /// raw ones passes "13 ou mais" on the card and fails it on the slider.
   int ceilingOwned(String label) => _ceilingCache.putIfAbsent(label, () {
-    final counts = [
-      for (final c in index.characters) index.countOf(c, label) ?? 0,
-    ]..sort();
-    if (counts.isEmpty) return 0;
-    final ceiling = counts[(counts.length * 95) ~/ 100];
-    // A market where almost nobody carries any would give a ceiling of zero,
-    // and a slider from 0 to 0 is a control that cannot be moved.
-    return ceiling < 1 ? counts.last : ceiling;
+    var most = 0;
+    for (final character in scope) {
+      final count = index.countOf(character, label) ?? 0;
+      if (count > most) most = count;
+    }
+    return most;
   });
 
   final _ceilingCache = <String, int>{};

@@ -276,11 +276,14 @@ void main() {
     });
 
     test('the most anyone carries of a counted item', () {
-      expect(IndexFacets(index).mostOwned(50410), 16);
+      // `mostOwned(id)` used to answer this and nothing called it. Its job is
+      // `ceilingOwned`'s job, and two readings of one number is how the slider
+      // and the card end up disagreeing.
+      expect(IndexFacets(index).ceilingOwned('Relíquia Maravilha: Arma'), 16);
     });
 
     test('an item nobody carries reports zero rather than throwing', () {
-      expect(IndexFacets(index).mostOwned(99999), 0);
+      expect(IndexFacets(index).ceilingOwned('Nada disso'), 0);
     });
 
     test('a scope with no anecdotes read at all reports zero', () {
@@ -316,16 +319,29 @@ void main() {
       ],
     );
 
-    test('the track ends at the 95th percentile, not at the outlier', () {
-      // Ninety-nine people between 0 and 49, and one hoarder at 500. Ending
-      // the track at 500 would push every real choice into its first tenth.
+    test('the track ends at the most anybody carries', () {
+      // It ended at the 95th percentile until 2026-09-22, to keep one hoarder
+      // from squashing the useful range into the first tenth. The owner was
+      // right that the cost is worse than the cure: the top of the market
+      // became **unaskable**, and finding the outlier is what the tool is for.
       final index = mercado([for (var i = 0; i < 99; i++) i % 50] + [500]);
 
-      final ceiling = IndexFacets(
-        index,
-      ).ceilingOwned('Relíquia Maravilha: Arma');
-      expect(ceiling, lessThan(100));
-      expect(ceiling, greaterThan(0));
+      expect(IndexFacets(index).ceilingOwned('Relíquia Maravilha: Arma'), 500);
+    });
+
+    test('the track follows the scope, so a class narrows it', () {
+      // Asked for by the owner: with a class chosen, a track ending at the
+      // whole market's maximum offers a number nobody left on screen can meet.
+      final index = mercado([3, 9, 11]);
+      final menores = index.characters
+          .where((c) => c.counts[50410]! < 11)
+          .toList();
+
+      expect(IndexFacets(index).ceilingOwned('Relíquia Maravilha: Arma'), 11);
+      expect(
+        IndexFacets(index, menores).ceilingOwned('Relíquia Maravilha: Arma'),
+        9,
+      );
     });
 
     test('a market where one person has any still gives a usable track', () {

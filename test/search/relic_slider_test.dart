@@ -73,7 +73,7 @@ Future<SearchViewModel> _pump(WidgetTester tester) async {
   );
   await tester.pumpAndSettle();
 
-  await tester.tap(find.text('RELÍQUIAS E CHAVES'));
+  await tester.tap(find.text('ITENS DA MOCHILA'));
   await tester.pumpAndSettle();
 
   return viewModel;

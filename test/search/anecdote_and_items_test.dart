@@ -130,7 +130,7 @@ void main() {
     expect(find.text('Anedotas a partir de'), findsNothing);
     expect(find.text(_relic), findsNothing);
 
-    await tester.tap(find.text('RELÍQUIAS E CHAVES'));
+    await tester.tap(find.text('ITENS DA MOCHILA'));
     await tester.pumpAndSettle();
     expect(find.text(_relic), findsOneWidget);
   });
@@ -142,7 +142,7 @@ void main() {
     // the numbers off a character's own page. Losing it silently would leave
     // an unverified count looking exactly like a verified one.
     await _pump(tester, collected: true, emTeste: true);
-    await tester.tap(find.text('RELÍQUIAS E CHAVES'));
+    await tester.tap(find.text('ITENS DA MOCHILA'));
     await tester.pumpAndSettle();
 
     expect(find.text('Essência Dracônica'), findsOneWidget);
@@ -152,6 +152,18 @@ void main() {
     // August, so badging it too would make the mark mean nothing.
     expect(find.text(_relic), findsOneWidget);
     expect(countedItemsInTest.contains(_relic), isFalse);
+  });
+
+  testWidgets('the section says what ticking a box will do', (tester) async {
+    // The box prints a number on every card and narrows nothing, which is the
+    // opposite of what a checkbox in a filter panel promises. The anecdotes
+    // say `Mostrar no card` beside theirs; these said nothing at all, and the
+    // owner opened the panel looking for a control that was already there.
+    await _pump(tester, collected: true, emTeste: true);
+    await tester.tap(find.text('ITENS DA MOCHILA'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Marque para mostrar'), findsOneWidget);
   });
 
   testWidgets('typing a minimum narrows the results', (tester) async {
@@ -185,7 +197,7 @@ void main() {
     viewModel.setOwnedShown(_relic, true);
     await tester.pumpAndSettle();
 
-    expect(find.text('RELÍQUIAS E CHAVES'), findsOneWidget);
+    expect(find.text('ITENS DA MOCHILA'), findsOneWidget);
     expect(find.text('1'), findsOneWidget);
   });
 
@@ -252,6 +264,6 @@ void main() {
     await _pump(tester, collected: false);
 
     expect(find.text('ANEDOTAS'), findsNothing);
-    expect(find.text('RELÍQUIAS E CHAVES'), findsNothing);
+    expect(find.text('ITENS DA MOCHILA'), findsNothing);
   });
 }

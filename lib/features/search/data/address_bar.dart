@@ -33,7 +33,7 @@ class AddressBar {
   void writeFilter(String query) {
     // Outside a browser there is no address bar to write to, and reaching for
     // the platform channel there would only be the test suite talking to
-    // nothing. `VisitMemory` splits the same way, for the same reason.
+    // nothing. `BrowserMemory` splits the same way, for the same reason.
     if (!kIsWeb) return;
 
     SystemNavigator.routeInformationUpdated(

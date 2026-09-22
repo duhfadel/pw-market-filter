@@ -8,7 +8,7 @@ import 'package:http/testing.dart';
 import 'package:pw_market_filter/features/home/data/ao_vivo_repository.dart';
 import 'package:pw_market_filter/features/home/data/novidade_repository.dart';
 import 'package:pw_market_filter/features/home/ui/ao_vivo_view_model.dart';
-import 'package:pw_market_filter/features/home/data/visit_memory.dart';
+import 'package:pw_market_filter/features/home/data/browser_memory.dart';
 import 'package:pw_market_filter/features/home/data/visit_repository.dart';
 import 'package:pw_market_filter/features/home/ui/novidades_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/visit_counter_view_model.dart';
@@ -61,7 +61,8 @@ final _index = MarketIndex(
 
 /// Uma memória que não lembra de nada, para o contador não tocar em
 /// localStorage num teste.
-VisitMemory _semMemoria() => VisitMemory.platform();
+BrowserMemory _semMemoria() =>
+    BrowserMemory.platform('portal_pw_last_visit_day');
 
 /// A client that answers nothing, for the widgets this test is not about.
 MockClient _semRede() => MockClient((_) async => http.Response('[]', 200));

@@ -760,6 +760,53 @@ Each of these already cost something — measured on the live site, not guessed.
   same question by id, and nothing called it — two readings of one number is
   how a slider and a card come to disagree.
 
+- **The front page's news is a closed bar whose header is the latest entry.**
+  It started open, and three entries ran to a thousand pixels: `FERRAMENTAS`
+  began at y≈1740 on a 1400-wide page, two screens below the fold, so the site
+  led with a newspaper instead of with what it does. Closed it is ~90 px and
+  the tools start at y≈797. Nothing was dropped — tapping gives back exactly
+  what was there.
+
+  The header carries the latest entry's **own title and date**, which says more
+  than the `3 recados` a closed panel used to show: a returning visitor can
+  tell whether the thing inside is the one they already read. It is the only
+  part of the page that changes by itself, which is what makes it worth a
+  glance. The property that matters is that ninety pixels is ninety pixels at
+  twenty entries — the Worker reads a twenty-message window and the open
+  version had no ceiling at all.
+
+  **It says `NOVIDADES DO PORTAL`, not `NOVIDADES`.** A bare word a few hundred
+  pixels under the Perfect World mark reads as the game's own patch notes, and
+  this site speaks for nobody but itself — the same line the permission to
+  exist is drawn on.
+
+  **The dot is the reason it earns a second look, and it must go out.** It
+  lights while this browser has not opened the panel since the latest entry was
+  published, and is marked on the way **open** — somebody who opens and shuts
+  it has seen the title either way. The marker is read **once** per load, not
+  per build: re-reading would clear the dot in the same frame that revealed
+  what it was announcing. A dot still lit after it has been read teaches the
+  reader to stop seeing dots, which is the failure the `novo` badge's expiry
+  date exists to avoid.
+
+  No art behind it, and that was decided by rendering four versions rather than
+  by arguing. The logo repeats what the page header already shows 600 px above;
+  a class portrait repeats the tool card 100 px below. The page is already full
+  of art, and this bar is the one flat thing on it — which is why the eye finds
+  it. Art here would compete with four cards that do it better and say
+  something by doing it.
+
+  Its date sits **beside the label, not at the right edge**. It was on the
+  right in the first version and landed on top of the art, unreadable. Every
+  text on a tool card lives on the left half for the same reason: the picture
+  owns the other side.
+
+- **`VisitMemory` is `BrowserMemory` and takes its key.** It held one
+  hard-coded `localStorage` key while the visit counter was its only user; the
+  news dot needs a second, and a second copy of the same guarded three lines is
+  how two stores drift apart. The rename came with the parameter because the
+  old name stopped being true the moment it stored more than a visit.
+
 - **A section is named for what its members have in common, never by listing
   them.** It was `Relíquias e chaves` until the Essência Dracônica joined it,
   and the owner then opened the panel hunting for a control that was already

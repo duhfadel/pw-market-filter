@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import 'visit_memory.dart';
+import 'browser_memory.dart';
 
 /// The visit counter shown on the front page.
 ///
@@ -27,12 +27,12 @@ import 'visit_memory.dart';
 /// — has the same answer, which is to show no number at all. A typed failure
 /// nobody reads would be ceremony.
 class VisitRepository {
-  VisitRepository({http.Client? client, VisitMemory? memory})
+  VisitRepository({http.Client? client, BrowserMemory? memory})
     : _client = client ?? http.Client(),
-      _memory = memory ?? VisitMemory.platform();
+      _memory = memory ?? BrowserMemory.platform('portal_pw_last_visit_day');
 
   final http.Client _client;
-  final VisitMemory _memory;
+  final BrowserMemory _memory;
 
   static const _url = 'https://yadfbwsolmkcaylbxviw.supabase.co/rest/v1/rpc';
   static const _key = 'sb_publishable_D2hgezeh5BbZVpt_QLeXwg_FowKweu2';

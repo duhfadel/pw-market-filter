@@ -1,6 +1,6 @@
 import 'package:web/web.dart' as web;
 
-import 'visit_memory.dart';
+import 'browser_memory.dart';
 
 /// `localStorage`, reached directly.
 ///
@@ -10,8 +10,10 @@ import 'visit_memory.dart';
 /// the quota is reached. A counter is never worth a blank page, so both sides
 /// fail quiet: an unreadable store means this browser is counted again, which
 /// is the harmless direction to be wrong in.
-class PlatformVisitMemory implements VisitMemory {
-  static const _key = 'portal_pw_last_visit_day';
+class PlatformBrowserMemory implements BrowserMemory {
+  PlatformBrowserMemory(this._key);
+
+  final String _key;
 
   @override
   String? read() {
@@ -23,9 +25,9 @@ class PlatformVisitMemory implements VisitMemory {
   }
 
   @override
-  void write(String day) {
+  void write(String value) {
     try {
-      web.window.localStorage.setItem(_key, day);
+      web.window.localStorage.setItem(_key, value);
     } catch (_) {
       // Nothing to do and nothing worth saying.
     }

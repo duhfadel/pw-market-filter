@@ -1,8 +1,8 @@
-import 'visit_memory_stub.dart'
-    if (dart.library.js_interop) 'visit_memory_web.dart'
+import 'browser_memory_stub.dart'
+    if (dart.library.js_interop) 'browser_memory_web.dart'
     as platform;
 
-/// Where a browser remembers that it has already been counted today.
+/// A guarded corner of `localStorage`, one instance per key.
 ///
 /// This is one interface with two implementations chosen at compile time, the
 /// same shape the collector uses to keep `dart:io` out of `lib/collector/`: the
@@ -17,12 +17,18 @@ import 'visit_memory_stub.dart'
 /// `catch` swallowed by design — so the counter simply counted every reload
 /// and said nothing. Fourteen transitive packages to reach an API the browser
 /// already exposes in one line was a bad trade even when it worked.
-abstract class VisitMemory {
-  /// `null` when this browser has not been counted, or when storage is
+///
+/// **The key is a constructor argument and the class is no longer called
+/// `VisitMemory`.** It held one hard-coded key while the visit counter was its
+/// only user; the news bar needs to remember which entry a reader has already
+/// seen, and a second copy of the same guarded three lines is how two stores
+/// drift apart.
+abstract class BrowserMemory {
+  /// `null` when nothing was stored under this key, or when storage is
   /// unreadable — private browsing can refuse it outright.
   String? read();
 
-  void write(String day);
+  void write(String value);
 
-  factory VisitMemory.platform() = platform.PlatformVisitMemory;
+  factory BrowserMemory.platform(String key) = platform.PlatformBrowserMemory;
 }

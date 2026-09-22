@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../data/browser_memory.dart';
 import '../../../core/theme/pw_colors.dart';
 import '../../../core/theme/pw_theme.dart';
 import '../../search/ui/search_state.dart';
@@ -32,6 +33,15 @@ import 'widgets/tool_card.dart';
 ///
 /// The cards do not wait for it. They are the menu, and a menu that appears a
 /// second late is a page that looks broken.
+/// One store for the whole page, built once.
+///
+/// A fresh instance per rebuild would read `localStorage` on every frame,
+/// which is the call the guard in `BrowserMemory` exists to keep cheap and
+/// quiet — and the news bar reads its marker exactly once per load.
+final _memoriaDasNovidades = BrowserMemory.platform(
+  'portal_pw_ultima_novidade',
+);
+
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
@@ -162,8 +172,11 @@ class HomeView extends StatelessWidget {
                     ),
                     SizedBox(height: large ? 32 : (wide ? 26 : 20)),
                     BlocBuilder<NovidadesViewModel, List<Novidade>>(
-                      builder: (context, novidades) =>
-                          NewsSection(entries: novidades, wide: wide),
+                      builder: (context, novidades) => NewsSection(
+                        entries: novidades,
+                        wide: wide,
+                        memoria: _memoriaDasNovidades,
+                      ),
                     ),
                     SizedBox(height: large ? 32 : (wide ? 26 : 20)),
                     _Menu(wide: wide),

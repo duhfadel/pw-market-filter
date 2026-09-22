@@ -70,6 +70,7 @@ class _CountedItemsSectionState extends State<CountedItemsSection> {
       children: [
         _header(counted),
         if (_open) ...[
+          _ajuda(),
           for (final item in counted) _row(item.key, item.value),
           const SizedBox(height: 4),
         ],
@@ -77,12 +78,34 @@ class _CountedItemsSectionState extends State<CountedItemsSection> {
     );
   }
 
+  /// What a tick actually does, which is the opposite of what a checkbox in a
+  /// filter panel promises.
+  ///
+  /// Marking narrows nothing — it prints a number on every card — and the
+  /// minimum only exists afterwards. The anecdotes carry a `Mostrar no card`
+  /// label beside their box and these carried nothing, so the owner opened the
+  /// panel looking for a control that was already on screen.
+  Widget _ajuda() => const Padding(
+    padding: EdgeInsets.only(left: 4, right: 4, bottom: 6),
+    child: Text(
+      'Marque para mostrar a quantidade no card. '
+      'O filtro por quantidade aparece depois.',
+      style: TextStyle(color: PWColors.textMuted, fontSize: 11, height: 1.35),
+    ),
+  );
+
   Widget _header(List<MapEntry<String, int>> counted) => InkWell(
     onTap: () => setState(() => _open = !_open),
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: SectionHeader(
-        title: 'Relíquias e chaves',
+        // Named for what the things have in common rather than for what
+        // they are, because the list grows. It was `Relíquias e chaves` until
+        // the Essência Dracônica joined it, and the owner then opened the
+        // panel hunting for a control that was already inside — a section
+        // whose name lists its members stops describing them the day one is
+        // added, and says nothing about the omission.
+        title: 'Itens da mochila',
         // The first counted item the collection found, so the emblem is a
         // picture of the thing rather than a glyph meaning "some section".
         emblem: counted.first.value,

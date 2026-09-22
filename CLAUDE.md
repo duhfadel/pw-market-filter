@@ -708,6 +708,44 @@ Each of these already cost something — measured on the live site, not guessed.
 
   It also needs no rule about classes: only the Feiticeira has combat pets, so
   asking for one narrows to her by itself.
+- **A slider's track ends at the most anybody carries, and it reads the
+  scope.** It was the 95th percentile of the whole market until 2026-09-22,
+  for a measured reason — the relics top near 130 with a median of 16 to 22.
+  The cure cost more than the disease: it made the top of the market
+  **unaskable**, and the man with 290 relics is exactly who somebody is
+  hunting. The Essência Dracônica made it obvious — a real maximum of 13 and a
+  track that stopped at 4.
+
+  Reading from `scope` rather than the whole index was the other half, and the
+  old note's worry about the track resizing mid-drag does not apply: the
+  slider reads `facetsFor(FacetDimension.owned)`, whose scope already excludes
+  every owned filter, so this slider cannot move its own ceiling. A class can,
+  and should — the essence tops at 13 across the market, 9 for Arcano, 8 for
+  Guerreiro.
+
+  **The `Chave da Sorte` pays for it, knowingly.** 875 carry one, the median
+  carrier has 3, the top has 3977, so 655 of the 875 sit in the first 1.3% of
+  its track. A log scale was offered and turned down on the owner's call:
+  every millimetre being worth the same number is worth more than fine control
+  on the one item shaped like that, and the chosen number is written out
+  beside the track regardless.
+
+  `IndexFacets.mostOwned(int)` was deleted in the same change. It answered the
+  same question by id, and nothing called it — two readings of one number is
+  how a slider and a card come to disagree.
+
+- **A section is named for what its members have in common, never by listing
+  them.** It was `Relíquias e chaves` until the Essência Dracônica joined it,
+  and the owner then opened the panel hunting for a control that was already
+  inside. A title that enumerates stops describing its contents the day one is
+  added, and nothing on screen says so. It is `Itens da mochila` now.
+
+  The same round answered a second question nobody had written down: **the
+  checkbox never said what it did.** Ticking prints a number on every card and
+  narrows nothing — the opposite of what a checkbox in a filter panel
+  promises — and the minimum only exists afterwards. The anecdotes carry a
+  `Mostrar no card` label beside theirs; these carried none at all.
+
 - **A counted label can be several names and several ids, and binding it to
   the first one met loses the rest in silence.** `MarketIndex.countedItems`
   maps a label to **every** id the collection found under it, and

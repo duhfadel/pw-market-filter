@@ -61,6 +61,28 @@ String? countedGroupOf(String name) {
   return null;
 }
 
+/// What a grouped label says under its name, and the id its picture comes
+/// from.
+///
+/// **Both exist because a group of one is self-explanatory and a group of
+/// three is not.** *Essência Dracônica* adds up three different items, and a
+/// single number with no note reads as a count of the first one — the player
+/// has no way to know the raw essence and the chest are in there.
+///
+/// The icon is named rather than taken from `countedItems[label].first`,
+/// which is **the order the crawl happened to meet them**: two collections a
+/// week apart can disagree about which item a label's picture shows, with
+/// nothing on screen saying the art moved. The same hazard as an attribute's
+/// id, arriving through the art.
+const countedItemNotes = <String, String>{
+  'Essência Dracônica':
+      'Soma de Essência Dracônica, Essência Dracônica Bruta e do Baú.',
+};
+
+/// The id whose sprite draws a label, when the first one met is not the one to
+/// show. See [countedItemNotes] for why this is not left to the crawl.
+const countedItemIcons = <String, int>{'Essência Dracônica': 50264};
+
 /// The labels still being checked against the game, drawn with a BETA TEST
 /// badge beside the name.
 ///

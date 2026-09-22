@@ -34,7 +34,15 @@ enum ResultOrder {
   cheapest('Menor preço'),
   dearest('Maior preço'),
   highestLevel('Maior nível'),
-  highestFame('Maior fama'),
+
+  // `highestFame` sat here until 2026-09-22 and was taken out on the owner's
+  // call. `fame` is still collected and still in the index — it costs nothing,
+  // it comes free with the listing page, and taking it out of the contract
+  // would make putting it back a full collection.
+  //
+  // A retired name in an old link is handled where it has to be: `_decodeOrder`
+  // falls through to `cheapest`, because a `DropdownButton` whose value is
+  // absent from its own items throws.
 
   /// The two that read the character's own page rather than his gear.
   ///

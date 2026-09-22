@@ -147,13 +147,13 @@ void main() {
 
     test('clearing keeps the ordering, which was never a filter', () {
       viewModel
-        ..setOrder(ResultOrder.highestFame)
+        ..setOrder(ResultOrder.highestLevel)
         ..setClass('Mago')
         ..clear();
 
       final state = viewModel.state as SearchReady;
       expect(state.query.isEmpty, isTrue);
-      expect(state.query.order, ResultOrder.highestFame);
+      expect(state.query.order, ResultOrder.highestLevel);
     });
 
     test('clearing everything empties the query and shows everybody', () {

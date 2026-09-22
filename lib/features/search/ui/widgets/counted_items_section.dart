@@ -50,14 +50,20 @@ class _CountedItemsSectionState extends State<CountedItemsSection> {
   /// A name the market has none of gets no field: it could only ever return
   /// nothing, which reads as "the market has none of these" when it means
   /// "this collection never saw one".
-  /// The id is only the picture. A label can gather several ids and the
-  /// count adds them all up (`MarketIndex.countOf`), but the row needs one
-  /// sprite and they are the same item to a reader — so the first is as true
-  /// as any, and nothing here is counted from it.
+  /// The id is only the picture, and nothing here is counted from it —
+  /// `MarketIndex.countOf` adds up every id a label gathers.
+  ///
+  /// Which id draws it is **named** in `countedItemIcons` when it matters,
+  /// because `countedItems[label]` is in the order the crawl met them: two
+  /// collections a week apart can disagree about a group's art, with nothing
+  /// on screen saying it moved. A label of one item has nothing to choose.
   List<MapEntry<String, int>> get _counted => [
     for (final label in countedItemGroups.keys)
       if (state.index.countedItems[label]?.isNotEmpty ?? false)
-        MapEntry(label, state.index.countedItems[label]!.first),
+        MapEntry(
+          label,
+          countedItemIcons[label] ?? state.index.countedItems[label]!.first,
+        ),
   ];
 
   @override
@@ -153,6 +159,18 @@ class _CountedItemsSectionState extends State<CountedItemsSection> {
               ],
             ],
           ),
+          // What the number is made of, when it is made of more than one
+          // thing. A total nobody can decompose is a total nobody can check.
+          subtitle: countedItemNotes[name] == null
+              ? null
+              : Text(
+                  countedItemNotes[name]!,
+                  style: const TextStyle(
+                    color: PWColors.textMuted,
+                    fontSize: 11,
+                    height: 1.3,
+                  ),
+                ),
         ),
         if (marked) _slider(name, itemId),
       ],

@@ -329,4 +329,16 @@ void main() {
       expect(query.runes, isNull);
     });
   });
+  test('an order this build no longer has opens at the cheapest', () {
+    // `ordem=highestFame` was a real link until 2026-09-22 and people keep
+    // links. `_decodeOrder` falling through to cheapest is what stops a
+    // retired name from opening a blank page — and a `DropdownButton` whose
+    // value is absent from its own items throws, which is the same trap the
+    // class and item pickers already guard against.
+    final back = decodeQuery(
+      Uri.parse('?ordem=highestFame').queryParametersAll,
+    );
+
+    expect(back.order, ResultOrder.cheapest);
+  });
 }

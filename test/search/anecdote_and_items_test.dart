@@ -166,6 +166,32 @@ void main() {
     expect(find.textContaining('Marque para mostrar'), findsOneWidget);
   });
 
+  testWidgets('a label that adds several items says which ones', (
+    tester,
+  ) async {
+    // One number with no note reads as a count of the item named above it.
+    // Nothing would tell the player the raw essence and the chest are in
+    // there, and a total nobody can decompose is a total nobody can check.
+    await _pump(tester, collected: true, emTeste: true);
+    await tester.tap(find.text('ITENS DA MOCHILA'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Essência Dracônica Bruta'), findsOneWidget);
+    expect(find.textContaining('Baú'), findsOneWidget);
+  });
+
+  test('the picture of a group is chosen, never the first one met', () {
+    // `countedItems[label]` is in crawl order, so `.first` can change between
+    // two collections and move the art with nothing saying so.
+    for (final label in countedItemNotes.keys) {
+      expect(
+        countedItemIcons[label],
+        isNotNull,
+        reason: 'um grupo desenha um item; qual deles é escolha, não sorteio',
+      );
+    }
+  });
+
   testWidgets('typing a minimum narrows the results', (tester) async {
     final viewModel = await _pump(tester, collected: true);
 

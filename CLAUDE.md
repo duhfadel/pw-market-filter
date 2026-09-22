@@ -708,6 +708,32 @@ Each of these already cost something — measured on the live site, not guessed.
 
   It also needs no rule about classes: only the Feiticeira has combat pets, so
   asking for one narrows to her by itself.
+- **A group's picture is named, never `ids.first`.** `MarketIndex.countedItems`
+  holds the ids in the order the crawl met them, so two collections a week
+  apart can disagree about which item a label's art shows, with nothing on
+  screen saying it moved — the attribute-id hazard arriving through the
+  sprite. `countedItemIcons` names it, and a test demands every grouped label
+  have one.
+
+  The same round added `countedItemNotes`, which says under the name what the
+  number is made of. A total nobody can decompose is a total nobody can check:
+  *Essência Dracônica* reads as a count of the essence unless the line says the
+  raw one and the chest are in there.
+
+  **And the art on the item host is not trustworthy for these.** `50264` (the
+  essence) and `200325` (the chest) serve **byte-identical** files, which a
+  chest and a consumable cannot both be. The names, though, are solid: read off
+  MALZZIN's own page, `50264` is *Essência Dracônica* (11 of them) and `50265`
+  is *Essência Dracônica Bruta* (2). Name from the market, and treat a shared
+  sprite as the host having nothing rather than as two things being one.
+
+- **`highestFame` was removed on 2026-09-22, and `fame` stayed in the index.**
+  The order went; the field costs nothing, arrives free with the listing page,
+  and taking it out of the contract would make putting it back a full
+  collection. A retired order name in a month-old link falls through to
+  `cheapest` in `_decodeOrder` — which is not politeness, since a
+  `DropdownButton` whose value is absent from its own items throws.
+
 - **A slider's track ends at the most anybody carries, and it reads the
   scope.** It was the 95th percentile of the whole market until 2026-09-22,
   for a measured reason — the relics top near 130 with a median of 16 to 22.

@@ -18,7 +18,6 @@ List<MarketCharacter> runQuery(MarketIndex index, SearchQuery query) {
     ResultOrder.cheapest => (a, b) => a.price.compareTo(b.price),
     ResultOrder.dearest => (a, b) => b.price.compareTo(a.price),
     ResultOrder.highestLevel => (a, b) => b.level.compareTo(a.level),
-    ResultOrder.highestFame => (a, b) => b.fame.compareTo(a.fame),
     // These two tie constantly — hundreds of characters carry the same number
     // of relics, and none at all is the commonest answer of the lot. Falling
     // back to the price keeps the cheapest of an equal row on top, which is

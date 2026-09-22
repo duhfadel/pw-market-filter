@@ -9,6 +9,7 @@ import 'package:pw_market_filter/features/search/domain/search_query.dart';
 import 'package:pw_market_filter/features/search/ui/search_state.dart';
 import 'package:pw_market_filter/features/search/ui/search_view_model.dart';
 import 'package:pw_market_filter/features/search/ui/widgets/filter_panel.dart';
+import 'package:pw_market_filter/market/counted_items.dart';
 import 'package:pw_market_filter/market/index_repository.dart';
 import 'package:pw_market_filter/market/market_index.dart';
 
@@ -43,39 +44,42 @@ MarketCharacter _character(
   counts: counts,
 );
 
-MarketIndex _index({required bool collected}) => MarketIndex(
-  server: 'pw187',
-  collectedAt: DateTime.utc(2026, 8, 19),
-  attributes: const [],
-  items: const {},
-  countedItems: collected
-      ? const {
-          _relic: [50410],
-        }
-      : const {},
-  characters: [
-    if (collected) ...[
-      _character(
-        1,
-        'Leandrim',
-        anecdotes: const Anecdotes(done: 1265, total: 2756),
-        counts: const {50410: 16},
-      ),
-      _character(
-        2,
-        'Novato',
-        anecdotes: const Anecdotes(done: 40, total: 2756),
-      ),
-    ] else ...[
-      _character(1, 'Leandrim'),
-      _character(2, 'Novato'),
-    ],
-  ],
-);
+MarketIndex _index({required bool collected, bool emTeste = false}) =>
+    MarketIndex(
+      server: 'pw187',
+      collectedAt: DateTime.utc(2026, 8, 19),
+      attributes: const [],
+      items: const {},
+      countedItems: collected
+          ? {
+              _relic: const [50410],
+              if (emTeste) 'Essência Dracônica': const [50264, 50265],
+            }
+          : const {},
+      characters: [
+        if (collected) ...[
+          _character(
+            1,
+            'Leandrim',
+            anecdotes: const Anecdotes(done: 1265, total: 2756),
+            counts: const {50410: 16},
+          ),
+          _character(
+            2,
+            'Novato',
+            anecdotes: const Anecdotes(done: 40, total: 2756),
+          ),
+        ] else ...[
+          _character(1, 'Leandrim'),
+          _character(2, 'Novato'),
+        ],
+      ],
+    );
 
 Future<SearchViewModel> _pump(
   WidgetTester tester, {
   required bool collected,
+  bool emTeste = false,
 }) async {
   tester.view.physicalSize = const Size(1400, 1400);
   tester.view.devicePixelRatio = 1;
@@ -83,7 +87,9 @@ Future<SearchViewModel> _pump(
 
   final client = MockClient(
     (_) async => http.Response.bytes(
-      utf8.encode(jsonEncode(_index(collected: collected).toJson())),
+      utf8.encode(
+        jsonEncode(_index(collected: collected, emTeste: emTeste).toJson()),
+      ),
       200,
     ),
   );
@@ -127,6 +133,25 @@ void main() {
     await tester.tap(find.text('RELÍQUIAS E CHAVES'));
     await tester.pumpAndSettle();
     expect(find.text(_relic), findsOneWidget);
+  });
+
+  testWidgets('a line still being checked says so, and the rest do not', (
+    tester,
+  ) async {
+    // The badge is the whole permission to ship this before anybody has read
+    // the numbers off a character's own page. Losing it silently would leave
+    // an unverified count looking exactly like a verified one.
+    await _pump(tester, collected: true, emTeste: true);
+    await tester.tap(find.text('RELÍQUIAS E CHAVES'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Essência Dracônica'), findsOneWidget);
+    expect(find.text('BETA TEST'), findsOneWidget);
+
+    // And exactly one: the relic has been read against a real page since
+    // August, so badging it too would make the mark mean nothing.
+    expect(find.text(_relic), findsOneWidget);
+    expect(countedItemsInTest.contains(_relic), isFalse);
   });
 
   testWidgets('typing a minimum narrows the results', (tester) async {

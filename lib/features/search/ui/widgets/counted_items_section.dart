@@ -112,10 +112,23 @@ class _CountedItemsSectionState extends State<CountedItemsSection> {
           // headers carry one: four long names that begin with the same two
           // words are read by their pictures.
           secondary: ItemIcon(itemId, size: 26),
-          title: Text(
-            name,
-            style: const TextStyle(fontSize: 13),
-            overflow: TextOverflow.ellipsis,
+          title: Row(
+            children: [
+              // `Flexible` and no `Spacer`: a Spacer beside a Flexible splits
+              // the free space with it, which is what once crushed the
+              // nicknames on the card to `NI…`.
+              Flexible(
+                child: Text(
+                  name,
+                  style: const TextStyle(fontSize: 13),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (countedItemsInTest.contains(name)) ...[
+                const SizedBox(width: 7),
+                const _BetaBadge(),
+              ],
+            ],
           ),
         ),
         if (marked) _slider(name, itemId),
@@ -125,7 +138,7 @@ class _CountedItemsSectionState extends State<CountedItemsSection> {
 
   Widget _slider(String name, int itemId) {
     final facets = state.facetsFor(FacetDimension.owned);
-    final ceiling = facets.ceilingOwned(itemId);
+    final ceiling = facets.ceilingOwned(name);
     // A market where nobody carries one has no track to draw and no question
     // to ask — the mark alone still prints the zero.
     if (ceiling < 1) return const SizedBox.shrink();
@@ -168,7 +181,7 @@ class _CountedItemsSectionState extends State<CountedItemsSection> {
               chosen == 0
                   ? 'qualquer quantidade'
                   : '$chosen ou mais — '
-                        '${facets.carriersOwning(itemId, chosen)} personagens',
+                        '${facets.carriersOwning(name, chosen)} personagens',
               style: const TextStyle(fontSize: 11, color: PWColors.textMuted),
             ),
           ),
@@ -176,4 +189,32 @@ class _CountedItemsSectionState extends State<CountedItemsSection> {
       ),
     );
   }
+}
+
+/// Says that a counted line is still being checked against the game.
+///
+/// Outlined rather than filled, and the reason is measured: `accent` on
+/// `accentDim` is 4.35 against `surface`'s 10.32, and the whole palette here
+/// sits between 6.5 and 8. At 9 px the filled version was the one thing on the
+/// panel nobody could read.
+class _BetaBadge extends StatelessWidget {
+  const _BetaBadge();
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    decoration: BoxDecoration(
+      border: Border.all(color: PWColors.accent),
+      borderRadius: BorderRadius.circular(5),
+    ),
+    child: const Text(
+      'BETA TEST',
+      style: TextStyle(
+        color: PWColors.accent,
+        fontSize: 9,
+        letterSpacing: 0.8,
+        fontWeight: FontWeight.w700,
+      ),
+    ),
+  );
 }

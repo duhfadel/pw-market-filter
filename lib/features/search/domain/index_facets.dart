@@ -157,9 +157,15 @@ class IndexFacets {
   ///
   /// Read from the whole index rather than the current scope, so the track
   /// does not resize under the hand while the same slider is being dragged.
-  int ceilingOwned(int itemId) => _ceilingCache.putIfAbsent(itemId, () {
-    final counts = [for (final c in index.characters) c.counts[itemId] ?? 0]
-      ..sort();
+  /// Takes the **label**, not an id, and that is not a nicety. A label can
+  /// gather several ids — `Essência Dracônica` is the essence, the raw one and
+  /// the chest — and reading one of them would put the track and the number
+  /// the card prints on different scales: a man with eleven essences and two
+  /// raw ones passes "13 ou mais" on the card and fails it on the slider.
+  int ceilingOwned(String label) => _ceilingCache.putIfAbsent(label, () {
+    final counts = [
+      for (final c in index.characters) index.countOf(c, label) ?? 0,
+    ]..sort();
     if (counts.isEmpty) return 0;
     final ceiling = counts[(counts.length * 95) ~/ 100];
     // A market where almost nobody carries any would give a ceiling of zero,
@@ -167,14 +173,14 @@ class IndexFacets {
     return ceiling < 1 ? counts.last : ceiling;
   });
 
-  final _ceilingCache = <int, int>{};
+  final _ceilingCache = <String, int>{};
 
   /// How many in [scope] carry at least [minimum] of it — the number the
   /// slider prints, so the gesture states its own consequence.
-  int carriersOwning(int itemId, int minimum) {
+  int carriersOwning(String label, int minimum) {
     var found = 0;
     for (final character in scope) {
-      if ((character.counts[itemId] ?? 0) >= minimum) found++;
+      if ((index.countOf(character, label) ?? 0) >= minimum) found++;
     }
     return found;
   }

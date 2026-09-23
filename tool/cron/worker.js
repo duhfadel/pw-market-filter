@@ -17,7 +17,7 @@ const WORKFLOW = 'publish.yml';
 
 // O cron da coleta. O outro, o do Supabase, é qualquer coisa que não seja
 // este — comparar contra o que acorda o Worker é o que separa as duas tarefas.
-const CRON_DA_COLETA = '7,37 * * * *';
+const CRON_DA_COLETA = '7,22,37,52 * * * *';
 
 // O banco que guarda o contador de visitas e os donos dos territórios.
 //
@@ -75,6 +75,9 @@ export default {
     if (event.cron === CRON_DA_TWITCH) {
       await atualizarQuemEstaAoVivo(env);
       await lerAsNovidades(env);
+      // De carona nesta batida: uma coleta que quebrou esperava o próximo
+      // quarto de hora, e aqui a espera cai para cinco minutos.
+      await ressuscitarColeta(env);
       return;
     }
 
@@ -103,6 +106,45 @@ export default {
     }
   },
 };
+
+// Redispara a coleta quando a última quebrou, sem esperar o relógio.
+//
+// **Só depois de uma falha isolada, e nunca de duas seguidas.** Disparar a
+// cada falha transformaria uma quebra persistente em doze corridas por hora
+// martelando o marketplace deles — exatamente o que o ritmo do coletor existe
+// para impedir. Duas falhas em sequência não são soluço: são problema, e
+// insistir piora. Aí o relógio de quinze minutos assume e a data da coleta no
+// site é o que denuncia.
+//
+// Não há risco de disparar duas vezes pela mesma falha: assim que a nova
+// rodada nasce, a mais recente deixa de ser a que quebrou.
+async function ressuscitarColeta(env) {
+  const resposta = await github(
+    env,
+    `/repos/${REPO}/actions/workflows/${WORKFLOW}/runs?per_page=5&status=completed`,
+  );
+  if (!resposta.ok) return;
+
+  const { workflow_runs: rodadas = [] } = await resposta.json();
+  if (rodadas.length < 2) return;
+
+  const [ultima, anterior] = rodadas;
+  if (ultima.conclusion !== 'failure') return;
+  if (anterior.conclusion === 'failure') {
+    console.log('duas falhas seguidas: deixando o relógio assumir.');
+    return;
+  }
+
+  const disparo = await github(
+    env,
+    `/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`,
+    'POST',
+    { ref: 'main' },
+  );
+  console.log(
+    `rodada ${ultima.id} falhou; redisparo ${disparo.status}`,
+  );
+}
 
 // Cancela rodada que ficou presa na fila, antes de pedir a próxima.
 //

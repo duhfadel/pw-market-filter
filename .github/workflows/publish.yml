@@ -19,7 +19,7 @@ name: Coletar e publicar
 # tells a visitor the market went stale.
 on:
   schedule:
-    - cron: '7,37 * * * *'
+    - cron: '7,22,37,52 * * * *'
   push:
     branches: [main]
   workflow_dispatch:

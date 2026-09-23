@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -129,6 +130,41 @@ Future<List<String>> _pumpHome(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('the wheel scrolls with the pointer at the right edge', (
+    tester,
+  ) async {
+    // Reported from a real window: the content column is capped at 1040 and
+    // centred, so on a wider screen the margins either side belonged to
+    // nothing. A wheel event lands on whatever is under the pointer, and out
+    // there that was the background — the page simply did not move, which
+    // reads as the site being broken rather than as a layout choice.
+    //
+    // The scrollbar sitting beside the column instead of at the window's edge
+    // was the same fact showing itself; both go when the scrollable is the
+    // full width and the cap moves inside it.
+    await _pumpHome(tester);
+
+    final antes = tester
+        .widget<Scrollable>(find.byType(Scrollable).first)
+        .controller!
+        .offset;
+
+    // 40 px from the right edge: outside a 1040-wide column in an 1100 window.
+    await tester.sendEventToBinding(
+      const PointerScrollEvent(
+        position: Offset(1060, 700),
+        scrollDelta: Offset(0, 300),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final depois = tester
+        .widget<Scrollable>(find.byType(Scrollable).first)
+        .controller!
+        .offset;
+    expect(depois, greaterThan(antes));
+  });
+
   testWidgets('the fold says what the site does, not only its name', (
     tester,
   ) async {

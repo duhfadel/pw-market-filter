@@ -81,116 +81,132 @@ class HomeView extends StatelessWidget {
             // sky above the logo before anything was readable. Vertical
             // centring is a rule about short pages, and this one stopped being
             // one.
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: ConstrainedBox(
-                // 1040 and not 900 at the top step, and the reason is one line of
-                // type: at 900 the headline broke with "usando" alone on a second
-                // line at every desktop size measured — 1366 and 1920 both. The
-                // first sentence a visitor reads is not a good place to hyphenate
-                // the argument.
-                constraints: BoxConstraints(maxWidth: large ? 1040 : 780),
-                child: ListView(
-                  // Shrink-wrapped so a short menu sits in the middle of the page
-                  // instead of clinging to the top with a screen of nothing under
-                  // it — and it still scrolls once the list outgrows the window.
-                  shrinkWrap: true,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: wide ? 40 : 20,
-                    vertical: wide ? 44 : 28,
-                  ),
-                  children: [
-                    DiscordStrip(wide: wide),
-                    SizedBox(height: wide ? 10 : 6),
-                    Center(
-                      child: Image.asset(
-                        'assets/images/portal-pw-logo-v2.webp',
-                        // Two thirds of what it was. The mark says the name of the
-                        // site and nothing about what it does, and at 440 px it was
-                        // the entire first fold of a phone — the visitor scrolled
-                        // before learning there was anything here to use.
-                        //
-                        // The numbers dropped a step when the wordmark lost its
-                        // ".net": the new drawing is squarer (1.39 against 1.52),
-                        // so the same width would have made it 9% taller and
-                        // quietly undone the fold this was measured for. These
-                        // widths hold the height where it was.
-                        width: large ? 280 : (wide ? 215 : 168),
-                        filterQuality: FilterQuality.medium,
-                        // The logo is the one asset whose absence would be
-                        // baffling rather than cosmetic, so it falls back to the
-                        // name rather than to a gap.
-                        errorBuilder: (_, _, _) => Text(
-                          'PORTAL PW',
-                          style: TextStyle(
-                            fontSize: wide ? 34 : 26,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 3,
+            // **The scrollable is the whole width, and the cap lives inside
+            // it.** It was the other way round — a 1040-wide `ListView`
+            // centred in the window — and a wheel event lands on whatever is
+            // under the pointer: out in the margins that was the background,
+            // so the page did not move at all. It reads as a broken site
+            // rather than as a layout choice, and it was reported that way.
+            //
+            // The scrollbar hugging the column instead of the window's edge
+            // was the same fact wearing a different face. Both are gone.
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    // 1040 and not 900 at the top step, and the reason is one
+                    // line of type: at 900 the headline broke with "usando"
+                    // alone on a second line at every desktop size measured —
+                    // 1366 and 1920 both. The first sentence a visitor reads
+                    // is not a good place to hyphenate the argument.
+                    constraints: BoxConstraints(maxWidth: large ? 1040 : 780),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: wide ? 40 : 20,
+                        vertical: wide ? 44 : 28,
+                      ),
+                      child: Column(
+                        // A `ListView` stretches its children across and a
+                        // `Column` centres them, so the menu and the news bar
+                        // would have shrunk to their own width without this.
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          DiscordStrip(wide: wide),
+                          SizedBox(height: wide ? 10 : 6),
+                          Center(
+                            child: Image.asset(
+                              'assets/images/portal-pw-logo-v2.webp',
+                              // Two thirds of what it was. The mark says the name of the
+                              // site and nothing about what it does, and at 440 px it was
+                              // the entire first fold of a phone — the visitor scrolled
+                              // before learning there was anything here to use.
+                              //
+                              // The numbers dropped a step when the wordmark lost its
+                              // ".net": the new drawing is squarer (1.39 against 1.52),
+                              // so the same width would have made it 9% taller and
+                              // quietly undone the fold this was measured for. These
+                              // widths hold the height where it was.
+                              width: large ? 280 : (wide ? 215 : 168),
+                              filterQuality: FilterQuality.medium,
+                              // The logo is the one asset whose absence would be
+                              // baffling rather than cosmetic, so it falls back to the
+                              // name rather than to a gap.
+                              errorBuilder: (_, _, _) => Text(
+                                'PORTAL PW',
+                                style: TextStyle(
+                                  fontSize: wide ? 34 : 26,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 3,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                          SizedBox(height: wide ? 18 : 14),
+                          Center(
+                            child: Text(
+                              'Ache o personagem certo pelo que ele está usando',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: PWTheme.display,
+                                color: PWColors.text,
+                                // Marcellus is lighter and wider than Roboto at the same
+                                // size, so the headline gains a couple of points and
+                                // loses the extra weight it needed as a sans.
+                                fontSize: large ? 38 : (wide ? 31 : 25),
+                                height: 1.25,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: wide ? 12 : 10),
+                          Center(
+                            child: Text(
+                              'Filtre os personagens à venda do The Classic PW 1.8.7 por '
+                              'arma, cartas, refino e atributos.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: PWColors.textMuted,
+                                fontSize: large ? 17 : (wide ? 15 : 13),
+                                height: 1.5,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: large ? 28 : (wide ? 24 : 20)),
+                          const Center(child: _SearchButton()),
+                          SizedBox(height: large ? 30 : (wide ? 24 : 20)),
+                          BlocBuilder<SearchViewModel, SearchState>(
+                            builder: (context, state) => MarketPulse(
+                              state: state is SearchReady ? state : null,
+                              wide: wide,
+                              large: large,
+                            ),
+                          ),
+                          SizedBox(height: large ? 32 : (wide ? 26 : 20)),
+                          BlocBuilder<NovidadesViewModel, List<Novidade>>(
+                            builder: (context, novidades) => NewsSection(
+                              entries: novidades,
+                              wide: wide,
+                              memoria: _memoriaDasNovidades,
+                            ),
+                          ),
+                          SizedBox(height: large ? 32 : (wide ? 26 : 20)),
+                          _Menu(wide: wide),
+                          // Depois das ferramentas e antes da publicidade. É o
+                          // lugar que combina com o que a coisa é: cortesia a quem
+                          // transmite, não o motivo de alguém ter vindo. Em cima
+                          // disputaria com as ferramentas; no rodapé ninguém veria.
+                          AoVivoStrip(wide: wide),
+                          const AdSlot(),
+                          SizedBox(height: wide ? 28 : 22),
+                          const _Footer(),
+                        ],
                       ),
                     ),
-                    SizedBox(height: wide ? 18 : 14),
-                    Center(
-                      child: Text(
-                        'Ache o personagem certo pelo que ele está usando',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: PWTheme.display,
-                          color: PWColors.text,
-                          // Marcellus is lighter and wider than Roboto at the same
-                          // size, so the headline gains a couple of points and
-                          // loses the extra weight it needed as a sans.
-                          fontSize: large ? 38 : (wide ? 31 : 25),
-                          height: 1.25,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: wide ? 12 : 10),
-                    Center(
-                      child: Text(
-                        'Filtre os personagens à venda do The Classic PW 1.8.7 por '
-                        'arma, cartas, refino e atributos.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: PWColors.textMuted,
-                          fontSize: large ? 17 : (wide ? 15 : 13),
-                          height: 1.5,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: large ? 28 : (wide ? 24 : 20)),
-                    const Center(child: _SearchButton()),
-                    SizedBox(height: large ? 30 : (wide ? 24 : 20)),
-                    BlocBuilder<SearchViewModel, SearchState>(
-                      builder: (context, state) => MarketPulse(
-                        state: state is SearchReady ? state : null,
-                        wide: wide,
-                        large: large,
-                      ),
-                    ),
-                    SizedBox(height: large ? 32 : (wide ? 26 : 20)),
-                    BlocBuilder<NovidadesViewModel, List<Novidade>>(
-                      builder: (context, novidades) => NewsSection(
-                        entries: novidades,
-                        wide: wide,
-                        memoria: _memoriaDasNovidades,
-                      ),
-                    ),
-                    SizedBox(height: large ? 32 : (wide ? 26 : 20)),
-                    _Menu(wide: wide),
-                    // Depois das ferramentas e antes da publicidade. É o
-                    // lugar que combina com o que a coisa é: cortesia a quem
-                    // transmite, não o motivo de alguém ter vindo. Em cima
-                    // disputaria com as ferramentas; no rodapé ninguém veria.
-                    AoVivoStrip(wide: wide),
-                    const AdSlot(),
-                    SizedBox(height: wide ? 28 : 22),
-                    const _Footer(),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ],

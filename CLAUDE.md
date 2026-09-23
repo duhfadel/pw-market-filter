@@ -1164,6 +1164,29 @@ Each of these already cost something — measured on the live site, not guessed.
   eight tightest territories the number yields 1–9 px. That position was never
   sacred — it came from "deepest point of the shape", not from the game.
 
+- **What scrolls must be the full width, and the width cap goes inside it.**
+  The home had a 1040-wide `ListView` centred in the window, and a wheel event
+  lands on whatever sits under the pointer: out in the margins that was the
+  background, so **the page did not scroll at all** with the mouse on the
+  right. It reads as a broken site, not as a layout choice, and that is how it
+  was reported.
+
+  The scrollbar hugging the column instead of the window's edge was the same
+  fact wearing a different face — Flutter draws its own bar at the edge of the
+  *scrollable*, not of the window, because the `<body>` never scrolls here.
+  One change fixes both.
+
+  Two things it drags along: a `ListView` stretches its children across and a
+  `Column` centres them, so the inner column needs
+  `crossAxisAlignment: stretch` or every full-width child shrinks to its own
+  content; and the `shrinkWrap` that used to sit there stops being needed once
+  the list fills the viewport.
+
+  `first_fold_test` pins it by sending a `PointerScrollEvent` at 40 px from
+  the right edge and asserting the offset moved — the only shape of test that
+  would have caught it, since every gesture a test normally makes lands in the
+  middle.
+
 - **Judge layout on the published site, not on `localhost`.** On this machine
   every page served from `localhost` renders shifted right, with a band of
   empty space on the left. The same build on GitHub Pages, in the same Chrome,

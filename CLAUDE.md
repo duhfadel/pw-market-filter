@@ -372,6 +372,47 @@ paid for it and it must not read as bought placement. The stream title is
 deliberately dropped — written for Twitch, full of emoji and coupon codes, it
 reads as spam pasted onto somebody else's site.
 
+**A streamer's own art lives in a Supabase bucket, not in `assets/`, and it is
+found by the login.** `streamers` is public, images only, capped at **512 KB** —
+and the cap is the part that matters: the first file offered was 4.87 MB, which
+in a repository would have been resized before anyone noticed and here would
+have been served to every visitor. It is refused instead.
+
+**No column records the file name, because the login already does.** A column
+holding `gsafoot.webp` beside a file called `gsafoot.webp` is one fact written
+twice, and the two drift the day somebody renames one. `arteDoStreamer()`
+derives the address, the way an item icon is derived from its id, and a channel
+with no file draws nothing — the same silent fallback `ItemIcon` makes.
+
+This is the opposite call from `guildas.brasao`, and the reason is who sends
+the art. A guild crest is chosen by us and a guild is born rarely, so a commit
+is the right frequency. A streamer sends their own, and putting a deploy in the
+middle of a courtesy is how the courtesy stops happening. Uploading is a drag
+into the dashboard.
+
+**The file must be a wide strip, about 3:1.** The art arrived nearly square and
+`BoxFit.cover` cropped the middle out of the shield — unrecognisable. The asset
+*is* the plate, so it has to be authored at the plate's shape; 690×230 is what
+gsafoot's became, at 45 KB.
+
+**The card only moves its facts to the right once the picture has loaded.**
+Right-aligning by default left half a card empty beside nothing for the three
+channels that sent no art, so `_temArte` starts false and a frame of the image
+is what flips it. A streamer who sent none is never made to look like one whose
+art failed.
+
+Three more defects came out of the same afternoon and none would have shown in
+a test: the space reserved for the plate was a fixed pixel guess, right at
+1400 px and wrong at 350; it was reserved even with no art, which indented
+every plain card and cut `7 assistindo` off a phone; and with art on a phone
+the line ellipsized away `39 assistindo`, the one part that differs between two
+streamers — so `ao vivo na Twitch` is dropped on narrow, where the green dot
+and the heading already say it.
+
+Replacing an existing file is not instant: the public URL served the previous
+bytes for a couple of minutes after a delete and re-upload, then revalidated on
+its own. A **new** name is immediate, which is the case that matters.
+
 #### The registries: the same read-open, write-closed arrangement
 
 `registros (aba, ordem, nome, paginas, sem_dados, + seven attribute columns)`

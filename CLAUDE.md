@@ -572,6 +572,33 @@ Each of these already cost something — measured on the live site, not guessed.
 
   GitHub's `schedule` stays in the workflow as a slow fallback, and
   `gh workflow run publish.yml` is still the manual push.
+- **A failed collection is re-dispatched by the Worker, and the clock is
+  fifteen minutes.** The retry inside the step covers a crash; a run that dies
+  outright used to wait for the next tick, which was the hour that started
+  this. The Worker's five-minute Twitch beat now also looks at the last
+  completed run and fires a fresh one if it failed — so the wait after a
+  broken run is five minutes, not thirty.
+
+  **Only after an isolated failure, never after two.** Firing on every failure
+  would turn a persistent breakage into twelve runs an hour hammering their
+  marketplace, which is precisely what the collector's pacing exists to
+  prevent. Two in a row is not a hiccup, and insisting makes it worse: the
+  clock takes over, and the collection date on the page is what tells anyone.
+  Nothing can double-fire for one failure — the moment the new run exists, the
+  most recent is no longer the broken one.
+
+  The clock went 30 → 15 on the owner's call, taken against the
+  recommendation and recorded as his. It costs twice the runs on every day
+  nothing fails, which is nearly all of them, and buys half the worst case.
+  The extra load on their site is small, and worth knowing why: the listing is
+  one request either way, and the detail pages are the same characters fetched
+  sooner rather than more often.
+
+  **`CRON_DA_COLETA` in `worker.js` has to match `wrangler.toml` character for
+  character**, because the handler compares the strings. Let them drift and
+  the collect branch never fires — it falls through to the Supabase keep-alive
+  and nothing says so.
+
 - **The collect step retries once, and what it absorbs is not our bug.** On
   2026-09-23 the Dart VM 3.12.2 took a **segmentation fault inside the SDK's
   own `_HttpParser`**, four seconds into a run — exit 134, core dumped. Dart

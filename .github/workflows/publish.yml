@@ -73,8 +73,25 @@ jobs:
           key: collect-state-${{ github.run_id }}
           restore-keys: collect-state-
 
+      # Uma segunda tentativa, e ela é barata: o coletor salva o estado a cada
+      # personagem, então `--resume` continua de onde parou em vez de recomeçar.
+      #
+      # **O que ela existe para absorver não é erro nosso.** Em 23/09 a VM do
+      # Dart 3.12.2 deu segmentation fault dentro do próprio parser HTTP do
+      # SDK, quatro segundos depois de começar. Sem retry isso custou uma hora
+      # de índice velho — a coleta boa anterior era de 19:08, a seguinte só
+      # sairia 20:07 — por um travamento que some ao tentar de novo.
+      #
+      # **Falhou duas vezes, a corrida quebra e o e-mail chega**, porque duas
+      # vezes não é azar. E o aviso abaixo é deliberado: um retry esconde
+      # frequência, e o dia em que isto passar a acontecer toda corrida tem de
+      # ser visível no resumo da execução em vez de silencioso.
       - name: Coletar o mercado
-        run: dart run tool/collect.dart --resume
+        run: |
+          dart run tool/collect.dart --resume && exit 0
+          echo "::warning::A coleta caiu; segunda tentativa. Se isto virar rotina, deixou de ser azar."
+          sleep 20
+          dart run tool/collect.dart --resume
 
       # Skips everything already committed, so this costs nothing unless an
       # item appeared that nobody had worn before.

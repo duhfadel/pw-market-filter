@@ -572,6 +572,29 @@ Each of these already cost something — measured on the live site, not guessed.
 
   GitHub's `schedule` stays in the workflow as a slow fallback, and
   `gh workflow run publish.yml` is still the manual push.
+- **The collect step retries once, and what it absorbs is not our bug.** On
+  2026-09-23 the Dart VM 3.12.2 took a **segmentation fault inside the SDK's
+  own `_HttpParser`**, four seconds into a run — exit 134, core dumped. Dart
+  does not let user code segfault, so nothing in `tool/` could have caused it
+  and nothing there can prevent it.
+
+  The cost was out of proportion to the cause: one failed run means no
+  collect and no deploy, so the site sat on the 19:08 index until 20:07 — **an
+  hour stale from a four-second crash**. A retry is nearly free, because the
+  state file is saved after every character and `--resume` continues rather
+  than restarting.
+
+  **Twice in a row still fails the run**, and that is the point of stopping at
+  one: twice is not luck. The step also prints a `::warning::` on the retry,
+  deliberately — a retry hides frequency, and the day this starts happening
+  every run it has to be visible in the run summary instead of silently
+  absorbed.
+
+  The shape matters under `bash -e`, which is the shell Actions uses:
+  `dart … && exit 0` does **not** abort on failure, because a non-final
+  command in an `&&` list is exempt from errexit. Verified before shipping,
+  both paths — first-fails-then-succeeds exits 0, both-fail exits 1.
+
 - **A failed deploy is usually GitHub, and `gh run rerun --failed` makes it
   worse.** On 2026-08-17 the collect, analyze, test and build steps all passed
   and `actions/deploy-pages` answered **503 — "No server is currently available"**;

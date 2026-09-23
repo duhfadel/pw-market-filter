@@ -703,6 +703,26 @@ Each of these already cost something — measured on the live site, not guessed.
   Fetching icons from `items` alone left every card blank with a 404 per card
   in the console — silent on screen, because `ItemIcon` falls back to an empty
   box.
+- **A character page has eighteen item panels, and a count spans all of
+  them.** Not two. `data-pw187-subpanel` names them: `bag`, `quest`, `bank`,
+  `cards`, `warehouse`, `material`, `runes`, `celestial`, `pangu`, `meridian`,
+  `eternal`, `alma-celeste`, `fashion`, `petinv`, `flight`, `ornamental`,
+  `lottery`, `transmute`. `parseInventory` reads every `data-item` on the
+  page, so a count is **what the character owns, wherever it sits** — which is
+  the right answer to "how many does he have" and was never written down.
+
+  **It is also the trap that makes a correct number look wrong.** The owner
+  checked a card reading `carrega 8` against the page, found nothing in
+  *Inventário* or *Banco*, and reported it as a bug. The eight were in
+  **Guarda-roupa** — `warehouse`, the third sub-tab, which nobody thinks to
+  open. The visible sub-tabs under *Inventário* are **Inventário · Banco ·
+  Cartas · Guarda-roupa**, and only the first is open by default.
+
+  So when a count is disputed, fetch the page and grep the `data-item`
+  attributes rather than looking at the rendered tabs: the JSON is in the HTML
+  whichever tab is showing. Verified on Twins (`77728`) on 2026-09-23 —
+  `50264` × 5 and `50265` × 3, summing to the 8 the card printed.
+
 - **The inventory JSON is the wrong source for equipment and the right one for
   counting, and the difference is not a matter of taste.** The same
   `data-item` attributes that must never say what is *worn* — no slot number,

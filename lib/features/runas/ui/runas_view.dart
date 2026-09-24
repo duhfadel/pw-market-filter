@@ -274,73 +274,88 @@ class _Resultado extends StatelessWidget {
           // Biggest scale first: it is the one somebody acts on. The level-one
           // line is last because it gives the size of the thing, not an
           // errand — nobody goes looking for 648.000 of anything.
-          // **`ou` between the lines, and it is not decoration.** The three
-          // are the same debt written in three currencies, and stacked
-          // without a word between them they read as a shopping list to be
-          // added up — 25 sevens *and* 600 fives *and* 129.600 ones.
-          for (var i = 0; i < calculo.escalas.length; i++) ...[
-            if (i > 0) const _Ou(),
+          // **Said once, above, instead of nine times between.** The lines
+          // are the same debt in different currencies and must not read as a
+          // shopping list — with three of them an `ou` between each carried
+          // that; with nine it would be all anyone sees.
+          const Text(
+            'qualquer uma destas linhas serve',
+            style: TextStyle(color: PWColors.textMuted, fontSize: 12),
+          ),
+          const SizedBox(height: 14),
+          for (var i = 0; i < calculo.escalas.length; i++)
             _Linha(
-              quantos: calculo.faltaEm(calculo.escalas[i]),
-              nivel: calculo.escalas[i],
+              partes: calculo.linhaDe(calculo.escalas[i]),
               forte: i == 0,
               largo: largo,
             ),
-          ],
         ],
       ),
     );
   }
 }
 
-class _Ou extends StatelessWidget {
-  const _Ou();
-
-  @override
-  Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.symmetric(vertical: 7),
-    child: Text(
-      'ou',
-      style: TextStyle(
-        color: PWColors.textMuted,
-        fontSize: 12,
-        letterSpacing: 1.2,
-      ),
-    ),
-  );
-}
-
 class _Linha extends StatelessWidget {
   const _Linha({
-    required this.quantos,
-    required this.nivel,
+    required this.partes,
     required this.forte,
     required this.largo,
   });
 
-  final int quantos;
-  final int nivel;
+  final List<Parcela> partes;
+  final bool forte;
+  final bool largo;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 10,
+      runSpacing: 6,
+      children: [
+        for (var i = 0; i < partes.length; i++) ...[
+          if (i > 0)
+            const Text(
+              '+',
+              style: TextStyle(color: PWColors.textMuted, fontSize: 15),
+            ),
+          _Parcela(parte: partes[i], forte: forte && i == 0, largo: largo),
+        ],
+      ],
+    ),
+  );
+}
+
+class _Parcela extends StatelessWidget {
+  const _Parcela({
+    required this.parte,
+    required this.forte,
+    required this.largo,
+  });
+
+  final Parcela parte;
   final bool forte;
   final bool largo;
 
   @override
   Widget build(BuildContext context) => Row(
-    crossAxisAlignment: CrossAxisAlignment.center,
+    mainAxisSize: MainAxisSize.min,
     children: [
-      ItemIcon(arteDaRuna(nivel), size: forte ? 34 : 26),
-      const SizedBox(width: 12),
+      ItemIcon(arteDaRuna(parte.nivel), size: forte ? 30 : 24),
+      const SizedBox(width: 9),
       Text(
-        _comPontos(quantos),
+        _comPontos(parte.quantos),
         style: TextStyle(
           color: forte ? PWColors.accent : PWColors.text,
-          fontSize: forte ? (largo ? 30 : 26) : (largo ? 20 : 18),
+          fontSize: forte ? (largo ? 26 : 22) : (largo ? 18 : 16),
           fontWeight: FontWeight.w700,
         ),
       ),
-      const SizedBox(width: 10),
+      const SizedBox(width: 7),
       Text(
-        quantos == 1 ? 'runa nível $nivel' : 'runas nível $nivel',
-        style: const TextStyle(color: PWColors.textMuted, fontSize: 14),
+        'nível ${parte.nivel}',
+        style: const TextStyle(color: PWColors.textMuted, fontSize: 13),
       ),
     ],
   );

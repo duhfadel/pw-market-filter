@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/features/runas/domain/calculo.dart';
+import 'package:pw_market_filter/features/runas/domain/runa.dart';
 
 /// What is still missing, given what somebody already owns.
 void main() {
@@ -54,9 +55,52 @@ void main() {
     expect(r.faltaEm(8), 5);
   });
 
-  test('the scales offered follow the target', () {
-    expect(calcular(alvo: 10, estoque: const {}).escalas, [7, 5, 1]);
-    expect(calcular(alvo: 6, estoque: const {}).escalas, [5, 1]);
-    expect(calcular(alvo: 4, estoque: const {}).escalas, [1]);
+  group('a line per level, cascading what does not divide', () {
+    test('an exact level is one parcel', () {
+      final r = calcular(alvo: 9, estoque: {7: 2});
+
+      expect(r.linhaDe(7), [const Parcela(nivel: 7, quantos: 23)]);
+      expect(r.linhaDe(5), [const Parcela(nivel: 5, quantos: 552)]);
+    });
+
+    test('a remainder is paid in the biggest coin that fits', () {
+      // 119.232 is four level eights and 15.552 over — and that leftover is
+      // exactly three level sevens. Saying `15.552 nível 1` would be the same
+      // debt in a currency nobody goes shopping with.
+      final r = calcular(alvo: 9, estoque: {7: 2});
+
+      expect(r.linhaDe(8), [
+        const Parcela(nivel: 8, quantos: 4),
+        const Parcela(nivel: 7, quantos: 3),
+      ]);
+    });
+
+    test('every line adds back up to the same debt', () {
+      // The lines are alternatives, so each has to be worth the whole thing.
+      // A cascade that loses a rune would be invisible on screen.
+      final r = calcular(alvo: 10, estoque: {8: 3, 5: 7});
+
+      for (final nivel in r.escalas) {
+        final soma = r
+            .linhaDe(nivel)
+            .fold(0, (t, p) => t + p.quantos * custoEmNivel1(p.nivel));
+        expect(soma, r.restante, reason: 'a linha do nível $nivel');
+      }
+    });
+
+    test('the levels offered are every one below the target', () {
+      expect(calcular(alvo: 10, estoque: const {}).escalas, [
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1,
+      ]);
+      expect(calcular(alvo: 3, estoque: const {}).escalas, [2, 1]);
+    });
   });
 }

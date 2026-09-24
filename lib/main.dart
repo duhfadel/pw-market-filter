@@ -8,6 +8,7 @@ import 'features/home/ui/ao_vivo_view_model.dart';
 import 'features/home/ui/novidades_view_model.dart';
 import 'features/home/ui/visit_counter_view_model.dart';
 import 'features/registros/ui/registros_view.dart';
+import 'features/runas/ui/runas_view.dart';
 import 'features/search/ui/search_view.dart';
 import 'features/search/ui/search_view_model.dart';
 
@@ -48,6 +49,7 @@ class PortalPWApp extends StatelessWidget {
         builder: (_) => switch (route.path) {
           '/filtro' => SearchView(arriving: route.queryParametersAll),
           '/registros' => const RegistrosView(),
+          '/runas' => const RunasView(),
           _ => const HomeView(),
         },
       );

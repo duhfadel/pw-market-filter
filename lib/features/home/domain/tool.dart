@@ -14,6 +14,7 @@ class Tool {
     this.secao = 'Ferramentas',
     this.emblem,
     this.novoAte,
+    this.beta = false,
     this.route,
     this.href,
     this.art,
@@ -43,6 +44,15 @@ class Tool {
   final DateTime? novoAte;
 
   bool novoEm(DateTime agora) => novoAte != null && agora.isBefore(novoAte!);
+
+  /// Still being checked against the game.
+  ///
+  /// **Unlike [novoAte] this has no expiry, and that is deliberate.** *Novo*
+  /// stops being true by itself, so a date takes it down; *beta* stops being
+  /// true only when somebody has actually verified the thing, which is an
+  /// event and not a date. It comes off by hand, on the day the numbers have
+  /// been checked against a real window.
+  final bool beta;
 
   /// Item id whose art stands for the tool, drawn in place of [icon].
   ///
@@ -119,11 +129,29 @@ final tools = <Tool>[
     // A própria Página de Registro: Assimilação, que é a moeda da mecânica.
     emblem: 83070,
     route: '/registros',
-    // Arte de empréstimo, e vale saber que é: um sacerdote não tem relação
-    // com títulos. Estava no repositório sem uso e enche o card enquanto não
-    // chega uma captura da tela de títulos, que é o que a ferramenta trata.
-    // Trocar é este caminho e mais nada.
-    art: 'assets/images/sacerdote.webp',
+    // Sem arte de personagem, de propósito. Era um sacerdote emprestado, que
+    // não tem relação nenhuma com títulos — enchia o card e não dizia nada.
+    // O emblema é a própria Página de Registro, ampliada e esmaecida atrás:
+    // o assunto da ferramenta em vez de um retrato qualquer.
+  ),
+  Tool(
+    name: 'Calculadora de runas',
+    beta: true,
+    // O número é a manchete. A janela de fusão mostra uma porcentagem e nada
+    // mais: nunca diz que a runa no centro é a vigésima quinta que alguém vai
+    // alimentar, nem que dois dos nove degraus custam seis runas onde os
+    // vizinhos custam quatro.
+    tagline:
+        'Quanto custa cada runa, de verdade: uma nível 10 são 648.000 runas '
+        'nível 1. Diz o que falta a partir do que você já tem.',
+    icon: Icons.calculate_outlined,
+    // Uma runa Argêntea nível 10 — a arte mais elaborada das cinquenta, e o
+    // próprio assunto da ferramenta.
+    emblem: 52224,
+    route: '/runas',
+    // Sem arte de personagem: as quatro do repositório já estão em uso e
+    // repetir uma faria dois cards disputarem a mesma imagem. O emblema é uma
+    // runa de verdade, que diz mais sobre a ferramenta que um retrato diria.
   ),
   // The guides are listed one by one rather than behind a single "read the
   // guides" card. There is one written, so this is one card — and that is the

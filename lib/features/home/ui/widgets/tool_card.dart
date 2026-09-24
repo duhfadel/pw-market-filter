@@ -34,7 +34,9 @@ class ToolCard extends StatelessWidget {
           fit: StackFit.passthrough,
           children: [
             if (tool.art != null)
-              _Art(path: tool.art!, alignment: tool.artAlignment),
+              _Art(path: tool.art!, alignment: tool.artAlignment)
+            else if (tool.emblem != null)
+              _ArteDoEmblema(itemId: tool.emblem!),
             InkWell(
               borderRadius: BorderRadius.circular(14),
               onTap: ready ? () => _openTool(context, tool) : null,
@@ -75,6 +77,78 @@ void _openTool(BuildContext context, Tool tool) {
 /// instead of under it. And a gradient runs from the surface colour on the left
 /// to nearly nothing on the right, so the left third, where every line of text
 /// begins, is effectively flat.
+/// The tool's own item, blown up and faded behind the card.
+///
+/// **For the tools with no character art, and it says more than one would.**
+/// A borrowed portrait fills the space and means nothing; the item a tool is
+/// about — a rune, a Página de Registro — is the subject itself.
+///
+/// **Kept small and smoothed.** These are 32 px sprites: blown to four times
+/// that and left sharp, the blocks are all anyone sees, and the card looks
+/// broken rather than textured. At around two and a half times, with
+/// smoothing on, it reads as a watermark of the thing instead of a magnified
+/// bitmap.
+class _ArteDoEmblema extends StatelessWidget {
+  const _ArteDoEmblema({required this.itemId});
+
+  final int itemId;
+
+  @override
+  Widget build(BuildContext context) => Positioned.fill(
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      // Sized by the card's own height and aligned right, which is where
+      // the character art sits on the cards that have one. A `FittedBox`
+      // rather than a fixed pixel height: the card is 110 tall beside a
+      // sibling and taller when it runs full width, and the backdrop has to
+      // follow it instead of being measured once.
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Align(
+            alignment: Alignment.centerRight,
+            child: FractionallySizedBox(
+              heightFactor: 0.74,
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: Opacity(
+                  opacity: 0.22,
+                  child: Image.asset(
+                    'assets/icons/items/$itemId.png',
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.medium,
+                    errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // **These sprites are not cut out.** Each carries its own dark
+          // frame, and blown up that frame is a hard-edged rectangle sitting
+          // in the middle of the card. The same left-to-right fade the art
+          // cards use dissolves it — the other three edges are flush with the
+          // card and clipped, so only this one needed dealing with.
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [
+                  PWColors.surface,
+                  PWColors.surface,
+                  Color(0xD913132A),
+                  Color(0x8013132A),
+                ],
+                stops: [0, 0.34, 0.62, 1],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 class _Art extends StatelessWidget {
   const _Art({required this.path, required this.alignment});
 
@@ -179,6 +253,27 @@ class _Body extends StatelessWidget {
           // title. It expires by its own date, so nobody has to remember to
           // take it down — a "novo" that outlives the news is a small lie the
           // whole page pays for.
+          // Outlined where `novo` is filled, so the two never read as the
+          // same kind of news: one is an invitation, the other a caveat.
+          if (tool.beta) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(
+                border: Border.all(color: PWColors.accent),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Text(
+                'BETA',
+                style: TextStyle(
+                  color: PWColors.accent,
+                  fontSize: 9,
+                  letterSpacing: 0.8,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(width: 9),
+          ],
           if (tool.novoEm(DateTime.now())) ...[
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

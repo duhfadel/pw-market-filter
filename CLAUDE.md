@@ -558,6 +558,26 @@ Failing drops the centre a level — which is why the tool only calculates the
 guaranteed path. Whether the fuel is also consumed on a failure is unknown, and
 until it is, no advice about gambling below 100% can be honest.
 
+**The result is one line per level, and the remainder cascades.** A line is
+the whole debt written in one currency — they are alternatives, not a list to
+add up — and what will not divide is paid in the biggest coin below that fits:
+`4 nível 8 + 3 nível 7`, never `4 nível 8 + 15.552 nível 1`. Both are the same
+number; only one is an errand.
+
+With an awkward stock a line can run to eight terms — 100 level ones towards a
+level 10 gives `4 nv9 + 4 nv8 + 4 nv7 + 5 nv6 + 3 nv5 + 2 nv4 + 2 nv2 + 2 nv1`
+— and that was **kept on the owner's call**, against rounding it off: it is
+rare, and when it happens the answer is exact. A screen that rounds to look
+tidy teaches people not to trust its numbers.
+
+It is exact, and checked: that bag really does fuse up to a level 10 with
+nothing stranded. `calculo_test` demands every line add back to the same debt,
+because a cascade that lost a rune would be invisible on screen.
+
+The `ou` between lines went when the lines went from three to nine — with
+three it carried the meaning, with nine it would be all anyone saw. One line
+above says it instead.
+
 **The sub-level percentages are not stored.** They differ per centre with no
 pattern — centre 3 and centre 6 both give 20% at the top and then 10% and 8%
 respectively — and the cheapest path never needs them, because same-level fuel

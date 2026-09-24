@@ -524,6 +524,45 @@ talking, and the account of what happened. Merged, a reader cannot tell which
 sentence comes from the interested party — which is why the page also quotes
 the comment and signs it.
 
+## Calculadora de runas
+
+A fusion window shows a percentage and nothing else. It never says that the
+rune in the centre is the twenty-fifth level seven somebody will feed it, nor
+that two of the nine rungs cost six runes where their neighbours cost four.
+**A level 10 is 648.000 level ones.** Nobody reaches that number by looking at
+the window, which is the whole of why `/runas` exists.
+
+**The ladder is irregular and there is no formula.** A same-level fuel gives
+50% at the bottom, 20% at level 3, 33.33% at 4 and 5, 20% again at 6, then 25%
+to the top — so the steps cost ×3, ×3, **×6**, ×4, ×4, **×6**, ×5, ×5, ×5. The
+two expensive rungs are 3→4 and 6→7, and nothing about their neighbours
+predicts them.
+
+Every number came from the owner reading the game, and the two cost lists the
+window prints for a level 9 and a level 10 are pinned in `runa_test` — the
+whole table is reproduced from them, so a wrong rung turns the suite red.
+
+**A tidy pattern was found, predicted correctly twice, and then broke.** The
+fuel counts run 2,2,5 · 3,3,5 · 4,4,**4**: the last trio has no expensive rung.
+Predicting ×6 there gave 777.600 for a level 10 against the real 648.000. That
+prediction was labelled as the single unverified link at the time, and it was
+the one that fell — which is the only reason it cost nothing.
+
+**Colour is irrelevant to fusion** and the screen says so twice: in words, and
+by cycling the ten level icons through all five families. The art brightens
+with the *level* regardless of family, so nothing is lost by mixing, and a page
+drawing ten runes of one colour would quietly suggest colour matters.
+
+**Fuel may never be above the centre's level**, and up to five may be fed.
+Failing drops the centre a level — which is why the tool only calculates the
+guaranteed path. Whether the fuel is also consumed on a failure is unknown, and
+until it is, no advice about gambling below 100% can be honest.
+
+**The sub-level percentages are not stored.** They differ per centre with no
+pattern — centre 3 and centre 6 both give 20% at the top and then 10% and 8%
+respectively — and the cheapest path never needs them, because same-level fuel
+alone reproduces the game's own cost lists exactly.
+
 ## Gotchas
 
 Each of these already cost something — measured on the live site, not guessed.

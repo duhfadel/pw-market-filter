@@ -578,6 +578,20 @@ The `ou` between lines went when the lines went from three to nine — with
 three it carried the meaning, with nine it would be all anyone saw. One line
 above says it instead.
 
+**The page answers the same drawer from both ends.** The panel above asks
+*what do I still need*; the one below asks *what can I already make*, which is
+the question somebody has when they open the bag before choosing a target at
+all. Both read the same fields and share the same cascade.
+
+**It counts them, and counting is the correction.** The first version answered
+"one level 4" with another whole level 4 sitting in the leftover — true, and
+told in the most awkward way available. The drawer makes **two**, and that is
+what somebody wants to hear.
+
+A drawer that cannot climb says so: two level ones are two level ones, because
+a level 2 wants three. Printing "you can forge 2 runas nível 1" would dress up
+what is already in the bag as an achievement.
+
 **The sub-level percentages are not stored.** They differ per centre with no
 pattern — centre 3 and centre 6 both give 20% at the top and then 10% and 8%
 respectively — and the cheapest path never needs them, because same-level fuel

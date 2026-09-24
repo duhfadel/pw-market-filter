@@ -71,6 +71,8 @@ class _RunasViewState extends State<RunasView> {
                     SizedBox(height: largo ? 28 : 22),
                     _Resultado(calculo: r, largo: largo),
                     SizedBox(height: largo ? 28 : 22),
+                    _Forja(estoque: _estoque, largo: largo),
+                    SizedBox(height: largo ? 28 : 22),
                     const _Nota(),
                   ],
                 ),
@@ -369,6 +371,92 @@ class _Parcela extends StatelessWidget {
       buf.write(s[i]);
     }
     return buf.toString();
+  }
+}
+
+/// The same drawer read from the other end.
+///
+/// The panel above answers *what do I still need*; this one answers *what can
+/// I already make*, which is the question somebody asks when they open the
+/// bag before deciding on a target at all.
+class _Forja extends StatelessWidget {
+  const _Forja({required this.estoque, required this.largo});
+
+  final Map<int, int> estoque;
+  final bool largo;
+
+  @override
+  Widget build(BuildContext context) {
+    final f = maiorQueDa(estoque);
+    if (f.nivel == null) {
+      return const _Painel(
+        child: Text(
+          'Diga o que você tem, aí acima, para saber a maior runa que dá '
+          'para forjar.',
+          style: TextStyle(color: PWColors.textMuted, fontSize: 13),
+        ),
+      );
+    }
+
+    return _Painel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'A MAIOR QUE DÁ PARA FORJAR',
+            style: TextStyle(
+              color: PWColors.accent,
+              fontSize: 11,
+              letterSpacing: 1.6,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 14),
+          _Parcela(
+            parte: Parcela(nivel: f.nivel!, quantos: f.quantos),
+            forte: true,
+            largo: largo,
+          ),
+          // Nothing in the drawer can climb: a level 2 wants three level
+          // ones. Saying "you can forge 2 runas nível 1" would dress up what
+          // is already in the bag as an achievement.
+          if (!f.daParaFundir) ...[
+            const SizedBox(height: 10),
+            const Text(
+              'ainda não dá para fundir: uma runa nível 2 pede três nível 1.',
+              style: TextStyle(color: PWColors.textMuted, fontSize: 12),
+            ),
+          ],
+          if (f.parcelasDaSobra.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            const Text(
+              'e ainda sobra',
+              style: TextStyle(color: PWColors.textMuted, fontSize: 12),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 10,
+              runSpacing: 6,
+              children: [
+                for (var i = 0; i < f.parcelasDaSobra.length; i++) ...[
+                  if (i > 0)
+                    const Text(
+                      '+',
+                      style: TextStyle(color: PWColors.textMuted, fontSize: 15),
+                    ),
+                  _Parcela(
+                    parte: f.parcelasDaSobra[i],
+                    forte: false,
+                    largo: largo,
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 

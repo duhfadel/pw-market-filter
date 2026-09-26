@@ -41,6 +41,17 @@ const countedItemGroups = <String, List<String>>{
   'Relíquia Maravilha: Arma': ['Relíquia Maravilha: Arma'],
   'Relíquia Maravilha: Armadura': ['Relíquia Maravilha: Armadura'],
   'Chave da Sorte': ['Chave da Sorte'],
+  // Os dois cartões do Cubo do Destino que valem alguma coisa. O nome é
+  // `Cartão Gente Sortuda`, **sem o "de"** — a base de itens é explícita, e
+  // "Cartão de Gente Sortuda" não acharia ninguém enquanto parecia só um item
+  // raro.
+  //
+  // Os outros seis irmãos ficam de fora porque não têm valor de venda: Rica,
+  // Milionária, Forte, Violenta, Pobre e Ruim são item de missão. O nome
+  // engana e é por isso que vale dizer: quem vale é o Sortuda (5.000.000 de
+  // prata) e o Boa (1.000.000), não os que soam ricos.
+  'Cartão Gente Sortuda': ['Cartão Gente Sortuda'],
+  'Cartão Gente Boa': ['Cartão Gente Boa'],
   'Essência Dracônica': [
     'Essência Dracônica',
     'Essência Dracônica Bruta',

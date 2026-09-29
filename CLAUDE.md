@@ -597,6 +597,30 @@ pattern — centre 3 and centre 6 both give 20% at the top and then 10% and 8%
 respectively — and the cheapest path never needs them, because same-level fuel
 alone reproduces the game's own cost lists exactly.
 
+## A licença, e por que ela existe
+
+`LICENSE` diz **todos os direitos reservados**, e foi escrita em 29/09/2026
+depois de encontrar onze dos nossos quinze nomes de combo no bundle de
+`vitrine.neutr0.com` — incluindo `Observador do Mundo` e `Senhor de Todas as
+Feras`, que não existem publicados em lugar nenhum e só existem porque
+cruzamos cinco fontes e arbitramos pelo mercado. Os três que faltavam lá são
+justamente os que entraram depois: a cópia tem data.
+
+**O repositório é público para leitura e isso nunca foi licença de uso.** Sem
+arquivo, a lei já reservava os direitos — mas "por padrão" é discussão, e um
+arquivo explícito não é.
+
+**O que ela deliberadamente não reivindica** é tão importante quanto o que
+reivindica: nomes de itens, atributos, arte e dados do jogo são da The Classic
+Games. Reivindicar isso seria falso e enfraqueceria o resto. O que é nosso são
+as compilações — os combos, a escada das runas, as 126 receitas dos Registros,
+as tabelas levantadas à mão.
+
+**E ela não teria impedido o essencial.** O site em questão é de outra
+tecnologia, tem dados mais ricos que os nossos e implementou `firstSeen`, que
+é a lacuna que este arquivo registra há semanas. Ideia não se protege por
+licença; execução se responde executando.
+
 ## Gotchas
 
 Each of these already cost something — measured on the live site, not guessed.

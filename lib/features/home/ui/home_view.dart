@@ -437,6 +437,24 @@ class _Footer extends StatelessWidget {
         textAlign: TextAlign.center,
         style: TextStyle(color: PWColors.textMuted, fontSize: 12, height: 1.5),
       ),
+      const SizedBox(height: 8),
+      // **A licença cobre o repositório; esta linha cobre a página.** Quem
+      // copia não clona o repositório — olha o site, e em 29/09/2026 onze dos
+      // nossos quinze nomes de combo apareceram no bundle de outro site. Sem
+      // nada escrito aqui, "não sabia" é uma defesa disponível.
+      //
+      // Duas frases e não uma, porque elas dizem coisas opostas e juntá-las
+      // seria reivindicar o que não é nosso: o que reservamos são as
+      // compilações — os combos, a escada das runas, as 126 receitas —, e
+      // nomes, arte e dados do jogo são da The Classic. Reivindicar esses
+      // seria falso e enfraqueceria o resto.
+      const Text(
+        '© 2026 Portal PW · todos os direitos reservados sobre o código e as '
+        'compilações deste site.\nNomes, atributos e arte do jogo pertencem à '
+        'The Classic Games.',
+        textAlign: TextAlign.center,
+        style: TextStyle(color: PWColors.textMuted, fontSize: 11, height: 1.5),
+      ),
       const _VisitCount(),
       // The mark alone, in the corner. The invitation is spelled out three
       // times higher up the page; a fourth would be nagging. What a footer

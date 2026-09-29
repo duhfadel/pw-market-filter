@@ -168,8 +168,31 @@ const CHAVE = 'sb_publishable_D2hgezeh5BbZVpt_QLeXwg_FowKweu2';
 // do app.
 const n = new URLSearchParams(location.search).get('n');
 
-const escapa = (s) => s.replace(/[&<>"]/g, c =>
+const escapa = (s) => String(s ?? '').replace(/[&<>"]/g, c =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+/**
+ * Uma cor do banco entrando num atributo `style`, e **escapar não basta
+ * aqui**: `url(https://…)` não contém nenhum dos caracteres que o escapador
+ * troca, então atravessaria intacto e a página buscaria um recurso externo --
+ * a mesma armadilha que `enderecoWeb()` resolve para o link do streamer. Só
+ * as formas que uma cor de verdade tem passam; o resto cai no neutro, que é
+ * um estado que a página já sabe desenhar.
+ */
+const corSegura = (c) => {
+  const v = String(c ?? '').trim();
+  return /^(#[0-9a-f]{3,8}|var\(--[a-z-]+\)|[a-z]+)$/i.test(v)
+    ? v
+    : 'var(--neutro)';
+};
+
+/**
+ * O nome do arquivo do brasão, que vira parte de um `src`. Validado em vez de
+ * escapado: escapar impediria a quebra do atributo, mas ainda deixaria
+ * apontar para qualquer caminho relativo. Um brasão é um nome de arquivo.
+ */
+const arquivoSeguro = (f) =>
+  /^[\w.-]+\.(png|webp|svg|jpg|jpeg)$/i.test(String(f ?? '')) ? String(f) : '';
 
 /**
  * O texto que o Eduardo escreve, virando HTML sem virar um buraco.
@@ -204,7 +227,7 @@ function listaCompleta(aviso) {
   ficha.innerHTML = '<h1>Os 52 territórios</h1>'
     + (aviso ? `<p class="nada">${aviso}</p>` : '<p class="resumo">Escolha um para ver a ficha.</p>')
     + '<div class="todos">' + Object.entries(territorios).sort((a, b) => a[0] - b[0])
-        .map(([i, t]) => `<a href="?n=${i}"><span class="id">${String(i).padStart(2, '0')}</span>${t.nome}</a>`)
+        .map(([i, t]) => `<a href="?n=${Number(i)}"><span class="id">${String(Number(i)).padStart(2, '0')}</span>${escapa(t.nome)}</a>`)
         .join('') + '</div>';
 }
 
@@ -213,11 +236,11 @@ function desenhar(t, guilda, streamers) {
   document.title = t.nome + ' — Guerras territoriais — Portal PW';
 
   const fatos = [
-    `<div class="fato">💰 <b>${t.gold}</b> de gold</div>`,
+    `<div class="fato">💰 <b>${Number(t.gold) || 0}</b> de gold</div>`,
     t.capital ? '<div class="fato">👑 <b>Capital</b></div>' : '',
     guilda
-      ? `<div class="fato"><i style="background:${cor}"></i>`
-        + (guilda.brasao ? `<img src="../icones/${guilda.brasao}" alt="">` : '')
+      ? `<div class="fato"><i style="background:${corSegura(cor)}"></i>`
+        + (arquivoSeguro(guilda.brasao) ? `<img src="../icones/${arquivoSeguro(guilda.brasao)}" alt="">` : '')
         + `<b>${escapa(guilda.nome)}</b></div>`
       : '<div class="fato">Sem dono</div>',
     t.em_guerra ? '<div class="fato guerra">' + MARCA_GUERRA + '<b>Em guerra</b></div>' : '',
@@ -241,9 +264,9 @@ function desenhar(t, guilda, streamers) {
 
   if (t.comentario) {
     seções.push('<h2>O que a guilda diz</h2>'
-      + `<blockquote style="--linha-dono:${cor}">${formatar(t.comentario)}</blockquote>`
+      + `<blockquote style="--linha-dono:${corSegura(cor)}">${formatar(t.comentario)}</blockquote>`
       + '<div class="assina">'
-      + (guilda?.brasao ? `<img src="../icones/${guilda.brasao}" alt="">` : '')
+      + (arquivoSeguro(guilda?.brasao) ? `<img src="../icones/${arquivoSeguro(guilda.brasao)}" alt="">` : '')
       + (t.comentario_por ? `<b>${escapa(t.comentario_por)}</b>` : '')
       + (guilda ? `<span>${t.comentario_por ? '· ' : ''}${escapa(guilda.nome)}</span>` : '')
       + (t.comentario_em

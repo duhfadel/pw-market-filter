@@ -514,6 +514,28 @@ anyone who can write to those columns a script tag on the page. Probed with
 `<img onerror>` and `<script>` in both: they come out as visible text, the
 title stays put, and no element is created.
 
+**That paragraph covered two columns and read as though it covered the page,
+and the gap it hid lasted until 29/09/2026.** `nome`, `guilda`, `cor` and
+`brasao` went into `innerHTML` raw, and `web/guerras/index.html` carried **no
+escape function at all** — the one that existed lived only in
+`territorio/index.html`. A `guildas.cor` of `red" onload="…` closes the
+attribute early and the rest becomes an event handler; no `<script>` is
+needed, which is why escaping only `<` and `>` would not have helped. The
+character that does the damage is the quote.
+
+Nobody could reach it: those tables have no insert, update or delete policy,
+so the publishable key writes nothing. It was a door with no lock behind a
+locked gate, live the moment a write policy was added by mistake or the
+service key leaked.
+
+Three things are worth keeping from it. **The same file already did it right
+fifty lines away** — `setAttribute` does not parse HTML — so this was a slip
+and not a decision. **A colour needs more than escaping**: `url(https://…)`
+contains none of the characters an escaper replaces, so `corSegura` validates
+the shape instead, the same call `enderecoWeb()` makes for a streamer's link.
+And a note that says "this is escaped" about two fields will be read as being
+about all of them — so it now says which.
+
 A single newline collapses to a space and only a blank line starts a
 paragraph — markdown's rule, and not the obvious `<br>`. Text pasted out of
 Discord arrives hard-wrapped at that window's width, and `<br>` reproduced

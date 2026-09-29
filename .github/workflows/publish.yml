@@ -137,6 +137,22 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
+          # **Um dia, e não os noventa do padrão.** O artefato carrega o
+          # `market_index.json` inteiro — 3 MB do mercado deles — e num
+          # repositório público qualquer pessoa baixa um artefato sem estar
+          # logada. Noventa dias de coletas empilhadas é um arquivo histórico
+          # do mercado que ninguém pediu e que nós não deveríamos estar
+          # distribuindo.
+          #
+          # O deploy consome o artefato no passo seguinte, então nada aqui
+          # depende de ele sobreviver à execução. Um dia é folga para
+          # investigar uma execução que falhou, e é o mínimo que o Actions
+          # aceita.
+          #
+          # Se o site fechar de novo, os artefatos existentes têm de ser
+          # apagados na hora: bloquear a página e continuar servindo o mercado
+          # por outra porta seria fechar a porta e deixar a janela aberta.
+          retention-days: 1
 
       - id: deployment
         uses: actions/deploy-pages@v4

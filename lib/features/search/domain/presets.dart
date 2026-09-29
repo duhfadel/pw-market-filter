@@ -58,17 +58,30 @@ class Preset {
 List<Preset> presetsFor(MarketIndex index) {
   final weapon = strongWeaponQuery(index);
 
-  // Ataque **ou** defesa: a UP5 vem nas duas caras e quem procura a arma de
-  // topo quer as duas na mesma lista.
-  final up5 = weaponQuery(index, 'Nível de Ataque', 80);
+  // `UP5` é o nome que a comunidade usa, e usar o nosso pediria que ela
+  // traduzisse. O patamar vem em duas caras — a arma ofensiva conta em
+  // `Nível de Ataque` e a defensiva em `Nível de Defesa`.
+  final atqUp5 = weaponQuery(index, 'Nível de Ataque', 80);
+  final defUp5 = weaponQuery(index, 'Nível de Defesa', 80);
 
   return [
-    // **`Arma UP5` é o nome que a comunidade usa**, e usar o nosso seria pedir
-    // que ela traduzisse. São 29 personagens em 1.624: 21 pelo ataque e 8 pela
-    // defesa. Os dois eram chips separados e viraram um, porque dividir a
-    // mesma ideia em dois pedia que o visitante soubesse de antemão qual
-    // metade queria.
-    if (up5 != null) Preset('Arma UP5', up5),
+    // **Dois chips e não um, e a medição é o argumento.** Eles foram fundidos
+    // num só por um dia, com o raciocínio de que dividir a mesma ideia em duas
+    // pedia que o visitante soubesse de antemão qual metade queria — mas o
+    // chip fundido perguntava apenas por `Nível de Ataque`, porque
+    // `SearchQuery.criteria` é um **e** e não existe ou nenhum aqui. Ele não
+    // unia as duas perguntas: respondia uma e calava a outra, e o chip de
+    // defesa, que era a única porta para essa outra, saiu no mesmo commit.
+    //
+    // Medido em 29/09/2026 sobre 1519 anúncios: 13 carregam a arma de ataque,
+    // 8 a de defesa, e **nenhum carrega as duas**. Sendo disjuntos, separar
+    // não custa nada — e não são a mesma compra: quem procura arma defensiva
+    // tem uma build em mente e não quer treze armas de ataque no caminho.
+    if (atqUp5 != null) Preset('Atq lvl UP5', atqUp5),
+    // Oito personagens, e até aqui alcançáveis por nada mais. Sai da tela
+    // sozinho no dia em que a coleta não achar nenhum, que é também como vai
+    // voltar quando achar.
+    if (defUp5 != null) Preset('Def lvl UP5', defUp5),
     // O degrau de baixo, e ele ainda decide a maior parte das compras: 801
     // personagens, quase metade do mercado. Fica por último entre as armas.
     if (weapon != null) Preset('Arma de 70 ou mais', weapon),

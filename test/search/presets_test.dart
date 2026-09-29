@@ -85,4 +85,35 @@ void main() {
 
     expect(activePreset(presets, rebuilt)?.label, presets.first.label);
   });
+
+  test('each UP5 tier has a chip of its own', () {
+    // Measured on 2026-09-29 over 1519 listings: 13 characters carry an 80
+    // attack weapon, 8 carry an 80 defence one, and **not one carries both**.
+    // A single chip asking only for `Nível de Ataque` therefore did not merge
+    // the two questions into one — it answered half of it and dropped the
+    // eight, whose only other way in had been deleted in the same commit.
+    final labels = presetsFor(index).map((preset) => preset.label);
+
+    expect(labels, contains('Atq lvl UP5'));
+    expect(labels, contains('Def lvl UP5'));
+  });
+
+  test('the two UP5 chips never answer for each other', () {
+    // Disjoint in the market, so each chip has to find its own people and
+    // none of the other's. A chip that quietly returned the union would be
+    // the merged one again wearing two labels.
+    final presets = presetsFor(index);
+    SearchQuery queryOf(String label) =>
+        presets.firstWhere((preset) => preset.label == label).query;
+
+    final attack = runQuery(index, queryOf('Atq lvl UP5'));
+    final defence = runQuery(index, queryOf('Def lvl UP5'));
+
+    expect(attack, isNotEmpty);
+    expect(defence, isNotEmpty);
+
+    final attackIds = attack.map((character) => character.roleId).toSet();
+    final defenceIds = defence.map((character) => character.roleId).toSet();
+    expect(attackIds.intersection(defenceIds), isEmpty);
+  });
 }

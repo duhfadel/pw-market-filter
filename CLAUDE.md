@@ -605,9 +605,41 @@ todos pesavam igual: um personagem de 25.000 TCC com arma UP5 parecia um de
 isso, na paleta de raridade do próprio jogo — `PWColors.gradeColors`, que o
 jogador já lê nos itens.
 
-A escada é do mercado e não inventada: 80 de ataque **ou** defesa é a UP5, 29
-de 1.624; 70 é onde metade do mercado está; depois 40 e 30. Arma sem nenhum
-desenha a borda cinza de sempre, que é o que a maioria dos baratos tem.
+**A escada é do mercado e não inventada, e medi-la mostrou a forma dela.**
+Sobre 1519 anúncios, `Nível de Ataque` numa arma cai em exatamente quatro
+números — 30 (212 personagens), 40 (363), 70 (674) e 80 (13). É a escada do
+jogo aparecendo. `Nível de Defesa` tem outro formato: ruído de 1 a 30, **nada
+entre 31 e 79**, e 80 em oito pessoas.
+
+Daí as duas correções de 29/09, as duas na mão do dono:
+
+**O 30 não desenha nada.** Era um degrau e era o pior lugar para gastar uma
+cor: 212 personagens no patamar mais barato que o jogo imprime. Moldura serve
+para distinguir a grade, e o fundo do mercado não precisa de um selo dizendo
+que é o fundo — a borda cinza já diz. O bloco cinza vai de 16% a 30% da grade,
+e é isso mesmo que se quer.
+
+**A UP5 defensiva tem cor própria, `PWColors.defenceTier`.** Não é um degrau:
+é o mesmo topo comprado na outra moeda, e quem caça arma defensiva não está
+procurando uma ofensiva mais barata. Pintá-la de vermelho junto com as de
+ataque dizia que eram a mesma compra — e o mercado diz que não são, já que os
+dois conjuntos são **disjuntos**.
+
+**Verde e não o azul que se pediu, e a medição é a razão.** Composto no 55% da
+borda sobre `surface`, o azul `#56A8F5` fica a **27,9 ΔE** do roxo de 40-69 —
+a menor distância de toda a escada, menor que o par vermelho/âmbar que já está
+nela, e contra um roxo que ocupa 24% da grade. O verde `#6FCF97` tem 41,8 no
+pior caso. É a mesma armadilha que pegou a primeira versão da escada, e desta
+vez foi medida antes de renderizar em vez de depois.
+
+A defesa é perguntada **primeiro**, para que as oito nunca caiam na escada de
+ataque. São disjuntas hoje; uma ordem que só funciona enquanto isso valer é
+uma ordem esperando para quebrar.
+
+E a moldura ganhou o teste que nunca teve. `weapon_tier_test` crava os quatro
+degraus, o degrau defensivo, o 30 que não pinta, o ruído de defesa até 30, que
+só a arma fala pela moldura, e uma coleta que nunca viu o atributo. Oito
+pessoas em 1519 é um caso que ninguém encontra rolando a página.
 
 **Os degraus são espalhados pela paleta, não tomados em ordem.** A primeira
 versão usou os graus 5 e 4 — laranja e âmbar, vizinhos — e na grade **o UP5 e
@@ -617,6 +649,51 @@ apareceu renderizando. O vermelho encabeça a escada do jogo e ficou com o topo.
 O degradê entra a 10% pelo canto superior esquerdo e morre antes do texto: o
 bastante para a grade se organizar de relance, não o bastante para brigar com
 os números.
+
+### A UP5 são dois chips, e o chip único foi um comentário mentindo
+
+A moldura acima lê ataque **ou** defesa e está certa: `_weaponTier()` toma o
+maior dos dois. No mesmo commit, o chip `Arma UP5` trazia o comentário
+*"Ataque **ou** defesa: a UP5 vem nas duas caras"* sobre a linha
+`weaponQuery(index, 'Nível de Ataque', 80)` — **e não existe ou nenhum aqui**:
+`SearchQuery.criteria` é um e, e nada no commit acrescentou outra coisa. O chip
+respondia metade da pergunta, e o chip `Defesa de 80 na arma`, que era a única
+porta para a outra metade, saiu no mesmo commit.
+
+Medido em 29/09/2026 sobre 1519 anúncios: **13 pela arma de ataque, 8 pela de
+defesa, interseção zero.** Sendo disjuntos, um chip só nunca foi uma fusão —
+era uma perda de oito pessoas. São `Atq lvl UP5` e `Def lvl UP5` agora, e não
+são a mesma compra: quem procura arma defensiva tem uma build em mente.
+
+**Duas lições, e a segunda é a cara.** Um comentário que descreve a intenção em
+vez do código envelhece para mentira no dia em que os dois divergem, e aqui
+divergiram no minuto zero — o comentário foi escrito com a frase certa sobre a
+linha errada. E `presets_test` roda sobre `web/market_index.json`, o mercado
+real, mas `preset_chips_test` roda sobre um índice sintético **onde ninguém
+tem arma defensiva**: o caso que falha não era exercido. É a mesma forma do
+lote da Twitch, onde a reprodução com todos os canais offline respondeu 200.
+
+### O pulso da home lê os chips, e antes remontava as perguntas
+
+`market_pulse.dart` construía cada figura à mão — procurava `Nível de Ataque` e
+montava o próprio `SearchQuery` — enquanto os chips eram montados em
+`presets.dart`. As duas telas divergiram na primeira vez que os chips mudaram:
+o conjunto ganhou *5 essências* e *Seis cartas S* e perdeu um patamar, e a
+primeira dobra não seguiu nada disso, porque nada as ligava. O `CLAUDE.md`
+afirmava que eram os mesmos objetos `SearchQuery`, e tinha deixado de ser
+verdade.
+
+`figuresFor(index)` percorre `presetsFor` agora, e `figureLabels` é o mapa de
+*quais* chips viram figura e como cada um se lê aqui — `Arma de 70 ou mais` é
+uma coisa de tocar no filtro, `687 com arma de 70 ou mais` é uma frase na home.
+**Nem todo chip merece figura**: as figuras são o argumento da página, não um
+índice do filtro, então três ficam de fora de propósito.
+
+Um chip que esta coleta não sabe montar tira a própria figura da tela sozinho,
+porque `weaponQuery` responde `null` para um patamar que o mercado não alcançou
+— o que substitui três blocos de `if` por nada. O que o teste crava é a junção:
+uma figura que nomeia um chip inexistente some da home em silêncio, e o `Wrap`
+simplesmente desenha uma a menos.
 
 ## A licença, e por que ela existe
 

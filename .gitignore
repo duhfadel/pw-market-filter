@@ -75,3 +75,4 @@ tool/cron/.wrangler/
 !.dev.vars.example
 .env*
 !.env.example
+.superpowers/

@@ -13,6 +13,7 @@ import 'card_section.dart';
 import 'anecdote_section.dart';
 import 'counted_items_section.dart';
 import 'criterion_row.dart';
+import 'name_field.dart';
 import 'number_field.dart';
 import 'pet_section.dart';
 import 'realm_section.dart';
@@ -33,6 +34,12 @@ class FilterPanel extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       children: [
         ActiveFilterChips(state: state, viewModel: viewModel),
+        // Above the first group header on purpose. It is the one control that
+        // does not ask about a kind of character but about a particular one,
+        // and somebody who arrives knowing the nickname should not have to
+        // read past Classe and Caminho to find where to type it.
+        NameField(value: query.name, onChanged: viewModel.setName),
+        const SizedBox(height: 4),
         _grupo('Personagem', primeiro: true),
         _classDropdown(
           state.facetsFor(FacetDimension.characterClass),

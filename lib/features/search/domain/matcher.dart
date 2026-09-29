@@ -3,6 +3,7 @@ import '../../../market/celestial_realm.dart';
 import '../../../market/counted_items.dart';
 import '../../../market/market_index.dart';
 import 'item_criterion.dart';
+import 'name_folding.dart';
 import 'search_query.dart';
 
 /// The characters that satisfy [query], ordered by [SearchQuery.order].
@@ -93,6 +94,12 @@ bool matchesQuery(
   MarketCharacter character,
   SearchQuery query,
 ) {
+  final asked = query.askedName;
+  if (asked != null &&
+      !foldForSearch(character.name).contains(foldForSearch(asked))) {
+    return false;
+  }
+
   if (query.characterClass != null &&
       character.characterClass != query.characterClass) {
     return false;

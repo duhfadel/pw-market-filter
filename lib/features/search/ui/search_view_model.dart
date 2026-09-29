@@ -109,6 +109,17 @@ class SearchViewModel extends Cubit<SearchState> {
   /// filtered scope meant that a price range narrow enough to exclude every
   /// Guerreiro wearing the weapon made the empty answer read as "Guerreiro
   /// does not wear it", and the weapon was thrown away without a word.
+  /// A fragment of a nickname, or `null` to stop asking.
+  ///
+  /// Blank is normalised away here rather than at the edge, so nothing
+  /// downstream has to know that a field can hold spaces: `askedName` is what
+  /// the matcher, the link and the chips all read.
+  void setName(String? typed) => _apply(
+    _query!.copyWith(
+      name: () => (typed?.trim().isEmpty ?? true) ? null : typed,
+    ),
+  );
+
   void setClass(String? value) {
     final ready = state as SearchReady;
     final query = ready.query;

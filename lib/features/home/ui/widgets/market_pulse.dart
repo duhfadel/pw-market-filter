@@ -89,7 +89,11 @@ class MarketPulse extends StatelessWidget {
       final donos = runQuery(index, topo);
       if (donos.isNotEmpty) {
         figures.add(
-          _Figure('${donos.length}', 'com arma de 80 de ataque', topo, index),
+          // `UP5` e não "80 de ataque": é o nome que a comunidade usa, e o
+          // número tem de bater com o chip que leva ao mesmo lugar. Dois
+          // nomes para a mesma coisa na mesma página fazem o visitante
+          // procurar a diferença que não existe.
+          _Figure('${donos.length}', 'com arma UP5', topo, index),
         );
       }
     }

@@ -597,6 +597,27 @@ pattern — centre 3 and centre 6 both give 20% at the top and then 10% and 8%
 respectively — and the cheapest path never needs them, because same-level fuel
 alone reproduces the game's own cost lists exactly.
 
+## A moldura do card diz o patamar da arma
+
+Uma grade de quarenta cards é **varrida antes de ser lida**, e até 29/09/2026
+todos pesavam igual: um personagem de 25.000 TCC com arma UP5 parecia um de
+40, porque o que os separava eram 13 px de texto cinza. A moldura agora carrega
+isso, na paleta de raridade do próprio jogo — `PWColors.gradeColors`, que o
+jogador já lê nos itens.
+
+A escada é do mercado e não inventada: 80 de ataque **ou** defesa é a UP5, 29
+de 1.624; 70 é onde metade do mercado está; depois 40 e 30. Arma sem nenhum
+desenha a borda cinza de sempre, que é o que a maioria dos baratos tem.
+
+**Os degraus são espalhados pela paleta, não tomados em ordem.** A primeira
+versão usou os graus 5 e 4 — laranja e âmbar, vizinhos — e na grade **o UP5 e
+o 70 saíram da mesma cor**, justamente a distinção que mais importa aqui. Só
+apareceu renderizando. O vermelho encabeça a escada do jogo e ficou com o topo.
+
+O degradê entra a 10% pelo canto superior esquerdo e morre antes do texto: o
+bastante para a grade se organizar de relance, não o bastante para brigar com
+os números.
+
 ## A licença, e por que ela existe
 
 `LICENSE` diz **todos os direitos reservados**, e foi escrita em 29/09/2026

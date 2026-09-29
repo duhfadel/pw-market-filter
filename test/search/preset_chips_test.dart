@@ -47,7 +47,7 @@ final _index = MarketIndex(
 Future<SearchViewModel> _pumpFilter(WidgetTester tester) async {
   // Wide enough for every chip to be built, which is wider than it looks: the
   // test font draws each glyph as a square of the font size, so
-  // "Arma de 70 até 500 TCC" measures 286 px here against roughly 150 in a
+  // "Arma de 70 ou mais" measures far wider here than in a browser, so a
   // browser. The row scrolls horizontally and only builds what fits, so a chip
   // that sits comfortably on screen in the app is simply absent from the tree
   // in a test.
@@ -91,11 +91,14 @@ void main() {
   testWidgets('tapping one asks its whole search', (tester) async {
     final viewModel = await _pumpFilter(tester);
 
-    await tester.tap(find.text('Arma de 70 até 500 TCC'));
+    await tester.tap(find.text('5 essências ou mais'));
     await tester.pumpAndSettle();
 
-    expect(_ready(viewModel).query.maxPrice, 500);
-    expect(_ready(viewModel).query.criteria.single.minimum, 70);
+    // O chip carrega a busca inteira: o mínimo **e** a marca que faz o número
+    // aparecer no card. Pedir cinco essências sem imprimir quantas cada um
+    // tem devolveria uma lista que não explica por que aqueles passaram.
+    expect(_ready(viewModel).query.minimumOwned['Essência Dracônica'], 5);
+    expect(_ready(viewModel).query.shownOwned, contains('Essência Dracônica'));
   });
 
   testWidgets('tapping the active one puts the market back', (tester) async {
@@ -119,7 +122,7 @@ void main() {
     // to see which of the two emptied the screen.
     final viewModel = await _pumpFilter(tester);
 
-    await tester.tap(find.text('Arma de 70 até 500 TCC'));
+    await tester.tap(find.text('5 essências ou mais'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Seis cartas S'));
     await tester.pumpAndSettle();

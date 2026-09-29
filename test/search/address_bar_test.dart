@@ -113,13 +113,22 @@ void main() {
     expect(address.writes.last, contains('classe=Mago'));
   });
 
-  test('clearing the form empties the address', () async {
+  test('clearing the form leaves only what the card is printing', () async {
+    // **Not empty, and that is the honest answer.** "Limpar tudo" drops every
+    // filter; it does not untick the three relics, which nobody asked to
+    // remove and which narrow nothing. The address says what the page is
+    // doing, and the page is printing those numbers.
+    //
+    // Hiding it was considered and would break the round trip: a link with no
+    // `mostra` has to mean *nothing marked*, or somebody who unticked the key
+    // on purpose could never share that.
     final (viewModel, address) = _viewModel();
     await viewModel.load();
     viewModel.setClass('Mago');
 
     viewModel.clear();
 
-    expect(address.writes.last, isEmpty);
+    expect(address.writes.last, contains('mostra=Rel'));
+    expect(address.writes.last, isNot(contains('classe=')));
   });
 }

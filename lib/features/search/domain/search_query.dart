@@ -54,6 +54,14 @@ enum ResultOrder {
   mostAnecdotes('Mais anedotas'),
   mostOwned('Mais relíquias'),
 
+  /// Adds up the whole *Essência Dracônica* group — the essence, the raw one
+  /// and the chest — the same number `countOf` prints on the card.
+  ///
+  /// An order and not a chip, on the owner's call: a filter would hide the
+  /// people below the cut, and the question here is *who has most*, which
+  /// ranking answers without taking anybody off the screen.
+  maisEssencias('Mais essências'),
+
   /// Both directions, like the price and unlike everything else here. The two
   /// are different searches: the most advanced character, and the cheapest one
   /// still worth raising.
@@ -73,6 +81,11 @@ enum ResultOrder {
       (c) => c.anecdotes != null,
     ),
     ResultOrder.mostOwned => relicNames.any(index.countedItems.containsKey),
+    // Offered only where the market has one, like every other order that
+    // reads a counted item.
+    ResultOrder.maisEssencias => index.countedItems.containsKey(
+      'Essência Dracônica',
+    ),
     ResultOrder.highestRealm ||
     ResultOrder.lowestRealm => index.characters.any((c) => c.realm.isNotEmpty),
     _ => true,

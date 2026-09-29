@@ -58,26 +58,38 @@ class Preset {
 List<Preset> presetsFor(MarketIndex index) {
   final weapon = strongWeaponQuery(index);
 
-  final topo = weaponQuery(index, 'Nível de Ataque', 80);
-  final defesa = weaponQuery(index, 'Nível de Defesa', 80);
+  // Ataque **ou** defesa: a UP5 vem nas duas caras e quem procura a arma de
+  // topo quer as duas na mesma lista.
+  final up5 = weaponQuery(index, 'Nível de Ataque', 80);
 
   return [
-    if (weapon != null) ...[
-      Preset('Arma de 70 ou mais', weapon),
-      Preset('Arma de 70 até 500 TCC', weapon.copyWith(maxPrice: () => 500)),
-    ],
-    // O patamar novo. Dez personagens em 1449, mediana de 8000 TCC contra 400
-    // do 70 — vinte vezes o preço, que é a mesma história que fez este site
-    // existir, um degrau acima.
-    if (topo != null) Preset('Arma de 80 de ataque', topo),
-    // Nove personagens, e até aqui invisível: nenhum número e nenhum atalho
-    // falavam dela, então quem procura arma defensiva não tinha como achar.
-    if (defesa != null) Preset('Defesa de 80 na arma', defesa),
+    // **`Arma UP5` é o nome que a comunidade usa**, e usar o nosso seria pedir
+    // que ela traduzisse. São 29 personagens em 1.624: 21 pelo ataque e 8 pela
+    // defesa. Os dois eram chips separados e viraram um, porque dividir a
+    // mesma ideia em dois pedia que o visitante soubesse de antemão qual
+    // metade queria.
+    if (up5 != null) Preset('Arma UP5', up5),
+    // O degrau de baixo, e ele ainda decide a maior parte das compras: 801
+    // personagens, quase metade do mercado. Fica por último entre as armas.
+    if (weapon != null) Preset('Arma de 70 ou mais', weapon),
+    // 161 personagens. A essência é o item novo do mercado e ninguém tinha
+    // como procurá-la.
+    Preset('5 essências ou mais', essenciasQuery),
     const Preset('Seis cartas S', SearchQuery(cardRarity: 'S')),
     Preset('Portal de Nuema', nuemaQuery),
     const Preset('Até 100 TCC', SearchQuery(maxPrice: 100)),
   ];
 }
+
+/// Five essences or more — 161 of 1.624, a tenth of the market.
+///
+/// The number asks for the **group**: the essence, the raw one and the chest
+/// are one line on the card and one number here, the same way `countOf` adds
+/// them everywhere else.
+const essenciasQuery = SearchQuery(
+  minimumOwned: {'Essência Dracônica': 5},
+  shownOwned: {'Essência Dracônica'},
+);
 
 /// The tier that decides most purchases: 70 attack level, 45% of the market.
 ///
@@ -85,6 +97,31 @@ List<Preset> presetsFor(MarketIndex index) {
 /// carry seventeen different names for the same tier — a preset built on one
 /// item id would work for Guerreiro and quietly return nothing for the other
 /// sixteen.
+/// What the filter opens with.
+///
+/// **The three relics are already marked.** They are one question asked three
+/// ways — 94% of the market carries each — and what a buyer compares is the
+/// spread between them, which is only visible with all three on the card.
+/// Marking narrows nothing, so the whole cost is three lines of text; the
+/// benefit is that somebody who never opens the panel still sees the market
+/// has this dimension at all.
+///
+/// The `Chave da Sorte` was here first and came off on the owner's call. It is
+/// a different animal and `counted_items.dart` already says why: 57% carry
+/// one, half of those carry exactly one, and the top carries thousands — a
+/// line that says more about hoarding than about the character.
+///
+/// Not in the constructor's default on purpose. A link without `mostra` has to
+/// mean *nothing marked*, or a search shared with a relic deliberately
+/// unticked would arrive with it back on.
+const buscaInicial = SearchQuery(
+  shownOwned: {
+    'Relíquia Maravilha: Artefato',
+    'Relíquia Maravilha: Arma',
+    'Relíquia Maravilha: Armadura',
+  },
+);
+
 SearchQuery? strongWeaponQuery(MarketIndex index) =>
     weaponQuery(index, 'Nível de Ataque', 70);
 

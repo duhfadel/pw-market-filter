@@ -179,7 +179,8 @@ void main() {
       viewModel.setOwnedShown('Relíquia Maravilha: Arma', true);
 
       final state = viewModel.state as SearchReady;
-      expect(state.query.shownOwned, {'Relíquia Maravilha: Arma'});
+      // As três relíquias já vêm marcadas de fábrica.
+      expect(state.query.shownOwned, contains('Relíquia Maravilha: Arma'));
       expect(state.query.isEmpty, isTrue);
       expect(state.results, hasLength(2));
     });

@@ -80,11 +80,18 @@ Future<SearchViewModel> _pump(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('the slider appears only once the relic is marked', (
+  testWidgets('the slider goes with the mark, in both directions', (
     tester,
   ) async {
+    // The relics now open **marked**, so the slider is there from the start.
+    // What the test still has to pin is the link between the two: unticking
+    // takes the slider away, and ticking brings it back.
     final viewModel = await _pump(tester);
 
+    expect(find.byType(Slider), findsOneWidget);
+
+    viewModel.setOwnedShown(_relic, false);
+    await tester.pumpAndSettle();
     expect(find.byType(Slider), findsNothing);
 
     viewModel.setOwnedShown(_relic, true);

@@ -163,8 +163,16 @@ class HomeView extends StatelessWidget {
                           SizedBox(height: wide ? 12 : 10),
                           Center(
                             child: Text(
-                              'Filtre os personagens à venda do The Classic PW 1.8.7 por '
-                              'arma, cartas, refino e atributos.',
+                              // **Diz o que só aqui se acha.** A frase antes
+                              // listava arma, cartas e refino — coisas que o
+                              // próprio marketplace deixa ver. O que este
+                              // site faz de diferente é ler a mochila e o
+                              // banco: chaves, essências e relíquias não
+                              // aparecem em lugar nenhum da busca oficial.
+                              'Ache por arma UP5, chaves, essências, '
+                              'relíquias e combos de carta — o que o '
+                              'marketplace guarda no inventário e não deixa '
+                              'procurar.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: PWColors.textMuted,

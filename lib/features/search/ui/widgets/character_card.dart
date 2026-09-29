@@ -87,8 +87,57 @@ class CharacterCard extends StatelessWidget {
   /// the results — showing cards with nothing on them.
   final SearchQuery query;
 
+  /// The weapon tier this character is on, as the game's own rarity colour.
+  ///
+  /// **The grid is scanned before it is read**, and until now every card
+  /// weighed the same: a 25.000 TCC character on the top tier looked like a 40
+  /// TCC one, because the only thing separating them was 13 px of grey text.
+  /// The frame now carries it, in the palette a player already reads —
+  /// `PWColors.gradeColors`, the game's own rarity ladder.
+  ///
+  /// The ladder is the market's, not invented: attack or defence level 80 is
+  /// the UP5, 29 of 1.624; 70 is where half the market sits; then 40 and 30.
+  /// A weapon with none draws the plain border it always did, which is most of
+  /// what a cheap character has.
+  Color? get _tierColor {
+    final nivel = _weaponTier();
+    // The steps are spread across the palette rather than taken in order.
+    // Grades 4 and 5 are amber and orange — neighbours — and the distinction
+    // that matters most on this site is exactly the one they blurred: a grid
+    // of UP5s and 70s came out the same colour. Red tops the game's own
+    // ladder, so it takes the top tier.
+    return switch (nivel) {
+      >= 80 => PWColors.gradeColors[6],
+      >= 70 => PWColors.gradeColors[4],
+      >= 40 => PWColors.gradeColors[3],
+      >= 30 => PWColors.gradeColors[2],
+      _ => null,
+    };
+  }
+
+  /// The better of attack and defence level on the worn weapon.
+  ///
+  /// Both, because the UP5 comes in two faces and a frame that only read
+  /// attack would leave the eight defensive ones looking ordinary.
+  int _weaponTier() {
+    final ataque = index.attributes.indexOf('Nível de Ataque');
+    final defesa = index.attributes.indexOf('Nível de Defesa');
+    var melhor = 0;
+    for (final item in character.equipped) {
+      if (item.slot != weaponSlot) continue;
+      for (final id in [ataque, defesa]) {
+        if (id < 0) continue;
+        final v = item.attributes[id] ?? 0;
+        if (v > melhor) melhor = v;
+      }
+    }
+    return melhor;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final tier = _tierColor;
+
     return Material(
       color: PWColors.surface,
       borderRadius: BorderRadius.circular(10),
@@ -99,7 +148,22 @@ class CharacterCard extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: PWColors.border),
+            // A gradient and not a flat fill: the tier bleeds in from the top
+            // left, the way the game lights its own item frames, and dies
+            // before it reaches the text. At 0x1A it is barely a tint — enough
+            // for a grid of forty to sort itself out at a glance, not enough
+            // to fight the numbers.
+            gradient: tier == null
+                ? null
+                : LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [tier.withValues(alpha: 0.10), PWColors.surface],
+                    stops: const [0, 0.62],
+                  ),
+            border: Border.all(
+              color: tier?.withValues(alpha: 0.55) ?? PWColors.border,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

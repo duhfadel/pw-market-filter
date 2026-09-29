@@ -1,0 +1,69 @@
+# Portal PW — Todos os direitos reservados
+
+Copyright © 2026 Eduardo Fadel Picheth (duhfadel). Todos os direitos reservados.
+
+Este repositório é **público para leitura**, e isso não é uma licença de uso.
+Qualquer pessoa pode ler o código e aprender com ele; ninguém tem permissão
+para copiar, redistribuir, republicar ou derivar trabalho dele sem autorização
+escrita.
+
+## O que está coberto
+
+O código-fonte deste repositório e, em particular, as **compilações originais**
+que ele contém — resultado de pesquisa própria, não publicadas em nenhuma outra
+fonte:
+
+- `lib/market/card_combos.dart` — quais cartas formam cada combo e como cada
+  um se chama. Foi determinado cruzando cinco fontes e arbitrando pelo mercado
+  quando elas discordavam: um artigo publicado pareia *Cidade das Espadas* com
+  *Cidade do Dragão*, nenhum personagem do mercado usa esse par, e o par real
+  é *Cidade Universal* com *Cidade do Dragão*. O nome *Senhor de Todas as
+  Feras* saiu de análise de frequência — 17% dos donos põem NUEMA no apelido,
+  contra 0% do resto do mercado.
+- `lib/features/runas/domain/runa.dart` — a escada de custo das runas, lida do
+  jogo degrau por degrau e conferida contra as duas listas que a janela de
+  fusão imprime.
+- `tool/registros/semear.py` e a tabela `registros` — as 126 receitas do NPC
+  *Registros de Assimilação*, digitadas a partir do jogo porque não existem em
+  banco de dados nenhum.
+- `lib/market/slot_names.dart`, `lib/market/counted_items.dart` e as demais
+  tabelas levantadas à mão.
+
+## O que **não** está coberto
+
+Nada que pertence a terceiros:
+
+- Nomes de itens, atributos, arte, ícones e quaisquer dados do jogo são da
+  **The Classic Games**. Este projeto apenas lê páginas públicas do
+  marketplace deles, com a permissão registrada no `CLAUDE.md`, e não reivindica
+  direito algum sobre esse conteúdo.
+- As dependências de terceiros seguem as próprias licenças.
+
+## Uso permitido mediante pedido
+
+O objetivo aqui não é fechar a porta para a comunidade. Se você quer usar
+alguma parte disto, **peça** — o contato está no site e no Discord do projeto.
+Crédito visível ao `portalpw.net` costuma ser tudo o que será pedido em troca.
+
+---
+
+# Portal PW — All Rights Reserved
+
+Copyright © 2026 Eduardo Fadel Picheth (duhfadel). All rights reserved.
+
+This repository is **public to read, and that is not a licence to use.** Anyone
+may read the code and learn from it; nobody has permission to copy,
+redistribute, republish or derive work from it without written consent.
+
+Covered: the source code, and in particular the **original compilations** it
+contains — research not published anywhere else. The card-combo table, the rune
+cost ladder, the 126 registry recipes, and the hand-built lookup tables.
+
+Not covered: anything belonging to others. Item names, attributes, artwork and
+all game data belong to **The Classic Games**; this project only reads public
+pages of their marketplace, under the permission recorded in `CLAUDE.md`, and
+claims no right over that content. Third-party dependencies keep their own
+licences.
+
+If you want to use any of this, **ask.** Visible credit to `portalpw.net` is
+usually all that will be asked in return.

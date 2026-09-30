@@ -76,7 +76,12 @@ class VitrineView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final v = vitrineDe(index);
-    if (v == null) return const SizedBox.shrink();
+    // `v.barato.price` is external data from a site this project does not
+    // control. The live market's floor is 40 TCC and there are no zeros
+    // today, but a 0 TCC listing would make `~/` throw and take the whole
+    // front page down with it — the section degrading to nothing is the
+    // honest failure, not a crash nobody asked for.
+    if (v == null || v.barato.price <= 0) return const SizedBox.shrink();
 
     // Computed, never written down: a hardcoded "60×" would be a lie the day
     // the market moves, which is every fifteen minutes.

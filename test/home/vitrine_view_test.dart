@@ -233,4 +233,18 @@ void main() {
     expect(topoBarato, lessThan(topoCaro));
     expect(topoCaro, lessThan(topoRaro));
   });
+
+  testWidgets('a 0 TCC cheapest card degrades the section instead of '
+      'crashing the page', (tester) async {
+    // `v.caro.price ~/ v.barato.price` throws IntegerDivisionByZeroException
+    // when the divisor is 0 — the live market's floor is 40 and there are no
+    // zeros today, but the divisor is external data from a site this project
+    // does not control, and the blast radius of a crash inside `build` is
+    // the whole front page, not just this section.
+    await _pump(tester, [_quem('barato', 0), _quem('caro', 8000)]);
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(VitrineView), findsOneWidget);
+    expect(find.textContaining('mesmo patamar'), findsNothing);
+  });
 }

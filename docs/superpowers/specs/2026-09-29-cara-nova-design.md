@@ -231,11 +231,109 @@ pass at implementation time.
   grouped menu. **The weapon-tier frames are untouched** — they were measured
   and re-measured on 2026-09-29 and the green was chosen against a ΔE
   measurement. `PWColors.gradeColors` does not move.
-- **`/registros`** — palette and type only. The eight-column grid, the gaps at
-  unclaimed slot numbers and the dimming-not-removing rule all stand.
-- **`/runas`** — palette and type only.
+- **`/registros`** — more than palette. It gets its own section below; the
+  eight-column grid, the gaps at unclaimed slot numbers and the
+  dimming-not-removing rule all still stand.
+- **`/runas`** — palette and type only. Reviewed on 30/09 and it needs nothing
+  else: one idea per line, the numbers lead, and `129.600` lands. Two pieces of
+  finish: at 1422 px the column is narrow with a lot of empty either side, and
+  the *já tenho* chips wrap 6+2, stranding two — the same orphan the front
+  page's figures had.
 - **`/guerras`** — static HTML with its own stylesheet; it takes the palette by
-  hand.
+  hand. Lowest priority: it has carried no link since the card came off the
+  home on 29/09.
+
+## The border says what kind of thing this is
+
+**This is now a system, not a one-off, and naming it is what stops the next
+screen inventing a third language.** Two screens already use it: the character
+card's border says the weapon tier, and `/registros` below says what family of
+attributes a recipe grants. The rule behind both is one sentence — *a grid is
+scanned before it is read, so the border carries the one fact that sorts it* —
+and any future grid inherits it rather than choosing again.
+
+Two constants come with it: red is offence and green is defence, on every
+screen. `PWColors.gradeColors[6]` and `PWColors.defenceTier` are already those
+two, and reusing them is why the two screens read as one site.
+
+## `/registros`: the border says what the recipe grants
+
+**The tool's own card promises "o NPC mostra 32 ícones iguais e não soma nada",
+and the page fixed the summing and kept the sameness.** All 126 slots draw the
+identical blue hand, because the game has one icon — so the border is the only
+thing that can carry the difference.
+
+### Three families, and the grouping is measured
+
+Asked for "the biggest attribute", the data refuses: **36 of the 99 recipes
+with data tie at the top**, and the ties are not accidents — they are
+symmetric pairs, Def F with Def M, Acerto with Esquiva, Atk F with Atk M, at
+identical values. The game grants them together. And the scales are not
+comparable: HP's median is 30 against Atk F's 4, so "the biggest number" would
+crown HP for being HP — the same objection that took the bare sum off the
+panel.
+
+| Border | Family | Recipes |
+|---|---|---|
+| red `gradeColors[6]` | **Ofensa** — Atk F + Atk M | 30 |
+| green `defenceTier` | **Defesa** — Def F + Def M + **HP** | 49 |
+| violet `gradeColors[3]` | **Precisão** — (Acerto + Esquiva) × ½ | 17 |
+| split red/green | offence and defence equal | 3 |
+| grey `#5A5480` | no data recorded | 27 |
+
+**HP joins defence on the owner's call**, and the measurement says it does not
+distort: of the 49 green, **37 are green from Def F and Def M with no HP at
+all**; only 7 enter on HP alone.
+
+**Precisão is weighted at half and loses every tie**, because Acerto and
+Esquiva are worth less in the game. A hard precedence was tried first and
+**zeroed violet across all six tabs** — nearly every recipe granting Acerto
+also grants some attack, so "grants only precision" never fires, and a colour
+in the key that never appears is a key that lies. The ½ is a judgement and not
+a measurement: the game publishes no exchange rate between Acerto and Atk F.
+What can be defended is its effect — at weight 1 violet is 40 of 126 and
+dominates; at ½ it is 17.
+
+The grey is lifted from `#2C2C4E`, which vanished against the panel. Those 27
+are 21% of the grid and their whole message is *nobody has filled this in*.
+
+### What it does and does not fix
+
+It works on four tabs of six. **Área 1 goes from 25 violet and no red to 8 red,
+10 green, 12 violet** — the tab that said nothing now has relief. **Casal stays
+entirely grey**, because all 11 of its recipes have no data, and saying that out
+loud beats hiding it.
+
+### The filter and the border answer different questions
+
+This was raised as the design's one real risk — two visual languages in one
+square — and measuring it turned the risk into the feature. The filter asks
+*does it grant Atk F at all*; the border says *what is it mostly about*. With
+`Ataque Físico` ticked, 23 of 32 pass **and 8 of those are violet**:
+`Ilha das Serpentes` passes on `Atk F 3` while granting `Acerto 60`. Lit and
+violet, it tells the whole truth — it grants attack, barely. Without the
+colour it would look like any other attack recipe, which is how the screen
+misleads today.
+
+So **a dimmed slot keeps its colour**, losing the glow and dropping to 45%.
+Two alternatives were drawn and rejected: dropping the colour collides with
+the grey of *no data*, which means something else entirely, and recessing the
+slot fights the house rule that filtering dims rather than removes, so the
+player can still match the grid against the game's window.
+
+### The grid becomes a window
+
+A frame and a title bar around the eight columns, lighter than the page behind
+it. The game shows this in a window and the player has that window open
+alongside; the page framing it the same way is what turns loose icons on a
+page into the thing being compared. The page cost also moves onto each slot,
+bottom right — it is the other number the tool's card promises and today it
+only appears after a tap.
+
+**Nothing derived goes on the grid.** No points-per-page, no bare sum: both
+were on the panel and both came off on the owner's call, because adding Atk F
+to Esquiva is not a quantity of anything. The border is a *category* and never
+a score, and that is the distinction that keeps it honest.
 
 ## What this deliberately does not change
 

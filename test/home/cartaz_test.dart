@@ -37,13 +37,21 @@ Future<void> _pump(
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
-        body: SizedBox(
-          width: 1200,
-          height: 400,
-          child: Cartaz(
-            classe: classe,
-            wide: true,
-            aoBuscar: aoBuscar ?? () {},
+        // A tight outer box (the shape this file used to pump into) clamps
+        // Cartaz's own `height: wide ? 360 : 340` away to whatever the box
+        // says — so a `360` changed to `200` left every test here green.
+        // `SingleChildScrollView` hands its child loose (0..infinity)
+        // height constraints instead, the way the real front page's
+        // scrolling column does, so Cartaz's own height actually reaches
+        // the render tree and can be measured.
+        body: SingleChildScrollView(
+          child: SizedBox(
+            width: 1200,
+            child: Cartaz(
+              classe: classe,
+              wide: true,
+              aoBuscar: aoBuscar ?? () {},
+            ),
           ),
         ),
       ),
@@ -112,5 +120,15 @@ void main() {
     await _pump(tester);
 
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the wide hero is exactly 360 px tall', (tester) async {
+    // `cartaz.dart`'s own `height: wide ? 360 : 340` used to be clamped away
+    // by this file's outer tight `SizedBox(height: 400)` — dropping 360 to
+    // 200 left every test in this file green. Measuring the widget's real
+    // size, under loose constraints, is what would catch that drift.
+    await _pump(tester);
+
+    expect(tester.getSize(find.byType(Cartaz)).height, 360);
   });
 }

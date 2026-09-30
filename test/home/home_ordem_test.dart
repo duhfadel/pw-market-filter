@@ -14,6 +14,8 @@ import 'package:pw_market_filter/features/home/ui/ao_vivo_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/home_view.dart';
 import 'package:pw_market_filter/features/home/ui/novidades_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/visit_counter_view_model.dart';
+import 'package:pw_market_filter/features/home/ui/widgets/cartaz.dart';
+import 'package:pw_market_filter/features/home/ui/widgets/vitrine_view.dart';
 import 'package:pw_market_filter/features/search/ui/search_view_model.dart';
 import 'package:pw_market_filter/market/index_repository.dart';
 import 'package:pw_market_filter/market/market_index.dart';
@@ -161,4 +163,29 @@ void main() {
     expect(find.text('GUIAS'), findsNothing);
     expect(find.text('GUIA'), findsOneWidget);
   });
+
+  testWidgets(
+    'the tablet band keeps the Cartaz and the Vitrine on their compact '
+    'layout',
+    (tester) async {
+      // 1100 px sits inside the 680–1279 tablet band: wide (>=680) but not
+      // large (>=1280). Cartaz and VitrineView are the two widgets that take
+      // `wide: large` rather than `wide: wide` like every other section on
+      // this page, because both were measured at 1200 px and their "wide"
+      // typography overflows between 680 and 1279 — the Cartaz's own 40 px
+      // headline by 36 px. Reverting either call site to `wide: wide` keeps
+      // every other test in the suite green, since the overflow it would
+      // reintroduce was absorbed by the height bump in `cartaz.dart`
+      // (finding 2 of the 2026-09-30 review) — so this asserts the actual
+      // `wide` value each widget was built with, not merely that nothing
+      // overflowed.
+      await _pumpHome(tester);
+
+      expect(tester.widget<Cartaz>(find.byType(Cartaz)).wide, isFalse);
+      expect(
+        tester.widget<VitrineView>(find.byType(VitrineView)).wide,
+        isFalse,
+      );
+    },
+  );
 }

@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'pw_colors.dart';
 
 abstract final class PWTheme {
-  /// The one face that is not Roboto, and it is for headings only.
+  /// The one face that is not Inter, and it is for headings only.
   ///
-  /// Body text, every figure and the whole filter stay on Roboto: the result
+  /// Body text, every figure and the whole filter stay on Inter: the result
   /// cards are dense on purpose and a display face would cost them the line
   /// height they are tuned to. What this is for is the two places a visitor
   /// reads before deciding whether to stay — the front page's headline and the
@@ -15,7 +15,7 @@ abstract final class PWTheme {
   /// flag and its 0 is barely distinguishable from an O, so "150 TCC" reads as
   /// "I5O TCC" — checked against the actual file, not assumed. Every price,
   /// count and attribute on this site is a number somebody is deciding money
-  /// on, and they all stay on Roboto.
+  /// on, and they all stay on Inter.
   ///
   /// Accented capitals were checked before adopting it — Á À Â Ã É Ê Í Ó Ô Õ Ú
   /// Ü Ç all draw, which the game's vocabulary needs.

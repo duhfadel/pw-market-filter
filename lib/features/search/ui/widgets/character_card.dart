@@ -246,7 +246,10 @@ class CharacterCard extends StatelessWidget {
                                   ),
                                 ),
                                 if (character.history != null)
-                                  _Queda(history: character.history!),
+                                  _Queda(
+                                    history: character.history!,
+                                    price: character.price,
+                                  ),
                               ],
                             ),
                           ],
@@ -704,14 +707,20 @@ class CharacterCard extends StatelessWidget {
 /// The old price is struck through rather than labelled: *de 500* needs a
 /// word, and the strike is the word every shop already uses.
 class _Queda extends StatelessWidget {
-  const _Queda({required this.history});
+  const _Queda({required this.history, required this.price});
 
   final PriceHistory history;
+
+  /// The character's current price. [PriceHistory.previousPrice] is set on
+  /// **any** move — a rise as much as a fall — so it alone cannot tell one
+  /// from the other. Comparing it against the price now is what confines this
+  /// widget to the fall its docstring promises.
+  final int price;
 
   @override
   Widget build(BuildContext context) {
     final antes = history.previousPrice;
-    if (antes == null) return const SizedBox.shrink();
+    if (antes == null || antes <= price) return const SizedBox.shrink();
 
     return Text(
       '$antes',

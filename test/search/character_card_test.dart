@@ -296,6 +296,24 @@ void main() {
     expect(find.byKey(const ValueKey('queda')), findsNothing);
   });
 
+  testWidgets('a price that went up says nothing', (tester) async {
+    // previousPrice is set on any move, rise or fall — cuts is the field that
+    // tracks falls. A seller who raised 800 to 1000 must not read as a markdown
+    // from 800, which is what a naive "previousPrice is set" check would draw.
+    await _pump(
+      tester,
+      _character(
+        history: PriceHistory(
+          firstSeen: DateTime.utc(2026, 9, 20),
+          previousPrice: 800,
+          lowestPrice: 800,
+        ),
+      ),
+    );
+
+    expect(find.byKey(const ValueKey('queda')), findsNothing);
+  });
+
   testWidgets('a character with no record says nothing', (tester) async {
     // An index collected before any of this must not grow a line.
     await _pump(tester, _character());

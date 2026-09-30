@@ -47,7 +47,7 @@ Flutter web + Bloc + GetIt, fed by an offline index that a Dart CLI collects.
 | Collector | listing + detail parsers, pacing, resume, index writing | **Done** |
 | Index | the JSON contract between collector and app | **Done** |
 | Screen | criteria form, filtered cards, empty and stale states | **Done** |
-| First visit | front page, preset chips, phone filters, shareable link, preview | **Done** |
+| First visit | Cartaz, Vitrine, grouped menu, preset chips, phone filters, shareable link, preview | **Done** |
 | Anedotas e itens | progresso, contagem de relíquias e chaves, no índice e na tela | **Done, awaiting the collection** |
 | Registros | a janela do NPC, 126 receitas do Supabase, filtro por atributo | **Done, não anunciado** |
 
@@ -65,12 +65,13 @@ Open: the results grid has no widget tests beyond the card itself.
 **The visit, done on 2026-08-17.** The site now receives people who have never
 seen it, through two doors and only two — the front page, from a link pasted in
 the community, and `/filtro`, from word of mouth. What that round added: a front
-page that says what the site does before it says its name, with every figure a
-link into the search that produced it; five preset chips that are the same
-`SearchQuery` objects those figures use (`domain/presets.dart`); a labelled
-filter entrance and a bottom sheet with a live count on phones; a search that
-writes itself into the address bar and reads itself back (`search_query_url.dart`);
-and `og:` tags, without which a link pasted in Discord arrived as a bare line.
+page that says what the site does before it says its name; five preset chips
+(`domain/presets.dart`); a labelled filter entrance and a bottom sheet with a
+live count on phones; a search that writes itself into the address bar and
+reads itself back (`search_query_url.dart`); and `og:` tags, without which a
+link pasted in Discord arrived as a bare line. What said what the site does was
+a row of figures built off the chips, and that mechanism is gone now — see
+*A home ganhou um Cartaz e uma Vitrine* below for what replaced it and why.
 
 Still open from that round, and named on purpose: **the market has no memory.**
 Each collection overwrites the last, so there is no "new today", no "dropped
@@ -720,27 +721,70 @@ real, mas `preset_chips_test` roda sobre um índice sintético **onde ninguém
 tem arma defensiva**: o caso que falha não era exercido. É a mesma forma do
 lote da Twitch, onde a reprodução com todos os canais offline respondeu 200.
 
-### O pulso da home lê os chips, e antes remontava as perguntas
+### A home trocou o pulso por um Cartaz e uma Vitrine, em 30/09/2026
 
-`market_pulse.dart` construía cada figura à mão — procurava `Nível de Ataque` e
-montava o próprio `SearchQuery` — enquanto os chips eram montados em
-`presets.dart`. As duas telas divergiram na primeira vez que os chips mudaram:
-o conjunto ganhou *5 essências* e *Seis cartas S* e perdeu um patamar, e a
-primeira dobra não seguiu nada disso, porque nada as ligava. O `CLAUDE.md`
-afirmava que eram os mesmos objetos `SearchQuery`, e tinha deixado de ser
-verdade.
+Por um mês o pulso da home foi `market_pulse.dart`: construía cada figura à
+mão — procurava `Nível de Ataque` e montava o próprio `SearchQuery` —
+enquanto os chips eram montados em `presets.dart`. As duas telas divergiram
+na primeira vez que os chips mudaram: o conjunto ganhou *5 essências* e *Seis
+cartas S* e perdeu um patamar, e a primeira dobra não seguiu nada disso,
+porque nada as ligava. A correção de então foi fazer `figuresFor(index)`
+percorrer `presetsFor` — um chip, uma figura, a mesma pergunta feita uma vez
+só — e essa lição sobrevive ao arquivo ter saído: **duas telas que respondem
+à mesma pergunta têm que ler da mesma fonte, ou divergem na primeira mudança
+que uma das duas não enxergar.**
 
-`figuresFor(index)` percorre `presetsFor` agora, e `figureLabels` é o mapa de
-*quais* chips viram figura e como cada um se lê aqui — `Arma de 70 ou mais` é
-uma coisa de tocar no filtro, `687 com arma de 70 ou mais` é uma frase na home.
-**Nem todo chip merece figura**: as figuras são o argumento da página, não um
-índice do filtro, então três ficam de fora de propósito.
+O arquivo inteiro saiu no branch `cara-nova-paleta`, junto com `figuresFor`,
+`figureLabels` e `MarketFigure` — zero referências a qualquer um deles
+sobrevive em `lib/` ou `test/`. Não foi corrigido de novo: foi substituído
+por duas peças que respondem à pergunta de um jeito diferente.
 
-Um chip que esta coleta não sabe montar tira a própria figura da tela sozinho,
-porque `weaponQuery` responde `null` para um patamar que o mercado não alcançou
-— o que substitui três blocos de `if` por nada. O que o teste crava é a junção:
-uma figura que nomeia um chip inexistente some da home em silêncio, e o `Wrap`
-simplesmente desenha uma a menos.
+**O Cartaz** (`ui/widgets/cartaz.dart`) é o herói da página agora: a arte de
+uma classe, cheia, com a frase escrita no espaço vazio que ela deixa — não
+uma imagem ao lado do conteúdo, o chão em que o conteúdo se apoia. A classe
+muda a cada coleta, nunca a cada build: `classeDoCartaz`
+(`domain/arte_da_classe.dart`) deriva do `collectedAt` da coleta, nunca de
+`Random()` nem do relógio — a mesma coleta tem que desenhar a mesma página, ou
+um rebuild lê como caça-níqueis em vez de site. `classesComArte` lista as
+dezessete classes que têm arte; `arteDaClasse` e `acentoDaClasse` (violeta ou
+magenta, nunca `PWColors.accent` — essa é a cor do dinheiro) vivem no mesmo
+arquivo. O Cartaz e a Vitrine foram medidos e testados a 1200 px, perto do
+degrau `large` (1280) da página; entre 680 e 1279 os dois recebem `wide:
+large` em vez do `wide: wide` que todo o resto da página usa, porque a
+tipografia "wide" de ambos não cabe nessa faixa — a 780 px o título do Cartaz
+estourava a própria caixa em 36 px.
+
+**A Vitrine** (`domain/vitrine.dart`, `ui/widgets/vitrine_view.dart`) é o
+argumento antigo do pulso, refeito com pessoas reais em vez de uma frase: o
+mais barato e o mais caro do mesmo patamar de arma e — quando o mercado tem
+alguém — o mais raro no patamar defensivo. `vitrineDe` parte de
+`strongWeaponQuery`, mas não confia no mínimo dessa query: agrupa os
+portadores pelo nível de ataque exato que cada um carrega (lido por
+`bestMatchFor`, o mesmo laço que o card de resultados usa para dizer qual
+peça respondeu a um critério) e escolhe o par dentro do grupo mais numeroso —
+porque `strongWeaponQuery` pede *pelo menos* 70, e o mercado tem um patamar 80
+acima dele. Sem essa restrição, `carriers.first`/`.last` da query inteira
+podiam cair em patamares diferentes, e caíram: medido no índice real em
+30/09/2026, o par era SK_Alya (Arcano, +70, 45 TCC) contra KING-Von
+(Mercenário, +80, 20000 TCC) — duas armas diferentes, duas classes
+diferentes, impressas sob "a mesma arma" com a sub-linha ainda dizendo nível
+de ataque 70. É a mesma forma do UP5 duas seções acima: um mínimo tratado
+como se fosse um valor exato, pela terceira vez neste arquivo. A revisão
+final do branch pegou isso porque os dois testes de `Vitrine`, sintéticos,
+tinham todo mundo em exatamente um patamar — o caso que falha nunca era
+exercido; o guard agora é `vitrine_real_market_test.dart`, sobre
+`web/market_index.json`, confirmado vermelho contra o código anterior antes
+do conserto. O título ficou **"O mesmo patamar"**, sem dígito — Marcellus
+desenha algarismos romanos, e mesmo dentro de um patamar exato são dezessete
+armas diferentes, uma por classe, então "a mesma arma" nunca tinha sido
+literalmente verdade.
+
+**O menu de ferramentas e o cabeçalho pararam de duplicar a navegação.**
+`Cabecalho` e os cards de ferramenta tinham cada um sua própria cópia de
+"abrir esta rota, interna ou externa" — `_abrir` e `_openTool`, byte a byte
+iguais. As duas foram substituídas por `abrirTool`
+(`ui/widgets/tool_navigation.dart`), que carrega a mesma regra de sempre:
+`MaterialApp` é dono da rota, nunca um `Navigator` por baixo dele.
 
 ## A licença, e por que ela existe
 

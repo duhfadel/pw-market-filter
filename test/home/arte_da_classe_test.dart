@@ -48,4 +48,29 @@ void main() {
 
     expect(usados, hasLength(2));
   });
+
+  test('the same collection always wears the same class', () {
+    // Finding 4 of the 2026-09-30 review: nothing pinned this, so a slide
+    // back to `DateTime.now()` — the likelier accident, since it would look
+    // like "rotate the hero" — would keep every existing test green. Same
+    // `collectedAt` in, same class out, twice, is what a regression to the
+    // wall clock cannot survive.
+    final quando = DateTime.utc(2026, 8, 9, 12, 30);
+
+    expect(classeDoCartaz(quando), classeDoCartaz(quando));
+  });
+
+  test('a different collection can wear a different class', () {
+    // Guards the other half: a `classeDoCartaz` that ignored its argument
+    // entirely (always returning `classesComArte.first`) would also pass the
+    // determinism test above without ever actually reading the collection.
+    final a = classeDoCartaz(DateTime.utc(2026, 8, 9));
+    final b = classeDoCartaz(DateTime.utc(2026, 9, 30));
+
+    expect(a, isNot(b));
+  });
+
+  test('no collection loaded yet opens on the first class', () {
+    expect(classeDoCartaz(null), classesComArte.first);
+  });
 }

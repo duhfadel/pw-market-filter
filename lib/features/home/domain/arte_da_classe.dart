@@ -71,3 +71,21 @@ String? arteDaClasse(String classe) {
 /// The accent the page wears while showing [classe].
 Color acentoDaClasse(String classe) =>
     (_classes[classe]?.magenta ?? false) ? PWColors.magenta : PWColors.violeta;
+
+/// Which class the Cartaz wears for a collection made at [collectedAt].
+///
+/// Derived from the collection's own timestamp — never `Random()`, never the
+/// wall clock. The same collection has to draw the same page, or a rebuild
+/// reads as a slot machine instead of a site. `null` (no collection loaded
+/// yet) opens on the first class in the list rather than waiting to show any
+/// art at all.
+///
+/// Lifted out of `home_view.dart` so a test can call it directly rather than
+/// only through the assembled page — a regression to `DateTime.now()` here
+/// would otherwise stay invisible to every widget test, since none of them
+/// pump the same index twice in the same run.
+String classeDoCartaz(DateTime? collectedAt) {
+  if (collectedAt == null) return classesComArte.first;
+  final posicao = collectedAt.millisecondsSinceEpoch % classesComArte.length;
+  return classesComArte[posicao];
+}

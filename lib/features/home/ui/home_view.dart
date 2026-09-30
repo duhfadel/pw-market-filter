@@ -45,20 +45,6 @@ final _memoriaDasNovidades = BrowserMemory.platform(
   'portal_pw_ultima_novidade',
 );
 
-/// Which class the Cartaz wears this build.
-///
-/// Derived from `collectedAt` — never `Random()`, never the wall clock. The
-/// same collection has to draw the same page, or a rebuild reads as a slot
-/// machine instead of a site. While the index has not loaded yet there is no
-/// `collectedAt` to read, so the Cartaz opens on the first class in the list
-/// rather than waiting to show any art at all.
-String _classeDoCartaz(MarketIndex? index) {
-  if (index == null) return classesComArte.first;
-  final posicao =
-      index.collectedAt.millisecondsSinceEpoch % classesComArte.length;
-  return classesComArte[posicao];
-}
-
 /// Opens a character's own page on the real marketplace.
 ///
 /// The site already draws the character sheet well, so the Vitrine links out
@@ -169,7 +155,9 @@ class HomeView extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   Cartaz(
-                                    classe: _classeDoCartaz(ready?.index),
+                                    classe: classeDoCartaz(
+                                      ready?.index.collectedAt,
+                                    ),
                                     // `large`, not `wide`. Both were built and
                                     // measured at 1200 px — close to this
                                     // page's `large` step (1280) — and their

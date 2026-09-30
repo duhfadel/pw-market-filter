@@ -6,6 +6,7 @@ import 'package:pw_market_filter/collector/index_builder.dart';
 import 'package:pw_market_filter/collector/listing_parser.dart';
 import 'package:pw_market_filter/market/counted_items.dart';
 import 'package:pw_market_filter/market/market_index.dart';
+import 'package:pw_market_filter/market/price_history.dart';
 
 ListingCard _card(int roleId) => ListingCard(
   roleId: roleId,
@@ -400,5 +401,50 @@ void main() {
       expect(restored.characters.single.runes, [52220]);
       expect(restored.runes[52220]?.type, 'Argêntea');
     });
+  });
+
+  test('the builder carries a record onto the character it belongs to', () {
+    final builder = IndexBuilder(
+      server: 'pw187',
+      collectedAt: DateTime.utc(2026, 10, 1),
+    );
+    final h = PriceHistory(
+      firstSeen: DateTime.utc(2026, 9, 20),
+      previousPrice: 500,
+      lowestPrice: 400,
+      cuts: 1,
+    );
+
+    builder.add(
+      const ListingCard(
+        roleId: 7,
+        name: 'tmzin',
+        characterClass: 'Guerreiro',
+        occupation: 1,
+        level: 105,
+        price: 400,
+        fame: 0,
+        cultivation: 'Leal',
+      ),
+      const [],
+      history: h,
+    );
+
+    final index = builder.build(historyFrom: DateTime.utc(2026, 9, 30));
+
+    expect(index.historyFrom, DateTime.utc(2026, 9, 30));
+    expect(index.characters.single.history?.previousPrice, 500);
+    expect(index.characters.single.history?.cuts, 1);
+  });
+
+  test('a build with no record stamps nothing', () {
+    // A `--rebuild` from a state file written before any of this must not
+    // claim a date it does not have.
+    final builder = IndexBuilder(
+      server: 'pw187',
+      collectedAt: DateTime.utc(2026, 10, 1),
+    );
+
+    expect(builder.build().historyFrom, isNull);
   });
 }

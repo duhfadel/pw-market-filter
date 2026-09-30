@@ -1,5 +1,6 @@
 import '../market/counted_items.dart';
 import '../market/market_index.dart';
+import '../market/price_history.dart';
 import 'detail_parser.dart';
 import 'listing_parser.dart';
 
@@ -75,6 +76,7 @@ class IndexBuilder {
     String realm = '',
     String path = '',
     List<ParsedRune> runes = const [],
+    PriceHistory? history,
   }) {
     _characters.add(
       MarketCharacter(
@@ -94,6 +96,7 @@ class IndexBuilder {
         realm: realm,
         path: path,
         runes: _runesOf(runes),
+        history: history,
         equipped: items.map(_convert).toList(growable: false),
         cards: cards
             .map(
@@ -199,7 +202,10 @@ class IndexBuilder {
   int _attributeId(String name) =>
       _attributeIds.putIfAbsent(name, () => _attributeIds.length);
 
-  MarketIndex build() {
+  /// [historyFrom] is the date the site started keeping records, carried
+  /// forward from the published index. `null` where nothing has been kept —
+  /// a `--rebuild` from an old state file must not claim a date it never had.
+  MarketIndex build({DateTime? historyFrom}) {
     for (final counts in _readCounts) {
       for (final ids in _countedIds.values) {
         for (final id in ids) {
@@ -221,6 +227,7 @@ class IndexBuilder {
       characters: _characters,
       countedItems: _countedIds,
       runes: _runeKinds,
+      historyFrom: historyFrom,
     );
   }
 }

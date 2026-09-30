@@ -104,10 +104,12 @@ class VitrineView extends StatelessWidget {
           Text(
             // Barato and caro are, by construction, exactly two carriers of
             // this weapon — never a guess, never the whole market's count,
-            // which vitrineDe does not hand back. On the body face, so the
-            // number in it stays trustworthy.
-            'Dois personagens escolheram a mesma arma — nível de ataque 70 — '
-            'do mais barato ao mais caro, $mult× o preço.',
+            // which vitrineDe does not hand back. The tier is v.nivel, not a
+            // literal: it is read off strongWeaponQuery's own criterion, so a
+            // future tier above 70 shows up here rather than being silently
+            // swallowed by a label that stopped matching the query.
+            'Dois personagens escolheram a mesma arma — nível de ataque '
+            '${v.nivel} — do mais barato ao mais caro, $mult× o preço.',
             style: const TextStyle(color: PWColors.apagado, fontSize: 13),
           ),
           const SizedBox(height: 18),
@@ -120,7 +122,13 @@ class VitrineView extends StatelessWidget {
   /// Three cards side by side, with the spread's narrow column between the
   /// first two.
   Widget _linhaLarga(
-    ({MarketCharacter barato, MarketCharacter caro, MarketCharacter? raro}) v,
+    ({
+      MarketCharacter barato,
+      MarketCharacter caro,
+      MarketCharacter? raro,
+      int nivel,
+    })
+    v,
     int mult,
   ) => Row(
     crossAxisAlignment: CrossAxisAlignment.center,
@@ -162,7 +170,13 @@ class VitrineView extends StatelessWidget {
   /// rather than a column beside them, since there is no longer a "beside"
   /// to hold it.
   Widget _colunaEstreita(
-    ({MarketCharacter barato, MarketCharacter caro, MarketCharacter? raro}) v,
+    ({
+      MarketCharacter barato,
+      MarketCharacter caro,
+      MarketCharacter? raro,
+      int nivel,
+    })
+    v,
     int mult,
   ) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,

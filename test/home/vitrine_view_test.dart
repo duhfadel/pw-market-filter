@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FontLoader, rootBundle;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/features/home/ui/widgets/vitrine_view.dart';
+import 'package:pw_market_filter/features/search/domain/presets.dart';
 import 'package:pw_market_filter/market/market_index.dart';
 
 /// Loads the real Marcellus and Inter files `pubspec.yaml` already declares,
@@ -85,6 +86,10 @@ Future<void> _pump(
   bool wide = true,
   double width = 1200,
   double height = 400,
+  // Lets a test read the exact same index the widget renders from, so it
+  // can pull a number (like the weapon tier) out of the real query instead
+  // of retyping it.
+  MarketIndex? index,
 }) async {
   await _carregarFontesReais();
 
@@ -104,7 +109,7 @@ Future<void> _pump(
           width: width,
           height: height,
           child: VitrineView(
-            index: _indice(characters),
+            index: index ?? _indice(characters),
             wide: wide,
             aoTocar: aoTocar ?? (_) {},
           ),
@@ -177,6 +182,29 @@ void main() {
     expect(find.textContaining('Nível de Defesa'), findsOneWidget);
     expect(find.textContaining('+80'), findsOneWidget);
   });
+
+  testWidgets(
+    'the sub-line names whatever tier strongWeaponQuery actually asks for',
+    (tester) async {
+      // The number must come from the query, never be retyped: a test that
+      // hardcodes the same literal on both sides would still pass the day
+      // the widget's prose and strongWeaponQuery's minimum drift apart --
+      // exactly the failure mode that let an 80 tier slip through a chip
+      // still labelled 70 elsewhere in this codebase.
+      final index = _indice([_quem('barato', 130), _quem('caro', 8000)]);
+      final nivelDaQuery = strongWeaponQuery(index)!.criteria.first.minimum;
+
+      await _pump(tester, [
+        _quem('barato', 130),
+        _quem('caro', 8000),
+      ], index: index);
+
+      expect(
+        find.textContaining('nível de ataque $nivelDaQuery'),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets('a phone stacks the three cards instead of a row', (
     tester,

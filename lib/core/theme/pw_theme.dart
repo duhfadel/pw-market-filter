@@ -21,6 +21,43 @@ abstract final class PWTheme {
   /// Ü Ç all draw, which the game's vocabulary needs.
   static const display = 'Marcellus';
 
+  /// The body face, and every figure on the site.
+  ///
+  /// **Roboto was the face Flutter hands you when you have not chosen one**,
+  /// and it was in every price, count and attribute here. Inter is a drop-in
+  /// in metrics and texture but is drawn for screens, and it carries the
+  /// feature below.
+  static const body = 'Inter';
+
+  /// Figures that line up in a column.
+  ///
+  /// A site of prices lives or dies on this: with proportional figures `1111`
+  /// is narrower than `8888`, so a column of them does not align and comparing
+  /// two prices becomes reading them. `tnum` gives every digit the same
+  /// advance width.
+  ///
+  /// Copied onto each style rather than passed to `TextTheme.apply`, which
+  /// takes a family and colours but no font features.
+  static const _figuras = [FontFeature.tabularFigures()];
+
+  static TextTheme _comFiguras(TextTheme t) => TextTheme(
+    displayLarge: t.displayLarge?.copyWith(fontFeatures: _figuras),
+    displayMedium: t.displayMedium?.copyWith(fontFeatures: _figuras),
+    displaySmall: t.displaySmall?.copyWith(fontFeatures: _figuras),
+    headlineLarge: t.headlineLarge?.copyWith(fontFeatures: _figuras),
+    headlineMedium: t.headlineMedium?.copyWith(fontFeatures: _figuras),
+    headlineSmall: t.headlineSmall?.copyWith(fontFeatures: _figuras),
+    titleLarge: t.titleLarge?.copyWith(fontFeatures: _figuras),
+    titleMedium: t.titleMedium?.copyWith(fontFeatures: _figuras),
+    titleSmall: t.titleSmall?.copyWith(fontFeatures: _figuras),
+    bodyLarge: t.bodyLarge?.copyWith(fontFeatures: _figuras),
+    bodyMedium: t.bodyMedium?.copyWith(fontFeatures: _figuras),
+    bodySmall: t.bodySmall?.copyWith(fontFeatures: _figuras),
+    labelLarge: t.labelLarge?.copyWith(fontFeatures: _figuras),
+    labelMedium: t.labelMedium?.copyWith(fontFeatures: _figuras),
+    labelSmall: t.labelSmall?.copyWith(fontFeatures: _figuras),
+  );
+
   static ThemeData build() {
     final base = ThemeData.dark(useMaterial3: true);
 
@@ -33,9 +70,12 @@ abstract final class PWTheme {
         onSurface: PWColors.text,
         error: PWColors.danger,
       ),
-      textTheme: base.textTheme.apply(
-        bodyColor: PWColors.text,
-        displayColor: PWColors.text,
+      textTheme: _comFiguras(
+        base.textTheme.apply(
+          fontFamily: body,
+          bodyColor: PWColors.text,
+          displayColor: PWColors.text,
+        ),
       ),
       dividerTheme: const DividerThemeData(
         color: PWColors.border,

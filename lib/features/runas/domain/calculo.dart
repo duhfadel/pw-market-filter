@@ -134,11 +134,42 @@ List<Parcela> _cascata(int valor, int apartirDe) {
 }
 
 /// [estoque] maps a rune level to how many of it are already owned.
+///
+/// **Only what sits at or below [alvo] can be spent on it**, and that filter
+/// is the whole of a bug reported off the screen on 30/09/2026: pick a level
+/// 9, mark a few level 8s, then drop the target to 5, and the page announced
+/// the rune was already affordable. It is not — *fuel may never be above the
+/// centre's level*, so a level 8 does not feed a level 5 fusion. Without the
+/// filter, three unusable runes were worth 43.200 level ones and wiped out a
+/// real shortfall of 206.
+///
+/// It was invisible as well as wrong. The stock boxes stop at one below the
+/// target, so the runes producing the answer had no control anywhere on
+/// screen — the owner's report was "it says I can, and I cannot see the
+/// quantity I typed".
+///
+/// Stock at exactly [alvo] is kept, and is the one case where nothing is left
+/// to get: owning the rune is having it.
 Calculo calcular({required int alvo, required Map<int, int> estoque}) {
   var tem = 0;
   for (final entry in estoque.entries) {
+    if (entry.key > alvo) continue;
     tem += custoEmNivel1(entry.key) * entry.value;
   }
   final falta = custoEmNivel1(alvo) - tem;
   return Calculo(alvo: alvo, restante: falta < 0 ? 0 : falta);
+}
+
+/// How many runes the stock holds that are **too high to spend on [alvo]**.
+///
+/// The screen keeps what was typed when the target drops — raising it back
+/// must not cost the player their inventory again — so those runes sit in
+/// `estoque` with no box on screen. This is what lets the page say so out
+/// loud instead of quietly ignoring them.
+Map<int, int> acimaDoAlvo({required int alvo, required Map<int, int> estoque}) {
+  final fora = <int, int>{};
+  for (final entry in estoque.entries) {
+    if (entry.key > alvo && entry.value > 0) fora[entry.key] = entry.value;
+  }
+  return fora;
 }

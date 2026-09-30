@@ -39,8 +39,25 @@ void main() {
     expect(r.jaDa, isTrue);
   });
 
-  test('more than enough is still enough, never a negative errand', () {
+  test('a bigger rune is not a smaller one, and never was', () {
+    // This test used to assert the opposite — that owning a level 5 settled a
+    // level 4 — under the name "more than enough is still enough". The owner
+    // reported the same shape from the screen on 30/09/2026 and called it a
+    // bug, and he is right about the game: **a rune is fused with runes at its
+    // own level or below**, so a 5 cannot be taken apart into 4s.
+    //
+    // The old name was about never printing a negative errand, which the
+    // clamp below still guarantees. What it should never have bought was the
+    // claim that a higher rune is spendable.
     final r = calcular(alvo: 4, estoque: {5: 1});
+
+    expect(r.restante, greaterThan(0));
+    expect(r.jaDa, isFalse);
+  });
+
+  test('a negative errand is still impossible', () {
+    // The half of the old test that was always right.
+    final r = calcular(alvo: 4, estoque: {3: 99});
 
     expect(r.restante, 0);
     expect(r.jaDa, isTrue);
@@ -101,6 +118,43 @@ void main() {
         1,
       ]);
       expect(calcular(alvo: 3, estoque: const {}).escalas, [2, 1]);
+    });
+    test('stock above the target cannot be spent on it', () {
+      // Reported from the screen on 30/09/2026: pick a level 9, mark some
+      // level 8s, then drop the target to 5 — and the page announced the
+      // rune was already affordable.
+      //
+      // It is not. The game's rule, and the one this whole calculator rests
+      // on, is that **fuel may never be above the centre's level**: a level 8
+      // does not feed a level 5 fusion. Counting it turned three unusable
+      // runes into an answer of zero.
+      //
+      // Worse than wrong, it was invisible: the chips stop at one below the
+      // target, so the stock producing the answer had no control on screen.
+      expect(calcular(alvo: 5, estoque: const {8: 3}).restante, greaterThan(0));
+
+      final semAjuda = calcular(alvo: 5, estoque: const {1: 10}).restante;
+      final comInutil = calcular(
+        alvo: 5,
+        estoque: const {1: 10, 8: 3},
+      ).restante;
+      expect(
+        comInutil,
+        semAjuda,
+        reason: 'a level 8 is unusable here, so it must change nothing',
+      );
+    });
+
+    test('stock at exactly the target is the rune itself', () {
+      // Owning one is the one case where "nothing left to get" is true.
+      expect(calcular(alvo: 5, estoque: const {5: 1}).restante, 0);
+    });
+
+    test('what is below the target still counts, whatever the mix', () {
+      final r = calcular(alvo: 6, estoque: const {5: 1, 4: 2, 1: 7});
+      final esperado =
+          custoEmNivel1(6) - (custoEmNivel1(5) + 2 * custoEmNivel1(4) + 7);
+      expect(r.restante, esperado);
     });
   });
 }

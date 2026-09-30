@@ -234,11 +234,8 @@ pass at implementation time.
 - **`/registros`** — more than palette. It gets its own section below; the
   eight-column grid, the gaps at unclaimed slot numbers and the
   dimming-not-removing rule all still stand.
-- **`/runas`** — palette and type only. Reviewed on 30/09 and it needs nothing
-  else: one idea per line, the numbers lead, and `129.600` lands. Two pieces of
-  finish: at 1422 px the column is narrow with a lot of empty either side, and
-  the *já tenho* chips wrap 6+2, stranding two — the same orphan the front
-  page's figures had.
+- **`/runas`** — the concept is right and stays; it gets two pieces of finish,
+  below.
 - **`/guerras`** — static HTML with its own stylesheet; it takes the palette by
   hand. Lowest priority: it has carried no link since the card came off the
   home on 29/09.
@@ -334,6 +331,37 @@ only appears after a tap.
 were on the panel and both came off on the owner's call, because adding Atk F
 to Esquiva is not a quantity of anything. The border is a *category* and never
 a score, and that is the distinction that keeps it honest.
+
+## A window is for content that is finite and fits whole
+
+The frame that turned the registros grid into the NPC's window was drawn for
+`/runas` and `/filtro` too, and **only one of them keeps it** — which is what
+makes this a rule rather than a flourish.
+
+**`/runas` takes it**, and for a reason that only appeared once it was drawn:
+the title bar gives *para uma nível 9* somewhere to live. Today the target
+exists only in the picker at the top of the page, so anyone who has scrolled
+is reading a column of numbers with the question gone. The frame is not
+decoration there; it creates a place that was missing.
+
+**`/filtro` refuses it**, and the refusal is worth writing down so nobody
+re-runs the experiment. The results grid holds forty cards and pages through
+thousands — **framing a list that does not fit inside the frame is drawing a
+window with no bottom**. And the cards already carry a border of their own
+saying the weapon tier; a frame around frames is noise, and the card's is the
+one that matters.
+
+So: **a window is for content that is finite and fits whole.** The registros
+tab fits, the runes panel fits, the market does not.
+
+### The other piece of finish on `/runas`
+
+The *já tenho* boxes wrap and strand the last two on a row of their own — six
+and then two. It is not a bug, it is a row breaking where it lands, but the
+eye reads *six things and two more* and goes looking for the difference
+between the groups, which does not exist. It is the same defect the front
+page's figures had at 4+1 and 5+1. Four per row in full rows, or one row of
+narrower boxes.
 
 ## What this deliberately does not change
 

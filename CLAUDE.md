@@ -614,6 +614,31 @@ A drawer that cannot climb says so: two level ones are two level ones, because
 a level 2 wants three. Printing "you can forge 2 runas nível 1" would dress up
 what is already in the bag as an achievement.
 
+**Uma runa se funde com runas do próprio nível ou abaixo, e ignorar isso fez a
+tela mentir.** Reportado pelo dono em 30/09/2026: escolha o nível 9, marque
+runas 8, depois baixe o alvo para 5 — e a página anunciava que a runa já era
+possível. `calcular` somava **todo** o estoque sem olhar o nível, então três
+runas 8 valiam 43.200 em nível 1 contra as 206 que o alvo 5 custa, a conta dava
+negativo e era achatada para zero.
+
+**O pior era a invisibilidade**, e é ela que transforma um erro de conta em
+mentira: as caixas de estoque paravam um abaixo do alvo, então as runas que
+produziam a resposta **não tinham controle nenhum na tela**. O relato do dono
+foi exatamente isso — *"ele diz que já podemos fazer, mas eu não vejo a
+quantidade que nós marcamos"*.
+
+As caixas acima do alvo ficam agora, esmaecidas, guardando o que foi digitado
+— subir o alvo de novo não pode custar o inventário outra vez — e uma linha diz
+por que estão fora. `acimaDoAlvo` existe só para a tela poder dizer isso em voz
+alta em vez de ignorar calado.
+
+**Um teste afirmava o contrário e foi trocado, o que é decisão de produto e não
+conserto.** `more than enough is still enough` cravava que ter uma runa 5
+resolvia querer uma 4. A metade certa dele — nunca imprimir recado negativo —
+virou teste próprio; a outra metade era a mentira. O painel *a maior que dá
+para forjar* continua usando o estoque inteiro, e deve: ali a pergunta é o que
+dá para fazer **subindo**, e aí uma runa alta vale.
+
 **The sub-level percentages are not stored.** They differ per centre with no
 pattern — centre 3 and centre 6 both give 20% at the top and then 10% and 8%
 respectively — and the cheapest path never needs them, because same-level fuel

@@ -46,6 +46,13 @@ const _armaFraca = EquippedItem(
   stones: [],
   attributes: {0: 30},
 );
+const _armaDef80 = EquippedItem(
+  slot: 10,
+  itemId: 50300,
+  refine: 12,
+  stones: [],
+  attributes: {1: 80},
+);
 
 MarketCharacter _quem(
   String nome,
@@ -75,17 +82,30 @@ Future<void> _pump(
   WidgetTester tester,
   List<MarketCharacter> characters, {
   void Function(MarketCharacter)? aoTocar,
+  bool wide = true,
+  double width = 1200,
+  double height = 400,
 }) async {
   await _carregarFontesReais();
+
+  // A `SizedBox` alone is not enough: the test window's own default size is
+  // smaller than some of the sizes this file asks for, and the Scaffold
+  // clamps the box to whatever the window allows before it ever reaches
+  // `VitrineView`. Setting the window itself is what the rest of the suite
+  // does for the same reason (see `mobile_filter_test.dart`).
+  tester.view.physicalSize = Size(width, height);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
         body: SizedBox(
-          width: 1200,
-          height: 400,
+          width: width,
+          height: height,
           child: VitrineView(
             index: _indice(characters),
-            wide: true,
+            wide: wide,
             aoTocar: aoTocar ?? (_) {},
           ),
         ),
@@ -138,5 +158,51 @@ void main() {
 
     expect(find.byType(VitrineView), findsOneWidget);
     expect(find.textContaining('mesma arma'), findsNothing);
+  });
+
+  testWidgets('the rare card and its defensive-tier line render', (
+    tester,
+  ) async {
+    await _pump(tester, [
+      _quem('barato', 130),
+      _quem('caro', 8000),
+      _quem('raro', 2200, usa: const [_armaDef80]),
+    ]);
+
+    expect(find.text('O MAIS RARO'), findsOneWidget);
+    expect(find.textContaining('raro'), findsWidgets);
+    // The defensive branch of `_armaDe`: this weapon has no attack level at
+    // all, only `Nível de Defesa`, so the line has to name that attribute
+    // and never fall back to attack — the one it would print by default.
+    expect(find.textContaining('Nível de Defesa'), findsOneWidget);
+    expect(find.textContaining('+80'), findsOneWidget);
+  });
+
+  testWidgets('a phone stacks the three cards instead of a row', (
+    tester,
+  ) async {
+    // 390 px is the phone width used across the rest of the suite. The
+    // height is generous on purpose: the real page is a scrollable column,
+    // so nothing here needs to fit a fixed viewport — only the test harness
+    // does, and starving it would fabricate an overflow no browser has.
+    await _pump(
+      tester,
+      [
+        _quem('barato', 130),
+        _quem('caro', 8000),
+        _quem('raro', 2200, usa: const [_armaDef80]),
+      ],
+      wide: false,
+      width: 390,
+      height: 2000,
+    );
+
+    // Stacked, not side by side: the cheapest card sits above the dearest
+    // one rather than beside it.
+    final topoBarato = tester.getTopLeft(find.text('130 TCC')).dy;
+    final topoCaro = tester.getTopLeft(find.text('8000 TCC')).dy;
+    final topoRaro = tester.getTopLeft(find.text('2200 TCC')).dy;
+    expect(topoBarato, lessThan(topoCaro));
+    expect(topoCaro, lessThan(topoRaro));
   });
 }

@@ -89,7 +89,10 @@ class VitrineView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'A mesma arma de 70',
+            // No digit here on purpose: Marcellus draws Roman figures, and
+            // `70` in that face reads as `7O`. The tier still has to be
+            // named — the body-face line below carries it instead.
+            'A mesma arma',
             style: TextStyle(
               fontFamily: PWTheme.display,
               fontSize: wide ? 26 : 21,
@@ -101,90 +104,169 @@ class VitrineView extends StatelessWidget {
           Text(
             // Barato and caro are, by construction, exactly two carriers of
             // this weapon — never a guess, never the whole market's count,
-            // which vitrineDe does not hand back.
-            'Dois personagens escolheram a mesma arma de nível 70 — do mais '
-            'barato ao mais caro, $mult× o preço.',
+            // which vitrineDe does not hand back. On the body face, so the
+            // number in it stays trustworthy.
+            'Dois personagens escolheram a mesma arma — nível de ataque 70 — '
+            'do mais barato ao mais caro, $mult× o preço.',
             style: const TextStyle(color: PWColors.apagado, fontSize: 13),
           ),
           const SizedBox(height: 18),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+          wide ? _linhaLarga(v, mult) : _colunaEstreita(v, mult),
+        ],
+      ),
+    );
+  }
+
+  /// Three cards side by side, with the spread's narrow column between the
+  /// first two.
+  Widget _linhaLarga(
+    ({MarketCharacter barato, MarketCharacter caro, MarketCharacter? raro}) v,
+    int mult,
+  ) => Row(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      Expanded(
+        child: _Carta(
+          index: index,
+          character: v.barato,
+          rotulo: 'O MAIS BARATO',
+          aoTocar: aoTocar,
+        ),
+      ),
+      _Multiplicador(mult: mult, vertical: true),
+      Expanded(
+        child: _Carta(
+          index: index,
+          character: v.caro,
+          rotulo: 'O MAIS CARO',
+          aoTocar: aoTocar,
+        ),
+      ),
+      if (v.raro != null) ...[
+        const SizedBox(width: 16),
+        Expanded(
+          child: _Carta(
+            index: index,
+            character: v.raro!,
+            rotulo: 'O MAIS RARO',
+            aoTocar: aoTocar,
+          ),
+        ),
+      ],
+    ],
+  );
+
+  /// Three cards side by side are unreadable at 390 px, so a phone stacks
+  /// them instead — the same fallback the front page's own tool grid uses
+  /// in `_Cards`. The spread becomes a horizontal band between the first two
+  /// rather than a column beside them, since there is no longer a "beside"
+  /// to hold it.
+  Widget _colunaEstreita(
+    ({MarketCharacter barato, MarketCharacter caro, MarketCharacter? raro}) v,
+    int mult,
+  ) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      _Carta(
+        index: index,
+        character: v.barato,
+        rotulo: 'O MAIS BARATO',
+        aoTocar: aoTocar,
+      ),
+      _Multiplicador(mult: mult, vertical: false),
+      _Carta(
+        index: index,
+        character: v.caro,
+        rotulo: 'O MAIS CARO',
+        aoTocar: aoTocar,
+      ),
+      if (v.raro != null) ...[
+        const SizedBox(height: 16),
+        _Carta(
+          index: index,
+          character: v.raro!,
+          rotulo: 'O MAIS RARO',
+          aoTocar: aoTocar,
+        ),
+      ],
+    ],
+  );
+}
+
+/// The spread between the cheapest and the dearest card: a hairline, the
+/// multiple in [PWColors.magenta], and another hairline.
+///
+/// [vertical] picks the shape: a narrow column beside the two cards on the
+/// wide layout, or a horizontal band between them once they stack on a
+/// phone — there is no "beside" left to hold a column there.
+class _Multiplicador extends StatelessWidget {
+  const _Multiplicador({required this.mult, required this.vertical});
+
+  final int mult;
+  final bool vertical;
+
+  @override
+  Widget build(BuildContext context) {
+    final texto = Text(
+      '$mult×',
+      style: const TextStyle(
+        color: PWColors.magenta,
+        fontWeight: FontWeight.w700,
+        fontSize: 18,
+      ),
+    );
+
+    if (vertical) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: SizedBox(
+          width: 56,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: _Carta(
-                  index: index,
-                  character: v.barato,
-                  rotulo: 'O MAIS BARATO',
-                  aoTocar: aoTocar,
-                ),
-              ),
-              _Multiplicador(mult: mult),
-              Expanded(
-                child: _Carta(
-                  index: index,
-                  character: v.caro,
-                  rotulo: 'O MAIS CARO',
-                  aoTocar: aoTocar,
-                ),
-              ),
-              if (v.raro != null) ...[
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _Carta(
-                    index: index,
-                    character: v.raro!,
-                    rotulo: 'O MAIS RARO',
-                    aoTocar: aoTocar,
-                  ),
-                ),
-              ],
+              const _Hairline(),
+              const SizedBox(height: 6),
+              texto,
+              const SizedBox(height: 6),
+              const _Hairline(),
             ],
           ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          const Expanded(child: _HairlineExpandida()),
+          const SizedBox(width: 10),
+          texto,
+          const SizedBox(width: 10),
+          const Expanded(child: _HairlineExpandida()),
         ],
       ),
     );
   }
 }
 
-/// The narrow column between the cheapest and the dearest card: a hairline,
-/// the multiple in [PWColors.magenta], and another hairline.
-class _Multiplicador extends StatelessWidget {
-  const _Multiplicador({required this.mult});
-
-  final int mult;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 10),
-    child: SizedBox(
-      width: 56,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const _Hairline(),
-          const SizedBox(height: 6),
-          Text(
-            '$mult×',
-            style: const TextStyle(
-              color: PWColors.magenta,
-              fontWeight: FontWeight.w700,
-              fontSize: 18,
-            ),
-          ),
-          const SizedBox(height: 6),
-          const _Hairline(),
-        ],
-      ),
-    ),
-  );
-}
-
+/// The fixed-width hairline the vertical column uses on the wide layout.
 class _Hairline extends StatelessWidget {
   const _Hairline();
 
   @override
   Widget build(BuildContext context) =>
       Container(height: 1, width: 28, color: PWColors.filete);
+}
+
+/// The same hairline, stretched by its `Expanded` parent — the horizontal
+/// band the narrow layout uses instead of a column.
+class _HairlineExpandida extends StatelessWidget {
+  const _HairlineExpandida();
+
+  @override
+  Widget build(BuildContext context) =>
+      Container(height: 1, color: PWColors.filete);
 }
 
 /// One card: the class's own art fading into the panel, a corner label

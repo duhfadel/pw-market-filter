@@ -6,6 +6,40 @@ import 'package:flutter/material.dart';
 /// warm gold for what matters — so a card here and a card there read as the
 /// same object.
 abstract final class PWColors {
+  /// The palette the redesign is built on, **sampled from the site's own art
+  /// rather than invented**.
+  ///
+  /// The three class portraits were sampled at 120×120 with the dark pixels
+  /// discarded, and every dominant hue lands between **240° and 330°** —
+  /// violet, purple, magenta — with near-white highlights around `#F0D8F0`.
+  /// The old indigo is in that family but *flat* beside art that is violet and
+  /// magenta, and the gold accent was the only warm thing on the page. That
+  /// mismatch is why the art always looked pasted on rather than placed.
+  ///
+  /// These live beside the old tokens rather than replacing them. A screen
+  /// moves to them when its own plan ports it; until then both palettes are
+  /// valid and nothing is half-painted.
+  static const noite = Color(0xFF12102A);
+  static const painel = Color(0xFF1B1738);
+  static const elevado = Color(0xFF262046);
+  static const filete = Color(0xFF2F2857);
+  static const apagado = Color(0xFF9A93B8);
+  static const papel = Color(0xFFF0E6F2);
+
+  /// Structure — links, focus — and **one of the two class accents**.
+  static const violeta = Color(0xFF785ADC);
+
+  /// The other class accent, and the *novo* badge.
+  ///
+  /// **The accent rotates between these two and never leaves them.** An
+  /// earlier draft said "amber for the Bárbaro" and that was a contradiction:
+  /// amber *is* [accent], and [accent] is price. An accent borrowing the money
+  /// colour breaks the one rule this palette is built on, on the screen where
+  /// it is most visible. Two accents also kill the alternative — seventeen
+  /// colours needing seventeen contrast checks — and both of these already
+  /// hold at 14 px against [painel].
+  static const magenta = Color(0xFFD4609E);
+
   static const background = Color(0xFF0B0B1A);
   static const surface = Color(0xFF13132A);
   static const surfaceRaised = Color(0xFF1C1C38);

@@ -46,7 +46,7 @@ class Cartaz extends StatelessWidget {
           Padding(
             padding: EdgeInsets.symmetric(
               horizontal: wide ? 56 : 24,
-              vertical: 20,
+              vertical: 24,
             ),
             child: Align(
               alignment: Alignment.centerLeft,

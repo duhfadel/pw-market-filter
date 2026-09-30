@@ -4,6 +4,7 @@ import 'package:pw_market_filter/core/theme/pw_colors.dart';
 import 'package:pw_market_filter/features/search/domain/search_query.dart';
 import 'package:pw_market_filter/features/search/ui/widgets/character_card.dart';
 import 'package:pw_market_filter/market/market_index.dart';
+import 'package:pw_market_filter/market/price_history.dart';
 
 /// The card is what the whole tool hands back, and it had no test of its own.
 final _index = MarketIndex(
@@ -28,6 +29,7 @@ MarketCharacter _character({
   String realm = '',
   String path = '',
   List<int> runes = const [],
+  PriceHistory? history,
 }) => MarketCharacter(
   roleId: 64112,
   name: 'Leandrim',
@@ -43,6 +45,7 @@ MarketCharacter _character({
   realm: realm,
   path: path,
   runes: runes,
+  history: history,
   equipped: const [
     EquippedItem(
       slot: 10,
@@ -257,5 +260,64 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byType(FittedBox), findsOneWidget);
+  });
+
+  testWidgets('a price that came down says so', (tester) async {
+    // The whole reason the history exists. A card that fell from 1200 to 1000
+    // must not look like one that always asked 1000.
+    await _pump(
+      tester,
+      _character(
+        history: PriceHistory(
+          firstSeen: DateTime.utc(2026, 9, 20),
+          previousPrice: 1200,
+          lowestPrice: 1000,
+          cuts: 1,
+        ),
+      ),
+    );
+
+    expect(find.text('1200'), findsOneWidget);
+  });
+
+  testWidgets('a price that never moved says nothing', (tester) async {
+    // Silence is the default: a line on every card would be noise on the
+    // forty that never moved.
+    await _pump(
+      tester,
+      _character(
+        history: PriceHistory(
+          firstSeen: DateTime.utc(2026, 9, 20),
+          lowestPrice: 1000,
+        ),
+      ),
+    );
+
+    expect(find.byKey(const ValueKey('queda')), findsNothing);
+  });
+
+  testWidgets('a price that went up says nothing', (tester) async {
+    // previousPrice is set on any move, rise or fall — cuts is the field that
+    // tracks falls. A seller who raised 800 to 1000 must not read as a markdown
+    // from 800, which is what a naive "previousPrice is set" check would draw.
+    await _pump(
+      tester,
+      _character(
+        history: PriceHistory(
+          firstSeen: DateTime.utc(2026, 9, 20),
+          previousPrice: 800,
+          lowestPrice: 800,
+        ),
+      ),
+    );
+
+    expect(find.byKey(const ValueKey('queda')), findsNothing);
+  });
+
+  testWidgets('a character with no record says nothing', (tester) async {
+    // An index collected before any of this must not grow a line.
+    await _pump(tester, _character());
+
+    expect(find.byKey(const ValueKey('queda')), findsNothing);
   });
 }

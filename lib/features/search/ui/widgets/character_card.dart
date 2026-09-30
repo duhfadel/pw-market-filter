@@ -7,6 +7,7 @@ import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/game_icon.dart';
 import '../../../../market/counted_items.dart';
 import '../../../../market/market_index.dart';
+import '../../../../market/price_history.dart';
 import '../../../../market/slot_names.dart';
 import '../../domain/index_facets.dart';
 import '../../domain/matcher.dart';
@@ -70,6 +71,84 @@ class _Fact {
 /// that satisfied it and by how much. Without that the list answers "these
 /// match" and leaves you opening pages to find out which weapon it was — which
 /// is the work this tool exists to remove.
+///
+/// The frame of a card, or `null` for the plain border.
+///
+/// **The grid is scanned before it is read**, and until 29/09/2026 every card
+/// weighed the same: a 25.000 TCC character on the top tier looked like a 40
+/// TCC one, because the only thing separating them was 13 px of grey text.
+/// The frame carries it now, in the palette a player already reads from the
+/// game's own items.
+///
+/// The rungs are the market's and not invented. Measured over 1519 listings,
+/// `Nível de Ataque` on a weapon lands on exactly four numbers — 30 (212
+/// characters), 40 (363), 70 (674) and 80 (13) — which is the game's ladder
+/// showing through. `Nível de Defesa` is a different shape: noise from 1 to
+/// 30, nothing at all between 31 and 79, then **80 on eight characters**. So
+/// the defensive UP5 is unambiguous, and it gets a colour of its own rather
+/// than a rung: it is the same top tier bought in the other currency, and
+/// whoever wants it is not shopping for an attacking weapon at any price.
+///
+/// **Thirty draws nothing, on the owner's call.** It was a rung until
+/// 29/09/2026 and it was the wrong one to spend a colour on: 212 characters
+/// wearing the cheapest tier the game prints. A frame is for telling the grid
+/// apart, and the bottom of the market does not need a badge saying it is the
+/// bottom — the plain border already says it. The grey block goes from 16% to
+/// 30% of the grid and that is the point.
+///
+/// The order matters and is deliberate: defence is asked **first**, so the
+/// eight defensive UP5s can never fall through to the attack ladder. They are
+/// disjoint in this collection — no character carries both — but an ordering
+/// that only works while that holds is an ordering waiting to break.
+Color? weaponTierColor(MarketIndex index, MarketCharacter character) {
+  final (ataque, defesa) = _weaponLevels(index, character);
+
+  if (defesa >= 80) return PWColors.defenceTier;
+
+  // The steps are spread across the palette rather than taken in order. Grades
+  // 4 and 5 are amber and orange — neighbours — and the distinction that
+  // matters most here is exactly the one they blurred: a grid of UP5s and 70s
+  // came out the same colour. Red tops the game's own ladder, so it takes the
+  // top rung.
+  return switch (ataque > defesa ? ataque : defesa) {
+    >= 80 => PWColors.gradeColors[6],
+    >= 70 => PWColors.gradeColors[4],
+    >= 40 => PWColors.gradeColors[3],
+    _ => null,
+  };
+}
+
+/// Attack and defence level on the **worn weapon**, in that order.
+///
+/// Kept apart rather than reduced to the better of the two, which is what this
+/// read before the defensive tier earned its own colour: `max` cannot say
+/// which of them answered, and the whole point is that 80 of one is not 80 of
+/// the other.
+///
+/// The weapon slot only. A criterion may ask about any piece, but the frame is
+/// a statement about the weapon, and an amulet's attack level vouching for it
+/// would be the same fraud `_satisfies` refuses when it reads every condition
+/// off one item.
+(int, int) _weaponLevels(MarketIndex index, MarketCharacter character) {
+  final idAtaque = index.attributes.indexOf('Nível de Ataque');
+  final idDefesa = index.attributes.indexOf('Nível de Defesa');
+
+  var ataque = 0;
+  var defesa = 0;
+  for (final item in character.equipped) {
+    if (item.slot != weaponSlot) continue;
+    if (idAtaque >= 0) {
+      final v = item.attributes[idAtaque] ?? 0;
+      if (v > ataque) ataque = v;
+    }
+    if (idDefesa >= 0) {
+      final v = item.attributes[idDefesa] ?? 0;
+      if (v > defesa) defesa = v;
+    }
+  }
+  return (ataque, defesa);
+}
+
 class CharacterCard extends StatelessWidget {
   const CharacterCard({
     required this.character,
@@ -89,6 +168,8 @@ class CharacterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tier = weaponTierColor(index, character);
+
     return Material(
       color: PWColors.surface,
       borderRadius: BorderRadius.circular(10),
@@ -99,7 +180,22 @@ class CharacterCard extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: PWColors.border),
+            // A gradient and not a flat fill: the tier bleeds in from the top
+            // left, the way the game lights its own item frames, and dies
+            // before it reaches the text. At 0x1A it is barely a tint — enough
+            // for a grid of forty to sort itself out at a glance, not enough
+            // to fight the numbers.
+            gradient: tier == null
+                ? null
+                : LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [tier.withValues(alpha: 0.10), PWColors.surface],
+                    stops: const [0, 0.62],
+                  ),
+            border: Border.all(
+              color: tier?.withValues(alpha: 0.55) ?? PWColors.border,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,12 +235,22 @@ class CharacterCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              '${character.price} TCC',
-                              style: const TextStyle(
-                                color: PWColors.accent,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '${character.price} TCC',
+                                  style: const TextStyle(
+                                    color: PWColors.accent,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                if (character.history != null)
+                                  _Queda(
+                                    history: character.history!,
+                                    price: character.price,
+                                  ),
+                              ],
                             ),
                           ],
                         ),
@@ -589,4 +695,41 @@ class CharacterCard extends StatelessWidget {
       mode: LaunchMode.externalApplication,
     ),
   );
+}
+
+/// What the price used to be, under what it is now.
+///
+/// **Only when it fell, and only when it actually moved.** A line on every
+/// card would be noise on the forty that never moved, and a rise is not news
+/// a buyer can use — the question this site exists to answer is where the
+/// cheap ones are.
+///
+/// The old price is struck through rather than labelled: *de 500* needs a
+/// word, and the strike is the word every shop already uses.
+class _Queda extends StatelessWidget {
+  const _Queda({required this.history, required this.price});
+
+  final PriceHistory history;
+
+  /// The character's current price. [PriceHistory.previousPrice] is set on
+  /// **any** move — a rise as much as a fall — so it alone cannot tell one
+  /// from the other. Comparing it against the price now is what confines this
+  /// widget to the fall its docstring promises.
+  final int price;
+
+  @override
+  Widget build(BuildContext context) {
+    final antes = history.previousPrice;
+    if (antes == null || antes <= price) return const SizedBox.shrink();
+
+    return Text(
+      '$antes',
+      key: const ValueKey('queda'),
+      style: const TextStyle(
+        color: PWColors.textMuted,
+        fontSize: 11,
+        decoration: TextDecoration.lineThrough,
+      ),
+    );
+  }
 }

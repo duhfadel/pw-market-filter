@@ -136,7 +136,7 @@ both legendary pets and has renamed both).
 
 | Command | Description |
 |---------|-------------|
-| `dart run tool/collect.dart` | Collects the market and writes `assets/market_index.json` (~40 min) |
+| `dart run tool/collect.dart` | Collects the market and writes `web/market_index.json` (~40 min) |
 | `dart run tool/collect.dart --resume` | Continues an interrupted collection |
 | `dart run tool/collect.dart --rebuild` | Rewrites the index from the saved state — no network, seconds |
 | `dart run tool/fetch_icons.dart` | Downloads class and item icons named by the index; skips what is already on disk |
@@ -158,7 +158,7 @@ There is no codegen. DI is three registrations written by hand in
 Two programs, one repository, one file between them.
 
 ```
-site  ──►  tool/collect.dart  ──►  assets/market_index.json  ──►  Flutter web app
+site  ──►  tool/collect.dart  ──►  web/market_index.json  ──►  Flutter web app
            dart:io, ~40 min          the contract                 in memory, ms
 ```
 
@@ -514,6 +514,28 @@ anyone who can write to those columns a script tag on the page. Probed with
 `<img onerror>` and `<script>` in both: they come out as visible text, the
 title stays put, and no element is created.
 
+**That paragraph covered two columns and read as though it covered the page,
+and the gap it hid lasted until 29/09/2026.** `nome`, `guilda`, `cor` and
+`brasao` went into `innerHTML` raw, and `web/guerras/index.html` carried **no
+escape function at all** — the one that existed lived only in
+`territorio/index.html`. A `guildas.cor` of `red" onload="…` closes the
+attribute early and the rest becomes an event handler; no `<script>` is
+needed, which is why escaping only `<` and `>` would not have helped. The
+character that does the damage is the quote.
+
+Nobody could reach it: those tables have no insert, update or delete policy,
+so the publishable key writes nothing. It was a door with no lock behind a
+locked gate, live the moment a write policy was added by mistake or the
+service key leaked.
+
+Three things are worth keeping from it. **The same file already did it right
+fifty lines away** — `setAttribute` does not parse HTML — so this was a slip
+and not a decision. **A colour needs more than escaping**: `url(https://…)`
+contains none of the characters an escaper replaces, so `corSegura` validates
+the shape instead, the same call `enderecoWeb()` makes for a streamer's link.
+And a note that says "this is escaped" about two fields will be read as being
+about all of them — so it now says which.
+
 A single newline collapses to a space and only a blank line starts a
 paragraph — markdown's rule, and not the obvious `<br>`. Text pasted out of
 Discord arrives hard-wrapped at that window's width, and `<br>` reproduced
@@ -592,10 +614,133 @@ A drawer that cannot climb says so: two level ones are two level ones, because
 a level 2 wants three. Printing "you can forge 2 runas nível 1" would dress up
 what is already in the bag as an achievement.
 
+**Uma runa se funde com runas do próprio nível ou abaixo, e ignorar isso fez a
+tela mentir.** Reportado pelo dono em 30/09/2026: escolha o nível 9, marque
+runas 8, depois baixe o alvo para 5 — e a página anunciava que a runa já era
+possível. `calcular` somava **todo** o estoque sem olhar o nível, então três
+runas 8 valiam 43.200 em nível 1 contra as 206 que o alvo 5 custa, a conta dava
+negativo e era achatada para zero.
+
+**O pior era a invisibilidade**, e é ela que transforma um erro de conta em
+mentira: as caixas de estoque paravam um abaixo do alvo, então as runas que
+produziam a resposta **não tinham controle nenhum na tela**. O relato do dono
+foi exatamente isso — *"ele diz que já podemos fazer, mas eu não vejo a
+quantidade que nós marcamos"*.
+
+As caixas acima do alvo ficam agora, esmaecidas, guardando o que foi digitado
+— subir o alvo de novo não pode custar o inventário outra vez — e uma linha diz
+por que estão fora. `acimaDoAlvo` existe só para a tela poder dizer isso em voz
+alta em vez de ignorar calado.
+
+**Um teste afirmava o contrário e foi trocado, o que é decisão de produto e não
+conserto.** `more than enough is still enough` cravava que ter uma runa 5
+resolvia querer uma 4. A metade certa dele — nunca imprimir recado negativo —
+virou teste próprio; a outra metade era a mentira. O painel *a maior que dá
+para forjar* continua usando o estoque inteiro, e deve: ali a pergunta é o que
+dá para fazer **subindo**, e aí uma runa alta vale.
+
 **The sub-level percentages are not stored.** They differ per centre with no
 pattern — centre 3 and centre 6 both give 20% at the top and then 10% and 8%
 respectively — and the cheapest path never needs them, because same-level fuel
 alone reproduces the game's own cost lists exactly.
+
+## A moldura do card diz o patamar da arma
+
+Uma grade de quarenta cards é **varrida antes de ser lida**, e até 29/09/2026
+todos pesavam igual: um personagem de 25.000 TCC com arma UP5 parecia um de
+40, porque o que os separava eram 13 px de texto cinza. A moldura agora carrega
+isso, na paleta de raridade do próprio jogo — `PWColors.gradeColors`, que o
+jogador já lê nos itens.
+
+**A escada é do mercado e não inventada, e medi-la mostrou a forma dela.**
+Sobre 1519 anúncios, `Nível de Ataque` numa arma cai em exatamente quatro
+números — 30 (212 personagens), 40 (363), 70 (674) e 80 (13). É a escada do
+jogo aparecendo. `Nível de Defesa` tem outro formato: ruído de 1 a 30, **nada
+entre 31 e 79**, e 80 em oito pessoas.
+
+Daí as duas correções de 29/09, as duas na mão do dono:
+
+**O 30 não desenha nada.** Era um degrau e era o pior lugar para gastar uma
+cor: 212 personagens no patamar mais barato que o jogo imprime. Moldura serve
+para distinguir a grade, e o fundo do mercado não precisa de um selo dizendo
+que é o fundo — a borda cinza já diz. O bloco cinza vai de 16% a 30% da grade,
+e é isso mesmo que se quer.
+
+**A UP5 defensiva tem cor própria, `PWColors.defenceTier`.** Não é um degrau:
+é o mesmo topo comprado na outra moeda, e quem caça arma defensiva não está
+procurando uma ofensiva mais barata. Pintá-la de vermelho junto com as de
+ataque dizia que eram a mesma compra — e o mercado diz que não são, já que os
+dois conjuntos são **disjuntos**.
+
+**Verde e não o azul que se pediu, e a medição é a razão.** Composto no 55% da
+borda sobre `surface`, o azul `#56A8F5` fica a **27,9 ΔE** do roxo de 40-69 —
+a menor distância de toda a escada, menor que o par vermelho/âmbar que já está
+nela, e contra um roxo que ocupa 24% da grade. O verde `#6FCF97` tem 41,8 no
+pior caso. É a mesma armadilha que pegou a primeira versão da escada, e desta
+vez foi medida antes de renderizar em vez de depois.
+
+A defesa é perguntada **primeiro**, para que as oito nunca caiam na escada de
+ataque. São disjuntas hoje; uma ordem que só funciona enquanto isso valer é
+uma ordem esperando para quebrar.
+
+E a moldura ganhou o teste que nunca teve. `weapon_tier_test` crava os quatro
+degraus, o degrau defensivo, o 30 que não pinta, o ruído de defesa até 30, que
+só a arma fala pela moldura, e uma coleta que nunca viu o atributo. Oito
+pessoas em 1519 é um caso que ninguém encontra rolando a página.
+
+**Os degraus são espalhados pela paleta, não tomados em ordem.** A primeira
+versão usou os graus 5 e 4 — laranja e âmbar, vizinhos — e na grade **o UP5 e
+o 70 saíram da mesma cor**, justamente a distinção que mais importa aqui. Só
+apareceu renderizando. O vermelho encabeça a escada do jogo e ficou com o topo.
+
+O degradê entra a 10% pelo canto superior esquerdo e morre antes do texto: o
+bastante para a grade se organizar de relance, não o bastante para brigar com
+os números.
+
+### A UP5 são dois chips, e o chip único foi um comentário mentindo
+
+A moldura acima lê ataque **ou** defesa e está certa: `_weaponTier()` toma o
+maior dos dois. No mesmo commit, o chip `Arma UP5` trazia o comentário
+*"Ataque **ou** defesa: a UP5 vem nas duas caras"* sobre a linha
+`weaponQuery(index, 'Nível de Ataque', 80)` — **e não existe ou nenhum aqui**:
+`SearchQuery.criteria` é um e, e nada no commit acrescentou outra coisa. O chip
+respondia metade da pergunta, e o chip `Defesa de 80 na arma`, que era a única
+porta para a outra metade, saiu no mesmo commit.
+
+Medido em 29/09/2026 sobre 1519 anúncios: **13 pela arma de ataque, 8 pela de
+defesa, interseção zero.** Sendo disjuntos, um chip só nunca foi uma fusão —
+era uma perda de oito pessoas. São `Atq lvl UP5` e `Def lvl UP5` agora, e não
+são a mesma compra: quem procura arma defensiva tem uma build em mente.
+
+**Duas lições, e a segunda é a cara.** Um comentário que descreve a intenção em
+vez do código envelhece para mentira no dia em que os dois divergem, e aqui
+divergiram no minuto zero — o comentário foi escrito com a frase certa sobre a
+linha errada. E `presets_test` roda sobre `web/market_index.json`, o mercado
+real, mas `preset_chips_test` roda sobre um índice sintético **onde ninguém
+tem arma defensiva**: o caso que falha não era exercido. É a mesma forma do
+lote da Twitch, onde a reprodução com todos os canais offline respondeu 200.
+
+### O pulso da home lê os chips, e antes remontava as perguntas
+
+`market_pulse.dart` construía cada figura à mão — procurava `Nível de Ataque` e
+montava o próprio `SearchQuery` — enquanto os chips eram montados em
+`presets.dart`. As duas telas divergiram na primeira vez que os chips mudaram:
+o conjunto ganhou *5 essências* e *Seis cartas S* e perdeu um patamar, e a
+primeira dobra não seguiu nada disso, porque nada as ligava. O `CLAUDE.md`
+afirmava que eram os mesmos objetos `SearchQuery`, e tinha deixado de ser
+verdade.
+
+`figuresFor(index)` percorre `presetsFor` agora, e `figureLabels` é o mapa de
+*quais* chips viram figura e como cada um se lê aqui — `Arma de 70 ou mais` é
+uma coisa de tocar no filtro, `687 com arma de 70 ou mais` é uma frase na home.
+**Nem todo chip merece figura**: as figuras são o argumento da página, não um
+índice do filtro, então três ficam de fora de propósito.
+
+Um chip que esta coleta não sabe montar tira a própria figura da tela sozinho,
+porque `weaponQuery` responde `null` para um patamar que o mercado não alcançou
+— o que substitui três blocos de `if` por nada. O que o teste crava é a junção:
+uma figura que nomeia um chip inexistente some da home em silêncio, e o `Wrap`
+simplesmente desenha uma a menos.
 
 ## A licença, e por que ela existe
 

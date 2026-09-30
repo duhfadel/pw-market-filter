@@ -163,8 +163,16 @@ class HomeView extends StatelessWidget {
                           SizedBox(height: wide ? 12 : 10),
                           Center(
                             child: Text(
-                              'Filtre os personagens à venda do The Classic PW 1.8.7 por '
-                              'arma, cartas, refino e atributos.',
+                              // **Diz o que só aqui se acha.** A frase antes
+                              // listava arma, cartas e refino — coisas que o
+                              // próprio marketplace deixa ver. O que este
+                              // site faz de diferente é ler a mochila e o
+                              // banco: chaves, essências e relíquias não
+                              // aparecem em lugar nenhum da busca oficial.
+                              'Ache por arma UP5, chaves, essências, '
+                              'relíquias e combos de carta — o que o '
+                              'marketplace guarda no inventário e não deixa '
+                              'procurar.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: PWColors.textMuted,
@@ -428,6 +436,24 @@ class _Footer extends StatelessWidget {
         'públicas do marketplace.',
         textAlign: TextAlign.center,
         style: TextStyle(color: PWColors.textMuted, fontSize: 12, height: 1.5),
+      ),
+      const SizedBox(height: 8),
+      // **A licença cobre o repositório; esta linha cobre a página.** Quem
+      // copia não clona o repositório — olha o site, e em 29/09/2026 onze dos
+      // nossos quinze nomes de combo apareceram no bundle de outro site. Sem
+      // nada escrito aqui, "não sabia" é uma defesa disponível.
+      //
+      // Duas frases e não uma, porque elas dizem coisas opostas e juntá-las
+      // seria reivindicar o que não é nosso: o que reservamos são as
+      // compilações — os combos, a escada das runas, as 126 receitas —, e
+      // nomes, arte e dados do jogo são da The Classic. Reivindicar esses
+      // seria falso e enfraqueceria o resto.
+      const Text(
+        '© 2026 Portal PW · todos os direitos reservados sobre o código e as '
+        'compilações deste site.\nNomes, atributos e arte do jogo pertencem à '
+        'The Classic Games.',
+        textAlign: TextAlign.center,
+        style: TextStyle(color: PWColors.textMuted, fontSize: 11, height: 1.5),
       ),
       const _VisitCount(),
       // The mark alone, in the corner. The invitation is spelled out three

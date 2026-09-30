@@ -34,6 +34,14 @@ const _classParam = 'classe';
 const _cultivationParam = 'cultivo';
 const _levelParam = 'nivel';
 const _priceParam = 'preco';
+
+/// The character's own nickname.
+///
+/// Stable across collections in the way an attribute id is not — a nickname
+/// belongs to the character and survives a re-crawl — so it is written
+/// straight, and `Uri` escapes the spaces, accents and question marks that
+/// real nicknames carry.
+const _nameParam = 'nome';
 const _itemParam = 'item';
 const _comboParam = 'carta';
 const _rarityParam = 'raridade';
@@ -82,6 +90,10 @@ String encodeQuery(SearchQuery query, [MarketIndex? index]) {
     if (value != null) params[key] = [value];
   }
 
+  // `askedName` and not `name`: a field somebody tabbed through and left
+  // blank is not a question, and writing `nome=` into a shared link would
+  // hand the next person a filter that looks set and asks nothing.
+  put(_nameParam, query.askedName);
   put(_classParam, query.characterClass);
   put(_cultivationParam, query.cultivation);
   put(_levelParam, _encodeRange(query.minLevel, query.maxLevel));
@@ -255,6 +267,7 @@ SearchQuery decodeQuery(
     maxLevel: maxLevel,
     minPrice: minPrice,
     maxPrice: maxPrice,
+    name: first(_nameParam),
     itemBySlot: itemBySlot,
     comboName: first(_comboParam),
     cardRarity: first(_rarityParam),

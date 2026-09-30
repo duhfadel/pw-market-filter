@@ -115,9 +115,15 @@ class _CountedItemsSectionState extends State<CountedItemsSection> {
         // The first counted item the collection found, so the emblem is a
         // picture of the thing rather than a glyph meaning "some section".
         emblem: counted.first.value,
-        // Counts what is marked. Every minimum in force sits under a mark, so
-        // this can never be smaller than the number of filters hiding inside.
-        badge: state.query.shownOwned.length,
+        // Counts what is marked **and drawn**. Every minimum in force sits
+        // under a mark, so this can never be smaller than the number of
+        // filters hiding inside — but a name this market has none of draws no
+        // row, and counting it would have the closed header promise a line
+        // that is not in there. It started mattering when the `Chave da
+        // Sorte` began marked: a market without keys showed `1` over nothing.
+        badge: counted
+            .where((e) => state.query.shownOwned.contains(e.key))
+            .length,
         expanded: _open,
       ),
     ),

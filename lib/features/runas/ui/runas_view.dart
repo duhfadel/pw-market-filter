@@ -173,18 +173,48 @@ class _Estoque extends StatelessWidget {
         spacing: 10,
         runSpacing: 10,
         children: [
-          for (var n = 1; n < alvo; n++)
-            _Campo(
-              // Keyed by level **and** target: the row is rebuilt when the
-              // target changes, and without this the text would stay in the
-              // box that has moved on to another level.
-              key: ValueKey('$alvo-$n'),
-              nivel: n,
-              valor: estoque[n] ?? 0,
-              aoTrocar: (q) => aoTrocar(n, q),
-            ),
+          // Up to the target, and then whatever sits **above** it that the
+          // player has already typed. Those higher runes cannot be spent —
+          // a rune is fused with runes at its own level or below — so they
+          // are drawn dimmed rather than removed.
+          //
+          // Removing them is what caused the bug reported on 30/09/2026: the
+          // boxes stopped one below the target, so lowering the target hid
+          // the stock while `calcular` went on counting it, and the page
+          // announced a rune was affordable on the strength of runes nobody
+          // could see. The arithmetic ignores them now, and the screen says
+          // so instead of staying quiet.
+          for (var n = 1; n <= 9; n++)
+            if (n <= alvo || (estoque[n] ?? 0) > 0)
+              _Campo(
+                // Keyed by level **and** target: the row is rebuilt when the
+                // target changes, and without this the text would stay in the
+                // box that has moved on to another level.
+                key: ValueKey('$alvo-$n'),
+                nivel: n,
+                valor: estoque[n] ?? 0,
+                aoTrocar: (q) => aoTrocar(n, q),
+                serve: n <= alvo,
+              ),
         ],
       ),
+      // Says why the dimmed boxes are dimmed. Fading them alone reads as
+      // "disabled" and leaves the player hunting for the switch; the reason
+      // is a rule of the game, and the screen is the only place it can be
+      // read.
+      if (acimaDoAlvo(alvo: alvo, estoque: estoque).isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Text(
+            'As runas acima do nível $alvo ficam de fora da conta: '
+            'uma runa se funde com runas do próprio nível ou abaixo.',
+            style: const TextStyle(
+              color: PWColors.textMuted,
+              fontSize: 12,
+              height: 1.4,
+            ),
+          ),
+        ),
     ],
   );
 }
@@ -194,12 +224,18 @@ class _Campo extends StatefulWidget {
     required this.nivel,
     required this.valor,
     required this.aoTrocar,
+    required this.serve,
     super.key,
   });
 
   final int nivel;
   final int valor;
   final ValueChanged<int> aoTrocar;
+
+  /// Whether this level can be spent on the current target. A rune above it
+  /// cannot: the box stays, holding what was typed, but says it is out of
+  /// play.
+  final bool serve;
 
   @override
   State<_Campo> createState() => _CampoState();
@@ -219,25 +255,31 @@ class _CampoState extends State<_Campo> {
   @override
   Widget build(BuildContext context) => SizedBox(
     width: 96,
-    child: TextField(
-      controller: _controle,
-      keyboardType: TextInputType.number,
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      style: const TextStyle(color: PWColors.text, fontSize: 15),
-      decoration: InputDecoration(
-        labelText: 'nv ${widget.nivel}',
-        labelStyle: const TextStyle(color: PWColors.textMuted, fontSize: 12),
-        isDense: true,
-        border: const OutlineInputBorder(),
-        // The rune itself, because the art brightens with the level: on a
-        // screen about levels, the picture reads faster than the label.
-        prefixIcon: Padding(
-          padding: const EdgeInsets.only(left: 8, right: 4),
-          child: ItemIcon(arteDaRuna(widget.nivel), size: 22),
+    child: Opacity(
+      opacity: widget.serve ? 1 : 0.4,
+      child: TextField(
+        controller: _controle,
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        style: const TextStyle(color: PWColors.text, fontSize: 15),
+        decoration: InputDecoration(
+          labelText: 'nv ${widget.nivel}',
+          labelStyle: const TextStyle(color: PWColors.textMuted, fontSize: 12),
+          isDense: true,
+          border: const OutlineInputBorder(),
+          // The rune itself, because the art brightens with the level: on a
+          // screen about levels, the picture reads faster than the label.
+          prefixIcon: Padding(
+            padding: const EdgeInsets.only(left: 8, right: 4),
+            child: ItemIcon(arteDaRuna(widget.nivel), size: 22),
+          ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 0,
+            minHeight: 0,
+          ),
         ),
-        prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+        onChanged: (t) => widget.aoTrocar(int.tryParse(t) ?? 0),
       ),
-      onChanged: (t) => widget.aoTrocar(int.tryParse(t) ?? 0),
     ),
   );
 }

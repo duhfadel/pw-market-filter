@@ -74,6 +74,14 @@ flutter:
     # fetched over HTTP at runtime, so refreshing the data is one file instead
     # of a rebuild — see IndexRepository.
     - assets/images/
+    # As artes que o Cartaz sorteia, uma por classe. Pasta separada de
+    # `images/` de proposito: as tres que estao la fora seguem nos cards de
+    # ferramenta, e sobrescreve-las trocaria a arte de um card sem ninguem
+    # pedir. Duas pastas, dois trabalhos.
+    #
+    # No Flutter web o asset e buscado sob demanda, entao as dezesseis no
+    # deploy nao viram peso no navegador: o visitante baixa a do dia.
+    - assets/images/classes/
     - assets/icons/classes/
     - assets/icons/items/
 

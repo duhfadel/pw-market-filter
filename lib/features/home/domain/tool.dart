@@ -157,19 +157,19 @@ final tools = <Tool>[
   // guides" card. There is one written, so this is one card — and that is the
   // point: a card that leads to a list of one is a click spent on nothing, and
   // as guides are written the front page fills itself.
-  Tool(
-    name: 'Guerras territoriais',
-    tagline:
-        'O mapa dos 52 territórios de Pangu: quem domina cada um e quanto '
-        'de gold rende.',
-    icon: Icons.local_fire_department_outlined,
-    // A página existe e está publicada em /guerras/, mas o card continua sem
-    // href de propósito: ela está sendo mostrada a um punhado de pessoas antes
-    // de ser anunciada. Ligar aqui é o gesto que a torna pública — junto com
-    // tirar o `noindex` das duas páginas e devolvê-las ao sitemap. Os três
-    // andam juntos; fazer um só deixa o site incoerente consigo mesmo.
-    art: 'assets/images/barbaro.webp',
-  ),
+  // **Guerras territoriais saiu da lista em 29/09/2026, e não virou um card
+  // apagado — saiu inteiro.** Um *em breve* é uma promessa com data implícita,
+  // e uma promessa que fica meses na primeira dobra ensina o visitante a não
+  // acreditar na próxima. A regra que justifica listar o que não existe ainda
+  // supõe que a coisa está a caminho; esta não está.
+  //
+  // A página continua publicada em `/guerras/` e continua sem link daqui — o
+  // que muda é que a home parou de anunciá-la. Para trazê-la de volta são
+  // três gestos que andam juntos, e fazer um só deixa o site incoerente
+  // consigo mesmo: devolver o `Tool` aqui **com `href`**, tirar o `noindex`
+  // das duas páginas e devolvê-las ao sitemap.
+  //
+  // `assets/images/barbaro.webp` ficou livre com a saída dela.
   Tool(
     name: 'Início rápido',
     tagline:

@@ -54,6 +54,14 @@ enum ResultOrder {
   mostAnecdotes('Mais anedotas'),
   mostOwned('Mais relíquias'),
 
+  /// Adds up the whole *Essência Dracônica* group — the essence, the raw one
+  /// and the chest — the same number `countOf` prints on the card.
+  ///
+  /// An order and not a chip, on the owner's call: a filter would hide the
+  /// people below the cut, and the question here is *who has most*, which
+  /// ranking answers without taking anybody off the screen.
+  maisEssencias('Mais essências'),
+
   /// Both directions, like the price and unlike everything else here. The two
   /// are different searches: the most advanced character, and the cheapest one
   /// still worth raising.
@@ -73,6 +81,11 @@ enum ResultOrder {
       (c) => c.anecdotes != null,
     ),
     ResultOrder.mostOwned => relicNames.any(index.countedItems.containsKey),
+    // Offered only where the market has one, like every other order that
+    // reads a counted item.
+    ResultOrder.maisEssencias => index.countedItems.containsKey(
+      'Essência Dracônica',
+    ),
     ResultOrder.highestRealm ||
     ResultOrder.lowestRealm => index.characters.any((c) => c.realm.isNotEmpty),
     _ => true,
@@ -114,6 +127,7 @@ class RuneCriterion {
 /// Everything the form asks for. A field left `null` asks nothing.
 class SearchQuery {
   const SearchQuery({
+    this.name,
     this.characterClass,
     this.cultivation,
     this.minLevel,
@@ -135,6 +149,27 @@ class SearchQuery {
     this.runes,
     this.order = ResultOrder.cheapest,
   });
+
+  /// A fragment of the character's own nickname, matched without regard to
+  /// case or accents.
+  ///
+  /// **A filter and not a jump.** Typing a name narrows the grid rather than
+  /// opening that character, which is what lets it compose: *"algum Leite com
+  /// arma de 70"* is a question the form could not ask before, and a jump
+  /// would answer a different one.
+  ///
+  /// A fragment rather than a prefix, because somebody hunting a character
+  /// remembers a piece of the name and rarely where the piece sits.
+  final String? name;
+
+  /// The trimmed [name], or `null` when there is nothing to ask.
+  ///
+  /// A field somebody tabbed through and left empty is not a question, and
+  /// neither is one holding spaces — both must leave the market whole.
+  String? get askedName {
+    final typed = name?.trim();
+    return (typed == null || typed.isEmpty) ? null : typed;
+  }
 
   final String? characterClass;
   final String? cultivation;
@@ -241,6 +276,7 @@ class SearchQuery {
   /// The order is not part of this: it is always set, and a query that only
   /// orders is still a query that asks nothing.
   bool get isEmpty =>
+      askedName == null &&
       characterClass == null &&
       cultivation == null &&
       minLevel == null &&
@@ -297,6 +333,7 @@ class SearchQuery {
   };
 
   SearchQuery copyWith({
+    String? Function()? name,
     String? Function()? characterClass,
     String? Function()? cultivation,
     int? Function()? minLevel,
@@ -318,6 +355,7 @@ class SearchQuery {
     RuneCriterion? Function()? runes,
     ResultOrder? order,
   }) => SearchQuery(
+    name: name == null ? this.name : name(),
     characterClass: characterClass == null
         ? this.characterClass
         : characterClass(),

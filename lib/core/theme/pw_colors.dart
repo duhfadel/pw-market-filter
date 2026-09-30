@@ -64,6 +64,27 @@ abstract final class PWColors {
   /// Discord's own #3BA55D would land at 5.8 and go muddy on a dark panel.
   static const live = Color(0xFF5FBA7D);
 
+  /// The frame of a character wearing the **defensive** UP5.
+  ///
+  /// The other four rungs of the card's frame are one ladder — how much the
+  /// weapon gives — and they take the game's rarity colours in order of how
+  /// much that is. This one is not a rung: it is the same top tier asked in
+  /// the other currency, and a player hunting a defensive weapon is not
+  /// shopping for a cheaper attacking one. Eight characters in 1519 carry it.
+  ///
+  /// **Green rather than the blue that was asked for, and the measurement is
+  /// why.** Composited at the border's 55% over [surface], blue `#56A8F5`
+  /// lands 27.9 ΔE from the 40-69 purple — the shortest distance in the whole
+  /// ladder, and closer than the red/amber pair already in it, against a
+  /// purple that holds 24% of the grid. This green's worst neighbour is amber
+  /// at 41.8. The same trap caught the first version of the ladder, which
+  /// used two neighbouring ambers and blurred UP5 against 70.
+  ///
+  /// It is the green of [gradeColors] rung 1 to the byte, and that costs
+  /// nothing: a rank-1 item and a defensive weapon never share a card's
+  /// frame — the frame draws one colour, chosen here.
+  static const defenceTier = Color(0xFF6FCF97);
+
   /// Item grades, following the game's own rarity colours.
   static const gradeColors = <int, Color>{
     0: Color(0xFFB9C0D4),

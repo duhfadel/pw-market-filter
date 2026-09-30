@@ -8,6 +8,7 @@ import 'package:http/testing.dart';
 import 'package:pw_market_filter/features/search/ui/search_view.dart';
 import 'package:pw_market_filter/features/search/ui/search_view_model.dart';
 import 'package:pw_market_filter/features/search/ui/widgets/filter_panel.dart';
+import 'package:pw_market_filter/features/search/ui/widgets/number_field.dart';
 import 'package:pw_market_filter/market/index_repository.dart';
 import 'package:pw_market_filter/market/market_index.dart';
 
@@ -71,6 +72,12 @@ Future<SearchViewModel> _pumpPhone(WidgetTester tester) async {
   return viewModel;
 }
 
+/// The maximum-price field, by what it is rather than by where it sits.
+final _maxPrice = find.descendant(
+  of: find.byType(NumberField).at(1),
+  matching: find.byType(TextField),
+);
+
 void main() {
   testWidgets('the phone says the results can be narrowed', (tester) async {
     await _pumpPhone(tester);
@@ -106,7 +113,12 @@ void main() {
     await tester.tap(find.text('Filtros'));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField).at(1), '200');
+    // The **second NumberField** is the maximum price, and it is found that
+    // way rather than as `TextField.at(1)`: indexing over every text field in
+    // the panel made this test fail the day a *Filtrar por nome* field was
+    // added above it, which is a change that has nothing to do with what is
+    // being tested here.
+    await tester.enterText(_maxPrice, '200');
     await tester.pumpAndSettle();
 
     expect(find.text('Ver 2 personagens'), findsOneWidget);
@@ -118,7 +130,12 @@ void main() {
     await _pumpPhone(tester);
     await tester.tap(find.text('Filtros'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).at(1), '200');
+    // The **second NumberField** is the maximum price, and it is found that
+    // way rather than as `TextField.at(1)`: indexing over every text field in
+    // the panel made this test fail the day a *Filtrar por nome* field was
+    // added above it, which is a change that has nothing to do with what is
+    // being tested here.
+    await tester.enterText(_maxPrice, '200');
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Ver 2 personagens'));

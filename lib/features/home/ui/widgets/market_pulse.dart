@@ -26,6 +26,122 @@ import '../../../search/ui/search_state.dart';
 /// than from a scan written here. Counted two different ways, the front page
 /// and the filter drift, and the page ends up promising a market the next
 /// screen contradicts.
+/// The chips the front page turns into a figure, and how each one reads here.
+///
+/// The key is the chip's label in `presets.dart` and the value is the front
+/// page's wording for it: `Arma de 70 ou mais` is a thing to tap on the filter
+/// and `687 com arma de 70 ou mais` is a sentence on the home. One question,
+/// two readings — but the question itself is written once, over there.
+///
+/// **Not every chip earns a figure**, and the map is where that is decided.
+/// The figures are the page's argument rather than a menu of the filter, so
+/// three chips deliberately have none: somebody who wants *Seis cartas S* is
+/// already looking for it, while the gap between the cheapest and the dearest
+/// character wearing the same weapon tier is the thing a first-time visitor
+/// has to be shown before reading a word about features.
+const figureLabels = <String, String>{
+  'Arma de 70 ou mais': 'com arma de 70 ou mais',
+  'Atq lvl UP5': 'com Atq lvl UP5',
+  'Def lvl UP5': 'com Def lvl UP5',
+  'Portal de Nuema': 'com o Portal de Nuema',
+};
+
+/// The chip whose results also give the page its second figure — the cheapest
+/// character carrying that weapon.
+///
+/// That one number is the whole argument: 45 TCC against the 8000 somebody
+/// else asks for the same tier. It is a second reading of one search and not a
+/// search of its own, which is why it borrows the chip rather than naming one.
+const _cheapestOf = 'Arma de 70 ou mais';
+
+/// One number on the front page, and the search that produced it.
+class MarketFigure {
+  const MarketFigure({
+    required this.value,
+    required this.label,
+    required this.query,
+    required this.index,
+    required this.presetLabel,
+  });
+
+  final String value;
+  final String label;
+
+  /// The search this figure counted, and the one tapping it opens.
+  final SearchQuery query;
+
+  /// Needed to write the link: an attribute is written by name, and the name
+  /// lives here.
+  final MarketIndex index;
+
+  /// The chip in `presets.dart` this figure borrowed its question from, or
+  /// `null` for the one figure that is not a chip — the market entire.
+  final String? presetLabel;
+}
+
+/// The front page's figures, in the order the chips are in.
+///
+/// **Every question comes from `presetsFor`**, and that is the point of this
+/// function existing at all. The figures were assembled here by hand until
+/// 29/09/2026 — this file looked up `Nível de Ataque` and built its own
+/// `SearchQuery` — while the chips were built in `presets.dart`, and the two
+/// drifted the first time the chips changed: the set gained *5 essências* and
+/// lost a weapon tier, and the front page followed none of it, because nothing
+/// connected them. Counted two different ways, the front page and the filter
+/// promise a market the next screen contradicts.
+///
+/// Reading the chips also means a chip that this collection cannot build —
+/// `weaponQuery` answers `null` for a tier the market has not reached — takes
+/// its figure off the page by itself, instead of leaving a nought behind.
+List<MarketFigure> figuresFor(MarketIndex index) {
+  final figures = <MarketFigure>[
+    MarketFigure(
+      value: '${index.characters.length}',
+      label: 'personagens à venda',
+      query: const SearchQuery(),
+      index: index,
+      presetLabel: null,
+    ),
+  ];
+
+  for (final preset in presetsFor(index)) {
+    final label = figureLabels[preset.label];
+    if (label == null) continue;
+
+    // Counted with `runQuery` over the query the figure opens, never with a
+    // scan written here: the number and the screen it leads to have to be the
+    // same answer.
+    final found = runQuery(index, preset.query);
+    if (found.isEmpty) continue;
+
+    figures.add(
+      MarketFigure(
+        value: '${found.length}',
+        label: label,
+        query: preset.query,
+        index: index,
+        presetLabel: preset.label,
+      ),
+    );
+
+    if (preset.label == _cheapestOf) {
+      // `runQuery` orders by cheapest first, which is the default and also
+      // what this figure is asking for.
+      figures.add(
+        MarketFigure(
+          value: '${found.first.price} TCC',
+          label: 'o mais barato deles',
+          query: preset.query,
+          index: index,
+          presetLabel: preset.label,
+        ),
+      );
+    }
+  }
+
+  return figures;
+}
+
 class MarketPulse extends StatelessWidget {
   const MarketPulse({
     required this.state,
@@ -47,64 +163,7 @@ class MarketPulse extends StatelessWidget {
     final ready = state;
     if (ready == null) return SizedBox(height: wide ? 84 : 150);
 
-    final index = ready.index;
-    final figures = <_Figure>[
-      _Figure(
-        '${index.characters.length}',
-        'personagens à venda',
-        const SearchQuery(),
-        index,
-      ),
-    ];
-
-    final weapon = strongWeaponQuery(index);
-    if (weapon != null) {
-      final strong = runQuery(index, weapon);
-      if (strong.isNotEmpty) {
-        figures.add(
-          _Figure('${strong.length}', 'com arma de 70 ou mais', weapon, index),
-        );
-        // `runQuery` orders by cheapest first, which is the default and also
-        // what this figure is asking for.
-        figures.add(
-          _Figure(
-            '${strong.first.price} TCC',
-            'o mais barato deles',
-            weapon,
-            index,
-          ),
-        );
-      }
-    }
-
-    // O patamar de 80, que o site não mencionava em lugar nenhum enquanto o
-    // atalho de 70 o engolia em silêncio — as armas de 80 entravam nos
-    // resultados contadas como 70. Aqui ele aparece como o que é: dez
-    // personagens numa mediana de 8000 TCC, contra 400 do 70.
-    //
-    // Sai da tela sozinho no dia em que a coleta não achar nenhuma, que é
-    // também como ele vai entrar quando a próxima faixa surgir.
-    final topo = weaponQuery(index, 'Nível de Ataque', 80);
-    if (topo != null) {
-      final donos = runQuery(index, topo);
-      if (donos.isNotEmpty) {
-        figures.add(
-          _Figure('${donos.length}', 'com arma de 80 de ataque', topo, index),
-        );
-      }
-    }
-
-    final nuemaWearers = runQuery(index, nuemaQuery);
-    if (nuemaWearers.isNotEmpty) {
-      figures.add(
-        _Figure(
-          '${nuemaWearers.length}',
-          'com o Portal de Nuema',
-          nuemaQuery,
-          index,
-        ),
-      );
-    }
+    final figures = figuresFor(ready.index);
 
     return Wrap(
       alignment: WrapAlignment.center,
@@ -118,24 +177,10 @@ class MarketPulse extends StatelessWidget {
   }
 }
 
-class _Figure {
-  const _Figure(this.value, this.label, this.query, this.index);
-
-  final String value;
-  final String label;
-
-  /// The search this figure counted, and the one tapping it opens.
-  final SearchQuery query;
-
-  /// Needed to write the link: an attribute is written by name, and the name
-  /// lives here.
-  final MarketIndex index;
-}
-
 class _Stat extends StatelessWidget {
   const _Stat({required this.figure, required this.wide, required this.large});
 
-  final _Figure figure;
+  final MarketFigure figure;
   final bool wide;
   final bool large;
 

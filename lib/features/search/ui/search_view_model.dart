@@ -5,6 +5,8 @@ import '../../../market/index_repository.dart';
 import '../data/address_bar.dart';
 import '../domain/item_criterion.dart';
 import '../domain/matcher.dart';
+import '../../../market/counted_items.dart';
+import '../domain/presets.dart';
 import '../domain/search_query.dart';
 import '../domain/search_query_url.dart';
 import 'search_state.dart';
@@ -65,7 +67,7 @@ class SearchViewModel extends Cubit<SearchState> {
           final url = _pendingUrl;
           final query =
               _pending ??
-              (url == null ? const SearchQuery() : decodeQuery(url, index));
+              (url == null ? buscaInicial : decodeQuery(url, index));
           _pending = null;
           _pendingUrl = null;
           return SearchReady(
@@ -107,6 +109,17 @@ class SearchViewModel extends Cubit<SearchState> {
   /// filtered scope meant that a price range narrow enough to exclude every
   /// Guerreiro wearing the weapon made the empty answer read as "Guerreiro
   /// does not wear it", and the weapon was thrown away without a word.
+  /// A fragment of a nickname, or `null` to stop asking.
+  ///
+  /// Blank is normalised away here rather than at the edge, so nothing
+  /// downstream has to know that a field can hold spaces: `askedName` is what
+  /// the matcher, the link and the chips all read.
+  void setName(String? typed) => _apply(
+    _query!.copyWith(
+      name: () => (typed?.trim().isEmpty ?? true) ? null : typed,
+    ),
+  );
+
   void setClass(String? value) {
     final ready = state as SearchReady;
     final query = ready.query;
@@ -188,7 +201,8 @@ class SearchViewModel extends Cubit<SearchState> {
   /// Unmarking also gives up ordering by relics, since with nothing marked
   /// that order sorts by a number that is the same for everybody.
   void setOwnedShown(String name, bool shown) {
-    final query = _query!;
+    final ready = state as SearchReady;
+    final query = ready.query;
     final shownOwned = {...query.shownOwned};
 
     if (shown) {
@@ -196,10 +210,21 @@ class SearchViewModel extends Cubit<SearchState> {
     } else {
       shownOwned.remove(name);
     }
-    // Ordering by relics with nothing marked sorts by a number that is the
-    // same for everybody, which reads as a broken list rather than an order
-    // that stopped meaning anything.
-    final order = shownOwned.isEmpty && query.order == ResultOrder.mostOwned
+    // Ordering by relics with **no relic** marked sorts by a number that is
+    // the same for everybody, which reads as a broken list rather than an
+    // order that stopped meaning anything.
+    //
+    // It asks about relics and not about `shownOwned` being empty, and the
+    // difference stopped being academic when the `Chave da Sorte` started out
+    // marked: the set is never empty now, so the old test never fired and the
+    // order survived with nothing left to order by.
+    // Only relics **this market has**. `shownOwned` opens with all three
+    // marked and a collection may know just one of them, so counting the
+    // names alone kept the order alive on a number nobody carries.
+    final semReliquia = !shownOwned.any(
+      (n) => relicNames.contains(n) && ready.index.countedItems.containsKey(n),
+    );
+    final order = semReliquia && query.order == ResultOrder.mostOwned
         ? ResultOrder.cheapest
         : query.order;
 
@@ -275,5 +300,10 @@ class SearchViewModel extends Cubit<SearchState> {
 
   /// Clearing empties the filters but keeps the ordering — it is how the list
   /// is read, not something that was asked for.
-  void clear() => _apply(SearchQuery(order: _query!.order));
+  /// "Limpar tudo" means no filters. It does **not** mean taking the key's
+  /// number off the card: nobody asked to remove that, and the page would
+  /// come back emptier than it opened.
+  void clear() => _apply(
+    SearchQuery(order: _query!.order, shownOwned: buscaInicial.shownOwned),
+  );
 }

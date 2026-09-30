@@ -35,6 +35,15 @@ List<ActiveFilter> activeFilters(MarketIndex index, SearchQuery query) {
   void add(String label, SearchQuery Function(SearchQuery) remove) =>
       filters.add(ActiveFilter(label, remove));
 
+  final asked = query.askedName;
+  if (asked != null) {
+    // Quoted, because a nickname is somebody's word and not ours. Without the
+    // quotes a chip reading `Leite` sits in the same row as `Guerreiro` and
+    // `Leal` and reads as one more thing the site knows about, rather than as
+    // something that was typed.
+    add('nome: "$asked"', (q) => q.copyWith(name: () => null));
+  }
+
   if (query.characterClass != null) {
     add(query.characterClass!, (q) => q.copyWith(characterClass: () => null));
   }

@@ -136,7 +136,7 @@ both legendary pets and has renamed both).
 
 | Command | Description |
 |---------|-------------|
-| `dart run tool/collect.dart` | Collects the market and writes `assets/market_index.json` (~40 min) |
+| `dart run tool/collect.dart` | Collects the market and writes `web/market_index.json` (~40 min) |
 | `dart run tool/collect.dart --resume` | Continues an interrupted collection |
 | `dart run tool/collect.dart --rebuild` | Rewrites the index from the saved state — no network, seconds |
 | `dart run tool/fetch_icons.dart` | Downloads class and item icons named by the index; skips what is already on disk |
@@ -158,7 +158,7 @@ There is no codegen. DI is three registrations written by hand in
 Two programs, one repository, one file between them.
 
 ```
-site  ──►  tool/collect.dart  ──►  assets/market_index.json  ──►  Flutter web app
+site  ──►  tool/collect.dart  ──►  web/market_index.json  ──►  Flutter web app
            dart:io, ~40 min          the contract                 in memory, ms
 ```
 

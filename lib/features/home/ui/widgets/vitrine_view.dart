@@ -90,9 +90,12 @@ class VitrineView extends StatelessWidget {
         children: [
           Text(
             // No digit here on purpose: Marcellus draws Roman figures, and
-            // `70` in that face reads as `7O`. The tier still has to be
-            // named — the body-face line below carries it instead.
-            'A mesma arma',
+            // `70` in that face reads as `7O`. Nor is this "a mesma arma" any
+            // more — within one tier there are still seventeen different
+            // weapons, one per class, so the claim the heading can honestly
+            // make is about the tier, not the item. The body-face line below
+            // carries the number and spells out "patamar de arma".
+            'O mesmo patamar',
             style: TextStyle(
               fontFamily: PWTheme.display,
               fontSize: wide ? 26 : 21,
@@ -103,13 +106,13 @@ class VitrineView extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             // Barato and caro are, by construction, exactly two carriers of
-            // this weapon — never a guess, never the whole market's count,
-            // which vitrineDe does not hand back. The tier is v.nivel, not a
-            // literal: it is read off strongWeaponQuery's own criterion, so a
-            // future tier above 70 shows up here rather than being silently
-            // swallowed by a label that stopped matching the query.
-            'Dois personagens escolheram a mesma arma — nível de ataque '
-            '${v.nivel} — do mais barato ao mais caro, $mult× o preço.',
+            // the same exact attack level — never a guess, never merely both
+            // above strongWeaponQuery's minimum. The tier is v.nivel, read
+            // off the pair itself rather than off the query, so a mixed pool
+            // of 70s and 80s can never be described as one number again.
+            'Dois personagens escolheram o mesmo patamar de arma — nível de '
+            'ataque ${v.nivel} — do mais barato ao mais caro, $mult× o '
+            'preço.',
             style: const TextStyle(color: PWColors.apagado, fontSize: 13),
           ),
           const SizedBox(height: 18),

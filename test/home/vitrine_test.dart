@@ -23,6 +23,13 @@ const _armaDef80 = EquippedItem(
   stones: [],
   attributes: {1: 80},
 );
+const _arma80 = EquippedItem(
+  slot: 10,
+  itemId: 50400,
+  refine: 12,
+  stones: [],
+  attributes: {0: 80},
+);
 
 MarketCharacter _quem(
   String nome,
@@ -106,5 +113,43 @@ void main() {
 
   test('an empty market is silent', () {
     expect(vitrineDe(_indice(const [])), isNull);
+  });
+
+  test('barato and caro never straddle two attack tiers', () {
+    // strongWeaponQuery asks for *at least* 70, so a market with both a 70
+    // and an 80 tier answers with carriers of both — carriers.first/.last of
+    // that whole set used to pick across tiers, which is finding 1 of the
+    // 2026-09-30 review: two different weapons, worn by two different
+    // classes, printed under "a mesma arma". The 80s here outnumber the
+    // 70s, so the group with three members wins even though every 70
+    // carrier is far cheaper — proving the pick is by tier, not by price.
+    final v = vitrineDe(
+      _indice([
+        _quem('setenta_barato', 100),
+        _quem('setenta_caro', 200),
+        _quem('oitenta_barato', 5000, usa: const [_arma80]),
+        _quem('oitenta_meio', 6000, usa: const [_arma80]),
+        _quem('oitenta_caro', 20000, usa: const [_arma80]),
+      ]),
+    )!;
+
+    expect(v.nivel, 80);
+    expect(v.barato.name, 'oitenta_barato');
+    expect(v.caro.name, 'oitenta_caro');
+  });
+
+  test('an equal split ties towards the lower tier', () {
+    final v = vitrineDe(
+      _indice([
+        _quem('setenta_barato', 100),
+        _quem('setenta_caro', 200),
+        _quem('oitenta_barato', 5000, usa: const [_arma80]),
+        _quem('oitenta_caro', 20000, usa: const [_arma80]),
+      ]),
+    )!;
+
+    expect(v.nivel, 70);
+    expect(v.barato.name, 'setenta_barato');
+    expect(v.caro.name, 'setenta_caro');
   });
 }

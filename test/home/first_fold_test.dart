@@ -214,7 +214,7 @@ void main() {
     // page actually wires the loaded index into it.
     await _pumpHome(tester);
 
-    expect(find.text('A mesma arma'), findsOneWidget);
+    expect(find.text('O mesmo patamar'), findsOneWidget);
     expect(find.text('Leandrim'), findsOneWidget);
     expect(find.text('Solaria'), findsOneWidget);
   });

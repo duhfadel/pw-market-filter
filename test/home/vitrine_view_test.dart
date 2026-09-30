@@ -151,7 +151,7 @@ void main() {
   testWidgets('a market with no pair draws nothing at all', (tester) async {
     await _pump(tester, [_quem('sozinho', 500)]);
 
-    expect(find.textContaining('mesma arma'), findsNothing);
+    expect(find.textContaining('mesmo patamar'), findsNothing);
   });
 
   testWidgets('a market with no attack-tier carriers at all draws nothing', (
@@ -162,7 +162,7 @@ void main() {
     ]);
 
     expect(find.byType(VitrineView), findsOneWidget);
-    expect(find.textContaining('mesma arma'), findsNothing);
+    expect(find.textContaining('mesmo patamar'), findsNothing);
   });
 
   testWidgets('the rare card and its defensive-tier line render', (

@@ -63,7 +63,22 @@ Future<void> main(List<String> arguments) async {
   try {
     final listing = await _fetchListing(client);
     stdout.writeln('${listing.length} personagens à venda.');
-    final publicado = await _fetchPublishedIndex(client);
+
+    final MarketIndex publicado;
+    try {
+      publicado = await _fetchPublishedIndex(client);
+    } on PublishedIndexUnavailable catch (e) {
+      // Refusing to write beats writing a reset index: a stale index is still
+      // correct, and the site keeps serving it while the Worker's retry tries
+      // again. A reset index would look exactly like a working one and erase
+      // every character's history in the same breath.
+      stderr.writeln(
+        'Não consegui ler o índice publicado ($e). Não vou escrever um novo '
+        'índice agora — isso apagaria a história de preço de todo mundo. '
+        'O site continua servindo o último índice bom.',
+      );
+      exit(1);
+    }
 
     final state = _CollectState.load(_statePath, resume: resume);
     // Characters that left the market since the last run. Dropping them keeps
@@ -158,7 +173,45 @@ Future<List<ListingCard>> _fetchListing(HttpClient client) async {
   return cards;
 }
 
-/// The index the site is currently serving, or `null` when it cannot be read.
+/// Thrown when the published index could not be read — a non-200 status, a
+/// network error, or a body that will not parse.
+///
+/// **Never confused with a genuine "no history yet".** That is a successful
+/// 200 whose own `historyFrom` happens to be `null` — the site's first run
+/// with this feature — and [MarketIndex.fromJson] returns it normally.
+/// `PublishedIndexUnavailable` is the *other* case, where nothing was read at
+/// all, and it must never be treated the same way: `avancarTodos` reads
+/// `publicado == null` as "nobody has ever been seen" and would stamp
+/// `firstSeen` on every character alive, erasing the market's whole memory in
+/// one run. `main` catches this and refuses to write anything.
+class PublishedIndexUnavailable implements Exception {
+  const PublishedIndexUnavailable(this.reason);
+
+  final String reason;
+
+  @override
+  String toString() => reason;
+}
+
+/// Turns a fetched status and body into the published index, or throws
+/// [PublishedIndexUnavailable] when it cannot.
+///
+/// Pure — no network, no clock — so this is what a test exercises instead of
+/// a live fetch: a 200 with `{"formatVersion": 2, ...}` and no `historyFrom`
+/// is the genuine first run and must succeed; any other status, or a body
+/// `MarketIndex.fromJson` rejects, must throw.
+MarketIndex parsePublishedIndex(int statusCode, String body) {
+  if (statusCode != 200) {
+    throw PublishedIndexUnavailable('respondeu $statusCode');
+  }
+  try {
+    return MarketIndex.fromJson(jsonDecode(body) as Map<String, dynamic>);
+  } catch (e) {
+    throw PublishedIndexUnavailable('não deu para interpretar o índice: $e');
+  }
+}
+
+/// The index the site is currently serving.
 ///
 /// **This is where the memory lives.** One request to our own CDN per run,
 /// and the file is served `cf-cache-status: DYNAMIC` — Cloudflare does not
@@ -166,32 +219,46 @@ Future<List<ListingCard>> _fetchListing(HttpClient client) async {
 /// than a ten-minute-old one. Measured 2026-09-30; if that ever changes, this
 /// needs the `?t=<millis>` buster the app already uses.
 ///
-/// A failure returns `null` and the run continues. Losing the record for one
-/// collection costs a day of history; refusing to publish would cost the site.
-/// The state file still holds the same fields as a second copy.
-Future<MarketIndex?> _fetchPublishedIndex(HttpClient client) async {
+/// A read failure throws [PublishedIndexUnavailable] rather than returning
+/// `null`. It used to return `null`, and `--rebuild` and a fetch failure both
+/// fed that `null` to `avancarTodos` as if the market had never been seen
+/// before — a `--rebuild` after a network hiccup silently erased every
+/// character's `firstSeen`, `lowestPrice` and `cuts`. Now the two cases
+/// cannot be confused: a genuine first run is a parsed [MarketIndex] (whose
+/// own `historyFrom` may itself be `null`), and a failure to read is an
+/// exception that stops the run before anything is written.
+Future<MarketIndex> _fetchPublishedIndex(HttpClient client) async {
+  final int statusCode;
+  final String body;
   try {
     final request = await client.getUrl(
       Uri.parse('https://portalpw.net/market_index.json'),
     );
     request.headers.set(HttpHeaders.acceptEncodingHeader, 'gzip');
     final response = await request.close();
-    if (response.statusCode != 200) {
-      stdout.writeln(
-        'Índice publicado respondeu ${response.statusCode}; '
-        'esta coleta começa sem histórico.',
-      );
-      return null;
-    }
-    final body = await response.transform(utf8.decoder).join();
-    return MarketIndex.fromJson(jsonDecode(body) as Map<String, dynamic>);
+    statusCode = response.statusCode;
+    body = await response.transform(utf8.decoder).join();
   } catch (e) {
-    stdout.writeln(
-      'Não deu para ler o índice publicado ($e); '
-      'esta coleta começa sem histórico.',
-    );
-    return null;
+    throw PublishedIndexUnavailable('não deu para conectar: $e');
   }
+  return parsePublishedIndex(statusCode, body);
+}
+
+/// Reads `web/market_index.json` off disk — the index this program itself
+/// last wrote — so `--rebuild` costs no network and still carries the price
+/// history forward.
+///
+/// `null` when the file does not exist, which is a genuine first rebuild:
+/// starting fresh is correct there, the same as a brand-new site. A file that
+/// exists but will not parse is left to throw — it is our own last output,
+/// and a rebuild silently discarding it would be exactly the erasure this
+/// whole fix exists to prevent.
+MarketIndex? _readLocalIndex() {
+  final file = File(_outputPath);
+  if (!file.existsSync()) return null;
+  return MarketIndex.fromJson(
+    jsonDecode(file.readAsStringSync()) as Map<String, dynamic>,
+  );
 }
 
 /// Returns null when the page could not be read after every attempt.
@@ -458,7 +525,11 @@ void _rebuildFromState() {
     exit(1);
   }
 
-  _writeIndex(state.listing, state);
+  // Read off disk, not fetched: `--rebuild` costs no network, and this is the
+  // index this program itself last wrote, so it is the right record to carry
+  // history forward from. Nothing existing on disk is a genuine first
+  // rebuild, and `_writeIndex` starting fresh from `null` there is correct.
+  _writeIndex(state.listing, state, publicado: _readLocalIndex());
   _reportSummary(state.listing, state, 0);
 }
 

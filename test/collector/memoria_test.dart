@@ -55,6 +55,29 @@ void main() {
     expect(r[1]!.cuts, 0);
   });
 
+  test('a published index with characters but no history is still a genuine '
+      'first run, not a failure — every character starts a record today', () {
+    // This is the shape a successful 200 fetch takes the very first time
+    // the site's own index is read by this feature: the characters are
+    // real, but none of them carry a `history` yet and `historyFrom` is
+    // `null`. It must behave exactly like `publicado: null` — the two are
+    // the "nobody has been recorded yet" case — and must never be confused
+    // with a failed read, which `avancarTodos` never even sees: a failure
+    // stops the run before this function is called.
+    final publicado = _publicado([_quem(1, 500), _quem(2, 400)]);
+
+    final r = avancarTodos(
+      listing: [_card(1, 500), _card(2, 400)],
+      publicado: publicado,
+      agora: _hoje,
+    );
+
+    expect(r[1]!.firstSeen, _hoje);
+    expect(r[1]!.previousPrice, isNull);
+    expect(r[2]!.lowestPrice, 400);
+    expect(r[2]!.cuts, 0);
+  });
+
   test('a price that fell since the published index is a cut', () {
     final publicado = _publicado([
       _quem(1, 500, history: PriceHistory(firstSeen: _ontem, lowestPrice: 500)),

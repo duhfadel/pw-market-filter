@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show FontLoader, rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -14,10 +15,31 @@ import 'package:pw_market_filter/features/home/data/visit_repository.dart';
 import 'package:pw_market_filter/features/home/ui/novidades_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/visit_counter_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/home_view.dart';
-import 'package:pw_market_filter/features/search/domain/search_query_url.dart';
 import 'package:pw_market_filter/features/search/ui/search_view_model.dart';
 import 'package:pw_market_filter/market/index_repository.dart';
 import 'package:pw_market_filter/market/market_index.dart';
+
+/// Loads the real Marcellus and Inter files `pubspec.yaml` already declares,
+/// so this file measures text the way a browser does. `flutter_test` draws
+/// every glyph as a square of the font size by default, which can fabricate
+/// an overflow — or hide one — that never happens under the fonts the page
+/// actually ships with. `cartaz_test.dart` is where this pattern was learned.
+Future<void> _carregarFontesReais() async {
+  Future<void> carregar(String familia, List<String> arquivos) async {
+    final carregador = FontLoader(familia);
+    for (final arquivo in arquivos) {
+      carregador.addFont(rootBundle.load(arquivo));
+    }
+    await carregador.load();
+  }
+
+  await carregar('Marcellus', ['assets/fonts/Marcellus-Regular.ttf']);
+  await carregar('Inter', [
+    'assets/fonts/Inter-Regular.ttf',
+    'assets/fonts/Inter-SemiBold.ttf',
+    'assets/fonts/Inter-Bold.ttf',
+  ]);
+}
 
 /// The front page is where a link shared in the community lands. Everything
 /// asserted here is about the first five seconds: what the site is, and one
@@ -73,10 +95,8 @@ Future<List<String>> _pumpHome(WidgetTester tester) async {
   // Taller than the default 800×600, and the reason is the harness rather than
   // the page: in `flutter_test` every glyph is a square of the font size, so
   // the front page measures far taller here than in any browser. At 600 the
-  // figures landed at y=604 and `tap` refused them as off-screen — a failure
-  // about the test window, not about the layout. What these tests are for is
-  // that a figure carries its own search; the window must not be the thing
-  // under test.
+  // fold's own content landed off-screen and `tap` refused it — a failure
+  // about the test window, not about the layout.
   tester.view.physicalSize = const Size(1100, 1400);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -130,6 +150,8 @@ Future<List<String>> _pumpHome(WidgetTester tester) async {
 }
 
 void main() {
+  setUpAll(_carregarFontesReais);
+
   testWidgets('the wheel scrolls with the pointer at the right edge', (
     tester,
   ) async {
@@ -170,18 +192,8 @@ void main() {
   ) async {
     await _pumpHome(tester);
 
-    expect(find.textContaining('Ache o personagem certo'), findsOneWidget);
+    expect(find.textContaining('Ache o personagem'), findsOneWidget);
     expect(find.text('Buscar personagens'), findsOneWidget);
-  });
-
-  testWidgets('the figures are read off the index, never written down', (
-    tester,
-  ) async {
-    await _pumpHome(tester);
-
-    expect(find.text('3'), findsOneWidget); // characters for sale
-    expect(find.text('2'), findsOneWidget); // carrying a 70 weapon
-    expect(find.text('120 TCC'), findsOneWidget); // the cheaper of those two
   });
 
   testWidgets('the primary action opens the filter', (tester) async {
@@ -193,39 +205,17 @@ void main() {
     expect(pushed, ['/filtro']);
   });
 
-  testWidgets('a figure carries its own search into the filter', (
+  testWidgets('the Vitrine proves the claim with real people from the index', (
     tester,
   ) async {
-    // The proof is the way in. A visitor who reads "2 com arma de 70 de
-    // ataque" and taps it should land on those two, not on the whole market
-    // with a form to fill in.
-    final pushed = await _pumpHome(tester);
+    // The figures MarketPulse used to print are gone; the Vitrine is what
+    // replaced them, and its own tests (`vitrine_view_test.dart`) cover the
+    // arithmetic in isolation. What this test guards is only that the home
+    // page actually wires the loaded index into it.
+    await _pumpHome(tester);
 
-    await tester.tap(find.text('com arma de 70 ou mais'));
-    await tester.pumpAndSettle();
-
-    expect(pushed, hasLength(1));
-    // Read back the way the filter will read it, against the same index — the
-    // attribute is written by name, so the number only exists on this side.
-    final asked = decodeQuery(
-      Uri.parse(pushed.single).queryParametersAll,
-      _index,
-    );
-    final criterion = asked.criteria.single;
-    expect(criterion.slot, 10);
-    expect(_index.attributes[criterion.attributeId!], 'Nível de Ataque');
-    expect(criterion.minimum, 70);
-  });
-
-  testWidgets('the figure counting everybody asks for nothing', (tester) async {
-    final pushed = await _pumpHome(tester);
-
-    await tester.tap(find.text('personagens à venda'));
-    await tester.pumpAndSettle();
-
-    expect(
-      decodeQuery(Uri.parse(pushed.single).queryParametersAll, _index).isEmpty,
-      isTrue,
-    );
+    expect(find.text('A mesma arma'), findsOneWidget);
+    expect(find.text('Leandrim'), findsOneWidget);
+    expect(find.text('Solaria'), findsOneWidget);
   });
 }

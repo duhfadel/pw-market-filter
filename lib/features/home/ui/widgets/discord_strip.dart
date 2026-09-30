@@ -7,16 +7,23 @@ import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/brand_icon.dart';
 import '../../domain/community.dart';
 
-/// The invitation at the top of the front page.
+/// The invitation, under the front page's own `COMUNIDADE` heading.
 ///
-/// It sits above the logo because it is the one thing here that outlives any
-/// single visit: whoever joins the server hears about the next tool without
-/// having to remember the address. Everything else on this page answers "what
-/// does it do"; this answers "how do I stay".
+/// It is the one thing on this page that outlives any single visit: whoever
+/// joins the server hears about the next tool without having to remember the
+/// address. Everything else on this page answers "what does it do"; this
+/// answers "how do I stay".
+///
+/// **It used to sit above the logo, and moved when the page did.** The
+/// `Cabecalho` now carries the mark, and this line moved down to sit under
+/// its own honest heading instead — it used to double as the ad slot's house
+/// ad, wearing a `PUBLICIDADE` label that trained readers to skip exactly the
+/// thing it was meant to present. It is not advertising, it is the owner's
+/// own channel.
 ///
 /// **A strip and not a banner.** It is one line, on the page's own background,
-/// with no card around it — anything heavier competes with the headline, which
-/// is what a first-time visitor actually came to read.
+/// with no card around it — anything heavier competes with the section
+/// above it for the same attention.
 class DiscordStrip extends StatelessWidget {
   const DiscordStrip({required this.wide, super.key});
 
@@ -56,9 +63,13 @@ class DiscordStrip extends StatelessWidget {
                     // The reason to click, and the half that is dropped first
                     // on a narrow screen: the invitation survives, the sales
                     // pitch does not.
+                    //
+                    // Not "novidades" — the page has its own `NOVIDADES DO
+                    // PORTAL` section a few rows up, and the same word here
+                    // would read as the same thing.
                     if (wide)
                       const TextSpan(
-                        text: '  e fique por dentro das novidades!',
+                        text: '  e converse com quem joga também.',
                       ),
                   ],
                 ),

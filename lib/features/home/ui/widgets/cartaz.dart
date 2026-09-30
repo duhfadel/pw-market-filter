@@ -34,7 +34,15 @@ class Cartaz extends StatelessWidget {
 
     return SizedBox(
       width: double.infinity,
-      height: wide ? 320 : 260,
+      // Measured against the real fonts, not guessed: `Cartaz` was tested
+      // only at 1200 px wide (`cartaz_test.dart`) and never at `wide: false`
+      // at all, so the fixed 320/260 pair overflowed the moment the front
+      // page actually wired this widget in — 36 px over at `wide: true` and
+      // 68 px over at `wide: false`, in both cases regardless of width,
+      // because neither the eyebrow, the headline nor the 430 px sub-line
+      // ever wrap differently above that width. These two numbers are the
+      // old ones plus that overflow, rounded up for a margin.
+      height: wide ? 360 : 340,
       child: Stack(
         // Non-positioned children fill the box: the art, the two gradients
         // over it, and the text sit in one stack of full-size layers.

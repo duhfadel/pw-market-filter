@@ -1,11 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/theme/pw_theme.dart';
 import '../../domain/tool.dart';
+import 'tool_navigation.dart';
 
 /// The site's mark, and the whole menu behind it.
 ///
@@ -83,7 +81,7 @@ class _SectionMenu extends StatelessWidget {
 
     return PopupMenuButton<Tool>(
       tooltip: secao,
-      onSelected: (tool) => _abrir(context, tool),
+      onSelected: (tool) => abrirTool(context, tool),
       itemBuilder: (context) => [
         for (final tool in prontos)
           PopupMenuItem(value: tool, child: Text(tool.name)),
@@ -115,7 +113,7 @@ class _OverflowMenu extends StatelessWidget {
   Widget build(BuildContext context) => PopupMenuButton<Tool>(
     tooltip: 'Menu',
     icon: const Icon(Icons.menu, color: PWColors.papel),
-    onSelected: (tool) => _abrir(context, tool),
+    onSelected: (tool) => abrirTool(context, tool),
     itemBuilder: (context) => [
       for (final secao in secoesDaHome) ...[
         PopupMenuItem<Tool>(
@@ -135,18 +133,4 @@ class _OverflowMenu extends StatelessWidget {
       ],
     ],
   );
-}
-
-/// Leaves for [Tool.href] in the same tab, or pushes [Tool.route] inside the
-/// app — the same rule `ToolCard` follows, so a tool opens the same way
-/// wherever it was tapped from. Routing stays with `MaterialApp`, never a
-/// nested `Navigator`: a page pushed any other way carries no link of its
-/// own, and the browser's back button leaves the site instead of going home.
-void _abrir(BuildContext context, Tool tool) {
-  final href = tool.href;
-  if (href != null) {
-    unawaited(launchUrl(Uri.parse(href), webOnlyWindowName: '_self'));
-    return;
-  }
-  Navigator.of(context).pushNamed(tool.route!);
 }

@@ -28,7 +28,7 @@ class Preset {
 ///
 /// This is a function of the index rather than a constant because an attribute
 /// is an **index into `MarketIndex.attributes`**, not a name — the same reason
-/// `MarketPulse` looks up `Nível de Ataque` instead of hardcoding a number.
+/// `weaponQuery` looks up `Nível de Ataque` instead of hardcoding a number.
 ///
 /// Every preset is written by attribute, never by item id. An item belongs to
 /// one class: a preset built on `50206` would work for Guerreiro and quietly

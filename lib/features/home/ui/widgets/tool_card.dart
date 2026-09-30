@@ -1,12 +1,10 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/game_icon.dart';
 import '../../../../core/theme/pw_theme.dart';
 import '../../domain/tool.dart';
+import 'tool_navigation.dart';
 
 /// One tool in the menu.
 ///
@@ -39,7 +37,7 @@ class ToolCard extends StatelessWidget {
               _ArteDoEmblema(itemId: tool.emblem!),
             InkWell(
               borderRadius: BorderRadius.circular(14),
-              onTap: ready ? () => _openTool(context, tool) : null,
+              onTap: ready ? () => abrirTool(context, tool) : null,
               child: Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
@@ -56,18 +54,6 @@ class ToolCard extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Leaves for [Tool.href] in the same tab, or pushes [Tool.route] inside the
-/// app. `_self` matters: a guide is part of this site, and a new tab for an
-/// internal page turns the browser's back button into a dead end.
-void _openTool(BuildContext context, Tool tool) {
-  final href = tool.href;
-  if (href != null) {
-    unawaited(launchUrl(Uri.parse(href), webOnlyWindowName: '_self'));
-    return;
-  }
-  Navigator.of(context).pushNamed(tool.route!);
 }
 
 /// The class art, pushed far back.

@@ -7,6 +7,7 @@ import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/game_icon.dart';
 import '../../../../market/counted_items.dart';
 import '../../../../market/market_index.dart';
+import '../../../../market/price_history.dart';
 import '../../../../market/slot_names.dart';
 import '../../domain/index_facets.dart';
 import '../../domain/matcher.dart';
@@ -234,12 +235,19 @@ class CharacterCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              '${character.price} TCC',
-                              style: const TextStyle(
-                                color: PWColors.accent,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '${character.price} TCC',
+                                  style: const TextStyle(
+                                    color: PWColors.accent,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                if (character.history != null)
+                                  _Queda(history: character.history!),
+                              ],
                             ),
                           ],
                         ),
@@ -684,4 +692,35 @@ class CharacterCard extends StatelessWidget {
       mode: LaunchMode.externalApplication,
     ),
   );
+}
+
+/// What the price used to be, under what it is now.
+///
+/// **Only when it fell, and only when it actually moved.** A line on every
+/// card would be noise on the forty that never moved, and a rise is not news
+/// a buyer can use — the question this site exists to answer is where the
+/// cheap ones are.
+///
+/// The old price is struck through rather than labelled: *de 500* needs a
+/// word, and the strike is the word every shop already uses.
+class _Queda extends StatelessWidget {
+  const _Queda({required this.history});
+
+  final PriceHistory history;
+
+  @override
+  Widget build(BuildContext context) {
+    final antes = history.previousPrice;
+    if (antes == null) return const SizedBox.shrink();
+
+    return Text(
+      '$antes',
+      key: const ValueKey('queda'),
+      style: const TextStyle(
+        color: PWColors.textMuted,
+        fontSize: 11,
+        decoration: TextDecoration.lineThrough,
+      ),
+    );
+  }
 }

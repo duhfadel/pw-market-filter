@@ -62,43 +62,44 @@ abstract final class PWTheme {
     final base = ThemeData.dark(useMaterial3: true);
 
     return base.copyWith(
-      scaffoldBackgroundColor: PWColors.background,
+      scaffoldBackgroundColor: PWColors.noite,
       colorScheme: base.colorScheme.copyWith(
         primary: PWColors.accent,
-        onPrimary: PWColors.background,
-        surface: PWColors.surface,
-        onSurface: PWColors.text,
+        onPrimary: PWColors.noite,
+        surface: PWColors.painel,
+        onSurface: PWColors.papel,
         error: PWColors.danger,
       ),
+      cardTheme: const CardThemeData(color: PWColors.painel),
       textTheme: _comFiguras(
         base.textTheme.apply(
           fontFamily: body,
-          bodyColor: PWColors.text,
-          displayColor: PWColors.text,
+          bodyColor: PWColors.papel,
+          displayColor: PWColors.papel,
         ),
       ),
       dividerTheme: const DividerThemeData(
-        color: PWColors.border,
+        color: PWColors.filete,
         space: 1,
         thickness: 1,
       ),
       inputDecorationTheme: InputDecorationTheme(
         isDense: true,
         filled: true,
-        fillColor: PWColors.surfaceRaised,
+        fillColor: PWColors.elevado,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,
           vertical: 10,
         ),
-        border: _inputBorder(PWColors.border),
-        enabledBorder: _inputBorder(PWColors.border),
+        border: _inputBorder(PWColors.filete),
+        enabledBorder: _inputBorder(PWColors.filete),
         focusedBorder: _inputBorder(PWColors.accent),
-        labelStyle: const TextStyle(color: PWColors.textMuted),
-        hintStyle: const TextStyle(color: PWColors.textMuted),
+        labelStyle: const TextStyle(color: PWColors.apagado),
+        hintStyle: const TextStyle(color: PWColors.apagado),
       ),
       dropdownMenuTheme: const DropdownMenuThemeData(
         menuStyle: MenuStyle(
-          backgroundColor: WidgetStatePropertyAll(PWColors.surfaceRaised),
+          backgroundColor: WidgetStatePropertyAll(PWColors.elevado),
         ),
       ),
     );

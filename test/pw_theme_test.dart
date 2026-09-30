@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pw_market_filter/core/theme/pw_colors.dart';
 import 'package:pw_market_filter/core/theme/pw_theme.dart';
 
 void main() {
@@ -36,5 +37,21 @@ void main() {
     // O, so `150 TCC` reads `I5O TCC`. Anything that might hold a number must
     // default to the body face; the display face is asked for by name.
     expect(PWTheme.build().textTheme.bodyMedium?.fontFamily, PWTheme.body);
+  });
+
+  test('the app is painted on the new ground', () {
+    // The screens keep their own layout; what changes is the colour beneath
+    // them. `noite` is warmer and more violet than the old flat indigo, which
+    // is what stops the class art reading as pasted on.
+    final theme = PWTheme.build();
+
+    expect(theme.scaffoldBackgroundColor, PWColors.noite);
+    expect(theme.cardTheme.color ?? theme.cardColor, PWColors.painel);
+  });
+
+  test('body text is paper, not pure white', () {
+    // Pure white on a dark ground glares at 14 px. `papel` is the highlight
+    // the class art itself carries.
+    expect(PWTheme.build().textTheme.bodyMedium?.color, PWColors.papel);
   });
 }

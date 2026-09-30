@@ -1,4 +1,5 @@
 import 'item_rank.dart';
+import 'price_history.dart';
 
 /// The offline snapshot of the marketplace — the only thing the collector and
 /// the app share.
@@ -15,6 +16,7 @@ class MarketIndex {
     required this.characters,
     this.countedItems = const {},
     this.runes = const {},
+    this.historyFrom,
   });
 
   final String server;
@@ -52,6 +54,15 @@ class MarketIndex {
   /// would treat one rune as two. Through this table both read as Áurea 5.
   final Map<int, RuneKind> runes;
 
+  /// The first collection that kept records, or `null` before any did.
+  ///
+  /// **This is what stops the site announcing 1519 arrivals on day one.** On
+  /// the first run with history every character gets a `firstSeen` of today,
+  /// which means *first sighting*, not *new listing*. Only a character whose
+  /// `firstSeen` is after this date genuinely arrived while we were watching;
+  /// the rest are unknown, and unknown is never dressed up as new.
+  final DateTime? historyFrom;
+
   /// How many of [label] this character carries, added across every id and
   /// every name the label gathers.
   ///
@@ -77,7 +88,14 @@ class MarketIndex {
     return total;
   }
 
-  static const _formatVersion = 1;
+  static const _formatVersion = 2;
+
+  /// Versions this build knows how to read. **Two, not one**, and the older
+  /// is not politeness: the first run of the history code fetches an index
+  /// published at version 1, and the app has to open on whatever collection
+  /// last landed. A version nobody wrote is still refused, because that is a
+  /// file we cannot reason about.
+  static const _readableVersions = {1, 2};
 
   Map<String, dynamic> toJson() => {
     'formatVersion': _formatVersion,
@@ -95,16 +113,18 @@ class MarketIndex {
         for (final entry in runes.entries)
           entry.key.toString(): entry.value.toJson(),
       },
+    if (historyFrom != null)
+      'historyFrom': historyFrom!.toUtc().toIso8601String(),
   };
 
   /// Throws [IndexFormatException] naming the field it could not read, so the
   /// app can say what is wrong instead of opening empty.
   factory MarketIndex.fromJson(Map<String, dynamic> json) {
     final version = json['formatVersion'];
-    if (version != _formatVersion) {
+    if (!_readableVersions.contains(version)) {
       throw IndexFormatException(
         'formatVersion',
-        'esperava $_formatVersion, veio $version',
+        'esperava um de $_readableVersions, veio $version',
       );
     }
 
@@ -138,6 +158,9 @@ class MarketIndex {
             entry.value as Map<String, dynamic>,
           ),
       },
+      historyFrom: json['historyFrom'] == null
+          ? null
+          : DateTime.parse(json['historyFrom'] as String).toUtc(),
     );
   }
 }
@@ -176,6 +199,7 @@ class MarketCharacter {
     this.realm = '',
     this.path = '',
     this.runes = const [],
+    this.history,
   });
 
   final int roleId;
@@ -224,6 +248,10 @@ class MarketCharacter {
   /// exists; an empty list is a character with none, which is real.
   final List<int> runes;
 
+  /// What the market remembers about this character between collections, or
+  /// `null` where no collection has recorded it yet.
+  final PriceHistory? history;
+
   Map<String, dynamic> toJson() => {
     'roleId': roleId,
     'name': name,
@@ -244,6 +272,7 @@ class MarketCharacter {
     if (realm.isNotEmpty) 'realm': realm,
     if (path.isNotEmpty) 'path': path,
     if (runes.isNotEmpty) 'runes': runes,
+    if (history != null) 'history': history!.toJson(),
   };
 
   factory MarketCharacter.fromJson(Map<String, dynamic> json) =>
@@ -275,6 +304,9 @@ class MarketCharacter {
         realm: json['realm'] as String? ?? '',
         path: json['path'] as String? ?? '',
         runes: (json['runes'] as List<dynamic>? ?? const []).cast<int>(),
+        history: json['history'] == null
+            ? null
+            : PriceHistory.fromJson(json['history'] as Map<String, dynamic>),
       );
 }
 

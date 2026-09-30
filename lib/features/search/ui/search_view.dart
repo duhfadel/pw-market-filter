@@ -639,6 +639,15 @@ class _Grid extends StatelessWidget {
   /// The strip alone: no heading now, and the level rides the icon.
   static const _runeStripHeight = 36.0;
 
+  /// The struck-through old price `_Queda` draws in the header, on a card
+  /// whose price genuinely fell — most never do. Reserved the same way the
+  /// realm and the rune strip are, below: once any character in the whole
+  /// index could draw it, every tile keeps the room, so a filtered subset of
+  /// results never disagrees with itself about how tall a card is. Air under
+  /// a card that did not need the line is the safe direction; the alternative
+  /// clips it.
+  static const _quedaLineHeight = 15.0;
+
   /// One block per **item** the card will name, not per condition asked.
   ///
   /// Conditions that land on the same piece — a weapon chosen from the
@@ -680,10 +689,18 @@ class _Grid extends StatelessWidget {
         ? _realmLineHeight
         : 0.0;
     final runes = index.runes.isEmpty ? 0.0 : _runeStripHeight;
+    final queda =
+        index.characters.any((c) {
+          final antes = c.history?.previousPrice;
+          return antes != null && antes > c.price;
+        })
+        ? _quedaLineHeight
+        : 0.0;
 
     return _headerHeight +
         realm +
         runes +
+        queda +
         _dividerHeight +
         blocks * _matchLineHeight;
   }

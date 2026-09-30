@@ -19,9 +19,11 @@ import 'package:pw_market_filter/collector/collected_page.dart';
 import 'package:pw_market_filter/collector/detail_parser.dart';
 import 'package:pw_market_filter/collector/index_builder.dart';
 import 'package:pw_market_filter/collector/listing_parser.dart';
+import 'package:pw_market_filter/collector/memoria.dart';
 import 'package:pw_market_filter/market/card_combos.dart';
 import 'package:pw_market_filter/market/celestial_realm.dart';
 import 'package:pw_market_filter/market/counted_items.dart';
+import 'package:pw_market_filter/market/market_index.dart';
 
 const _server = 'pw187';
 const _origin = 'https://marketplace.theclassic.games';
@@ -61,6 +63,7 @@ Future<void> main(List<String> arguments) async {
   try {
     final listing = await _fetchListing(client);
     stdout.writeln('${listing.length} personagens à venda.');
+    final publicado = await _fetchPublishedIndex(client);
 
     final state = _CollectState.load(_statePath, resume: resume);
     // Characters that left the market since the last run. Dropping them keeps
@@ -114,7 +117,7 @@ Future<void> main(List<String> arguments) async {
       if (i + 1 < pending.length) await Future<void>.delayed(_politeDelay);
     }
 
-    _writeIndex(listing, state);
+    _writeIndex(listing, state, publicado: publicado);
     _reportSummary(listing, state, blockedPauses);
   } finally {
     client.close(force: true);
@@ -153,6 +156,42 @@ Future<List<ListingCard>> _fetchListing(HttpClient client) async {
     exit(1);
   }
   return cards;
+}
+
+/// The index the site is currently serving, or `null` when it cannot be read.
+///
+/// **This is where the memory lives.** One request to our own CDN per run,
+/// and the file is served `cf-cache-status: DYNAMIC` — Cloudflare does not
+/// cache it at the edge — so what comes back is the real current file rather
+/// than a ten-minute-old one. Measured 2026-09-30; if that ever changes, this
+/// needs the `?t=<millis>` buster the app already uses.
+///
+/// A failure returns `null` and the run continues. Losing the record for one
+/// collection costs a day of history; refusing to publish would cost the site.
+/// The state file still holds the same fields as a second copy.
+Future<MarketIndex?> _fetchPublishedIndex(HttpClient client) async {
+  try {
+    final request = await client.getUrl(
+      Uri.parse('https://portalpw.net/market_index.json'),
+    );
+    request.headers.set(HttpHeaders.acceptEncodingHeader, 'gzip');
+    final response = await request.close();
+    if (response.statusCode != 200) {
+      stdout.writeln(
+        'Índice publicado respondeu ${response.statusCode}; '
+        'esta coleta começa sem histórico.',
+      );
+      return null;
+    }
+    final body = await response.transform(utf8.decoder).join();
+    return MarketIndex.fromJson(jsonDecode(body) as Map<String, dynamic>);
+  } catch (e) {
+    stdout.writeln(
+      'Não deu para ler o índice publicado ($e); '
+      'esta coleta começa sem histórico.',
+    );
+    return null;
+  }
 }
 
 /// Returns null when the page could not be read after every attempt.
@@ -214,10 +253,21 @@ Future<String?> _get(HttpClient client, String url) async {
   }
 }
 
-void _writeIndex(List<ListingCard> listing, _CollectState state) {
+void _writeIndex(
+  List<ListingCard> listing,
+  _CollectState state, {
+  MarketIndex? publicado,
+}) {
   final builder = IndexBuilder(
     server: _server,
     collectedAt: DateTime.now().toUtc(),
+  );
+
+  final agora = DateTime.now().toUtc();
+  final memoria = avancarTodos(
+    listing: listing,
+    publicado: publicado,
+    agora: agora,
   );
 
   for (final card in listing) {
@@ -233,11 +283,12 @@ void _writeIndex(List<ListingCard> listing, _CollectState state) {
         realm: collected.realm,
         path: collected.path,
         runes: collected.runes,
+        history: memoria[card.roleId],
       );
     }
   }
 
-  final index = builder.build();
+  final index = builder.build(historyFrom: historyFromDe(publicado, agora));
   final file = File(_outputPath)..parent.createSync(recursive: true);
   file.writeAsStringSync(jsonEncode(index.toJson()));
 

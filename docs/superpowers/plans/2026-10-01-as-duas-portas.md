@@ -274,3 +274,38 @@ tela; e **o 1.8.7 não perde nada** — este é o teste que importa mais, porque
 a poda é onde se parte a versão que já está no ar.
 - [ ] **Step 2 a 4:** rode, implemente, verde.
 - [ ] **Step 5: Suíte inteira, analyze, `flutter build web`, commit**
+
+---
+
+## Pendente do 1.8.7, decidido em 01/10: a carta das relíquias
+
+**A carta *Mais Chaves da Sorte* sai, e no lugar entra a soma das três
+relíquias** — Artefato, Arma e Armadura. Decisão do dono: *"estas são as
+importantes, as chave da sorte não"*.
+
+**A medição concorda, e por um motivo mais forte que o enunciado.** Sobre os
+1.666 personagens de 01/10:
+
+| | Carregam | Mediana | Topo |
+|---|---|---|---|
+| soma das três relíquias | **1.653 (99%)** | 74 | 595 |
+| Chave da Sorte | 875 (53%) | 1 | 3.977 |
+
+A soma das três é uma **escala contínua onde quase toda a gente está**, e por
+isso ordena o mercado inteiro. A Chave não: o `CLAUDE.md` já regista que
+metade de quem a tem carrega exatamente uma e que 655 dos 875 vivem no
+primeiro 1,3% da sua faixa. Isso não é uma escala, é um acumulador — diz mais
+sobre quem nunca gastou do que sobre o personagem.
+
+Vencedor de hoje: **Sarsfield**, 595 relíquias (194 + 200 + 201), 700 TCC,
+Arqueiro. A repartição quase igual entre as três é sinal de que a soma mede o
+que se quer: não é alguém que empilhou uma só.
+
+**Somar as três é legítimo e a regra já está escrita:** atributos somam-se
+*dentro* de um atributo, e as três relíquias são a mesma pergunta feita de
+três maneiras — é o que a `buscaInicial` já diz ao marcar as três de uma vez.
+O que nunca se soma é um atributo a outro, e aqui isso não acontece.
+
+**O selo da carta é a soma, e a nota deve decompô-la.** Um total que ninguém
+consegue decompor é um total que ninguém consegue conferir — a mesma razão
+pela qual `countedItemNotes` existe.

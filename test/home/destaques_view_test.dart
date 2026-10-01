@@ -167,4 +167,83 @@ void main() {
     final b = tester.getTopLeft(find.byType(Card).at(1));
     expect(b.dy, a.dy);
   });
+  testWidgets('the veil is dark where the footer text begins', (tester) async {
+    // The defect this pins shipped once and was caught by eye, not by the
+    // suite: the veil stayed clear until 62% of the card, the label is the
+    // **first** line of the footer, and five of the six cards had their label
+    // sitting on raw artwork. Only the first read, because that art happens
+    // to be dark there — a gradient whose legibility depends on which
+    // painting is behind it is a coincidence, not a design.
+    //
+    // So this asserts the property rather than the numbers: whatever the
+    // stops are, the veil must already be mostly opaque at the height where
+    // the text starts. Restating `stops: [0.38, …]` would pass for any
+    // gradient, including the broken one.
+    // Measured at the width the page actually serves. The default 800 px
+    // harness viewport packs six cards into 133 px each, where the footer's
+    // fixed type eats 45% of the card and no gradient could save it; the real
+    // page caps its column near 1180 px, giving ~150 px cards whose footer
+    // starts around 60%. A veil tuned against the harness's proportions would
+    // be tuned against a layout nobody sees.
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await _montar(tester, index: indiceDeTeste());
+
+    final carta = tester.getRect(find.byType(Card).first);
+    // The topmost text in the footer, found by position rather than by widget
+    // type: `find.byType(Column).first` returns the card's OUTER column, not
+    // the footer's, and measuring that would pass for any gradient at all.
+    // The badge is excluded by ignoring the top quarter — it carries its own
+    // opaque chip and does not depend on the veil.
+    final textos = find.descendant(
+      of: find.byType(Card).first,
+      matching: find.byType(Text),
+    );
+    final topos = <double>[
+      for (var i = 0; i < tester.widgetList(textos).length; i++)
+        tester.getRect(textos.at(i)).top,
+    ].where((t) => (t - carta.top) / carta.height > 0.25).toList()..sort();
+
+    expect(topos, isNotEmpty, reason: 'the card drew no footer text at all');
+    final ondeOTextoComeca = (topos.first - carta.top) / carta.height;
+
+    final veu = tester.widget<DecoratedBox>(
+      find
+          .descendant(
+            of: find.byType(Card).first,
+            matching: find.byType(DecoratedBox),
+          )
+          .last,
+    );
+    final gradiente =
+        (veu.decoration as BoxDecoration).gradient! as LinearGradient;
+
+    expect(
+      _alphaEm(gradiente, ondeOTextoComeca),
+      greaterThan(0.5),
+      reason:
+          'the label sits at ${(ondeOTextoComeca * 100).round()}% of the card '
+          'and the veil is barely there — it will land on the artwork',
+    );
+  });
+}
+
+/// The gradient's alpha at [fracao] of the way down, interpolated between
+/// whichever pair of stops bracket it.
+double _alphaEm(LinearGradient gradiente, double fracao) {
+  final stops = gradiente.stops!;
+  final cores = gradiente.colors;
+
+  if (fracao <= stops.first) return cores.first.a;
+  if (fracao >= stops.last) return cores.last.a;
+
+  for (var i = 0; i < stops.length - 1; i++) {
+    if (fracao >= stops[i] && fracao <= stops[i + 1]) {
+      final t = (fracao - stops[i]) / (stops[i + 1] - stops[i]);
+      return cores[i].a + (cores[i + 1].a - cores[i].a) * t;
+    }
+  }
+  return cores.last.a;
 }

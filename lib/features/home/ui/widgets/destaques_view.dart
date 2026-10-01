@@ -152,12 +152,22 @@ class _Veu extends StatelessWidget {
       gradient: LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
+        // Four stops, not three, and the ramp starts at 38% rather than 62%.
+        //
+        // The label is the **first** line of the footer, so a veil that is
+        // still nearly clear where the footer begins leaves it sitting on raw
+        // artwork — and six classes means six different brightnesses behind
+        // it. Measured on the published build: the first card read fine only
+        // because that art happens to be dark there, while the other five
+        // ellipsized into the picture. A gradient that depends on which
+        // painting is behind it is not a gradient, it is a coincidence.
         colors: [
           Colors.transparent,
-          Colors.transparent,
-          PWColors.noite.withValues(alpha: 0.92),
+          PWColors.noite.withValues(alpha: 0.55),
+          PWColors.noite.withValues(alpha: 0.88),
+          PWColors.noite.withValues(alpha: 0.97),
         ],
-        stops: const [0, 0.62, 1],
+        stops: const [0.38, 0.58, 0.78, 1],
       ),
     ),
   );

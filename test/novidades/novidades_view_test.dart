@@ -3,6 +3,8 @@ import 'package:flutter/services.dart' show FontLoader, rootBundle;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/core/result/result.dart';
 import 'package:pw_market_filter/core/theme/pw_theme.dart';
+import 'package:pw_market_filter/features/home/data/browser_memory.dart';
+import 'package:pw_market_filter/features/home/data/novidade_lida.dart';
 import 'package:pw_market_filter/features/home/domain/novidade.dart';
 import 'package:pw_market_filter/features/novidades/ui/novidades_view.dart';
 
@@ -119,5 +121,71 @@ void main() {
         );
       }
     }
+  });
+
+  group('opening this screen clears the header pill\'s unread dot', () {
+    testWidgets('a successful load marks the newest entry as read', (
+      tester,
+    ) async {
+      final memoria = BrowserMemory.platform('teste-marca-ao-abrir');
+      final lida = NovidadeLida(memoria);
+      final entradas = [
+        _nova(titulo: 'Mais antiga', em: DateTime.utc(2026, 9, 1)),
+        _nova(titulo: 'Mais nova', em: DateTime.utc(2026, 10, 1)),
+      ];
+      expect(lida.existeNaoLida(entradas), isTrue);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NovidadesView(
+            carregar: () async => Success(entradas),
+            lida: lida,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(lida.existeNaoLida(entradas), isFalse);
+    });
+
+    testWidgets('a failed load marks nothing', (tester) async {
+      // The screen does not know what the newest entry actually is when the
+      // request fails, so marking off a guess would clear the dot for news
+      // this browser never saw.
+      final memoria = BrowserMemory.platform('teste-marca-falha');
+      final lida = NovidadeLida(memoria);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NovidadesView(
+            carregar: () async =>
+                const Failure(IndexUnreadableFailure('rede', 'timeout')),
+            lida: lida,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(memoria.read(), isNull);
+    });
+
+    testWidgets('an empty table marks nothing, for the same reason', (
+      tester,
+    ) async {
+      final memoria = BrowserMemory.platform('teste-marca-vazio');
+      final lida = NovidadeLida(memoria);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NovidadesView(
+            carregar: () async => const Success([]),
+            lida: lida,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(memoria.read(), isNull);
+    });
   });
 }

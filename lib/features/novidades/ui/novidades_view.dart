@@ -6,6 +6,7 @@ import '../../../core/di/injection.dart';
 import '../../../core/result/result.dart';
 import '../../../core/theme/pw_colors.dart';
 import '../../../core/theme/pw_theme.dart';
+import '../../home/data/novidade_lida.dart';
 import '../../home/data/novidade_repository.dart';
 import '../../home/domain/novidade.dart';
 import '../../home/ui/widgets/cabecalho.dart';
@@ -29,8 +30,15 @@ import '../../home/ui/widgets/novidade_texto.dart';
 /// looks at it. A reuse of this screen inherits the whole container, index
 /// included — almost certainly harmless, but a different claim from "never
 /// reaches it".
+///
+/// **Opening this screen is also what clears the header pill's unread dot**,
+/// moved here on 01/10/2026 from the front page's own closed news bar: that
+/// bar used to mark itself read the moment it was tapped open, and the mark
+/// now happens here instead, once a load actually succeeds — which is what
+/// lets a shared link straight to `/novidades` clear the dot too, not only a
+/// tap on the pill that opened it.
 class NovidadesView extends StatefulWidget {
-  const NovidadesView({super.key, this.carregar});
+  const NovidadesView({super.key, this.carregar, this.lida});
 
   /// Reads every announcement, [Novidade.publicadaEm] descending.
   ///
@@ -38,6 +46,12 @@ class NovidadesView extends StatefulWidget {
   /// network — `null` reaches for the real [NovidadeRepository] through
   /// GetIt, the way every other route in this app finds its data.
   final Future<Result<List<Novidade>>> Function()? carregar;
+
+  /// Marks the newest loaded entry as read. Injected so the suite can share
+  /// one [NovidadeLida] between this screen and a pill under test; `null`
+  /// reaches for the real browser storage [NovidadeLida] already defaults
+  /// to.
+  final NovidadeLida? lida;
 
   @override
   State<NovidadesView> createState() => _NovidadesViewState();
@@ -79,6 +93,14 @@ class _NovidadesViewState extends State<NovidadesView> {
     final carregar = widget.carregar ?? getIt<NovidadeRepository>().carregar;
     final resultado = await carregar();
     if (!mounted) return;
+
+    // Marked only on success: a failed load does not know what the newest
+    // entry actually is, and marking off a stale or empty guess would clear
+    // the dot for news this browser never actually saw.
+    resultado.fold(
+      (entradas) => (widget.lida ?? NovidadeLida()).marcarComoLida(entradas),
+      (_) {},
+    );
 
     setState(() {
       _estado = resultado.fold(

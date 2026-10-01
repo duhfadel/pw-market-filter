@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/theme/pw_theme.dart';
+import '../../data/browser_memory.dart';
+import '../../data/novidade_lida.dart';
+import '../../domain/novidade.dart';
 import '../../domain/tool.dart';
+import '../novidades_view_model.dart';
 import 'tool_navigation.dart';
 
 /// The site's mark, and the whole menu behind it.
@@ -24,7 +29,7 @@ import 'tool_navigation.dart';
 /// [PopupMenuButton]'s own [PopupRoute], which already wires a dismiss
 /// barrier and a `DismissIntent` binding for exactly this.
 class Cabecalho extends StatelessWidget {
-  const Cabecalho({required this.wide, super.key});
+  const Cabecalho({required this.wide, this.memoriaDeNovidades, super.key});
 
   /// Below this, the pills do not fit in a row beside the mark, and
   /// `Cabecalho` collapses them into one overflow button instead — every
@@ -63,6 +68,14 @@ class Cabecalho extends StatelessWidget {
   /// instead.
   final bool wide;
 
+  /// Injected so the suite can prove the dot against a store nobody else
+  /// touches; `null` — every real call site — reaches for the real browser
+  /// storage `NovidadeLida` already defaults to. None of the five screens
+  /// that carry this widget pass anything here, which is the point: the dot
+  /// is wired once, in this file, rather than by every screen that happens
+  /// to show a `Cabecalho`.
+  final BrowserMemory? memoriaDeNovidades;
+
   @override
   Widget build(BuildContext context) => Row(
     children: [
@@ -73,7 +86,7 @@ class Cabecalho extends StatelessWidget {
           _SectionPill(secao: secao),
           const SizedBox(width: 8),
         ],
-        const _NovidadesPill(),
+        _NovidadesPill(memoria: memoriaDeNovidades),
       ] else
         const _OverflowMenu(),
     ],
@@ -170,11 +183,17 @@ class _Marca extends StatelessWidget {
 /// given, is its own [Text] — never folded into the label's string — because
 /// what the pill promises is specifically "how many tools answer", and that
 /// number has to be readable on its own by anything scanning the bar for it.
+///
+/// [dot] is the Novidades pill's own unread marker — a plain circle rather
+/// than a count, because the fact it reports is "something new", not a
+/// quantity. No pill wears both [count] and [dot] today, but nothing stops
+/// one that did.
 class _Pill extends StatelessWidget {
-  const _Pill({required this.label, this.count});
+  const _Pill({required this.label, this.count, this.dot = false});
 
   final String label;
   final int? count;
+  final bool dot;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -214,6 +233,22 @@ class _Pill extends StatelessWidget {
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
               ),
+            ),
+          ),
+        ],
+        if (dot) ...[
+          const SizedBox(width: 6),
+          // Lit only while this browser has not opened `/novidades` since
+          // the newest entry was posted. A dot still on after it has been
+          // read teaches the reader to stop seeing it — the same failure
+          // the `novo` badge's own expiry date exists to avoid.
+          Container(
+            key: const Key('novidade-nao-lida'),
+            width: 7,
+            height: 7,
+            decoration: const BoxDecoration(
+              color: PWColors.accent,
+              shape: BoxShape.circle,
             ),
           ),
         ],
@@ -262,20 +297,75 @@ class _SectionPill extends StatelessWidget {
 /// *Novidades*, as a plain link rather than a pill with a drawer — it opens
 /// the `/novidades` screen directly, and there is nothing to list in a
 /// drawer first.
+///
+/// **It carries the unread dot the front page's news bar used to own**,
+/// moved here on 01/10/2026 when `/novidades` got a screen of its own: a
+/// closed accordion on the home page was a second surface for the same
+/// thing the pill already opens, and the owner's call was to keep one. The
+/// rules the dot followed there still hold, just read from a different
+/// place: it lights while this browser has not opened `/novidades` since the
+/// newest entry was posted, a browser that has never opened it counts as
+/// having something new (the useful direction to be wrong in), and it is
+/// marked read on the way in — now at the moment `/novidades` itself opens
+/// (`novidades_view.dart`), rather than when this particular pill is tapped,
+/// so a shared link straight to `/novidades` clears it too.
+///
+/// **What this move costs, on purpose rather than quietly:** the bar's
+/// closed header showed the latest entry's own title and date, so a
+/// returning visitor could tell *whether* the thing inside was the one they
+/// had already read. A pill has room for a label and a dot, not a headline —
+/// that teaser is gone, and the owner accepted the trade.
+///
+/// The dot is read fresh on every build rather than cached, and that is
+/// *not* the same rule the old bar followed — it cannot be, because the
+/// write that used to share this widget now happens on a different screen
+/// entirely. The old caching guarded against this very widget writing and
+/// then immediately re-reading its own write inside one build; nothing here
+/// writes at all any more, so there is no such write to chase and a plain
+/// read is both simpler and correct, including the moment a visitor returns
+/// from `/novidades` and this pill must stop lighting without needing a new
+/// widget instance to notice.
 class _NovidadesPill extends StatelessWidget {
-  const _NovidadesPill();
+  const _NovidadesPill({this.memoria});
+
+  final BrowserMemory? memoria;
 
   @override
-  Widget build(BuildContext context) => Material(
-    // The one exception to "no inline colours": transparent is the absence
-    // of a colour, not a choice of one.
-    color: Colors.transparent,
-    child: InkWell(
-      borderRadius: BorderRadius.circular(20),
-      onTap: () => _abrirNovidades(context),
-      child: const _Pill(label: 'Novidades'),
-    ),
-  );
+  Widget build(BuildContext context) {
+    var entradas = const <Novidade>[];
+    try {
+      // `BlocProvider.of(listen: true)` rather than `context.watch`: on a
+      // missing ancestor it turns `provider`'s own exception into a plain
+      // `FlutterError`, so this file never has to import `package:provider`
+      // itself just to name the type it is catching.
+      entradas = BlocProvider.of<NovidadesViewModel>(
+        context,
+        listen: true,
+      ).state;
+    } on FlutterError {
+      // No `NovidadesViewModel` above this tree — true only for a test that
+      // mounts `Cabecalho` or `NovidadesView` on its own. Every real route
+      // sits under `main.dart`'s `MultiBlocProvider`, which is what lets
+      // every screen carrying this widget get the dot for free rather than
+      // wiring it up by hand; this is the silent fallback for the one case
+      // that forgot, the same shape `ItemIcon` already draws for an item
+      // with no art rather than a broken box.
+    }
+
+    return Material(
+      // The one exception to "no inline colours": transparent is the absence
+      // of a colour, not a choice of one.
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => _abrirNovidades(context),
+        child: _Pill(
+          label: 'Novidades',
+          dot: NovidadeLida(memoria).existeNaoLida(entradas),
+        ),
+      ),
+    );
+  }
 }
 
 /// One row inside a drawer: the tool's name, its one-line description, and —

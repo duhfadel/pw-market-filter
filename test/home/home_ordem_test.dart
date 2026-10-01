@@ -23,11 +23,12 @@ import 'package:pw_market_filter/market/slot_names.dart';
 
 /// Where the assembled front page puts each section, top to bottom.
 ///
-/// Two of these positions already cost an error and are recorded in
-/// `CLAUDE.md`: the streamers sit below the tools and above the Discord, and
-/// the news is closed. What changed on 30/09 is only that the news moved
-/// below the tools — whoever arrives for the first time came for the tool,
-/// not for a notice.
+/// One of these positions already cost an error and is recorded in
+/// `CLAUDE.md`: the streamers sit below the tools and above the Discord. The
+/// closed news bar used to sit between them, below the tools — it left the
+/// page entirely on 01/10/2026, moved to its own `/novidades` screen reached
+/// from `Cabecalho`'s pill, so there is no longer a news position to pin
+/// here.
 
 /// Loads the real Marcellus and Inter files `pubspec.yaml` already declares,
 /// so this file measures text the way a browser does. Without this, the
@@ -193,6 +194,10 @@ void main() {
     // leave this step silently skipped rather than checked.
     await _pumpHome(tester, index: _indiceComDestaques);
 
+    // The closed news bar left the page entirely on 01/10/2026 — `/novidades`
+    // is its own screen now, reached from `Cabecalho`'s own pill rather than
+    // from a position in this list.
+    //
     // `AoVivoStrip`'s own heading reads `STREAMERS AMIGOS`, not
     // `AO VIVO NA TWITCH` — verified against the widget itself, which is the
     // source of truth over any brief's recollection of it.
@@ -200,7 +205,6 @@ void main() {
       find.byKey(const Key('cabecalho-marca')),
       find.byType(Cartaz),
       find.byType(DestaquesView),
-      find.text('NOVIDADES DO PORTAL'),
       find.text('STREAMERS AMIGOS'),
       find.text('COMUNIDADE'),
       find.textContaining('Projeto de fã'),

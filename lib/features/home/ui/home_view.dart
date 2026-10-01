@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../data/browser_memory.dart';
 import '../../../core/theme/pw_colors.dart';
 import '../../../market/market_index.dart';
 import '../../ads/ad_slot.dart';
@@ -16,18 +15,23 @@ import '../domain/arte_da_classe.dart';
 import '../domain/visit_label.dart';
 import 'visit_counter_view_model.dart';
 import '../domain/community.dart';
-import '../domain/novidade.dart';
 import '../../../core/widgets/brand_icon.dart';
-import 'novidades_view_model.dart';
 import 'widgets/ao_vivo_strip.dart';
 import 'widgets/cabecalho.dart';
 import 'widgets/cartaz.dart';
 import 'widgets/destaques_view.dart';
 import 'widgets/discord_strip.dart';
-import 'widgets/news_section.dart';
 
-/// The Portal's front page: the mark, the Cartaz, the Destaques, Novidades,
-/// Streamers and Comunidade.
+/// Opens the filter already answering [query] — every Destaques card is a
+/// door into the search that produced it, encoded the same way a shared
+/// link is so the filter screen reads it back with `requestUrl`.
+void _abrirBusca(BuildContext context, MarketIndex index, SearchQuery query) {
+  final q = encodeQuery(query, index);
+  Navigator.of(context).pushNamed(q.isEmpty ? '/filtro' : '/filtro?$q');
+}
+
+/// The Portal's front page: the mark, the Cartaz, the Destaques, Streamers
+/// and Comunidade.
 ///
 /// It loads the market index like the filter does, and for the same reason it
 /// is worth the wait: the Cartaz and the Destaques are both drawn from it. The
@@ -40,23 +44,17 @@ import 'widgets/news_section.dart';
 /// same guide — a second navigation surface for the same set, on the same
 /// page, was the thing the owner called out on 01/10/2026: "não acho que
 /// valha a pena duplicar".
-/// One store for the whole page, built once.
 ///
-/// A fresh instance per rebuild would read `localStorage` on every frame,
-/// which is the call the guard in `BrowserMemory` exists to keep cheap and
-/// quiet — and the news bar reads its marker exactly once per load.
-final _memoriaDasNovidades = BrowserMemory.platform(
-  'portal_pw_ultima_novidade',
-);
-
-/// Opens the filter already answering [query] — every Destaques card is a
-/// door into the search that produced it, encoded the same way a shared
-/// link is so the filter screen reads it back with `requestUrl`.
-void _abrirBusca(BuildContext context, MarketIndex index, SearchQuery query) {
-  final q = encodeQuery(query, index);
-  Navigator.of(context).pushNamed(q.isEmpty ? '/filtro' : '/filtro?$q');
-}
-
+/// **The closed news bar that used to sit here is gone too, moved on the
+/// same day.** `/novidades` got a screen of its own, reachable from
+/// `Cabecalho`'s own *Novidades* pill on every screen — a second surface for
+/// the same announcements, on the same page, was the same duplication the
+/// tool cards already were. What does not survive the move: the bar's closed
+/// header showed the latest entry's own title and date, so a returning
+/// visitor could tell whether the thing inside was the one they had already
+/// read. The pill that replaces it carries only a label and an unread dot —
+/// see `cabecalho.dart`'s `_NovidadesPill`, which is also where the dot's
+/// rules now live.
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
@@ -200,22 +198,10 @@ class HomeView extends StatelessWidget {
                           // to `GavetaItem`, the drawer row each pill opens —
                           // the one place left that can still show it.
                           SizedBox(height: large ? 32 : (wide ? 26 : 20)),
-                          _ComMargem(
-                            // The teaser the bar's *Novidades* pill no longer
-                            // needs to scroll to — it opens `/novidades`
-                            // directly now. This stays as a closed accordion
-                            // that a returning visitor can glance at without
-                            // leaving the front page.
-                            wide: wide,
-                            child:
-                                BlocBuilder<NovidadesViewModel, List<Novidade>>(
-                                  builder: (context, novidades) => NewsSection(
-                                    entries: novidades,
-                                    wide: wide,
-                                    memoria: _memoriaDasNovidades,
-                                  ),
-                                ),
-                          ),
+                          // The closed news bar used to sit here, between the
+                          // tools and the streamers — see the class doc above
+                          // for what left with it on 01/10/2026 and what it
+                          // cost.
                           // Depois das ferramentas e antes da comunidade. É o
                           // lugar que combina com o que a coisa é: cortesia a
                           // quem transmite, não o motivo de alguém ter vindo.

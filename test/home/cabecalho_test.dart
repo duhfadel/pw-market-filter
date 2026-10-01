@@ -1,7 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FontLoader, rootBundle;
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:pw_market_filter/features/home/data/browser_memory.dart';
+import 'package:pw_market_filter/features/home/data/novidade_repository.dart';
 import 'package:pw_market_filter/features/home/domain/tool.dart';
+import 'package:pw_market_filter/features/home/ui/novidades_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/widgets/cabecalho.dart';
 
 /// Loads the real Marcellus and Inter files `pubspec.yaml` already declares,
@@ -38,6 +46,47 @@ Future<void> _montarCabecalho(WidgetTester tester, {bool wide = true}) async {
 
 /// The tools filed under `Ferramentas`, the same list the pill reads.
 final ferramentas = toolsDe('Ferramentas');
+
+/// A `NovidadeRepository` answering [corpo] regardless of the request —
+/// enough for the one entry these tests need the pill's `NovidadesViewModel`
+/// to carry.
+NovidadeRepository _repositorioDe(Object corpo) => NovidadeRepository(
+  MockClient((_) async => http.Response(jsonEncode(corpo), 200)),
+);
+
+final _umaNovidade = [
+  {
+    'texto': '**Selo novo no site**\nUma linha contando o que mudou.',
+    'autor': 'dono',
+    'publicada_em': '2026-09-30T12:00:00Z',
+  },
+];
+
+/// Mounts `Cabecalho` under a real `NovidadesViewModel`, the way `main.dart`
+/// wraps every route — the pill reads it through `BlocProvider.of`, not
+/// through a parameter any of the five screens have to pass by hand.
+Future<void> _montarComNovidades(
+  WidgetTester tester, {
+  required Object corpo,
+  BrowserMemory? memoria,
+}) async {
+  final viewModel = NovidadesViewModel(_repositorioDe(corpo));
+  await tester.pumpWidget(
+    BlocProvider.value(
+      value: viewModel,
+      child: MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 1200,
+            child: Cabecalho(wide: true, memoriaDeNovidades: memoria),
+          ),
+        ),
+      ),
+    ),
+  );
+  await viewModel.load();
+  await tester.pump();
+}
 
 void main() {
   setUpAll(_carregarFontesReais);
@@ -136,5 +185,66 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Filtro do Marketplace'), findsOneWidget);
+  });
+
+  group('the Novidades pill carries the unread dot moved off the home bar', () {
+    testWidgets('a browser that has never opened it gets the dot', (
+      tester,
+    ) async {
+      await _montarComNovidades(
+        tester,
+        corpo: _umaNovidade,
+        memoria: BrowserMemory.platform('teste-nunca-leu'),
+      );
+
+      expect(find.byKey(const Key('novidade-nao-lida')), findsOneWidget);
+    });
+
+    testWidgets('a browser already caught up gets no dot', (tester) async {
+      final memoria = BrowserMemory.platform('teste-ja-leu')
+        ..write(DateTime.utc(2026, 9, 30, 12).toIso8601String());
+
+      await _montarComNovidades(tester, corpo: _umaNovidade, memoria: memoria);
+
+      expect(find.byKey(const Key('novidade-nao-lida')), findsNothing);
+    });
+
+    testWidgets(
+      'the dot shows the instant the real entries arrive, with no extra '
+      'frame needed',
+      (tester) async {
+        // Pins the hazard the old bar's docstring warned about, read for the
+        // new architecture: there is no write anywhere in this build path any
+        // more, so a fresh read never flickers between frames the way a
+        // write-then-reread would have.
+        await _montarComNovidades(
+          tester,
+          corpo: _umaNovidade,
+          memoria: BrowserMemory.platform('teste-primeiro-frame'),
+        );
+
+        expect(find.byKey(const Key('novidade-nao-lida')), findsOneWidget);
+
+        // An idle pump, nothing changed — the dot must still be there and
+        // not have cleared itself.
+        await tester.pump();
+        expect(find.byKey(const Key('novidade-nao-lida')), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'with no NovidadesViewModel above it, the pill draws no dot and does '
+      'not crash',
+      (tester) async {
+        // The exact shape every other test in this file already mounts —
+        // `Cabecalho` on its own, the way a screen that forgot the app's
+        // shared provider would see it. The silent fallback is the point:
+        // a missing provider must read as "nothing new" rather than a red
+        // screen.
+        await _montarCabecalho(tester);
+
+        expect(find.byKey(const Key('novidade-nao-lida')), findsNothing);
+      },
+    );
   });
 }

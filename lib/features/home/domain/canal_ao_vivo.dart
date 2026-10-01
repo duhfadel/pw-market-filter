@@ -52,6 +52,33 @@ class CanalAoVivo {
   String get url => 'https://www.twitch.tv/$canal';
 }
 
+/// The words that say a stream is about this game.
+///
+/// Matched against the Twitch **category** and the **title**, because the two
+/// fail in opposite directions and either one alone would be wrong. A
+/// streamer who sets the category correctly may title the stream anything;
+/// one who leaves the category on *Just Chatting* usually still writes the
+/// game in the title. Requiring both would hide most real streams; requiring
+/// neither is the status quo this rule exists to end.
+///
+/// **`PW` is deliberately not here.** Two letters match far too much — a
+/// nickname, a guild tag, a word like *pwzinho* — and a strip that shows
+/// somebody playing something else is exactly the wrong answer this rule was
+/// added to prevent. The cost is a stream titled only `PW` going unshown,
+/// which is visible to its owner and fixable by typing two words.
+const _marcasDoJogo = ['perfect world'];
+
+/// Whether [canal] is streaming this game rather than something else.
+///
+/// A channel that is live with no category and no title says nothing, and
+/// nothing is not a yes: it is treated as *not this game*. Announcing a
+/// stream that turns out to be another game costs the same trust as
+/// announcing one that already ended.
+bool jogandoOJogo(CanalAoVivo canal) {
+  final onde = '${canal.jogo ?? ''} ${canal.titulo ?? ''}'.toLowerCase();
+  return _marcasDoJogo.any(onde.contains);
+}
+
 /// How old a reading may be before it stops meaning anything.
 ///
 /// The Worker looks every five minutes, so twelve is three missed rounds —
@@ -70,12 +97,21 @@ const janelaDoAoVivo = Duration(minutes: 12);
 ///
 /// Busiest first so a quiet channel is not permanently the face of the site
 /// just for being first in the table.
+///
+/// **Playing something else is not live either**, for the same reason stale is
+/// not live: the card promises a Perfect World stream, and a reader who clicks
+/// into a different game stops believing the next card. See [jogandoOJogo].
 List<CanalAoVivo> aoVivoAgora(List<CanalAoVivo> canais, DateTime agora) {
   final vivos = [
     for (final canal in canais)
       if (canal.aoVivo &&
           canal.vistoEm != null &&
-          agora.difference(canal.vistoEm!) < janelaDoAoVivo)
+          agora.difference(canal.vistoEm!) < janelaDoAoVivo &&
+          // Live, fresh, and **playing this game**. A channel from this
+          // community streaming something else is still somebody's channel —
+          // it is just not news for a Perfect World site, and putting it in
+          // the strip spends the reader's trust on a click they did not want.
+          jogandoOJogo(canal))
         canal,
   ];
 

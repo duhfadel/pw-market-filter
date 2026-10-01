@@ -12,13 +12,15 @@ CanalAoVivo _canal({
   String nome = 'PersyBR',
   bool aoVivo = true,
   int espectadores = 21,
+  String? titulo = 'The Classic PW 1.8.7',
+  String? jogo = 'Perfect World',
   Object? vistoEm = _padrao,
 }) => CanalAoVivo(
   canal: canal,
   nome: nome,
   aoVivo: aoVivo,
-  titulo: 'The Classic PW 1.8.7',
-  jogo: 'Perfect World',
+  titulo: titulo,
+  jogo: jogo,
   espectadores: espectadores,
   // `Object?` com sentinela, e não `DateTime?` com `??`: o teste do canal
   // nunca conferido precisa passar null de verdade, e `??` o trocaria pelo
@@ -87,5 +89,55 @@ void main() {
 
       expect(c.nome, 'persybr');
     });
+  });
+
+  group('playing something else is not live either', () {
+    final agora = DateTime.utc(2026, 9, 20, 18, 5);
+
+    test('the Twitch category alone is enough', () {
+      final canal = _canal(jogo: 'Perfect World', titulo: 'bom dia');
+      expect(aoVivoAgora([canal], agora), hasLength(1));
+    });
+
+    test('the title alone is enough, because the category is often wrong', () {
+      // Somebody who never changed the category off Just Chatting still
+      // writes the game in the title. Demanding both would hide most of them.
+      final canal = _canal(jogo: 'Just Chatting', titulo: 'PERFECT WORLD TW');
+      expect(aoVivoAgora([canal], agora), hasLength(1));
+    });
+
+    test('another game is dropped, however live it is', () {
+      final canal = _canal(
+        jogo: 'League of Legends',
+        titulo: 'ranked ate subir',
+      );
+      expect(aoVivoAgora([canal], agora), isEmpty);
+    });
+
+    test('saying nothing is not a yes', () {
+      // No category and no title is not evidence of this game, and announcing
+      // it costs the same trust as announcing a stream that already ended.
+      expect(aoVivoAgora([_canal(jogo: null, titulo: null)], agora), isEmpty);
+    });
+
+    test('`PW` alone does not count, on purpose', () {
+      // Two letters match a nickname, a guild tag, a word like `pwzinho`.
+      // Showing somebody playing another game is the failure this rule exists
+      // to prevent, so the loose match is refused and the cost — a stream
+      // titled only `PW` going unshown — is accepted.
+      final canal = _canal(jogo: 'Just Chatting', titulo: 'live de PW hoje');
+      expect(aoVivoAgora([canal], agora), isEmpty);
+    });
+
+    test(
+      'a channel playing another game does not displace one that is not',
+      () {
+        final fora = _canal(canal: 'outro', jogo: 'Dota 2', espectadores: 900);
+        final dentro = _canal(canal: 'pavaotv', espectadores: 7);
+        expect(aoVivoAgora([fora, dentro], agora).map((c) => c.canal), [
+          'pavaotv',
+        ]);
+      },
+    );
   });
 }

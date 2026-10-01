@@ -47,32 +47,6 @@ final _memoriaDasNovidades = BrowserMemory.platform(
   'portal_pw_ultima_novidade',
 );
 
-/// Where the news section sits, so the bar's *Novidades* link can scroll to
-/// it rather than opening a drawer with nothing inside to list.
-///
-/// A top-level singleton, not a field on [HomeView]: the widget is `const`
-/// and only ever one instance is mounted at a time — the same reasoning
-/// behind [_memoriaDasNovidades] above. A `GlobalKey` created inside `build`
-/// would be fine too as long as it travels with the closure that reads it,
-/// but it would also reset the panel's own open/closed state on every
-/// rebuild that recreates it, which a resize does.
-final _novidadesKey = GlobalKey();
-
-/// Scrolls the page to the news section. Does nothing before the first
-/// frame has attached [_novidadesKey] to anything, which is the state every
-/// widget test not about this link is in.
-void _abrirNovidades() {
-  final context = _novidadesKey.currentContext;
-  if (context == null) return;
-  unawaited(
-    Scrollable.ensureVisible(
-      context,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    ),
-  );
-}
-
 /// Opens the filter already answering [query] — every Destaques card is a
 /// door into the search that produced it, encoded the same way a shared
 /// link is so the filter screen reads it back with `requestUrl`.
@@ -158,7 +132,8 @@ class HomeView extends StatelessWidget {
                             wide: wide,
                             child: Cabecalho(
                               wide: wide,
-                              aoAbrirNovidades: _abrirNovidades,
+                              aoAbrirNovidades: () =>
+                                  Navigator.of(context).pushNamed('/novidades'),
                             ),
                           ),
                           SizedBox(height: wide ? 22 : 16),
@@ -228,11 +203,11 @@ class HomeView extends StatelessWidget {
                           ),
                           SizedBox(height: large ? 32 : (wide ? 26 : 20)),
                           _ComMargem(
-                            // `_novidadesKey` marks this as where the bar's
-                            // *Novidades* link scrolls to — a plain link
-                            // rather than a drawer, since there is nothing
-                            // under it to list.
-                            key: _novidadesKey,
+                            // The teaser the bar's *Novidades* pill no longer
+                            // needs to scroll to — it opens `/novidades`
+                            // directly now. This stays as a closed accordion
+                            // that a returning visitor can glance at without
+                            // leaving the front page.
                             wide: wide,
                             child:
                                 BlocBuilder<NovidadesViewModel, List<Novidade>>(
@@ -356,7 +331,7 @@ class _Aurora extends StatelessWidget {
 /// Cartaz along with the rest; wrapping each section individually is what
 /// lets the hero opt out.
 class _ComMargem extends StatelessWidget {
-  const _ComMargem({required this.wide, required this.child, super.key});
+  const _ComMargem({required this.wide, required this.child});
 
   final bool wide;
   final Widget child;

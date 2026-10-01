@@ -35,42 +35,23 @@ class Cabecalho extends StatelessWidget {
   /// instead.
   final bool wide;
 
-  /// Called when *Novidades* is tapped. It stays a plain link rather than a
-  /// drawer — there is nothing inside it to list, only a section further
-  /// down this same page to jump to. `null` leaves the entry inert, which is
-  /// what every test that is not about it gets.
+  /// Called when *Novidades* is tapped.
+  ///
+  /// It opens `/novidades`, the site's own screen of past announcements —
+  /// every caller hands in `Navigator.pushNamed(context, '/novidades')`,
+  /// the home page included, where the collapsed news bar lower on the page
+  /// stays as a teaser rather than the destination. It used to scroll to a
+  /// section further down the front page; that stopped being true the day
+  /// `/novidades` got a screen of its own; a comment still claiming the old
+  /// behaviour would describe intent instead of code, and this repository
+  /// has already paid for that twice. `null` leaves the entry inert, which
+  /// is what every test that is not about it gets.
   final VoidCallback? aoAbrirNovidades;
 
   @override
   Widget build(BuildContext context) => Row(
     children: [
-      Image.asset(
-        'assets/images/pw-mark.webp',
-        height: 26,
-        filterQuality: FilterQuality.medium,
-        // A missing file leaves the name to carry the header alone rather
-        // than a broken box — the same silent fallback the rest of the site
-        // makes for art that failed to load.
-        errorBuilder: (_, _, _) => const SizedBox.shrink(),
-      ),
-      const SizedBox(width: 10),
-      const Text(
-        'PORTAL PW',
-        style: TextStyle(
-          fontFamily: PWTheme.display,
-          fontSize: 18,
-          letterSpacing: 0.6,
-          color: PWColors.papel,
-        ),
-      ),
-      const SizedBox(width: 8),
-      // The game's own version, not this site's — nobody asks a tool site
-      // "which release are you", they ask "which game". On Inter, never
-      // Marcellus: it is a number, and Marcellus draws Roman figures.
-      const Text(
-        '1.8.7',
-        style: TextStyle(color: PWColors.textMuted, fontSize: 11),
-      ),
+      const _Marca(key: Key('cabecalho-marca')),
       const Spacer(),
       if (wide) ...[
         for (final secao in secoesDaHome) ...[
@@ -81,6 +62,62 @@ class Cabecalho extends StatelessWidget {
       ] else
         _OverflowMenu(aoAbrirNovidades: aoAbrirNovidades),
     ],
+  );
+}
+
+/// The mark, the name and the game's version — and the way home from
+/// anywhere on the site.
+///
+/// It replaces per-screen home links that existed before this widget reached
+/// every page: tapping it never `push`es, because stacking the home page on
+/// top of itself would leave the back button walking backwards through a
+/// stack nobody built. `pushNamedAndRemoveUntil` clears the stack to just
+/// `/` instead, which is also correct for a visitor who arrived straight at
+/// a tool's deep link with no home beneath it to pop back to.
+class _Marca extends StatelessWidget {
+  const _Marca({super.key});
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    borderRadius: BorderRadius.circular(6),
+    onTap: () =>
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.asset(
+            'assets/images/pw-mark.webp',
+            height: 26,
+            filterQuality: FilterQuality.medium,
+            // A missing file leaves the name to carry the header alone
+            // rather than a broken box — the same silent fallback the rest
+            // of the site makes for art that failed to load.
+            errorBuilder: (_, _, _) => const SizedBox.shrink(),
+          ),
+          const SizedBox(width: 10),
+          const Text(
+            'PORTAL PW',
+            style: TextStyle(
+              fontFamily: PWTheme.display,
+              fontSize: 18,
+              letterSpacing: 0.6,
+              color: PWColors.papel,
+            ),
+          ),
+          const SizedBox(width: 8),
+          // The game's own version, not this site's — nobody asks a tool
+          // site "which release are you", they ask "which game". On Inter,
+          // never Marcellus: it is a number, and Marcellus draws Roman
+          // figures.
+          const Text(
+            '1.8.7',
+            style: TextStyle(color: PWColors.textMuted, fontSize: 11),
+          ),
+        ],
+      ),
+    ),
   );
 }
 
@@ -177,9 +214,9 @@ class _SectionPill extends StatelessWidget {
   }
 }
 
-/// *Novidades*, as a plain link rather than a pill with a drawer — there is
-/// nothing under it to list, only a section further down the page to jump
-/// to.
+/// *Novidades*, as a plain link rather than a pill with a drawer — it opens
+/// the `/novidades` screen directly, and there is nothing to list in a
+/// drawer first.
 class _NovidadesPill extends StatelessWidget {
   const _NovidadesPill({this.onTap});
 

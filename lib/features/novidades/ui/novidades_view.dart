@@ -8,7 +8,13 @@ import '../../../core/theme/pw_colors.dart';
 import '../../../core/theme/pw_theme.dart';
 import '../../home/data/novidade_repository.dart';
 import '../../home/domain/novidade.dart';
+import '../../home/ui/widgets/cabecalho.dart';
 import '../../home/ui/widgets/novidade_texto.dart';
+
+/// Below this, `Cabecalho` collapses its pills into one overflow button — the
+/// same breakpoint the front page uses, so the menu does not gain a second
+/// narrow shape depending on which screen is showing it.
+const _larguraDoMenu = 680.0;
 
 /// The whole history of the site's own announcements, one screen, newest
 /// first.
@@ -87,9 +93,15 @@ class _NovidadesViewState extends State<NovidadesView> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text(
-        'Novidades',
-        style: TextStyle(fontFamily: PWTheme.display, fontSize: 19),
+      // Declared `false` on purpose: with no `leading` of its own, a pushed
+      // route gets Flutter's automatic back arrow — which would sit beside
+      // `Cabecalho`'s own mark, a second way home nobody asked for. The mark
+      // is the only door here, the same arrangement every screen without a
+      // hand-declared arrow shares.
+      automaticallyImplyLeading: false,
+      title: Cabecalho(
+        wide: MediaQuery.sizeOf(context).width >= _larguraDoMenu,
+        aoAbrirNovidades: () => Navigator.of(context).pushNamed('/novidades'),
       ),
     ),
     body: switch (_estado) {

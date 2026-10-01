@@ -3,10 +3,15 @@ import 'package:flutter/services.dart';
 
 import '../../../core/theme/pw_colors.dart';
 import '../../../core/widgets/game_icon.dart';
-import '../../../core/theme/pw_theme.dart';
 import '../../ads/ad_slot.dart';
+import '../../home/ui/widgets/cabecalho.dart';
 import '../domain/calculo.dart';
 import '../domain/runa.dart';
+
+/// Below this, `Cabecalho` collapses its pills into one overflow button — the
+/// same breakpoint the front page uses, so the menu does not gain a second
+/// narrow shape depending on which screen is showing it.
+const _larguraDoMenu = 680.0;
 
 /// What a rune actually costs, before somebody starts collecting.
 ///
@@ -35,9 +40,15 @@ class _RunasViewState extends State<RunasView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Calculadora de runas',
-          style: TextStyle(fontFamily: PWTheme.display, fontSize: 19),
+        // Declared `false` on purpose: with no `leading` of its own, a
+        // pushed route gets Flutter's automatic back arrow — which would sit
+        // beside `Cabecalho`'s own mark, a second way home nobody asked for.
+        // The mark is the only door here, the same arrangement every screen
+        // without a hand-declared arrow shares.
+        automaticallyImplyLeading: false,
+        title: Cabecalho(
+          wide: MediaQuery.sizeOf(context).width >= _larguraDoMenu,
+          aoAbrirNovidades: () => Navigator.of(context).pushNamed('/novidades'),
         ),
       ),
       body: ListView(

@@ -171,6 +171,27 @@ List<Destaque> destaquesDe(MarketIndex index) {
   );
 
   // 6. Mais Chaves da Sorte — most of a counted item, never a filter.
+  //
+  // The door used to be `shownOwned` alone, which prints the count but
+  // filters nobody: it opened onto the whole market, cheapest first, with
+  // the card's own subject off the first screen and the result count (1666)
+  // contradicting the card's own note ("950 carregam alguma"). `minimumOwned`
+  // closes that gap — it is a live field (`search_view_model.dart`), a live
+  // control and a live link parameter, so using it costs nothing new — and it
+  // narrows the destination to exactly the 950 the card already promises.
+  //
+  // `ResultOrder.mostOwned` ("Mais relíquias") is not it, measured rather
+  // than assumed: its comparator (`matcher.dart`) is hardcoded to the three
+  // `relicNames`, which deliberately exclude the key
+  // (`counted_items.dart`), so it sorts this door by relic count — unrelated
+  // to who holds the most keys. Checked against `web/market_index.json`:
+  // with `order: mostOwned` and no minimum the destination stays all 1666
+  // characters and opens on Sarsfield (700 TCC, the relic leader), not
+  // EAZIN. No `ResultOrder` sorts by this counted item at all —
+  // `_carregadoresDeChaves` above exists precisely because the card list
+  // itself has to compute that ranking by hand. So the door is correct
+  // (narrows to the 950, the card's own subject included) without also
+  // claiming an ordering the filter cannot express.
   final porChaves = _carregadoresDeChaves(index);
   _tentar(
     destaques,
@@ -179,7 +200,10 @@ List<Destaque> destaquesDe(MarketIndex index) {
     porChaves,
     rotuloCheio: 'Mais Chaves da Sorte',
     rotuloSuave: 'Um dos que mais carregam Chaves da Sorte',
-    busca: const SearchQuery(shownOwned: {_chaveDaSorte}),
+    busca: const SearchQuery(
+      shownOwned: {_chaveDaSorte},
+      minimumOwned: {_chaveDaSorte: 1},
+    ),
     selo: (vencedor) =>
         groupThousands(index.countOf(vencedor, _chaveDaSorte) ?? 0),
     nota: (_, _) => '${porChaves.length} personagens carregam alguma',

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/features/home/domain/destaques.dart';
+import 'package:pw_market_filter/features/search/domain/matcher.dart';
 import 'package:pw_market_filter/features/search/ui/widgets/character_card.dart'
     show weaponTierColor;
 import 'package:pw_market_filter/market/market_index.dart';
@@ -145,6 +146,38 @@ void main() {
       final seis = destaquesDe(_indiceComColisao());
       final empurrado = seis.firstWhere((d) => d.rotulo.contains('dos mais'));
       expect(empurrado.rotulo, isNot(contains('o mais')));
+    },
+  );
+
+  test(
+    "the keys card's door contains its own subject and its note's count",
+    () {
+      // `shownOwned` alone prints the count but filters nobody — it used to
+      // open onto the whole market with the card's own subject off the first
+      // screen and the result count contradicting the note on the card. The
+      // door must at least contain the character it names, and the
+      // destination's size must agree with what the card already says.
+      final file = File('web/market_index.json');
+      if (!file.existsSync()) return; // a fresh clone has not collected yet
+
+      final index = MarketIndex.fromJson(
+        jsonDecode(file.readAsStringSync()) as Map<String, dynamic>,
+      );
+      final cartao = destaquesDe(
+        index,
+      ).firstWhere((d) => d.rotulo.contains('Chaves da Sorte'));
+
+      final destino = runQuery(index, cartao.busca);
+      expect(
+        destino.map((c) => c.roleId),
+        contains(cartao.personagem.roleId),
+        reason: "the card's door must show the character it names",
+      );
+      expect(
+        destino.length.toString(),
+        cartao.nota.split(' ').first,
+        reason: "the door's result count must match the card's own note",
+      );
     },
   );
 }

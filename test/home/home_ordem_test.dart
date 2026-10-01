@@ -323,12 +323,14 @@ void main() {
   );
 
   testWidgets(
-    'on a phone, the Destaques grid holds two columns inside the real page',
+    'on a phone, the Destaques scroll in one row inside the real page',
     (tester) async {
-      // Task 3's own test proved two columns in isolation at 390 px; what it
-      // could not see is whether the page's own chrome around the grid —
-      // `_ComMargem`, the Cartaz above it — leaves enough room for that to
-      // still hold once the section sits inside the real page. It does.
+      // Replaced the grid's two columns on 01/10/2026 — `destaques_view_test`
+      // proves the carousel in isolation; what it cannot see is whether the
+      // page's own chrome around it — `_ComMargem`, the Cartaz above it —
+      // leaves enough room for one row to still fit once the section sits
+      // inside the real page. It does: every card shares one `dy`, not three
+      // rows of two.
       await _pumpHome(
         tester,
         index: _indiceComDestaques,
@@ -339,9 +341,7 @@ void main() {
 
       final a = tester.getTopLeft(find.byType(Card).at(0));
       final b = tester.getTopLeft(find.byType(Card).at(1));
-      final c = tester.getTopLeft(find.byType(Card).at(2));
       expect(b.dy, a.dy);
-      expect(c.dy, greaterThan(a.dy));
     },
   );
 }

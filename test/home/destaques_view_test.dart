@@ -155,17 +155,66 @@ void main() {
     expect(find.textContaining('TCC'), findsNothing);
   });
 
-  testWidgets('two columns on a phone, not one', (tester) async {
+  testWidgets('on a phone, the six scroll in one row instead of a grid', (
+    tester,
+  ) async {
+    // Replaced the 2-column, 3-row grid on 01/10/2026 — a 2:3 card at ~180 px
+    // wide there ate roughly 800 px of height, about three screens before the
+    // next section even started.
     tester.view.physicalSize = const Size(390, 1600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
     await _montar(tester, wide: false);
 
-    // The first two cards share the same row.
+    expect(find.byType(GridView), findsNothing);
+
+    // Every card shares one row: a carousel, not a grid that happens to fit
+    // two across.
     final a = tester.getTopLeft(find.byType(Card).at(0));
     final b = tester.getTopLeft(find.byType(Card).at(1));
     expect(b.dy, a.dy);
+
+    // More than fits the viewport at once — otherwise there would be
+    // nothing to drag and no reason to draw this as a carousel at all.
+    final posicao = tester.state<ScrollableState>(find.byType(Scrollable));
+    expect(posicao.position.axis, Axis.horizontal);
+    expect(posicao.position.maxScrollExtent, greaterThan(0));
+  });
+
+  testWidgets(
+    'the carousel cuts the last visible card instead of ending flush',
+    (tester) async {
+      // The detail that makes a carousel read as one: a row flush with the
+      // margin looks like "this is everything", and the clipped edge is what
+      // tells a thumb there is more to drag. Pinned as a range rather than
+      // the exact fraction `destaques_view.dart` picks, so retuning that
+      // number within reason does not break this test — only abandoning the
+      // cut altogether would.
+      tester.view.physicalSize = const Size(390, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await _montar(tester, wide: false);
+
+      final viewport = tester.getSize(find.byType(Scrollable)).width;
+      final larguraDoCard = tester.getSize(find.byType(Card).first).width;
+
+      // More than a third and less than half: between two and three cards
+      // fit, which is only possible with the third one cut.
+      expect(larguraDoCard, lessThan(viewport / 2));
+      expect(larguraDoCard, greaterThan(viewport / 3));
+    },
+  );
+
+  testWidgets('wide screens keep the grid, untouched', (tester) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await _montar(tester, wide: true);
+
+    expect(find.byType(GridView), findsOneWidget);
   });
   testWidgets('the veil is dark where the footer text begins', (tester) async {
     // The defect this pins shipped once and was caught by eye, not by the

@@ -17,6 +17,11 @@ import '../../domain/destaques.dart';
 /// untaken class left, or a tier the collection never reached — draws fewer
 /// cards rather than a gap, which is `destaquesDe`'s own rule and not
 /// repeated here.
+///
+/// **On a phone the six scroll sideways in one row instead of wrapping to
+/// three** — the owner's own call, 01/10/2026, over the grid's three rows of
+/// two eating roughly 800 px of height there. Wide screens are untouched; see
+/// [_Carrossel].
 class DestaquesView extends StatelessWidget {
   const DestaquesView({
     required this.index,
@@ -37,9 +42,13 @@ class DestaquesView extends StatelessWidget {
   /// door into the filter that produced it.
   final void Function(SearchQuery) onAbrir;
 
-  /// Six columns on a wide screen, three in the middle band, two on a
-  /// phone — **never one**. Two 2:3 cards side by side at 390 px still show
-  /// the body; one column would be six screens of scrolling to see them all.
+  /// Six columns on a wide screen, three in the middle band — above this, a
+  /// grid. Below it, a phone, where a 2:3 card at ~180 px wide still eats
+  /// about 800 px of height across three rows; [build] reads this same
+  /// threshold to switch to the carousel instead of drawing two columns of
+  /// it. **Never one column**, in either shape: a single column on a grid
+  /// would be six screens of scrolling, and a carousel is exactly the fix for
+  /// that, not a narrower case of it.
   ///
   /// Read from the grid's own constraints rather than from [wide]: this
   /// widget can sit inside a narrower column than the page itself allows (a
@@ -59,20 +68,87 @@ class DestaquesView extends StatelessWidget {
     final spacing = wide ? 14.0 : 10.0;
 
     return LayoutBuilder(
-      builder: (context, constraints) => GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: _columnsFor(constraints.maxWidth),
-          crossAxisSpacing: spacing,
-          mainAxisSpacing: spacing,
-          // The proportion the brief sets: the art is the card.
-          childAspectRatio: 2 / 3,
-        ),
+      builder: (context, constraints) {
+        // The phone case: three rows of two columns ate ~800 px of height,
+        // roughly three screens before the next section even started. One
+        // row that scrolls sideways is the owner's own call, 01/10/2026 —
+        // wide screens keep the grid untouched below.
+        if (_columnsFor(constraints.maxWidth) == 2) {
+          return _Carrossel(
+            destaques: destaques,
+            onAbrir: onAbrir,
+            spacing: spacing,
+            largura: constraints.maxWidth,
+          );
+        }
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: _columnsFor(constraints.maxWidth),
+            crossAxisSpacing: spacing,
+            mainAxisSpacing: spacing,
+            // The proportion the brief sets: the art is the card.
+            childAspectRatio: 2 / 3,
+          ),
+          itemCount: destaques.length,
+          itemBuilder: (context, i) =>
+              _Carta(destaque: destaques[i], onAbrir: onAbrir),
+        );
+      },
+    );
+  }
+}
+
+/// One row, swiping through all six, on a phone.
+///
+/// **The last visible card is deliberately cut, not flush with the
+/// margin.** A row that ends flush reads as "this is everything the section
+/// has"; the clipped edge is what tells a thumb there is more to drag. Each
+/// card's width is a fixed fraction of the viewport rather than whatever
+/// would divide it evenly, so the cut is true at every phone width this runs
+/// at rather than true by luck at one of them.
+class _Carrossel extends StatelessWidget {
+  const _Carrossel({
+    required this.destaques,
+    required this.onAbrir,
+    required this.spacing,
+    required this.largura,
+  });
+
+  final List<Destaque> destaques;
+  final void Function(SearchQuery) onAbrir;
+  final double spacing;
+
+  /// The viewport's own measured width — not `MediaQuery`, for the same
+  /// reason [DestaquesView._columnsFor] reads its constraints instead of
+  /// [DestaquesView.wide]: this section does not always sit at the page's
+  /// full width.
+  final double largura;
+
+  /// A touch under half the viewport: two full cards and a clipped sliver of
+  /// a third always fit, rather than however many happen to divide the
+  /// screen evenly that day.
+  static const _fracaoDoCard = 0.44;
+
+  @override
+  Widget build(BuildContext context) {
+    final larguraDoCard = largura * _fracaoDoCard;
+    final alturaDoCard = larguraDoCard * 3 / 2;
+
+    return SizedBox(
+      height: alturaDoCard,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
         itemCount: destaques.length,
-        itemBuilder: (context, i) =>
-            _Carta(destaque: destaques[i], onAbrir: onAbrir),
+        separatorBuilder: (_, _) => SizedBox(width: spacing),
+        itemBuilder: (context, i) => SizedBox(
+          width: larguraDoCard,
+          child: _Carta(destaque: destaques[i], onAbrir: onAbrir),
+        ),
       ),
     );
   }

@@ -98,6 +98,36 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('GsaFoot'), findsOneWidget);
     });
+
+    testWidgets('draws no emblem column at all — no seam, no empty box', (
+      tester,
+    ) async {
+      // The regression this pins: the emblem used to be mounted
+      // unconditionally and fail silently through its own `errorBuilder`,
+      // but that `errorBuilder` sat inside a `Stack(fit: StackFit.expand)`,
+      // which forces a non-positioned child to the parent's full size no
+      // matter what it asked for. "Nothing" came out as an empty, tinted
+      // rectangle at the column's full size with a hard seam at its right
+      // edge — reported live on zMaroto's card as two shades of violet and
+      // a line, not the absence every other missing-art case in this app
+      // draws. This test builds the emblem's own signature —
+      // `FractionallySizedBox(widthFactor: 0.24)` — and demands it is
+      // simply not there when no art loaded, which is what "no column"
+      // means: not an invisible one, no column.
+      await pump(
+        tester,
+        canal: canal(canal: 'zmaroto', nome: 'zMaroto'),
+        wide: true,
+      );
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is FractionallySizedBox && w.widthFactor == 0.24,
+        ),
+        findsNothing,
+      );
+    });
   });
 
   group('the scoreboard', () {
@@ -152,6 +182,35 @@ void main() {
     });
   });
 
+  group('the live dot', () {
+    testWidgets('wears the streamer\'s own accent, not a universal green', (
+      tester,
+    ) async {
+      // The approved design has every mark on the card — border, glow,
+      // wash and the dot — carry the streamer's accent. The first cut of
+      // this redesign left the dot on the old, pre-existing `PWColors.live`
+      // green: not a decision, just the one mark nobody re-examined when
+      // the accent system was added. Caught live on zMaroto, whose card is
+      // violet while the dot still drew green.
+      await pump(
+        tester,
+        canal: canal(canal: 'ninguem-conhece-esse', nome: 'Desconhecido'),
+        wide: true,
+      );
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(_corDoPonto(tester), StreamerAccent.fallback);
+      expect(_corDoPonto(tester), isNot(PWColors.live));
+    });
+
+    testWidgets('matches a known streamer\'s measured accent', (tester) async {
+      await pump(tester, canal: canal(canal: 'gsafoot'), wide: true);
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(_corDoPonto(tester), StreamerAccent.of('gsafoot'));
+    });
+  });
+
   group('gold never appears on a streamer card', () {
     testWidgets('no colour anywhere in the tree is PWColors.accent', (
       tester,
@@ -179,6 +238,20 @@ Color _bordaDoCard(WidgetTester tester) {
       .firstWhere((c) => (c.decoration as BoxDecoration?)?.border != null);
   final border = (container.decoration! as BoxDecoration).border! as Border;
   return border.top.color;
+}
+
+/// The live dot's own colour — the 10×10 circular `Container` beside the
+/// name, found by its shape rather than by position so the test does not
+/// care which widget happens to sit next to it.
+Color _corDoPonto(WidgetTester tester) {
+  final container = tester
+      .widgetList<Container>(find.byType(Container))
+      .firstWhere(
+        (c) =>
+            c.constraints?.maxWidth == 10 &&
+            (c.decoration as BoxDecoration?)?.shape == BoxShape.circle,
+      );
+  return (container.decoration! as BoxDecoration).color!;
 }
 
 /// Every colour mentioned anywhere in the built tree: text, borders, box

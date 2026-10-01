@@ -119,23 +119,30 @@ class _AoVivoStripState extends State<AoVivoStrip> {
 
 /// The streamer's own art, as the sharp emblem holding its own column.
 ///
+/// **Only ever mounted after [_SondaDeArte] has confirmed a picture
+/// actually decodes.** It used to be mounted unconditionally and fail
+/// silently through its own `errorBuilder` — which sounds like the same
+/// "draws nothing" rule every other missing-art case in this app follows,
+/// and was not: the `errorBuilder`'s `SizedBox.shrink()` sat inside a
+/// `Stack(fit: StackFit.expand)`, which forces every non-positioned child
+/// to the parent's full size regardless of what it asked for. "Nothing"
+/// came out as an empty rectangle at the column's full size, painted over
+/// by the gradient below, with a hard seam at [_larguraDaArte] where that
+/// gradient ended — exactly what zMaroto's card showed: two shades of
+/// violet and a line, not the absence the rest of the app promises. Moving
+/// the yes/no decision in front of this widget, rather than inside it, is
+/// the fix: there is no card-shaped rectangle to see until there is a
+/// picture to put in it.
+///
 /// A quarter of the width and no more, filling the card's full height — the
 /// art is a 690×231 banner whose emblem sits in its left 170 px, so cropping
 /// to [_larguraDaArte] lands exactly on it. The right edge fades into the
 /// panel rather than ending on a hard line, so the column reads as part of
 /// the card rather than a second one stitched on.
-///
-/// **A channel with no file gets nothing at all**, quietly — the same
-/// fallback an item icon makes, and the reason a streamer who has sent no art
-/// is not made to look like a streamer whose art failed to load.
 class _Emblema extends StatelessWidget {
-  const _Emblema({required this.login, required this.aoCarregar});
+  const _Emblema({required this.login});
 
   final String login;
-
-  /// Called the first time a frame of the picture is ready. It is how the card
-  /// learns there is art at all, since a 404 is only known on arrival.
-  final VoidCallback aoCarregar;
 
   @override
   Widget build(BuildContext context) => Positioned.fill(
@@ -150,10 +157,10 @@ class _Emblema extends StatelessWidget {
               arteDoStreamer(login),
               fit: BoxFit.cover,
               alignment: Alignment.centerLeft,
-              frameBuilder: (_, child, frame, _) {
-                if (frame != null) aoCarregar();
-                return child;
-              },
+              // Defensive rather than expected: [_SondaDeArte] already
+              // proved a frame decodes for this exact URL, and the engine's
+              // image cache means this request is normally answered from
+              // memory, not the network, before a frame is even painted.
               errorBuilder: (_, _, _) => const SizedBox.shrink(),
             ),
             DecoratedBox(
@@ -173,6 +180,37 @@ class _Emblema extends StatelessWidget {
           ],
         ),
       ),
+    ),
+  );
+}
+
+/// Learns whether this streamer has art at all — with **zero footprint**:
+/// it paints nothing and reserves no space while it waits for an answer.
+/// `SizedBox.shrink` wrapping the image is enough on its own, because this
+/// widget sits directly in the outer `Stack`, which lays out loose
+/// (`StackFit.loose`, the default) rather than forcing children to fill —
+/// unlike the trap documented on [_Emblema].
+///
+/// [_Emblema] takes over, mounted for the first time, the moment
+/// [aoConfirmar] fires.
+class _SondaDeArte extends StatelessWidget {
+  const _SondaDeArte({required this.login, required this.aoConfirmar});
+
+  final String login;
+
+  /// Called the first time a frame of the picture is ready. It is how the
+  /// card learns there is art at all, since a 404 is only known on arrival.
+  final VoidCallback aoConfirmar;
+
+  @override
+  Widget build(BuildContext context) => SizedBox.shrink(
+    child: Image.network(
+      arteDoStreamer(login),
+      frameBuilder: (_, child, frame, _) {
+        if (frame != null) aoConfirmar();
+        return child;
+      },
+      errorBuilder: (_, _, _) => const SizedBox.shrink(),
     ),
   );
 }
@@ -358,17 +396,23 @@ class _CardDoStreamerState extends State<CardDoStreamer> {
               children: [
                 _FundoTextura(login: canal.canal),
                 _Lavagem(accent: accent),
-                _Emblema(
-                  login: canal.canal,
-                  aoCarregar: () {
-                    if (_temArte) return;
-                    // After the frame: the image reports while the tree is
-                    // being built, and setState during build is an error.
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted) setState(() => _temArte = true);
-                    });
-                  },
-                ),
+                // No art, no column: see [_Emblema] and [_SondaDeArte] for
+                // why this has to be a mount decision and not a fallback
+                // drawn inside one widget that is always there.
+                if (_temArte)
+                  _Emblema(login: canal.canal)
+                else
+                  _SondaDeArte(
+                    login: canal.canal,
+                    aoConfirmar: () {
+                      if (_temArte) return;
+                      // After the frame: the image reports while the tree is
+                      // being built, and setState during build is an error.
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) setState(() => _temArte = true);
+                      });
+                    },
+                  ),
                 Padding(
                   padding: EdgeInsets.all(widget.wide ? 16 : 14),
                   child: _linha(),
@@ -431,15 +475,17 @@ class _CardDoStreamerState extends State<CardDoStreamer> {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // The dot carries the whole "now": green is the signal everybody
-            // already knows, and it is the only green on the page.
+            // The dot wears the streamer's own accent, the same as the
+            // border, the glow and the wash — it is a slower rewrite than
+            // those three, caught after the fact. The brief this card was
+            // built from named three layers that carry the accent and never
+            // mentioned the dot, so the pre-existing universal green rode
+            // along unexamined rather than being chosen on purpose; the
+            // approved design wanted it on-brand like everything else.
             Container(
               width: 10,
               height: 10,
-              decoration: const BoxDecoration(
-                color: PWColors.live,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: _accent, shape: BoxShape.circle),
             ),
             const SizedBox(width: 10),
             Flexible(

@@ -38,7 +38,7 @@ Sobre os 1.293 personagens colhidos em 01/10:
 | anedotas | **0** | sai a secção e a ordem |
 | itens contados | **0** | sai *5 essências*, sai *Itens da mochila* |
 | reino celestial | **0** | sai a secção |
-| caminho God/Evil | **0** | planeado; falta a âncora — ver abaixo |
+| caminho God/Evil | **0** hoje | **resolvido** — paridade do id, ver abaixo |
 | sexo | 824 M / 469 F | **fica** |
 | cultivo | 13 valores | **fica** |
 | 11 slots, 165 armas distintas | | **fica**, com tabela de nomes própria |
@@ -69,9 +69,52 @@ tem é o nível, não o caminho. A sondagem também não conseguiu ler o nível
 daquelas páginas, então essa hipótese ficou por testar — é um buraco na
 medição, não um resultado.
 
-**Até haver âncora, a secção não se desenha.** Um filtro que devolve nulo
-para toda a gente é pior que a ausência dele; e um id adivinhado dividiria o
-mercado em dois grupos errados com toda a confiança, que é pior ainda.
+### ENCONTRADO em 01/10: a paridade do id da perícia
+
+**As perícias de caminho vêm em pares `(n, n+1)`, e um personagem tem uma de
+cada par.** O par é a mesma perícia nas duas vias.
+
+Provado com dois Magos de nível 101, 35 perícias em comum e **zero
+sobreposição** no bloco:
+
+| | ids |
+|---|---|
+| **True~md** | 440, 442, 444 … 490 — todos **pares** |
+| **Mortiur** | 441, 443, 445 … 491 — todos **ímpares** |
+
+e o padrão repete fora do bloco: 360/364 contra 361/365.
+
+**A âncora é do dono:** True~md é **Imortal**, Mortiur é **Demoníaco**. Logo
+**par = God, ímpar = Evil**.
+
+**E é por isso que a deteção não pode ser por nome.** O dono listou o
+vocabulário: God aparece como *Imortal*, *Nobre* ou *Iluminado*; Evil como
+*Demoníaco*, *Diabólico* ou *Infernal* — seis palavras para duas vias,
+variando com a classe. Um `contains` sobre nomes erraria em quatro delas. A
+paridade do id passa por cima disso.
+
+**Como implementar, e por que não é um intervalo fixo.** `440–491` é o bloco
+**do Mago**: nenhuma das outras trinta páginas sondadas tem um id nessa faixa.
+Cada classe tem a sua. Então o coletor descobre os pares sozinho, numa
+**segunda passagem** sobre a coleta inteira: um id `n` é de caminho quando
+`n` **e** `n+1` aparecem ambos no mercado. É a mesma forma que o
+`IndexBuilder` já usa para preencher os zeros dos itens contados — também ali
+a resposta sobre um personagem depende de ter visto os outros.
+
+Essa segunda passagem elimina de graça os dois intrusos encontrados: o `902`
+do Mortiur e o `438` de outro Guerreiro são perícias avulsas fora de qualquer
+par, e um corte por intervalo escolhido à mão teria de as tratar como exceção.
+
+**O que falta validar, e está por validar:** a regra dos pares não foi testada
+na população, porque o índice não guarda perícias e a amostra em disco tem só
+dois Magos de nível alto. A descoberta é sólida; a extração precisa da coleta
+inteira para achar os pares, e o primeiro `--rebuild` depois disso é que dirá
+se algum id quebra o padrão.
+
+**Guardar as perícias custa uma recoleta?** Não: o estado guarda a página
+inteira, então acrescentar o campo é `--rebuild` — segundos, sem rede. Mas
+`CollectedPage.version` tem de subir, e aí o estado inteiro é refeito. Decidir
+isso antes de implementar.
 
 ## Global Constraints
 

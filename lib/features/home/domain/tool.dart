@@ -6,6 +6,14 @@ import 'package:flutter/material.dart';
 /// shows only what is finished makes the site look like it stopped growing, and
 /// it makes every new tool a redesign. Listed and dimmed, the shape of the
 /// place is visible from day one and shipping a tool is a one-line change.
+///
+/// **[icon], [emblem], [art] and [artAlignment] are read nowhere today.**
+/// They were `ToolCard`'s — the front page's own tool cards, retired
+/// 01/10/2026 when `Cabecalho`'s pills made them a duplicate menu. `GavetaItem`,
+/// the one drawer row left, shows only [name], [tagline] and the two badges.
+/// They stay on the class because a card is the natural place for this kind
+/// of art and the idea is parked, not refuted — removing them would cost the
+/// next card a redesign to get them back.
 class Tool {
   const Tool({
     required this.name,
@@ -112,7 +120,6 @@ final tools = <Tool>[
     // Moeda de Ouro. The filter is about price as much as about gear.
     emblem: 39873,
     route: '/filtro',
-    art: 'assets/images/espiritualista.webp',
   ),
   Tool(
     name: 'Títulos',
@@ -180,9 +187,6 @@ final tools = <Tool>[
     // Pedra de Hiper EXP, which is what the guide is about: levelling fast.
     emblem: 27424,
     href: '/guias/inicio-rapido',
-    art: 'assets/images/guia-inicio-rapido.webp',
-    // A landscape, not a portrait: it wants its middle.
-    artAlignment: Alignment.center,
   ),
 ];
 

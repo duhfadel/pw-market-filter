@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../../../core/theme/pw_colors.dart';
 import '../../../market/slot_names.dart';
 import '../../ads/ad_slot.dart';
+import '../../home/ui/widgets/cabecalho.dart';
 import '../data/address_bar.dart';
 import '../domain/search_query.dart';
 import '../domain/search_query_url.dart';
@@ -84,92 +85,116 @@ class _Results extends StatelessWidget {
 
   final SearchReady state;
 
+  /// Shared with the `bottom` bar's `preferredSize`, so the declared height
+  /// can never drift from the padding the content is actually built with.
+  static const _bottomPadding = EdgeInsets.fromLTRB(16, 2, 8, 8);
+
   @override
   Widget build(BuildContext context) {
     final viewModel = context.read<SearchViewModel>();
-    final wide = MediaQuery.sizeOf(context).width >= SearchView._twoColumnWidth;
+    final width = MediaQuery.sizeOf(context).width;
+    // Two independent questions, not one. `panelsWide` is this screen's own
+    // call about its own content — whether the filter panel sits beside the
+    // grid or behind a drawer — and has nothing to do with the menu. `menuWide`
+    // is `Cabecalho`'s own breakpoint, the same one every other screen reads,
+    // so the menu never gains a second narrow shape depending on which screen
+    // is showing it. Before this split, `wide` served both jobs off 900 —
+    // `Cabecalho`'s own docstring said that could not happen and was wrong the
+    // whole time this screen existed.
+    final panelsWide = width >= SearchView._twoColumnWidth;
+    final menuWide = width >= Cabecalho.larguraMinima;
 
     final panel = FilterPanel(state: state, viewModel: viewModel);
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: PWColors.surface,
-        // Taller than the default 56 only where the mark is shown. At 30 px
-        // the logo is a dark smudge — it is a wordmark over an ornate globe
-        // and it needs height before it is anything at all. Twelve pixels of
-        // chrome is what it costs to have it legible.
-        toolbarHeight: wide ? 68 : null,
-        titleSpacing: wide ? null : 8,
+        // Taller than the default 56 on wide: `Cabecalho`'s pills, bordered
+        // and with their own padding, need more than the default toolbar
+        // gives them before anything below them reads as legible chrome
+        // rather than a cramped strip. Tied to `menuWide`, not `panelsWide` —
+        // this is about giving `Cabecalho` room, and the two-column layout
+        // below is a different question.
+        toolbarHeight: menuWide ? 68 : null,
+        titleSpacing: menuWide ? null : 8,
         // Declared, never implied. `automaticallyImplyLeading` gives the
         // drawer's hamburger priority over the back arrow, so on a phone —
         // where the filter lives in a drawer — the way home silently vanished
-        // and the drawer had two entrances instead of one. The comment that
-        // used to sit here claimed the opposite.
-        leading: _HomeButton(wide: wide),
-        leadingWidth: wide ? null : 44,
-        title: Row(
-          children: [
-            // Two marks, because one image cannot do both jobs. The wordmark
-            // is a script over an ornate globe: below about 40 px there is
-            // nothing left to read, and at 26 px on a phone it came out a red
-            // smudge — three attempts, three refusals. The monogram is the
-            // same lettering with the globe and the words taken away, so it
-            // still reads at 30. Checked against the wordmark side by side on
-            // the bar's own colour before it went in.
-            _HomeMark(height: wide ? 46 : 30, monogram: !wide),
-            SizedBox(width: wide ? 14 : 10),
-            // On a phone the bar holds the way home, the mark, the count, the
-            // ordering and the filters, and something has to give. It is not
-            // the count: "830 de 830" is the answer to the question the whole
-            // screen exists to ask, and it was the part being ellipsized to
-            // "83…". So the word "personagens" is what goes.
-            Flexible(
-              child: Text(
-                wide
-                    ? '${state.results.length} de ${state.total} personagens'
-                    : '${state.results.length} de ${state.total}',
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        titleTextStyle: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: PWColors.text,
-        ),
-        actions: [
-          _CopyLink(state: state, wide: wide),
-          // The filters used to be an unlabelled icon here. On the surface
-          // word of mouth lands on, the one thing this screen does better than
-          // the marketplace was a 20 px glyph.
-          _OrderPicker(state: state, viewModel: viewModel),
-          if (wide) ...[const SizedBox(width: 20), _CollectedAt(state: state)],
-          const SizedBox(width: 12),
-        ],
-        // The collection date matters too much to drop — a stale index looks
-        // exactly like a fresh one — so on a phone it moves to its own line
-        // instead of fighting for the bar.
-        bottom: wide
-            ? null
-            : PreferredSize(
-                preferredSize: const Size.fromHeight(30),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.only(left: 16, bottom: 10),
-                  alignment: Alignment.centerLeft,
-                  child: _CollectedAt(state: state),
+        // and the drawer had two entrances instead of one. It stays even now
+        // that `Cabecalho`'s own mark, in the title below, is a second door
+        // home: two is better than none, and this is the one that was
+        // already proven against that bug.
+        leading: _HomeButton(wide: menuWide),
+        leadingWidth: menuWide ? null : 44,
+        automaticallyImplyLeading: false,
+        title: Cabecalho(wide: menuWide),
+        // `Cabecalho` alone — the mark, the name and, on wide, three bordered
+        // pills — measures upward of 650 px, which a back arrow and this
+        // screen's own actions never had to share room with before. There is
+        // no width left beside it for "830 de 830", the copy link, the order
+        // picker and a collection date that can run past 500 px once the
+        // index is stale (`coletado em … — desatualizado`, measured against
+        // the real font, not the test harness's square glyphs). So none of
+        // it rides in the main bar on any width now — it all moves to the
+        // bar below, the same place a phone already sent it before this
+        // widget existed to fill the first one up.
+        actions: const [],
+        bottom: PreferredSize(
+          // Two rows, each holding an icon button or popup — `kMinInteractiveDimension`
+          // is the Material tap target both `IconButton` and `PopupMenuButton`
+          // size themselves to, so neither row ever measures less than that —
+          // plus the same padding the child below is built with. A literal 64
+          // here once named a number nobody had measured: the real subtree is
+          // 106, two rows of 48 and 10 of padding, and the gap was silent
+          // because `AppBar` shrinks its toolbar to absorb an undersized
+          // `bottom` rather than overflowing.
+          preferredSize: Size.fromHeight(
+            _bottomPadding.vertical + kMinInteractiveDimension * 2,
+          ),
+          child: Padding(
+            padding: _bottomPadding,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${state.results.length} de ${state.total}',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: PWColors.text,
+                        ),
+                      ),
+                    ),
+                    _OrderPicker(state: state, viewModel: viewModel),
+                  ],
                 ),
-              ),
+                Row(
+                  children: [
+                    // The collection date matters too much to drop — a stale
+                    // index looks exactly like a fresh one — so it keeps its
+                    // own line down here rather than being dropped for lack
+                    // of room in the toolbar.
+                    Expanded(child: _CollectedAt(state: state)),
+                    _CopyLink(state: state),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
       body: Column(
         children: [
-          _Disclaimer(wide: wide),
+          _Disclaimer(wide: panelsWide),
           const Divider(height: 1),
           Expanded(
             child: Row(
               children: [
-                if (wide) ...[
+                if (panelsWide) ...[
                   SizedBox(width: 340, child: panel),
                   const VerticalDivider(width: 1),
                 ],
@@ -181,7 +206,7 @@ class _Results extends StatelessWidget {
                           // One strip for everything that narrows. Its own row
                           // would have cost 48 px of a 844 px screen to say
                           // one word.
-                          if (!wide) ...[
+                          if (!panelsWide) ...[
                             _FilterButton(state: state, viewModel: viewModel),
                             const SizedBox(
                               height: 26,
@@ -217,11 +242,14 @@ class _Results extends StatelessWidget {
 /// but only if you know to look, and only if you are on a desktop. What this
 /// says is that the search is a thing that can be sent, which is the part
 /// nobody guesses.
+///
+/// Icon-only at every width now, not just on a phone: it shares the bar
+/// below the toolbar with the collection date, and `Cabecalho` in the title
+/// above already costs this screen the room a labelled button used to sit in.
 class _CopyLink extends StatelessWidget {
-  const _CopyLink({required this.state, required this.wide});
+  const _CopyLink({required this.state});
 
   final SearchReady state;
-  final bool wide;
 
   @override
   Widget build(BuildContext context) {
@@ -253,23 +281,11 @@ class _CopyLink extends StatelessWidget {
         );
     }
 
-    if (!wide) {
-      return IconButton(
-        onPressed: copy,
-        icon: const Icon(Icons.link, size: 20),
-        color: PWColors.textMuted,
-        tooltip: 'Copiar link da busca',
-      );
-    }
-
-    return TextButton.icon(
+    return IconButton(
       onPressed: copy,
-      icon: const Icon(Icons.link, size: 17),
-      label: const Text('copiar link'),
-      style: TextButton.styleFrom(
-        foregroundColor: PWColors.textMuted,
-        textStyle: const TextStyle(fontSize: 13),
-      ),
+      icon: const Icon(Icons.link, size: 20),
+      color: PWColors.textMuted,
+      tooltip: 'Copiar link da busca',
     );
   }
 }
@@ -495,43 +511,15 @@ class _HomeButton extends StatelessWidget {
   );
 }
 
-/// The Portal's mark in the filter's bar, clickable like every logo is.
-///
-/// It is small — the logo is a wordmark over an ornate globe and an app bar
-/// has no height to give — so it is not carrying the branding on its own. What
-/// it does is say which site this screen belongs to, which a bare count and an
-/// arrow do not.
-class _HomeMark extends StatelessWidget {
-  const _HomeMark({required this.height, this.monogram = false});
-
-  final double height;
-
-  /// The `PW` on its own, for the sizes the full wordmark cannot survive.
-  final bool monogram;
-
-  @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: () =>
-        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false),
-    borderRadius: BorderRadius.circular(6),
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      child: Image.asset(
-        monogram
-            ? 'assets/images/pw-mark.webp'
-            : 'assets/images/portal-pw-logo-v2.webp',
-        height: height,
-        filterQuality: FilterQuality.medium,
-        // The bar must not break over a missing file, and the arrow beside it
-        // already answers "how do I leave".
-        errorBuilder: (_, _, _) => const SizedBox.shrink(),
-      ),
-    ),
-  );
-}
-
 /// Cheapest first by default. Knowing who owns the weapon is half the answer;
 /// which of them costs least is the other half.
+///
+/// An icon alone, with no label — the selected order's own name (`Menor
+/// preço` and the rest) used to sit beside it in a `DropdownButton`, but
+/// that row is now the same one `Cabecalho` fills with its mark and its
+/// menu, and there is nowhere left for a label to sit without pushing the
+/// count or the collection date off the screen. The menu it opens still
+/// shows every label; only the closed state lost one.
 class _OrderPicker extends StatelessWidget {
   const _OrderPicker({required this.state, required this.viewModel});
 
@@ -544,7 +532,9 @@ class _OrderPicker extends StatelessWidget {
   /// A `DropdownButton` throws when its value is absent from its own items,
   /// and a link is the way that happens: `ordem=mostOwned` saved a month ago,
   /// opened today with nothing marked, would take the screen down rather than
-  /// order it oddly.
+  /// order it oddly. `PopupMenuButton` carries no such value to go stale, but
+  /// the same list is still worth keeping — it is still wrong to offer an
+  /// order that says nothing about this market.
   List<ResultOrder> get _offered => [
     for (final order in ResultOrder.values)
       if (order == state.query.order ||
@@ -553,21 +543,14 @@ class _OrderPicker extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) => DropdownButtonHideUnderline(
-    child: DropdownButton<ResultOrder>(
-      value: state.query.order,
-      dropdownColor: PWColors.surfaceRaised,
-      borderRadius: BorderRadius.circular(8),
-      style: const TextStyle(color: PWColors.text, fontSize: 13),
-      icon: const Icon(Icons.sort, size: 18, color: PWColors.textMuted),
-      items: [
-        for (final order in _offered)
-          DropdownMenuItem(value: order, child: Text(order.label)),
-      ],
-      onChanged: (order) {
-        if (order != null) viewModel.setOrder(order);
-      },
-    ),
+  Widget build(BuildContext context) => PopupMenuButton<ResultOrder>(
+    tooltip: 'Ordenar',
+    icon: const Icon(Icons.sort, size: 20, color: PWColors.textMuted),
+    onSelected: viewModel.setOrder,
+    itemBuilder: (context) => [
+      for (final order in _offered)
+        PopupMenuItem(value: order, child: Text(order.label)),
+    ],
   );
 }
 

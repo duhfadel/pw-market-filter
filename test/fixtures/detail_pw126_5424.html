@@ -1,0 +1,2575 @@
+<html lang="pt-br" class="init-app">
+
+<head>
+    <title>Marketplace - The Classic Games</title>
+       <!-- Basic Page Needs -->
+    <meta charset="utf-8">
+    <!--[if IE]><meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'><![endif]-->
+  
+
+    <meta name="author" content="The Classic Games">
+
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="Marketplace - The Classic Games">
+    <meta name="keywords"
+        content="Marketplace - The Classic Games">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Marketplace - The Classic Games">
+    <meta property="og:description"
+        content="Marketplace - The Classic Games">
+    <meta property="og:image" content="https://player.theclassic.games/assets/images/logo/og_panel.png">
+    <meta property="og:url" content="https://player.theclassic.games/assets/images/logo/og_panel.png">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Marketplace - The Classic Games">
+    <meta name="twitter:description"
+        content="Marketplace - The Classic Games">
+    <meta name="twitter:image" content="https://player.theclassic.games/assets/images/logo/og_panel.png">
+
+    <!-- Mobile Specific Metas -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link rel="shortcut icon"
+        href="https://theclassic.games/assets/img/new_logo_TC.ico">
+    <link rel="apple-touch-icon-precomposed"
+        href="https://theclassic.games/assets/img/new_logo_TC.ico">
+
+
+
+    <link data-n-head="1" rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&amp;family=Inter:wght@400;500;700&amp;display=swap"
+        media="screen">
+
+    <link rel="preload" href="https://marketplace.theclassic.games/assets/css/0b55489.css" as="style">
+    <link rel="preload" href="https://marketplace.theclassic.games/assets/css/6d49736.css" as="style">
+    <link href="https://marketplace.theclassic.games/assets/css/0b55489.css" rel="stylesheet">
+    <link href="https://marketplace.theclassic.games/assets/css/6d49736.css" rel="stylesheet">
+    <link rel="preload" as="style" href="https://marketplace.theclassic.games/assets/css/1d8fd66.css">
+    <link rel="preload" as="style" href="https://marketplace.theclassic.games/assets/css/da46115.css">
+    <link rel="preload" as="style" href="https://marketplace.theclassic.games/assets/css/d8c1e0b.css">
+    <link rel="preload" as="style" href="https://marketplace.theclassic.games/assets/css/4e7f5d9.css">
+    <link data-n-head="1" rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900&amp;display=swap">
+    <link rel="preload" as="style" href="https://marketplace.theclassic.games/assets/css/2254fa0.css">
+    <link rel="preload" as="style" href="https://marketplace.theclassic.games/assets/css/8c54bba.css">
+    <link rel="preload" as="style" href="https://marketplace.theclassic.games/assets/css/f649ef6.css">
+    <link rel="preload" as="style" href="https://marketplace.theclassic.games/assets/css/aafa2cb.css">
+    <link rel="preload" as="style" href="https://marketplace.theclassic.games/assets/css/6dbd045.css">
+    <link rel="preload" as="style" href="https://marketplace.theclassic.games/assets/css/788ed24.css">
+    <link rel="preload" as="style" href="https://marketplace.theclassic.games/assets/css/f8fcf79.css">
+    <link rel="preload" as="style" href="https://marketplace.theclassic.games/assets/css/a634d35.css">
+    <link rel="preload" as="style" href="https://marketplace.theclassic.games/assets/css/09f7b74.css">
+    <link rel="preload" as="style" href="https://marketplace.theclassic.games/assets/css/51a686f.css">
+    <link href="https://marketplace.theclassic.games/assets/css/loading-screen.css" rel="stylesheet" type="text/css">
+    <style>
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.92);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
+        }
+        #loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #loading-screen.fade-out {
+            opacity: 0;
+        }
+        .loading-close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            z-index: 100000;
+            padding: 0;
+        }
+        .loading-close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        .loading-close-btn:active {
+            transform: scale(0.95);
+        }
+        .loading-close-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        .loading-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+        .loading-logo {
+            width: 200px;
+            height: auto;
+            max-width: 80%;
+        }
+        .loading-text {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 500;
+            text-align: center;
+            font-family: 'Roboto', 'Inter', sans-serif;
+        }
+        .loading-coins {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .loading-coin {
+            width: 32px;
+            height: 32px;
+            animation: coin-wave 1.4s ease-in-out infinite;
+        }
+        .loading-coin:nth-child(1) {
+            animation-delay: 0s;
+        }
+        .loading-coin:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .loading-coin:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes coin-wave {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translateY(-15px) scale(1.1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading-screen">
+        <button id="loading-screen-close" class="loading-close-btn" aria-label="Fechar" title="Fechar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+            </svg>
+        </button>
+        <div class="loading-content">
+            <img src="https://marketplace.theclassic.games/assets/img/logo.png" alt="The Classic Games" class="loading-logo">
+            <div class="loading-text">Aguarde, carregando informações...</div>
+            <div class="loading-coins">
+                <img src="https://marketplace.theclassic.games/assets/img/coin.png" alt="" class="loading-coin">
+                <img src="https://marketplace.theclassic.games/assets/img/coin.png" alt="" class="loading-coin">
+                <img src="https://marketplace.theclassic.games/assets/img/coin.png" alt="" class="loading-coin">
+            </div>
+        </div>
+    </div>
+    <div id="__nuxt"><!---->
+        <div id="__layout">
+            <div data-app="true" class="v-application v-application--is-ltr theme--light" id="app">
+                <div class="v-application--wrap">
+                    <main class="v-main" style="padding: 0px;" data-booted="true">
+                        <div class="v-main__wrap">
+    <div class="tcg-sticky-headers">
+        <link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Tema Forge da familia, escopado (nunca em :root para nao vazar ao site). */
+.tcg-topbar, .tcg-footer, .tcg-mnav, .tcg-mnav-backdrop {
+    --tcg-bg: #0c0c0e;
+    --bg-soft: #141416;
+    --bg-card: #1a1a1e;
+    --bg-card-hover: #24242a;
+    --border: #33333c;
+    --text: #ece8e1;
+    --text-dim: #9a948a;
+    --text-faint: #666058;
+    --accent: #d4894a;
+    --radius: 2px;
+    --font-display: 'Teko', sans-serif;
+    --font-body: 'IBM Plex Sans', 'Inter', 'Roboto', sans-serif;
+}
+.tcg-topbar *, .tcg-mnav *, .tcg-footer * { box-sizing: border-box; }
+/* wrapper do base/header.php que envolve a topbar: gruda no topo ao rolar
+   (sticky no wrapper porque o pai dele e a pagina inteira). */
+.tcg-sticky-headers { position: sticky; top: 0; z-index: 90; }
+/* O bundle da #container um padding-top (56/64px) que compensava o header
+   fixed antigo; sem ele (removido — a topbar sticky ocupa fluxo), o padding
+   virava uma faixa vazia entre a topbar e o conteudo. */
+.tcg-sticky-headers ~ #container, .v-main__wrap #container { padding-top: 0 !important; }
+.tcg-topbar {
+    position: relative; z-index: 60;
+    background: var(--tcg-bg);
+    border-bottom: 2px solid rgba(212, 137, 74, .4);
+    font-family: var(--font-body);
+    line-height: 1.4;
+}
+.tcg-topbar .topbar-inner {
+    display: flex; align-items: center; gap: 16px;
+    padding: 0 20px; height: 60px; /* 60px + padding 20px = padrao da rede */
+}
+.tcg-topbar .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-display); white-space: nowrap; flex: none;
+    color: var(--text); text-decoration: none;
+}
+.tcg-topbar .brand:hover { color: var(--text); text-decoration: none; }
+.tcg-topbar .tcg-tb-logo { width: 40px; height: 40px; object-fit: contain; display: block; border: 0; }
+.tcg-topbar .brand-text { display: flex; align-items: baseline; gap: 7px; }
+.tcg-topbar .brand-main { font-size: 24px; font-weight: 700; letter-spacing: 2px; line-height: 1; color: var(--text); }
+.tcg-topbar .brand-sub { font-size: 15px; font-weight: 600; letter-spacing: 5px; line-height: 1; color: var(--accent); }
+/* nav de jogos (desktop) — logo + nome, da esquerda para a direita apos o brand */
+.tcg-topbar .tcg-topnav { display: flex; gap: 6px; align-items: center; }
+.tcg-topbar .tcg-topnav-item {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 40px; padding: 0 12px; border-radius: 6px;
+    color: var(--text-dim); border: 1px solid transparent;
+    font-family: var(--font-display); font-size: 15px; font-weight: 600; letter-spacing: .6px;
+    text-decoration: none; transition: all .15s; flex: none; white-space: nowrap;
+}
+.tcg-topbar .tcg-topnav-item .tcg-nav-name { line-height: 1; padding-top: 2px; }
+.tcg-topbar .tcg-topnav-item.active .tcg-nav-name { color: var(--game-color, var(--accent)); }
+.tcg-topbar .tcg-topnav-item .tcg-nav-logo,
+.tcg-mnav .tcg-mnav-link .tcg-nav-logo {
+    width: 28px; height: 28px; object-fit: contain; border: 0;
+    filter: saturate(.4); transition: filter .15s; flex: none;
+}
+.tcg-topbar .tcg-topnav-item:hover .tcg-nav-logo, .tcg-topbar .tcg-topnav-item.active .tcg-nav-logo,
+.tcg-mnav .tcg-mnav-link:hover .tcg-nav-logo, .tcg-mnav .tcg-mnav-link.active .tcg-nav-logo { filter: none; }
+.tcg-topbar .tcg-topnav-item:hover { color: var(--text); background: var(--bg-card); border-color: var(--border); }
+.tcg-topbar .tcg-topnav-item.active { border-color: var(--game-color, var(--accent)); background: var(--bg-card); }
+/* hamburguer (mobile) */
+.tcg-topbar .tcg-nav-toggle {
+    display: none; width: 40px; height: 40px; padding: 0; border-radius: 8px;
+    background: var(--bg-card); border: 1px solid var(--border); color: var(--text);
+    cursor: pointer; align-items: center; justify-content: center; flex-direction: column; gap: 5px;
+    flex: none; margin-left: auto;
+}
+.tcg-topbar .tcg-nav-toggle:hover { border-color: var(--accent); }
+.tcg-topbar .tcg-nav-toggle-bar {
+    display: block; width: 18px; height: 2px; border-radius: 1px;
+    background: currentColor; transition: transform .2s, opacity .2s;
+}
+.tcg-topbar .tcg-nav-toggle.open .tcg-nav-toggle-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.tcg-topbar .tcg-nav-toggle.open .tcg-nav-toggle-bar:nth-child(2) { opacity: 0; }
+.tcg-topbar .tcg-nav-toggle.open .tcg-nav-toggle-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+/* menu mobile global (drawer) */
+.tcg-mnav-backdrop {
+    position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 60;
+    background: rgba(0, 0, 0, .55); backdrop-filter: blur(2px);
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.tcg-mnav-backdrop.open { opacity: 1; pointer-events: auto; }
+.tcg-mnav {
+    position: fixed; top: 0; right: 0; bottom: 0; z-index: 70;
+    width: 340px; max-width: 88vw; background: var(--bg-soft);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    transform: translateX(105%); transition: transform .22s ease;
+    box-shadow: -12px 0 40px rgba(0, 0, 0, .45);
+    font-family: var(--font-body); text-align: left;
+}
+.tcg-mnav.open { transform: translateX(0); }
+.tcg-mnav .tcg-mnav-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-bottom: 1px solid var(--border); flex: none;
+}
+.tcg-mnav .tcg-mnav-title {
+    font-family: var(--font-display); font-weight: 700; font-size: 18px;
+    letter-spacing: 1px; text-transform: uppercase; color: var(--text);
+}
+.tcg-mnav .tcg-mnav-close {
+    width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--bg-card); color: var(--text); font-size: 22px; line-height: 1;
+    cursor: pointer; padding: 0;
+}
+.tcg-mnav .tcg-mnav-close:hover { border-color: var(--accent); color: var(--accent); }
+.tcg-mnav .tcg-mnav-body { overflow-y: auto; padding: 8px 12px 28px; flex: 1; }
+.tcg-mnav .tcg-mnav-section { margin-top: 14px; }
+.tcg-mnav .tcg-mnav-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px;
+    color: var(--text-faint); padding: 4px 10px 8px;
+}
+.tcg-mnav .tcg-mnav-list { display: flex; flex-direction: column; gap: 4px; }
+.tcg-mnav .tcg-mnav-link {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    padding: 11px 12px; border-radius: 10px; border: 1px solid transparent;
+    color: var(--text); background: transparent; text-decoration: none;
+    font-family: var(--font-body); font-size: 14px; cursor: pointer; text-align: left;
+    transition: background .15s, border-color .15s;
+}
+.tcg-mnav .tcg-mnav-link:hover { background: var(--bg-card); color: var(--text); text-decoration: none; }
+.tcg-mnav .tcg-mnav-link.active {
+    background: var(--bg-card); border-color: var(--game-color, var(--accent));
+    color: var(--game-color, var(--accent));
+}
+.tcg-mnav .mnl-text { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+.tcg-mnav .mnl-name { font-family: var(--font-display); font-weight: 700; font-size: 16px; letter-spacing: .4px; line-height: 1.2; }
+.tcg-mnav .mnl-full {
+    font-size: 12px; color: var(--text-dim); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+}
+.tcg-mnav .tcg-mnav-btn-announce { border-color: rgba(39, 234, 132, .45); }
+.tcg-mnav .tcg-mnav-btn-announce .mnl-name { color: #27ea84; }
+.tcg-mnav .tcg-mnav-btn-remove { border-color: rgba(255, 75, 95, .45); }
+.tcg-mnav .tcg-mnav-btn-remove .mnl-name { color: #ff4b5f; }
+@media (max-width: 1560px) {
+    /* telas medias: recolhe os nomes e mantem so os logos (corte subiu de
+       1180 para 1560 quando o nav passou a ter 7 jogos — com nomes ele
+       precisa de ~1550px de largura) */
+    .tcg-topbar .tcg-topnav-item .tcg-nav-name { display: none; }
+    .tcg-topbar .tcg-topnav-item { width: 40px; padding: 0; }
+}
+@media (max-width: 960px) {
+    .tcg-topbar .tcg-topnav { display: none; }
+    .tcg-topbar .tcg-nav-toggle { display: inline-flex; }
+    .tcg-topbar .topbar-inner { padding: 0 16px; }
+}
+@media (max-width: 480px) {
+    .tcg-topbar .brand-main { font-size: 20px; }
+    .tcg-topbar .brand-sub { font-size: 13px; letter-spacing: 4px; }
+}
+
+/* ===== H51 FITA DOURADA (2026-08-08) — pele T&L do header global (padrao da rede;
+   substitui a pele H21 SELO REAL). Barra preta com hairline dourada, brand "THE CLASSIC"
+   em TLHeader, sub dourado com CHEVRON DUPLO (gatilho do dropdown da rede via
+   tcg-ecosystem.js, que herda a pele pelas vars abaixo), nav caps TL sem pills e o
+   botao "Painel do Jogador" como FITA DOURADA CHANFRADA do T&L. Fontes da casa em
+   https://marketplace.theclassic.games/statics/fonts. O footer segue no tema Forge antigo ate a escolha do novo footer. ===== */
+@font-face { font-family: 'TLHeader'; font-weight: 400; font-style: normal; font-display: swap;
+    src: local('TLHeaderEuro'), url(https://marketplace.theclassic.games/statics/fonts/TLHeaderEUROv2-Regular.woff) format('woff'); }
+@font-face { font-family: 'TL'; font-weight: 500; font-style: normal; font-display: swap;
+    src: local('TLEuro'), url(https://marketplace.theclassic.games/statics/fonts/TL_EUROv2-Medium.woff) format('woff'); }
+@font-face { font-family: 'TL'; font-weight: 700; font-style: normal; font-display: swap;
+    src: local('TL-BoldEuro'), url(https://marketplace.theclassic.games/statics/fonts/TL_EUROv2-Bold.woff) format('woff'); }
+@font-face { font-family: 'Duty'; font-weight: 600; font-style: normal; font-display: swap;
+    src: local('DutyHeavy'), url(https://marketplace.theclassic.games/statics/fonts/DutyHeavy.woff) format('woff'); }
+.tcg-topbar, .tcg-mnav, .tcg-mnav-backdrop {
+    --tcg-bg: #0b0a0c;
+    --bg-soft: #100e12;
+    --bg-card: #121016;
+    --bg-card-hover: #1a1720;
+    --border: #3a3222;
+    --text: #f0ead9;
+    --text-dim: #b9b2a3;
+    --text-faint: #7a7264;
+    --accent: #d8b36a;
+    --font-display: 'TL', 'TLHeader', serif;
+    --font-body: 'TL', 'IBM Plex Sans', serif;
+}
+.tcg-topbar { background: rgba(11, 10, 12, .97); border-bottom: 1px solid rgba(216, 179, 106, .28); }
+.tcg-topbar .brand-main { font-family: 'TLHeader', serif; font-weight: 400; font-size: 21px; letter-spacing: 1.6px; color: #e8dfc8; }
+/* sub da rede: texto dourado T&L com chevron duplo (sem selo, sem caixa) */
+.tcg-topbar .brand-sub {
+    display: inline-flex; align-items: center; gap: 7px;
+    margin-left: 6px; padding: 0; background: none; border: none; border-radius: 0; box-shadow: none;
+    font-family: 'TLHeader', serif; font-size: 13px; font-weight: 400; letter-spacing: 2.4px;
+    line-height: 1.1; color: #d8b36a !important; text-transform: uppercase; white-space: nowrap;
+}
+.tcg-topbar .brand-sub .tcg-sw-caret { display: inline-flex; flex-direction: column; align-items: center; line-height: .62; color: #d8b36a; font-size: 13px; }
+.tcg-topbar .brand-sub .tcg-sw-caret::after { content: "\25BE"; opacity: .45; }
+.tcg-topbar .brand-sub.tcg-sw-trigger:hover, .tcg-topbar .brand-sub.tcg-sw-trigger.open { filter: brightness(1.18); }
+.tcg-topbar .brand-sub.tcg-sw-trigger:hover .tcg-sw-caret,
+.tcg-topbar .brand-sub.tcg-sw-trigger.open .tcg-sw-caret { color: #d8b36a; }
+/* nav do site: TL caps espacada, sem pill */
+.tcg-topbar .tcg-tb-link {
+    border: none; border-radius: 0; padding: 6px 3px; background: transparent;
+    font-family: 'TL', serif; font-weight: 500; font-size: 12px; letter-spacing: 2.4px;
+    color: #cfc9bc; line-height: 1.3; text-transform: uppercase;
+}
+.tcg-topbar .tcg-tb-link:hover { color: #fff; border: none; background: transparent; }
+.tcg-topbar .tcg-tb-link.active { color: #d8b36a; border: none; }
+.tcg-topbar .tcg-dd-caret { color: #d8b36a; }
+/* FITA dourada chanfrada do T&L no CTA Painel do Jogador */
+.tcg-topbar .tcg-tb-panel, .tcg-topbar .tcg-tb-acct {
+    position: relative; display: inline-flex; align-items: center;
+    padding: 11px 20px 10px 27px; border: none; border-radius: 0; box-shadow: none;
+    background: linear-gradient(100deg, #e8cd8f 0%, #d8b36a 40%, #a8834a 100%);
+    clip-path: polygon(15px 0, 100% 0, 100% 100%, 0 100%);
+    font-family: 'TL', serif; font-weight: 700; font-size: 11.5px; letter-spacing: 2.2px;
+    line-height: 1.2; color: #181206; text-transform: uppercase; white-space: nowrap;
+    transition: filter .15s;
+}
+.tcg-topbar .tcg-tb-panel::before, .tcg-topbar .tcg-tb-acct::before { content: ""; position: absolute; left: 5px; top: 0; bottom: 0; width: 2px; background: rgba(24, 18, 6, .35); transform: skewX(-16deg); }
+.tcg-topbar .tcg-tb-panel:hover, .tcg-topbar .tcg-tb-acct:hover { filter: brightness(1.08); box-shadow: none; color: #181206; background: linear-gradient(100deg, #e8cd8f 0%, #d8b36a 40%, #a8834a 100%); }
+/* conta no header (so com a area "Minha conta"/lances ligada — ver PHP no topo):
+   ULTIMO botao da barra via empurrao flex (o hamburguer vem depois no HTML mas so
+   aparece <=960px). Deslogado = fita "Entrar" (.tcg-tb-acct, mesmo CSS da fita
+   .tcg-tb-panel acima); logado = gatilho hairline T&L com o NOME (caps via CSS)
+   + chevron duplo e dropdown padrao TCG (topo dourado, itens TL caps) */
+.tcg-topbar .tcg-acct { position: relative; margin-left: auto; flex: none; display: flex; align-items: center; }
+.tcg-topbar .tcg-tb-acct, .tcg-topbar .tcg-tb-acct:hover { text-decoration: none; }
+.tcg-topbar .tcg-acct-btn {
+    display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px;
+    background: transparent; border: 1px solid rgba(216, 179, 106, .35); border-radius: 0;
+    color: #cfc9bc; font-family: 'TL', serif; font-weight: 500; font-size: 11.5px;
+    letter-spacing: 2.2px; text-transform: uppercase; white-space: nowrap; cursor: pointer;
+    transition: border-color .15s, color .15s;
+}
+.tcg-topbar .tcg-acct-btn:hover, .tcg-topbar .tcg-acct-btn.open { border-color: #d8b36a; color: #f0ead9; }
+.tcg-topbar .tcg-acct-name { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* chevron duplo dourado — mesmo desenho do .tcg-sw-caret/.tcg-dd-caret (SEM rotate) */
+.tcg-topbar .tcg-acct-caret { display: inline-flex; flex-direction: column; align-items: center; line-height: .62; color: #d8b36a; font-size: 13px; }
+.tcg-topbar .tcg-acct-caret::after { content: "\25BE"; opacity: .45; }
+.tcg-topbar .tcg-acct-menu {
+    position: absolute; right: 0; top: calc(100% + 6px); min-width: 210px; z-index: 80;
+    background: var(--bg-card); border: 1px solid var(--border); border-top: 2px solid #d8b36a;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .45); display: none;
+}
+.tcg-topbar .tcg-acct-menu.open { display: block; }
+.tcg-topbar .tcg-acct-item {
+    display: block; padding: 11px 16px;
+    font-family: 'TL', serif; font-weight: 500; font-size: 12px; letter-spacing: 2px;
+    color: #cfc9bc; text-transform: uppercase; text-decoration: none; white-space: nowrap;
+}
+.tcg-topbar .tcg-acct-item:hover { background: var(--bg-card-hover); color: #d8b36a; text-decoration: none; }
+.tcg-topbar .tcg-acct-item--exit { border-top: 1px solid var(--border); }
+/* linha "Conectado como" do drawer (discreta; itens do drawer seguem uniformes) */
+.tcg-mnav .tcg-mnav-user { padding: 4px 10px 8px; font-size: 12px; color: var(--text-dim); }
+.tcg-mnav .tcg-mnav-user strong { color: var(--text); font-weight: 600; }
+/* responsivo estreito (padrao da rede): <=700px a conta sai da barra, segue no drawer */
+@media (max-width: 700px) {
+    .tcg-topbar .tcg-acct { display: none; }
+}
+/* 701-960px: acct e hamburguer visiveis juntos — o toggle legado tambem tem
+   margin-left:auto e o flex dividia o espaco entre os dois, soltando a fita no
+   meio da barra; com a conta presente, so ela fica com o empurrao. */
+@media (min-width: 701px) and (max-width: 960px) {
+    .tcg-topbar .tcg-acct ~ .tcg-nav-toggle { margin-left: 12px; }
+}
+/* idioma + hamburguer: hairline T&L */
+.tcg-topbar .tcg-lang-btn { background: transparent; border: 1px solid rgba(216, 179, 106, .35); border-radius: 0; color: #cfc9bc; font-family: 'TL', serif; font-weight: 500; letter-spacing: 1.8px; }
+.tcg-topbar .tcg-lang-btn:hover { border-color: #d8b36a; }
+.tcg-topbar .tcg-nav-toggle { background: transparent; border: 1px solid rgba(216, 179, 106, .35); border-radius: 0; color: #f0ead9; }
+.tcg-topbar .tcg-nav-toggle:hover { border-color: #d8b36a; }
+/* dropdowns do site (Informacoes/Competitivo) e menu da rede: topo dourado + itens TL caps */
+.tcg-topbar .tcg-dd-menu-inner { border-top: 2px solid #d8b36a; }
+.tcg-topbar .tcg-dd-item { font-family: 'TL', serif; font-weight: 500; font-size: 12px; letter-spacing: 2px; color: #cfc9bc; text-transform: uppercase; }
+.tcg-topbar .tcg-dd-item:hover { color: #d8b36a; }
+.tcg-topbar .tcg-sw-menu { border-top: 2px solid #d8b36a; border-radius: 0; }
+.tcg-topbar .tcg-sw-item-name { font-weight: 500; font-size: 12.5px; letter-spacing: 2.4px; text-transform: uppercase; }
+/* fita e brand compactos no mobile */
+@media (max-width: 640px) {
+    .tcg-topbar .brand-main { font-size: 17px; }
+    .tcg-topbar .brand-sub { font-size: 11px; letter-spacing: 1.8px; margin-left: 4px; }
+    .tcg-topbar .tcg-tb-panel, .tcg-topbar .tcg-tb-acct { padding: 9px 14px 8px 20px; }
+}
+
+/* ===== Modal "Em desenvolvimento" — jogos do nav ainda sem marketplace
+   (itens com data-tcg-dev: midnight, l2eclipse). Componente do site,
+   escopado em .tcg-devmodal; NAO faz parte da pele H51 da rede. ===== */
+.tcg-devmodal {
+    position: fixed; inset: 0; z-index: 10000;
+    display: none; align-items: center; justify-content: center; padding: 24px;
+    background: rgba(5, 4, 7, .9);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    font-family: 'TL', 'IBM Plex Sans', serif;
+}
+.tcg-devmodal[aria-hidden="false"] { display: flex; }
+.tcg-devmodal .tcg-devmodal-dialog {
+    position: relative; width: 100%; max-width: 420px; text-align: center;
+    background: linear-gradient(160deg, #16121a 0%, #0f0c12 60%, #14101a 100%);
+    border: 1px solid rgba(216, 179, 106, .55); border-top: 3px solid #d8b36a;
+    box-shadow: 0 0 42px rgba(216, 179, 106, .22), 0 22px 60px rgba(0, 0, 0, .75);
+    padding: 30px 28px 26px;
+    animation: tcgDevModalIn .18s ease-out;
+}
+@keyframes tcgDevModalIn { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: none; } }
+.tcg-devmodal .tcg-devmodal-close {
+    position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: 1px solid rgba(216, 179, 106, .35); border-radius: 0;
+    color: #d8b36a; font-size: 20px; line-height: 1; cursor: pointer;
+}
+.tcg-devmodal .tcg-devmodal-close:hover { border-color: #d8b36a; filter: brightness(1.2); }
+.tcg-devmodal .tcg-devmodal-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 14px 4px; margin-bottom: 16px;
+    border: 1px solid rgba(216, 179, 106, .5);
+    color: #d8b36a; font-size: 11px; font-weight: 700; letter-spacing: 2.6px;
+    text-transform: uppercase; white-space: nowrap;
+}
+.tcg-devmodal .tcg-devmodal-badge::before,
+.tcg-devmodal .tcg-devmodal-badge::after { content: "\2726"; font-size: 9px; opacity: .8; }
+.tcg-devmodal .tcg-devmodal-title {
+    margin: 0 0 6px; font-family: 'TLHeader', 'TL', serif; font-weight: 400;
+    font-size: 26px; letter-spacing: 1.4px; color: #f0ead9; text-transform: uppercase;
+}
+.tcg-devmodal .tcg-devmodal-game {
+    margin: 0 0 14px; color: #d8b36a; font-size: 14px; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+.tcg-devmodal .tcg-devmodal-text { margin: 0 0 22px; color: #b9b2a3; font-size: 13.5px; line-height: 1.55; }
+.tcg-devmodal .tcg-devmodal-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 11px 34px 10px; border: none; border-radius: 0; cursor: pointer;
+    background: linear-gradient(100deg, #e8cd8f 0%, #d8b36a 40%, #a8834a 100%);
+    clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+    font-family: 'TL', serif; font-weight: 700; font-size: 12px; letter-spacing: 2.2px;
+    color: #181206; text-transform: uppercase; transition: filter .15s;
+}
+.tcg-devmodal .tcg-devmodal-btn:hover { filter: brightness(1.08); }
+@media (max-width: 480px) {
+    .tcg-devmodal { padding: 16px; }
+    .tcg-devmodal .tcg-devmodal-dialog { padding: 26px 18px 22px; }
+    .tcg-devmodal .tcg-devmodal-title { font-size: 22px; }
+}
+</style>
+<header class="topbar tcg-topbar">
+    <div class="topbar-inner">
+        <a class="brand" href="https://marketplace.theclassic.games/">
+            <img class="tcg-tb-logo" src="https://theclassic.games/assets/img/new_logo_TC.webp" alt="The Classic Games">
+            <span class="brand-text">
+                <span class="brand-main">THE CLASSIC</span><span class="brand-sub">MARKETPLACE</span>
+            </span>
+        </a>
+        <nav class="tcg-topnav" aria-label="Jogos">
+                        <a href="https://marketplace.theclassic.games/pw126"
+               class="tcg-topnav-item active"
+               style="--game-color: #e8b043"
+                              title="The Classic PW 1.2.6" aria-label="The Classic PW 1.2.6">
+                <img class="tcg-nav-logo" src="https://pw126.theclassic.games/assets/img/pw126/pw126.png" alt="" onerror="this.style.display='none'">
+                <span class="tcg-nav-name">PW 1.2.6</span>
+            </a>
+                        <a href="#"
+               class="tcg-topnav-item  no-loading"
+               style="--game-color: #e8b043"
+               data-tcg-dev="The Classic PW 1.4.4"               title="The Classic PW 1.4.4 (em desenvolvimento)" aria-label="The Classic PW 1.4.4">
+                <img class="tcg-nav-logo" src="https://pw144.theclassic.games/assets/img/pw144/pw144.png" alt="" onerror="this.style.display='none'">
+                <span class="tcg-nav-name">PW 1.4.4</span>
+            </a>
+                        <a href="https://marketplace.theclassic.games/pw187"
+               class="tcg-topnav-item "
+               style="--game-color: #e8b043"
+                              title="The Classic PW 1.8.7" aria-label="The Classic PW 1.8.7">
+                <img class="tcg-nav-logo" src="https://pw187.theclassic.games/assets/img/pw187/pw187.png" alt="" onerror="this.style.display='none'">
+                <span class="tcg-nav-name">PW 1.8.7</span>
+            </a>
+                        <a href="https://marketplace.theclassic.games/mu97d"
+               class="tcg-topnav-item "
+               style="--game-color: #c9302c"
+                              title="The Classic MU Season 2" aria-label="The Classic MU Season 2">
+                <img class="tcg-nav-logo" src="https://mu.theclassic.games/assets/img/mu97d/mu97d.png" alt="" onerror="this.style.display='none'">
+                <span class="tcg-nav-name">MU SEASON 2</span>
+            </a>
+                        <a href="https://marketplace.theclassic.games/mu097items"
+               class="tcg-topnav-item "
+               style="--game-color: #c9302c"
+                              title="The Classic MU 97D" aria-label="The Classic MU 97D">
+                <img class="tcg-nav-logo" src="https://mu97d.theclassic.games/assets/img/mu97d/mu97d.png" alt="" onerror="this.style.display='none'">
+                <span class="tcg-nav-name">MU 97D</span>
+            </a>
+                        <a href="#"
+               class="tcg-topnav-item  no-loading"
+               style="--game-color: #86efac"
+               data-tcg-dev="The Classic Midnight"               title="The Classic Midnight (em desenvolvimento)" aria-label="The Classic Midnight">
+                <img class="tcg-nav-logo" src="https://lineage2.theclassic.games/assets/img/lineage2/lineage2.png" alt="" onerror="this.style.display='none'">
+                <span class="tcg-nav-name">L2 MIDNIGHT</span>
+            </a>
+                        <a href="#"
+               class="tcg-topnav-item  no-loading"
+               style="--game-color: #86efac"
+               data-tcg-dev="The Classic L2 Eclipse"               title="The Classic L2 Eclipse (em desenvolvimento)" aria-label="The Classic L2 Eclipse">
+                <img class="tcg-nav-logo" src="https://userpanel.theclassic.games/assets/img/games/l2eclipse_theclassic.png" alt="" onerror="this.style.display='none'">
+                <span class="tcg-nav-name">L2 ECLIPSE</span>
+            </a>
+                    </nav>
+                <div class="tcg-acct">
+                        <a class="tcg-tb-acct no-loading" href="https://marketplace.theclassic.games/conta/entrar?return=details%2Fpw126%2F5424">Entrar</a>
+                    </div>
+                <button type="button" class="tcg-nav-toggle" id="tcg-nav-toggle"
+                aria-controls="tcg-mnav" aria-expanded="false" aria-label="Menu">
+            <span class="tcg-nav-toggle-bar"></span>
+            <span class="tcg-nav-toggle-bar"></span>
+            <span class="tcg-nav-toggle-bar"></span>
+        </button>
+    </div>
+</header>
+
+<div class="tcg-mnav-backdrop" id="tcg-mnav-backdrop"></div>
+<aside class="tcg-mnav" id="tcg-mnav" aria-hidden="true" aria-label="Menu">
+    <div class="tcg-mnav-head">
+        <span class="tcg-mnav-title">Menu</span>
+        <button type="button" class="tcg-mnav-close" id="tcg-mnav-close" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="tcg-mnav-body">
+        <section class="tcg-mnav-section">
+            <h3 class="tcg-mnav-label">Jogos</h3>
+            <div class="tcg-mnav-list">
+                                <a href="https://marketplace.theclassic.games/pw126"
+                   class="tcg-mnav-link active"
+                                      style="--game-color: #e8b043">
+                    <img class="tcg-nav-logo" src="https://pw126.theclassic.games/assets/img/pw126/pw126.png" alt="" onerror="this.style.display='none'">
+                    <span class="mnl-text">
+                        <span class="mnl-name">PW 1.2.6</span>
+                        <span class="mnl-full">The Classic PW 1.2.6</span>
+                    </span>
+                </a>
+                                <a href="#"
+                   class="tcg-mnav-link  no-loading"
+                   data-tcg-dev="The Classic PW 1.4.4"                   style="--game-color: #e8b043">
+                    <img class="tcg-nav-logo" src="https://pw144.theclassic.games/assets/img/pw144/pw144.png" alt="" onerror="this.style.display='none'">
+                    <span class="mnl-text">
+                        <span class="mnl-name">PW 1.4.4</span>
+                        <span class="mnl-full">Em desenvolvimento &bull; dispon&iacute;vel em breve</span>
+                    </span>
+                </a>
+                                <a href="https://marketplace.theclassic.games/pw187"
+                   class="tcg-mnav-link "
+                                      style="--game-color: #e8b043">
+                    <img class="tcg-nav-logo" src="https://pw187.theclassic.games/assets/img/pw187/pw187.png" alt="" onerror="this.style.display='none'">
+                    <span class="mnl-text">
+                        <span class="mnl-name">PW 1.8.7</span>
+                        <span class="mnl-full">The Classic PW 1.8.7</span>
+                    </span>
+                </a>
+                                <a href="https://marketplace.theclassic.games/mu97d"
+                   class="tcg-mnav-link "
+                                      style="--game-color: #c9302c">
+                    <img class="tcg-nav-logo" src="https://mu.theclassic.games/assets/img/mu97d/mu97d.png" alt="" onerror="this.style.display='none'">
+                    <span class="mnl-text">
+                        <span class="mnl-name">MU Season 2</span>
+                        <span class="mnl-full">The Classic MU Season 2</span>
+                    </span>
+                </a>
+                                <a href="https://marketplace.theclassic.games/mu097items"
+                   class="tcg-mnav-link "
+                                      style="--game-color: #c9302c">
+                    <img class="tcg-nav-logo" src="https://mu97d.theclassic.games/assets/img/mu97d/mu97d.png" alt="" onerror="this.style.display='none'">
+                    <span class="mnl-text">
+                        <span class="mnl-name">MU 97D</span>
+                        <span class="mnl-full">The Classic MU 97D</span>
+                    </span>
+                </a>
+                                <a href="#"
+                   class="tcg-mnav-link  no-loading"
+                   data-tcg-dev="The Classic Midnight"                   style="--game-color: #86efac">
+                    <img class="tcg-nav-logo" src="https://lineage2.theclassic.games/assets/img/lineage2/lineage2.png" alt="" onerror="this.style.display='none'">
+                    <span class="mnl-text">
+                        <span class="mnl-name">L2 Midnight</span>
+                        <span class="mnl-full">Em desenvolvimento &bull; dispon&iacute;vel em breve</span>
+                    </span>
+                </a>
+                                <a href="#"
+                   class="tcg-mnav-link  no-loading"
+                   data-tcg-dev="The Classic L2 Eclipse"                   style="--game-color: #86efac">
+                    <img class="tcg-nav-logo" src="https://userpanel.theclassic.games/assets/img/games/l2eclipse_theclassic.png" alt="" onerror="this.style.display='none'">
+                    <span class="mnl-text">
+                        <span class="mnl-name">L2 Eclipse</span>
+                        <span class="mnl-full">Em desenvolvimento &bull; dispon&iacute;vel em breve</span>
+                    </span>
+                </a>
+                            </div>
+        </section>
+        <section class="tcg-mnav-section">
+            <h3 class="tcg-mnav-label">Marketplace</h3>
+            <div class="tcg-mnav-list">
+                <a href="https://marketplace.theclassic.games/" class="tcg-mnav-link ">
+                    <span class="mnl-text"><span class="mnl-name">In&iacute;cio</span></span>
+                </a>
+                <a href="https://marketplace.theclassic.games/history" class="tcg-mnav-link ">
+                    <span class="mnl-text"><span class="mnl-name">Hist&oacute;rico de vendas</span></span>
+                </a>
+                                                <a href="https://marketplace.theclassic.games/conta" class="tcg-mnav-link ">
+                    <span class="mnl-text">
+                        <span class="mnl-name">Minha conta</span>
+                        <span class="mnl-full">An&uacute;ncios, lances, compras e hist&oacute;rico</span>
+                    </span>
+                </a>
+                                                                <a href="https://marketplace.theclassic.games/conta/entrar?return=details%2Fpw126%2F5424" class="tcg-mnav-link no-loading">
+                    <span class="mnl-text"><span class="mnl-name">Entrar</span></span>
+                </a>
+                                                <button type="button" class="tcg-mnav-link tcg-mnav-btn-announce" id="tcg-mnav-announce" hidden>
+                    <span class="mnl-text"><span class="mnl-name">Anunciar personagem</span></span>
+                </button>
+                <button type="button" class="tcg-mnav-link tcg-mnav-btn-remove" id="tcg-mnav-remove" hidden>
+                    <span class="mnl-text"><span class="mnl-name">Remover an&uacute;ncio</span></span>
+                </button>
+            </div>
+        </section>
+        <section class="tcg-mnav-section">
+            <h3 class="tcg-mnav-label">Rede The Classic Games</h3>
+            <div class="tcg-mnav-list">
+                                <a href="https://theclassic.games" class="tcg-mnav-link">
+                    <span class="mnl-text">
+                        <span class="mnl-name">GAMES</span>
+                        <span class="mnl-full">Site oficial da network</span>
+                    </span>
+                </a>
+                                <a href="https://ranking.theclassic.games" class="tcg-mnav-link">
+                    <span class="mnl-text">
+                        <span class="mnl-name">RANKINGS</span>
+                        <span class="mnl-full">Rankings e premia&ccedil;&otilde;es</span>
+                    </span>
+                </a>
+                                <a href="https://analytics.theclassic.games" class="tcg-mnav-link">
+                    <span class="mnl-text">
+                        <span class="mnl-name">ANALYTICS</span>
+                        <span class="mnl-full">Pre&ccedil;os e mercado in-game</span>
+                    </span>
+                </a>
+                                <a href="https://database.theclassic.games" class="tcg-mnav-link">
+                    <span class="mnl-text">
+                        <span class="mnl-name">DATABASES</span>
+                        <span class="mnl-full">Databases dos jogos</span>
+                    </span>
+                </a>
+                                <a href="https://userpanel.theclassic.games/" class="tcg-mnav-link">
+                    <span class="mnl-text">
+                        <span class="mnl-name">User Panel</span>
+                        <span class="mnl-full">Painel do Jogador</span>
+                    </span>
+                </a>
+                            </div>
+        </section>
+    </div>
+</aside>
+<script>
+(function () {
+    'use strict';
+    var toggle = document.getElementById('tcg-nav-toggle');
+    var nav = document.getElementById('tcg-mnav');
+    var backdrop = document.getElementById('tcg-mnav-backdrop');
+    var closeBtn = document.getElementById('tcg-mnav-close');
+    if (!toggle || !nav || !backdrop) return;
+
+    function setOpen(open) {
+        nav.classList.toggle('open', open);
+        backdrop.classList.toggle('open', open);
+        toggle.classList.toggle('open', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        nav.setAttribute('aria-hidden', open ? 'false' : 'true');
+        document.body.style.overflow = open ? 'hidden' : '';
+    }
+    toggle.addEventListener('click', function () { setOpen(!nav.classList.contains('open')); });
+    if (closeBtn) closeBtn.addEventListener('click', function () { setOpen(false); });
+    backdrop.addEventListener('click', function () { setOpen(false); });
+    document.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape' && nav.classList.contains('open')) setOpen(false);
+    });
+    nav.addEventListener('click', function (ev) {
+        var a = ev.target.closest('a');
+        if (a) setOpen(false);
+    });
+
+    // Anunciar/Remover: so nas paginas que definem os modais (views home*).
+    document.addEventListener('DOMContentLoaded', function () {
+        var btnA = document.getElementById('tcg-mnav-announce');
+        var btnR = document.getElementById('tcg-mnav-remove');
+        if (btnA && typeof window.abrirModal === 'function') {
+            btnA.hidden = false;
+            btnA.addEventListener('click', function () { setOpen(false); window.abrirModal(); });
+        }
+        if (btnR && typeof window.abrirModalRemover === 'function') {
+            btnR.hidden = false;
+            btnR.addEventListener('click', function () { setOpen(false); window.abrirModalRemover(); });
+        }
+    });
+})();
+
+// Dropdown de conta (desktop) — convencao da rede: ao abrir dispara
+// tcg:menuopen (exclusao mutua com o menu da rede), fecha-fora com
+// pointerdown (NAO click: botao do meio nao dispara click) e Esc fecha.
+(function () {
+    'use strict';
+    var btn = document.getElementById('tcg-acct-btn');
+    var menu = document.getElementById('tcg-acct-menu');
+    if (!btn || !menu) return;
+
+    function closeAcct() {
+        menu.classList.remove('open');
+        btn.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+    }
+    btn.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        var open = menu.classList.toggle('open');
+        btn.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', String(open));
+        if (open) document.dispatchEvent(new CustomEvent('tcg:menuopen', { detail: menu }));
+    });
+    document.addEventListener('tcg:menuopen', function (ev) {
+        if (ev.detail !== menu) closeAcct();
+    });
+    document.addEventListener('pointerdown', function (ev) {
+        if (!ev.target.closest('#tcg-acct-btn, #tcg-acct-menu')) closeAcct();
+    });
+    document.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape') closeAcct();
+    });
+})();
+</script>
+
+<!-- Modal "Em desenvolvimento": aberto por QUALQUER elemento da pagina com
+     data-tcg-dev="Nome do jogo" (nav desktop, drawer mobile e cards da home). -->
+<div class="tcg-devmodal" id="tcg-devmodal" aria-hidden="true">
+    <div class="tcg-devmodal-dialog" role="dialog" aria-modal="true" aria-labelledby="tcg-devmodal-title">
+        <button type="button" class="tcg-devmodal-close" id="tcg-devmodal-close" aria-label="Fechar">&times;</button>
+        <span class="tcg-devmodal-badge">Em breve</span>
+        <h3 class="tcg-devmodal-title" id="tcg-devmodal-title">Em desenvolvimento</h3>
+        <p class="tcg-devmodal-game" id="tcg-devmodal-game"></p>
+        <p class="tcg-devmodal-text">O marketplace deste jogo est&aacute; em desenvolvimento e estar&aacute; dispon&iacute;vel em breve.</p>
+        <button type="button" class="tcg-devmodal-btn" id="tcg-devmodal-ok">Entendi</button>
+    </div>
+</div>
+<script>
+(function () {
+    'use strict';
+    var modal = document.getElementById('tcg-devmodal');
+    if (!modal) return;
+    var gameEl = document.getElementById('tcg-devmodal-game');
+    var closeBtn = document.getElementById('tcg-devmodal-close');
+    var okBtn = document.getElementById('tcg-devmodal-ok');
+
+    function openDevModal(gameName) {
+        // garante que o overlay "Aguarde, carregando..." do site (base/header.php)
+        // nao fique preso por cima do modal caso algum handler o tenha disparado
+        var loading = document.getElementById('loading-screen');
+        if (loading) loading.classList.add('hidden');
+        if (gameEl) gameEl.textContent = gameName || '';
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        if (okBtn) okBtn.focus();
+    }
+    function closeDevModal() {
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    // Delegacao global: roda depois do handler do drawer (que ja fecha o menu
+    // mobile ao clicar num <a>), entao o modal abre por cima com o scroll travado.
+    document.addEventListener('click', function (ev) {
+        var trigger = ev.target && ev.target.closest ? ev.target.closest('[data-tcg-dev]') : null;
+        if (!trigger) return;
+        ev.preventDefault();
+        openDevModal(trigger.getAttribute('data-tcg-dev'));
+    });
+
+    if (closeBtn) closeBtn.addEventListener('click', closeDevModal);
+    if (okBtn) okBtn.addEventListener('click', closeDevModal);
+    modal.addEventListener('click', function (ev) { if (ev.target === modal) closeDevModal(); });
+    document.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') closeDevModal();
+    });
+})();
+</script>
+        <!-- header e menu mobile proprios removidos: o header unico e a topbar global (base/tcg_global_topbar.php) -->
+    </div>
+
+
+<style>
+    /* Subnav Styles - Sobreposto ao banner */
+    .nft-top-banner {
+        position: relative;
+    }
+    
+    .nft-top-banner .subnav.nft.subnav--detail {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 3;
+        background-color: transparent;
+        border-bottom: 1px solid hsla(0, 0%, 100%, .1);
+    }
+    
+    .nft-top-banner .subnav.nft.subnav--detail .wrap-sub {
+        background-color: transparent;
+        position: relative;
+        z-index: 3;
+    }
+    
+    .nft-top-banner .subnav.nft.subnav--detail .logo {
+        display: block;
+        width: 94px;
+        height: 41px;
+        font-size: 0;
+        background: url(https://marketplace.theclassic.games/assets/img/logo-nft2.png) 0 0/auto 100% no-repeat;
+    }
+    
+    .nft-top-banner .subnav.nft.subnav--detail .nav-dsp .v-list-item:before {
+        background-color: #a0f; /* Cor roxa para NFT */
+    }
+    
+    /* Footer Fix - Forçar largura total da viewport */
+    .footer {
+        position: relative !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        clear: both !important;
+        display: block !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        box-sizing: border-box !important;
+        float: none !important;
+    }
+    
+    /* Garantir que o container não limite o footer */
+    .container.container--fluid {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+    }
+    
+    .container.container--fluid > main {
+        display: block !important;
+        width: 100% !important;
+    }
+    
+    /* Forçar footer a sair de qualquer grid ou flex container */
+    body > .footer,
+    html > body > .footer,
+    #container ~ .footer,
+    .container ~ .footer {
+        width: 100vw !important;
+        margin-left: calc(50% - 50vw) !important;
+        margin-right: calc(50% - 50vw) !important;
+        position: relative !important;
+        left: auto !important;
+        right: auto !important;
+    }
+    
+    /* NFT Top Banner Styles */
+    .nft-top-banner {
+        position: relative;
+        width: 100%;
+        height: 240px;
+        background-color: #000;
+        color: #fff;
+        overflow: hidden;
+        margin-top: 0;
+    }
+    
+    .nft-top-banner:before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        background-image: linear-gradient(180deg, rgba(17, 17, 51, 0.5), rgba(17, 17, 51, 0.8));
+    }
+    
+    .nft-top-banner__inner {
+        display: flex;
+        align-items: center;
+        flex-flow: column wrap;
+        position: relative;
+        z-index: 2;
+        margin: 0 auto;
+        height: 100%;
+        padding-top: 117px;
+        width: 100%;
+        max-width: 960px;
+        justify-content: center;
+    }
+    
+    .nft-top-banner__video {
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .nft-top-banner__video > video {
+        display: block;
+        width: auto;
+        height: 240px;
+        object-fit: cover;
+    }
+    
+    .nft-top-banner__img {
+        width: auto;
+        height: auto;
+        font-size: 32px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0;
+        text-transform: uppercase;
+    }
+    
+    .nft-top-banner__headline {
+        margin-top: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+    }
+    
+    @media (min-width: 900px) {
+        .nft-top-banner {
+            height: 320px;
+        }
+        
+        .nft-top-banner__inner {
+            padding-top: 159px;
+        }
+        
+        .nft-top-banner__video > video {
+            width: 1400px;
+            height: 320px;
+            object-fit: cover;
+        }
+        
+        .nft-top-banner__img {
+            font-size: 48px;
+        }
+        
+        .nft-top-banner__headline {
+            margin-top: 12px;
+            font-size: 24px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .nft-top-banner {
+            height: 240px;
+        }
+        
+        .nft-top-banner__inner {
+            padding-top: 80px;
+        }
+        
+        .nft-top-banner__img {
+            font-size: 24px;
+        }
+        
+        .nft-top-banner__headline {
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        
+        .nft-top-banner__video > video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+</style>
+
+<script>
+    (function() {
+        const loadingScreen = document.getElementById('loading-screen');
+        const closeBtn = document.getElementById('loading-screen-close');
+        
+        function hideLoading() {
+            if (loadingScreen) {
+                loadingScreen.classList.add('fade-out');
+                setTimeout(function() {
+                    loadingScreen.classList.add('hidden');
+                }, 500);
+            }
+        }
+        
+        function showLoading() {
+            if (loadingScreen) {
+                loadingScreen.classList.remove('hidden', 'fade-out');
+            }
+        }
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                hideLoading();
+            });
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(hideLoading, 300);
+            });
+        } else {
+            setTimeout(hideLoading, 300);
+        }
+        
+        window.addEventListener('load', function() {
+            setTimeout(hideLoading, 100);
+        });
+        
+        const navigationLinks = [
+            'https://marketplace.theclassic.games/pw126',
+            'https://marketplace.theclassic.games/pw144',
+            'https://marketplace.theclassic.games/pw187',
+            'https://marketplace.theclassic.games/history',
+            'https://marketplace.theclassic.games/',
+            'https://marketplace.theclassic.games/home'
+        ];
+        
+        function isNavigationLink(href) {
+            if (!href) return false;
+            try {
+                const url = new URL(href, window.location.origin);
+                const pathname = url.pathname;
+                const basePath = 'marketplace.theclassic.games/'.replace(/\/$/, '');
+                const cleanPath = pathname.replace(new RegExp('^' + basePath), '') || '/';
+                
+                return cleanPath === '/' || 
+                       cleanPath === '/home' ||
+                       cleanPath.startsWith('/pw126') ||
+                       cleanPath.startsWith('/pw144') ||
+                       cleanPath.startsWith('/pw187') ||
+                       cleanPath.startsWith('/history');
+            } catch (e) {
+                const currentBase = 'https://marketplace.theclassic.games/';
+                return navigationLinks.some(function(link) {
+                    return href === link || href.startsWith(link + '/');
+                });
+            }
+        }
+        
+        document.addEventListener('click', function(e) {
+            // dropdown da rede (tcg-ecosystem): o gatilho "MARKETPLACE ▾" vive
+            // dentro do <a> do brand — o clique abre o menu, nao navega
+            // (.tcg-sw-coach = balao-guia do seletor, que abre o menu ao clicar;
+            // .tcg-acct = raiz do bloco de conta do header global — clique no
+            // gatilho/dropdown nao pode disparar o overlay de loading)
+            if (e.target.closest('.tcg-sw-trigger, .tcg-sw-menu, .tcg-sw-coach, .brand-main, .tcg-acct')) {
+                return;
+            }
+            const link = e.target.closest('a');
+            if (link && link.href) {
+                const href = link.getAttribute('href');
+                if (isNavigationLink(href) && !link.hasAttribute('target') && !link.hasAttribute('download') && !link.classList.contains('no-loading')) {
+                    e.preventDefault();
+                    showLoading();
+                    setTimeout(function() {
+                        window.location.href = href;
+                    }, 100);
+                }
+            }
+        }, true);
+    })();
+</script>
+
+<div class="container container--fluid" id="container">
+		<main class="contents nft market single bg-grade-5">
+		<section class="section">
+			<div class="section__inner">
+				<div class="subnav-block"></div>
+				<div class="function"><a href="https://marketplace.theclassic.games/pw126"><span
+							class="backtolist">Voltar</span></a>
+				</div>
+				<div class="wrap-grid">
+					<div class="wrap-grid__timeline">
+						<div class="exchange-market">
+							<div class="wrap-addition__detail">
+								<div class="character-equip__wrapper">
+
+
+									<ul class="character-equip--list">
+										<li data-item-grade="grade-2" data-item-type="slot-10" class="character-equip--list__item">  <div class="front">    <img src="https://theclassic.games/assets/img/iconpw126/14882.png" width="48" alt="item" class="item-image inventory-slot" data-mask="1073741825" data-octet="5000db0030000000ee00000066300000684200002c00040c41006e0061004c0075006100010000000d0000000a000000632100005b0200007e0500000000000000000000200000000000a0410000b04001000000df180000040000000e4500008c00000001000000c42500000d000000bf2500000d0000007aa4000019000000" data-proctype="0" data-item-level="0" data-item-name="★Besta Aprisionante" data-item-ext-desc="^00ffffDestruição deste item concede ^00ffaeAlma: Besta Aprisionante" data-item-grade="2">    <span class="item-slot-default"></span>  </div>  <div class="back"></div></li><li data-item-grade="grade-0" data-item-type="slot-8" class="character-equip--list__item">  <div class="front">    <img src="https://theclassic.games/assets/img/iconpw126/5278.png" width="48" alt="item" class="item-image inventory-slot" data-mask="1073741826" data-octet="4700db006e000000000000008b380000283c0000240000008e0000000000000000000000b40000000000000000000000000000000000000000000000010000000000000001000000922200008e000000" data-proctype="0" data-item-level="0" data-item-name="☆Elmo Engole-Nuvem" data-item-ext-desc="" data-item-grade="0">    <span class="item-slot-default"></span>  </div>  <div class="back"></div></li><li data-item-grade="grade-0" data-item-type="slot-9" class="character-equip--list__item">  <div class="front">    <img src="https://theclassic.games/assets/img/iconpw126/6239.png" width="48" alt="item" class="item-image inventory-slot" data-mask="1073741828" data-octet="5200db0000000000000000007d320000203500002400020000000000000000000000000000000000000000000000000000000000c50100003801000000000000010000007c2600008d000000" data-proctype="0" data-item-level="0" data-item-name="☆Colar do Osso Sagrado" data-item-ext-desc="" data-item-grade="0">    <span class="item-slot-default"></span>  </div>  <div class="back"></div></li><li data-item-grade="grade-0" data-item-type="slot-6" class="character-equip--list__item">  <div class="front">    <img src="https://theclassic.games/assets/img/iconpw126/1868.png" width="48" alt="item" class="item-image inventory-slot" data-mask="1073741832" data-octet="3900db00000000000000000087280000c02b00002400000000000000720000000000000028000000000000000000000000000000000000000000000001000000dc070000020000000d21000028000000f1a1000019000000" data-proctype="0" data-item-level="0" data-item-name="☆Manta Faiscante" data-item-ext-desc="" data-item-grade="0">    <span class="item-slot-default"></span>  </div>  <div class="back"></div></li><li data-item-grade="grade-5" data-item-type="slot-2" class="character-equip--list__item">  <div class="front"><span class='item-enchance' style='z-index:999;color:#d8ffd8;'>+1</span>    <img src="https://theclassic.games/assets/img/iconpw126/12663.png" width="48" alt="item" class="item-image inventory-slot" data-mask="1073741840" data-octet="3c00db00000000000000000024450000384a000024000000dd010000000000000000000046000000e4020000e4020000e4020000e4020000e402000003000500f1180000f1180000f11800000700000073220000460000004b210000010000006c2400000300000097a400002800000097a400002800000097a4000028000000064700001300000001000000" data-proctype="16403" data-item-level="0" data-item-name="★Armadura Leve de Mercenário" data-item-ext-desc="^ffcb4aEmana o poder do Assassino. r^00ffffPosição e Equipamento: Inseparável." data-item-grade="5">    <span class="item-slot-default"></span>  </div>  <div class="back"></div></li><li data-item-grade="grade-4" data-item-type="slot-5" class="character-equip--list__item">  <div class="front">    <img src="https://theclassic.games/assets/img/iconpw126/12608.png" width="48" alt="item" class="item-image inventory-slot" data-mask="1073741856" data-octet="3d00db000000000000000000a2300000c8320000240001000000000000000000a600000000000000000000000000000000000000000000000000000000000000030000006a2100000100000061250000500000004f24000004000000" data-proctype="51" data-item-level="0" data-item-name="☆☆☆Cinturão das Sete Leis" data-item-ext-desc="^ffcb4aTransformada pelo poder residual após o Símbolo dos Sete Breves ter sido libertado. \rAdiciona pontos à defesa física. \r^00ffffRecompensa da Missão: Não refinável." data-item-grade="4">    <span class="item-slot-default"></span>  </div>  <div class="back"></div></li><li data-item-grade="grade-0" data-item-type="slot-3" class="character-equip--list__item">  <div class="front">    <img src="https://theclassic.games/assets/img/iconpw126/5254.png" width="48" alt="item" class="item-image inventory-slot" data-mask="1073741888" data-octet="4900db004d0000004d000000b5310000203500002400000075010000000000000000000046000000f102000000000000f10200001a05000000000000020000000000000000000000030000007322000046000000462600002a01000044260000ff000000" data-proctype="0" data-item-level="0" data-item-name="☆Caneleiras Perseverantes" data-item-ext-desc="" data-item-grade="0">    <span class="item-slot-default"></span>  </div>  <div class="back"></div></li><li data-item-grade="grade-4" data-item-type="slot-4" class="character-equip--list__item">  <div class="front">    <img src="https://theclassic.games/assets/img/iconpw126/5057.png" width="48" alt="item" class="item-image inventory-slot" data-mask="1073741952" data-octet="4200db004600000046000000d92b0000a82f000024000200bb0100000000000000000000000000000000000000000000010200000102000001020000010000000000000003000000902200005e0000006c24000003000000902200005e000000" data-proctype="0" data-item-level="0" data-item-name="☆☆☆Sapatos de Yu Jia" data-item-ext-desc="" data-item-grade="4">    <span class="item-slot-default"></span>  </div>  <div class="back"></div></li><li data-item-grade="grade-0" data-item-type="slot-7" class="character-equip--list__item">  <div class="front">    <img src="https://theclassic.games/assets/img/iconpw126/5272.png" width="48" alt="item" class="item-image inventory-slot" data-mask="1073742080" data-octet="4a00db004e0000004e000000d8270000f82a000024000200bd0000000000000000000000000000007f0100007f0100007f010000000000000000000000000000010000004c21000003000000" data-proctype="0" data-item-level="0" data-item-name="☆Braçadeiras Perseverantes" data-item-ext-desc="" data-item-grade="0">    <span class="item-slot-default"></span>  </div>  <div class="back"></div></li><li data-item-grade="grade-0" data-item-type="slot-0" class="character-equip--list__item">  <div class="front">    <img src="https://theclassic.games/assets/img/iconpw126/6175.png" width="48" alt="item" class="item-image inventory-slot" data-mask="1073743360" data-octet="4e00db000000000000000000122f0000c83200002400020051000000000000000000000000000000000000000000000000000000000000000000000000000000020000005b230000150000004424000005000000" data-proctype="0" data-item-level="0" data-item-name="☆Anel da Estrela Cadente" data-item-ext-desc="" data-item-grade="0">    <span class="item-slot-default"></span>  </div>  <div class="back"></div></li><li data-item-grade="grade-0" data-item-type="slot-1" class="character-equip--list__item">  <div class="front">    <img src="https://theclassic.games/assets/img/iconpw126/6175.png" width="48" alt="item" class="item-image inventory-slot" data-mask="1073743360" data-octet="4e00db000000000000000000c12f0000c8320000240000003c0000000000000000000000000000000000000000000000000000000000000000000000000000000200000043240000040000003e24000004000000" data-proctype="0" data-item-level="0" data-item-name="☆Anel da Estrela Cadente" data-item-ext-desc="" data-item-grade="0">    <span class="item-slot-default"></span>  </div>  <div class="back"></div></li>
+									</ul>
+
+
+
+
+
+
+									<img src="https://marketplace.theclassic.games/assets/img/6.png"
+										width="480" alt="warrior" class="character-equip--thumbs">
+								</div>
+								<div class="wrap-addition__detail flex-desktop-item">
+									<div class="wrap-item-desc">
+										<div class="item-manual">
+											<h3 class="item-manual__title">Vayne												<em data-character-reinforce="0" class="enhancement"></em>
+											</h3>
+											<p class="item-manual__subtitle">The Classic PW
+												1.2.6</p>
+											<ul class="item-manual__detail size-lg">
+												<li class="classname">
+													<span>Arqueiro</span>
+													<strong><img
+															src="https://theclassic.games/assets/img/pw_roles/occu_6.png"
+															width="48" alt="warrior"></strong>
+												</li>
+												<li class="level"><span>Level</span>
+													<strong>92</strong>
+												</li>
+												<li class="power"><span>Fama</span>
+													<strong>9710</strong>
+												</li>
+											</ul>
+										</div>
+										<ul class="character-info">
+											<li class="character-info--list"><span class="skill-desc">Personagem
+													casado?</span>
+												<strong class="value"><b style='color:lime;'>Sim</b></strong>
+											</li>
+											<li class="character-info--list"><span class="skill-desc">Cultivo</span>
+												<strong
+													class="value">Diabólico (89)</strong>
+											</li>
+											<li class="character-info--list"><span class="skill-desc">Sexo</span>
+												<strong class="value"><b style='color: pink;'>Feminino</b></strong>
+											</li>
+											<li class="character-info--list"><span class="skill-desc">EXP</span>
+												<strong class="value">17.950.951<small style="color:#95bab9;"> (36,99%)</small></strong>
+											</li>
+											<li class="character-info--list"><span class="skill-desc">Alma</span>
+												<strong class="value">25.294.925</strong>
+											</li>
+
+
+										</ul>
+										<div class="wrap-button"><a data-open-buy-modal
+												data-buy-url="https://userpanel.theclassic.games/dashboard/buy_account_marketplace_pw/107954/pw126"
+												data-character-name="Vayne"
+												data-character-price="250"
+												data-character-level="92"
+												data-character-reputation="9710"
+												data-character-class="Arqueiro"
+												data-character-occupation="6"
+												data-character-cultivation="Diabólico (89)"
+												data-character-game="The Classic PW 1.2.6"
+												href="https://userpanel.theclassic.games/dashboard/buy_account_marketplace_pw/107954/pw126"
+												class="btn btn-price btn-primary-nft"><em class="price"><strong
+														class="ico-wemixcredit ico-ss add-inside">250														- COMPRAR</strong>
+												</em></a>
+											<a href="#fazer-lance" class="btn btn-primary-nft mkt-bid-btn no-loading" data-open-bid-modal
+	data-bid-game="pw126"
+	data-bid-roleid="5424"
+	data-bid-listing-id="107954"
+	data-bid-price="250"
+	data-bid-min="175"
+	data-bid-max="250"
+	data-bid-character="Vayne"
+	data-bid-pending="0"
+	data-bid-highest="0"
+	data-bid-mine="0">
+	<span class="mkt-bid-btn__icon" aria-hidden="true">&#9878;</span>
+	<span class="mkt-bid-btn__label">Fazer lance</span>
+	<span class="mkt-bid-btn__hint">a partir de 175 TCC</span>
+</a>
+										</div>
+									</div> <!---->
+								</div>
+							</div>
+
+
+
+
+
+
+
+							<div>
+								<h3 class="title-sub-detail">Itens do Personagem</h3>
+								<div class="character-inventory">
+									<div class="v-tabs tab-rounds theme--light">
+										<div role="tablist"
+											class="v-item-group theme--light v-slide-group v-tabs-bar primary--text"
+											data-booted="true">
+											<div class="v-slide-group__prev v-slide-group__prev--disabled">
+												<!---->
+											</div>
+											<div class="v-slide-group__wrapper">
+												<div class="v-slide-group__content v-tabs-bar__content">
+
+
+
+													
+
+													<div tabindex="0" aria-selected="true" role="tab"
+														class="tab-rounds__item v-tab v-tab--active">
+														<span>Equipamento
+															<em>21<b style="color:white;">
+																	 </b><b style="color: lime;"></b></em></span>
+													</div>
+
+													<div tabindex="0" aria-selected="false" role="tab"
+														class="tab-rounds__item v-tab">
+														<span>Inventário
+															<em>34<b style="color:white;"> /
+																</b><b style="color: lime;">40</b></em></span>
+													</div>
+
+													<div tabindex="0" aria-selected="false" role="tab"
+														class="tab-rounds__item v-tab">
+														<span>Banqueiro
+															<em>32<b style="color:white;"> /
+																</b><b style="color: lime;">32 </b></em></span>
+													</div>
+
+													<div tabindex="0" aria-selected="false" role="tab"
+														class="tab-rounds__item v-tab">
+														<span>Roupas
+															<em>0<b
+																	style="color:white;"> / </b><b
+																	style="color: lime;">0</b></em></span>
+													</div>
+
+													<div tabindex="0" aria-selected="false" role="tab"
+														class="tab-rounds__item v-tab">
+														<span>Materiais
+															<em>0<b style="color:white;">
+																	/ </b><b style="color: lime;">0</b></em></span>
+													</div>
+
+
+
+												</div>
+											</div>
+											<div class="v-slide-group__next v-slide-group__next--disabled">
+												<!---->
+											</div>
+										</div>
+									</div>
+									
+									<div class="v-window wrap-tabs-item v-item-group theme--light v-tabs-items">
+										<div class="v-window__container" style="">
+
+											<!-- Equipamento -->
+											<div class="v-window-item wrap-item-square inventory v-window-item--active">
+												<ul class="list-item">
+													<li class="grade-2" data-item='{&quot;weapon_type&quot;:1,&quot;weapon_class&quot;:13,&quot;weapon_level&quot;:10,&quot;require_projectile&quot;:8547,&quot;damage_high_min&quot;:603,&quot;damage_high_max&quot;:1406,&quot;magic_damage_high_min&quot;:0,&quot;magic_damage_high_max&quot;:0,&quot;attack_speed&quot;:32,&quot;attack_range&quot;:20,&quot;attack_short_range&quot;:5.5,&quot;slots&quot;:{&quot;slotsSize&quot;:1,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[6367]},&quot;addons&quot;:{&quot;count&quot;:4,&quot;addons&quot;:[{&quot;id&quot;:1294,&quot;type&quot;:16384,&quot;effect&quot;:140,&quot;effectBonus&quot;:1,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1476,&quot;type&quot;:8192,&quot;effect&quot;:13,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1471,&quot;type&quot;:8192,&quot;effect&quot;:13,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1146,&quot;type&quot;:40960,&quot;effect&quot;:25,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:80,&quot;require_class&quot;:219,&quot;require_strength&quot;:48,&quot;require_con&quot;:0,&quot;require_dex&quot;:238,&quot;require_int&quot;:0,&quot;durability_min&quot;:12390,&quot;durability_max&quot;:17000,&quot;item_class&quot;:44,&quot;item_flag&quot;:4,&quot;creator&quot;:&quot;AnaLua&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/14882.png' data-octet='5000db0030000000ee00000066300000684200002c00040c41006e0061004c0075006100010000000d0000000a000000632100005b0200007e0500000000000000000000200000000000a0410000b04001000000df180000040000000e4500008c00000001000000c42500000d000000bf2500000d0000007aa4000019000000' data-mask='1073741825' data-proctype='0' data-item-level='0' data-item-name='★Besta Aprisionante' data-item-ext-desc='^00ffffDestruição deste item concede ^00ffaeAlma: Besta Aprisionante' data-item-grade='2' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='{&quot;defense&quot;:142,&quot;armor&quot;:0,&quot;mp_enhance&quot;:0,&quot;hp_enhance&quot;:180,&quot;metal&quot;:0,&quot;wood&quot;:0,&quot;water&quot;:0,&quot;fire&quot;:0,&quot;earth&quot;:0,&quot;slots&quot;:{&quot;slotsSize&quot;:1,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[0]},&quot;addons&quot;:{&quot;count&quot;:1,&quot;addons&quot;:[{&quot;id&quot;:658,&quot;type&quot;:8192,&quot;effect&quot;:142,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:71,&quot;require_class&quot;:219,&quot;require_strength&quot;:110,&quot;require_con&quot;:0,&quot;require_dex&quot;:0,&quot;require_int&quot;:0,&quot;durability_min&quot;:14475,&quot;durability_max&quot;:15400,&quot;item_class&quot;:36,&quot;item_flag&quot;:0,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/5278.png' data-octet='4700db006e000000000000008b380000283c0000240000008e0000000000000000000000b40000000000000000000000000000000000000000000000010000000000000001000000922200008e000000' data-mask='1073741826' data-proctype='0' data-item-level='0' data-item-name='☆Elmo Engole-Nuvem' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='{&quot;defense&quot;:0,&quot;armor&quot;:0,&quot;mp_enhance&quot;:0,&quot;hp_enhance&quot;:0,&quot;metal&quot;:0,&quot;wood&quot;:0,&quot;water&quot;:0,&quot;fire&quot;:453,&quot;earth&quot;:312,&quot;slots&quot;:{&quot;slotsSize&quot;:0,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[]},&quot;addons&quot;:{&quot;count&quot;:1,&quot;addons&quot;:[{&quot;id&quot;:1660,&quot;type&quot;:8192,&quot;effect&quot;:141,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:82,&quot;require_class&quot;:219,&quot;require_strength&quot;:0,&quot;require_con&quot;:0,&quot;require_dex&quot;:0,&quot;require_int&quot;:0,&quot;durability_min&quot;:12925,&quot;durability_max&quot;:13600,&quot;item_class&quot;:36,&quot;item_flag&quot;:2,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/6239.png' data-octet='5200db0000000000000000007d320000203500002400020000000000000000000000000000000000000000000000000000000000c50100003801000000000000010000007c2600008d000000' data-mask='1073741828' data-proctype='0' data-item-level='0' data-item-name='☆Colar do Osso Sagrado' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='{&quot;defense&quot;:0,&quot;armor&quot;:114,&quot;mp_enhance&quot;:0,&quot;hp_enhance&quot;:40,&quot;metal&quot;:0,&quot;wood&quot;:0,&quot;water&quot;:0,&quot;fire&quot;:0,&quot;earth&quot;:0,&quot;slots&quot;:{&quot;slotsSize&quot;:1,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[2012]},&quot;addons&quot;:{&quot;count&quot;:2,&quot;addons&quot;:[{&quot;id&quot;:269,&quot;type&quot;:8192,&quot;effect&quot;:40,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:497,&quot;type&quot;:40960,&quot;effect&quot;:25,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:57,&quot;require_class&quot;:219,&quot;require_strength&quot;:0,&quot;require_con&quot;:0,&quot;require_dex&quot;:0,&quot;require_int&quot;:0,&quot;durability_min&quot;:10375,&quot;durability_max&quot;:11200,&quot;item_class&quot;:36,&quot;item_flag&quot;:0,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/1868.png' data-octet='3900db00000000000000000087280000c02b00002400000000000000720000000000000028000000000000000000000000000000000000000000000001000000dc070000020000000d21000028000000f1a1000019000000' data-mask='1073741832' data-proctype='0' data-item-level='0' data-item-name='☆Manta Faiscante' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-5" data-item='{&quot;defense&quot;:477,&quot;armor&quot;:0,&quot;mp_enhance&quot;:0,&quot;hp_enhance&quot;:70,&quot;metal&quot;:740,&quot;wood&quot;:740,&quot;water&quot;:740,&quot;fire&quot;:740,&quot;earth&quot;:740,&quot;slots&quot;:{&quot;slotsSize&quot;:3,&quot;slotFlag&quot;:5,&quot;slotStones&quot;:[6385,6385,6385]},&quot;addons&quot;:{&quot;count&quot;:7,&quot;addons&quot;:[{&quot;id&quot;:627,&quot;type&quot;:8192,&quot;effect&quot;:70,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:331,&quot;type&quot;:8192,&quot;effect&quot;:1,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1132,&quot;type&quot;:8192,&quot;effect&quot;:3,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1175,&quot;type&quot;:40960,&quot;effect&quot;:40,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1175,&quot;type&quot;:40960,&quot;effect&quot;:40,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1175,&quot;type&quot;:40960,&quot;effect&quot;:40,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1798,&quot;type&quot;:16384,&quot;effect&quot;:19,&quot;effectBonus&quot;:1,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:60,&quot;require_class&quot;:219,&quot;require_strength&quot;:0,&quot;require_con&quot;:0,&quot;require_dex&quot;:0,&quot;require_int&quot;:0,&quot;durability_min&quot;:17700,&quot;durability_max&quot;:19000,&quot;item_class&quot;:36,&quot;item_flag&quot;:0,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/12663.png' data-octet='3c00db00000000000000000024450000384a000024000000dd010000000000000000000046000000e4020000e4020000e4020000e4020000e402000003000500f1180000f1180000f11800000700000073220000460000004b210000010000006c2400000300000097a400002800000097a400002800000097a4000028000000064700001300000001000000' data-mask='1073741840' data-proctype='16403' data-item-level='0' data-item-name='★Armadura Leve de Mercenário' data-item-ext-desc='^ffcb4aEmana o poder do Assassino. r^00ffffPosição e Equipamento: Inseparável.' data-item-grade='5' width='80' alt='' class='item inventory-slot'></li><li class="grade-4" data-item='{&quot;defense&quot;:0,&quot;armor&quot;:0,&quot;mp_enhance&quot;:166,&quot;hp_enhance&quot;:0,&quot;metal&quot;:0,&quot;wood&quot;:0,&quot;water&quot;:0,&quot;fire&quot;:0,&quot;earth&quot;:0,&quot;slots&quot;:{&quot;slotsSize&quot;:0,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[]},&quot;addons&quot;:{&quot;count&quot;:3,&quot;addons&quot;:[{&quot;id&quot;:362,&quot;type&quot;:8192,&quot;effect&quot;:1,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1377,&quot;type&quot;:8192,&quot;effect&quot;:80,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1103,&quot;type&quot;:8192,&quot;effect&quot;:4,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:61,&quot;require_class&quot;:219,&quot;require_strength&quot;:0,&quot;require_con&quot;:0,&quot;require_dex&quot;:0,&quot;require_int&quot;:0,&quot;durability_min&quot;:12450,&quot;durability_max&quot;:13000,&quot;item_class&quot;:36,&quot;item_flag&quot;:1,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/12608.png' data-octet='3d00db000000000000000000a2300000c8320000240001000000000000000000a600000000000000000000000000000000000000000000000000000000000000030000006a2100000100000061250000500000004f24000004000000' data-mask='1073741856' data-proctype='51' data-item-level='0' data-item-name='☆☆☆Cinturão das Sete Leis' data-item-ext-desc='^ffcb4aTransformada pelo poder residual após o Símbolo dos Sete Breves ter sido libertado. \rAdiciona pontos à defesa física. \r^00ffffRecompensa da Missão: Não refinável.' data-item-grade='4' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='{&quot;defense&quot;:373,&quot;armor&quot;:0,&quot;mp_enhance&quot;:0,&quot;hp_enhance&quot;:70,&quot;metal&quot;:753,&quot;wood&quot;:0,&quot;water&quot;:753,&quot;fire&quot;:1306,&quot;earth&quot;:0,&quot;slots&quot;:{&quot;slotsSize&quot;:2,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[0,0]},&quot;addons&quot;:{&quot;count&quot;:3,&quot;addons&quot;:[{&quot;id&quot;:627,&quot;type&quot;:8192,&quot;effect&quot;:70,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1606,&quot;type&quot;:8192,&quot;effect&quot;:298,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1604,&quot;type&quot;:8192,&quot;effect&quot;:255,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:73,&quot;require_class&quot;:219,&quot;require_strength&quot;:77,&quot;require_con&quot;:0,&quot;require_dex&quot;:77,&quot;require_int&quot;:0,&quot;durability_min&quot;:12725,&quot;durability_max&quot;:13600,&quot;item_class&quot;:36,&quot;item_flag&quot;:0,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/5254.png' data-octet='4900db004d0000004d000000b5310000203500002400000075010000000000000000000046000000f102000000000000f10200001a05000000000000020000000000000000000000030000007322000046000000462600002a01000044260000ff000000' data-mask='1073741888' data-proctype='0' data-item-level='0' data-item-name='☆Caneleiras Perseverantes' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-4" data-item='{&quot;defense&quot;:443,&quot;armor&quot;:0,&quot;mp_enhance&quot;:0,&quot;hp_enhance&quot;:0,&quot;metal&quot;:0,&quot;wood&quot;:0,&quot;water&quot;:513,&quot;fire&quot;:513,&quot;earth&quot;:513,&quot;slots&quot;:{&quot;slotsSize&quot;:1,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[0]},&quot;addons&quot;:{&quot;count&quot;:3,&quot;addons&quot;:[{&quot;id&quot;:656,&quot;type&quot;:8192,&quot;effect&quot;:94,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1132,&quot;type&quot;:8192,&quot;effect&quot;:3,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:656,&quot;type&quot;:8192,&quot;effect&quot;:94,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:66,&quot;require_class&quot;:219,&quot;require_strength&quot;:70,&quot;require_con&quot;:0,&quot;require_dex&quot;:70,&quot;require_int&quot;:0,&quot;durability_min&quot;:11225,&quot;durability_max&quot;:12200,&quot;item_class&quot;:36,&quot;item_flag&quot;:2,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/5057.png' data-octet='4200db004600000046000000d92b0000a82f000024000200bb0100000000000000000000000000000000000000000000010200000102000001020000010000000000000003000000902200005e0000006c24000003000000902200005e000000' data-mask='1073741952' data-proctype='0' data-item-level='0' data-item-name='☆☆☆Sapatos de Yu Jia' data-item-ext-desc='' data-item-grade='4' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='{&quot;defense&quot;:189,&quot;armor&quot;:0,&quot;mp_enhance&quot;:0,&quot;hp_enhance&quot;:0,&quot;metal&quot;:383,&quot;wood&quot;:383,&quot;water&quot;:383,&quot;fire&quot;:0,&quot;earth&quot;:0,&quot;slots&quot;:{&quot;slotsSize&quot;:0,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[]},&quot;addons&quot;:{&quot;count&quot;:1,&quot;addons&quot;:[{&quot;id&quot;:332,&quot;type&quot;:8192,&quot;effect&quot;:3,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:74,&quot;require_class&quot;:219,&quot;require_strength&quot;:78,&quot;require_con&quot;:0,&quot;require_dex&quot;:78,&quot;require_int&quot;:0,&quot;durability_min&quot;:10200,&quot;durability_max&quot;:11000,&quot;item_class&quot;:36,&quot;item_flag&quot;:2,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/5272.png' data-octet='4a00db004e0000004e000000d8270000f82a000024000200bd0000000000000000000000000000007f0100007f0100007f010000000000000000000000000000010000004c21000003000000' data-mask='1073742080' data-proctype='0' data-item-level='0' data-item-name='☆Braçadeiras Perseverantes' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='{&quot;defense&quot;:81,&quot;armor&quot;:0,&quot;mp_enhance&quot;:0,&quot;hp_enhance&quot;:0,&quot;metal&quot;:0,&quot;wood&quot;:0,&quot;water&quot;:0,&quot;fire&quot;:0,&quot;earth&quot;:0,&quot;slots&quot;:{&quot;slotsSize&quot;:0,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[]},&quot;addons&quot;:{&quot;count&quot;:2,&quot;addons&quot;:[{&quot;id&quot;:859,&quot;type&quot;:8192,&quot;effect&quot;:21,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1092,&quot;type&quot;:8192,&quot;effect&quot;:5,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:78,&quot;require_class&quot;:219,&quot;require_strength&quot;:0,&quot;require_con&quot;:0,&quot;require_dex&quot;:0,&quot;require_int&quot;:0,&quot;durability_min&quot;:12050,&quot;durability_max&quot;:13000,&quot;item_class&quot;:36,&quot;item_flag&quot;:2,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/6175.png' data-octet='4e00db000000000000000000122f0000c83200002400020051000000000000000000000000000000000000000000000000000000000000000000000000000000020000005b230000150000004424000005000000' data-mask='1073743360' data-proctype='0' data-item-level='0' data-item-name='☆Anel da Estrela Cadente' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='{&quot;defense&quot;:60,&quot;armor&quot;:0,&quot;mp_enhance&quot;:0,&quot;hp_enhance&quot;:0,&quot;metal&quot;:0,&quot;wood&quot;:0,&quot;water&quot;:0,&quot;fire&quot;:0,&quot;earth&quot;:0,&quot;slots&quot;:{&quot;slotsSize&quot;:0,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[]},&quot;addons&quot;:{&quot;count&quot;:2,&quot;addons&quot;:[{&quot;id&quot;:1091,&quot;type&quot;:8192,&quot;effect&quot;:4,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1086,&quot;type&quot;:8192,&quot;effect&quot;:4,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:78,&quot;require_class&quot;:219,&quot;require_strength&quot;:0,&quot;require_con&quot;:0,&quot;require_dex&quot;:0,&quot;require_int&quot;:0,&quot;durability_min&quot;:12225,&quot;durability_max&quot;:13000,&quot;item_class&quot;:36,&quot;item_flag&quot;:0,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/6175.png' data-octet='4e00db000000000000000000c12f0000c8320000240000003c0000000000000000000000000000000000000000000000000000000000000000000000000000000200000043240000040000003e24000004000000' data-mask='1073743360' data-proctype='0' data-item-level='0' data-item-name='☆Anel da Estrela Cadente' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/1944.png' data-octet='0000ffff0000000000000000640000006400000014000000632100002d0000000000000007000000100000000000000000000000' data-mask='2048' data-proctype='0' data-item-level='0' data-item-name='Dardo de Três Pontas' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>2135</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/27908.png' data-octet='09030000840300001e000100c00000000f0000000000404000009040010082d8' data-mask='4096' data-proctype='0' data-item-level='0' data-item-name='Asa de Pena de Fênix' data-item-ext-desc='^ffcb4aUm voo exclusivo obtido nos pacotes de fundador.' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/30327.png' data-octet='01000000b636010001000000' data-mask='8192' data-proctype='19' data-item-level='0' data-item-name='Blusa do Uniforme Preto' data-item-ext-desc='^ffcb4aUma peça de roupa fina do uniforme  da Facção.\rProduzida no Mercado Negro da Facção.\r^00ffffCor padrão. Não pode ser tingida.' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/30317.png' data-octet='01000000e939010001000000' data-mask='16384' data-proctype='19' data-item-level='0' data-item-name='Saia do Uniforme Preto' data-item-ext-desc='^ffcb4aUma peça de roupa fina do uniforme  da Facção.\rProduzida no Mercado Negro da Facção.\r^00ffffCor padrão. Não pode ser tingida.' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/30337.png' data-octet='01000000725a010001009cc8' data-mask='32768' data-proctype='19' data-item-level='0' data-item-name='Saltos do Uniforme Preto' data-item-ext-desc='^ffcb4aUma peça de roupa fina do uniforme  da Facção.\rProduzida no Mercado Negro da Facção.\r^00ffffCor padrão. Não pode ser tingida.' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/30307.png' data-octet='010000003b32010001005a43' data-mask='65536' data-proctype='19' data-item-level='0' data-item-name='Mangas do Uniforme Preto' data-item-ext-desc='^ffcb4aUma peça de roupa fina do uniforme  da Facção.\rProduzida no Mercado Negro da Facção.\r^00ffffCor padrão. Não pode ser tingida.' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-4" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/17580.png' data-octet='' data-mask='262144' data-proctype='0' data-item-level='0' data-item-name='Pessegueiro' data-item-ext-desc='^ffcb4aDex+4\rCon+3\r^00ffffLivro Divino ' data-item-grade='4' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/53017.png' data-octet='5ca602000000003f' data-mask='1048576' data-proctype='19' data-item-level='0' data-item-name='Amuleto de Ouro' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/26648.png' data-octet='ba3803000000403f' data-mask='2097152' data-proctype='19' data-item-level='0' data-item-name='Hierograma de Ouro' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/33807.png' data-octet='010000004a5e010001000000' data-mask='33554432' data-proctype='19' data-item-level='0' data-item-name='Chapéu de Bruxa' data-item-ext-desc='^00ffffUsar esse acessório para a cabeça não mudará a cor original de seu cabelo.\r^ff8400Apenas para Eventos Butique.' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li>												</ul>
+
+											</div>
+
+											<!-- Inventário -->
+											<div class="v-window-item wrap-item-square inventory"
+												style="display: none;">
+												<ul class="list-item">
+													<li class="grade-4" data-item='{&quot;weapon_type&quot;:0,&quot;weapon_class&quot;:182,&quot;weapon_level&quot;:8,&quot;require_projectile&quot;:0,&quot;damage_high_min&quot;:314,&quot;damage_high_max&quot;:347,&quot;magic_damage_high_min&quot;:0,&quot;magic_damage_high_max&quot;:0,&quot;attack_speed&quot;:14,&quot;attack_range&quot;:2.5,&quot;attack_short_range&quot;:0,&quot;slots&quot;:{&quot;slotsSize&quot;:2,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[0,0]},&quot;addons&quot;:{&quot;count&quot;:2,&quot;addons&quot;:[{&quot;id&quot;:468,&quot;type&quot;:8192,&quot;effect&quot;:1045220557,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1106,&quot;type&quot;:8192,&quot;effect&quot;:4,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:63,&quot;require_class&quot;:219,&quot;require_strength&quot;:80,&quot;require_con&quot;:0,&quot;require_dex&quot;:100,&quot;require_int&quot;:0,&quot;durability_min&quot;:14262,&quot;durability_max&quot;:15400,&quot;item_class&quot;:44,&quot;item_flag&quot;:4,&quot;creator&quot;:&quot;Fuscaix&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/4607.png' data-octet='3f00db005000000064000000b6370000283c00002c00040e460075007300630061006900780000000000b600000008000000000000003a0100005b01000000000000000000000e000000000020400000000002000000000000000000000002000000d4210000cdcc4c3e5224000004000000' data-mask='1073741825' data-proctype='0' data-item-level='0' data-item-name='☆☆☆Punho Ardente' data-item-ext-desc='' data-item-grade='4' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/63639.png' data-octet='10a60000' data-mask='0' data-proctype='19' data-item-level='0' data-item-name='Passe de Batalha: Leão' data-item-ext-desc='^ffcb4aPasse de Batalha: um sistema exclusivo do ^ff0000The Classic PW 1.2.6^ffcb4a!\rAo longo de ^ffff0020 missões^ffcb4a, você desbloqueia ótimas recompensas.\rPara liberar as missões, acumule ^ffff00EXP do Passe de Batalha^ffcb4a, obtido nas principais atividades do servidor.\rOs objetivos variam: ^ffff00matar monstros, coletar recursos, derrotar bosses^ffcb4a no mapa e em instâncias.\r^ffcb4aClique com o botão direito para consumir o item e adicionar a linha de missões deste passe de batalha ao seu personagem.\r\r^aaff00Nível recomendado: 30 ~ 105.' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/63547.png' data-octet='22a40000' data-mask='0' data-proctype='16403' data-item-level='0' data-item-name='Caixa de Amuleto de Ouro' data-item-ext-desc='^ffcb4aClique com o botão direito para obter: Amuleto de Ouro' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-3" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/5639.png' data-octet='' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Pedra Perfeita' data-item-ext-desc='^ffcb4aA carreira de poder da magia no mundo perfeito é alcançada através de milhões de anos de \racúmulo de nimbus celestial e terrestre. \rO nimbus pode ser acumulado aos poucos e, \rfinalmente, tornar-se perfeito. \rA Pedra Perfeita tem o maior poder sagrado do mundo.' data-item-grade='3' width='80' alt='' class='item inventory-slot'><span class='quantity'>174</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/12755.png' data-octet='' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Totem Fantasma' data-item-ext-desc='^ffcb4aAlguma coisa nos corpos dos selvagens. \r^00ffffPode ser usado na missão de caçar dragões: Xian Zhang (81).' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>8</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/12979.png' data-octet='' data-mask='0' data-proctype='8' data-item-level='0' data-item-name='Alto-Falante' data-item-ext-desc='^ffcb4aPode espalhar sua voz para todos os cantos do mundo. \r^00ffffSe a colocar em seu pacote, você pode falar no canal do mundo.' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>2</span></li><li class="grade-3" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/36092.png' data-octet='' data-mask='0' data-proctype='16403' data-item-level='0' data-item-name='Alto-Falante' data-item-ext-desc='^ffcb4aFale com o mundo no Servidor.\r^00ffffColoque-o em seu inventário para falar no Canal Global. Deve estar pelo menos no nível 5.' data-item-grade='3' width='80' alt='' class='item inventory-slot'><span class='quantity'>5783</span></li><li class="grade-3" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/36309.png' data-octet='' data-mask='0' data-proctype='19' data-item-level='0' data-item-name='Dublê de Corpo' data-item-ext-desc='^ffcb4aVocê não perderá EXP ou itens quando morrer. \rDublê de corpo não será consumido.' data-item-grade='3' width='80' alt='' class='item inventory-slot'><span class='quantity'>994</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/3073.png' data-octet='' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Pá' data-item-ext-desc='^00ffffColoque na coluna de itens para coletar várias matérias de produção.' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/823.png' data-octet='' data-mask='0' data-proctype='8' data-item-level='0' data-item-name='Cola das Cinco Cores' data-item-ext-desc='^ffcb4aAdesivo do nível alto para a produção de equipamento.' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>3</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/20479.png' data-octet='' data-mask='0' data-proctype='55' data-item-level='0' data-item-name='Chave do Tempo - Dor Celestial' data-item-ext-desc='^ffcb4aUm objeto essencial para chegar na Cidade da Dor Celestial usando a Roda do Tempo.' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-2" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/20491.png' data-octet='' data-mask='0' data-proctype='16403' data-item-level='0' data-item-name='Cartão de Presença' data-item-ext-desc='^ffcb4aA prova de que você esteja presente.\rTroca com o Fiscal de Presença na Cidade do Dragão.\r' data-item-grade='2' width='80' alt='' class='item inventory-slot'><span class='quantity'>253</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/58241.png' data-octet='' data-mask='0' data-proctype='19' data-item-level='0' data-item-name='Ticket do Dragão' data-item-ext-desc='^ffcb4aTicket do evento dos dragões.\rTroque com os dragões na cidade do dragão norte (535,687) por recompensas.' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>4</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/58247.png' data-octet='' data-mask='0' data-proctype='19' data-item-level='0' data-item-name='Prova de Trabalho' data-item-ext-desc='^ffcb4aUma prova do seu trabalho.\rLeve até o NPC Alquimista Lu Changjia no lago celeste (450,559) e troque por recompensas.' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>26</span></li><li class="grade-3" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/2001.png' data-octet='01000000e32100001000000001000000e421000015000000' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Pedra das Nuvens Nv.5' data-item-ext-desc='^ffcb4aUma pedra espiritual de poder misterioso. \rPode ser integrada a equipamentos do nível 5 ou acima. \r^00ffffEfeito da Arma: Ataque de magia: +16. \rEfeito de defesa: Defesa dos cinco elementos: +21.' data-item-grade='3' width='80' alt='' class='item inventory-slot'></li><li class="grade-5" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/59689.png' data-octet='' data-mask='0' data-proctype='16407' data-item-level='0' data-item-name='EXP do Passe de Batalha' data-item-ext-desc='^aaaaaaItem utilizado para desbloquear missões no passe de batalha.\r^00ffff\rConsiga ^ffff00EXP do Passe de Batalha^ffffff ^00ffffpara desbloquear missões no seu passe de batalha!\r^ff0000Você pode conseguir ^ffff00EXP do Passe de Batalha ^ff0000nas principais atividades do servidor.\r\r^ffff00O passe de batalha está disponível no GSHOP.' data-item-grade='5' width='80' alt='' class='item inventory-slot'><span class='quantity'>3582</span></li><li class="grade-5" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/59826.png' data-octet='' data-mask='0' data-proctype='19' data-item-level='0' data-item-name='Ticket de Cooperação' data-item-ext-desc='^ffcb4aLeve até o NPC Evento: Cooperação localizado na cidade das plumas (328,427) para trocar por prêmios.\r^ff0000Caso o NPC não esteja no local aguarde até a próxima atualização!' data-item-grade='5' width='80' alt='' class='item inventory-slot'><span class='quantity'>20</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/1947.png' data-octet='0000ffff0000000000000000640000006400000014000000622100002d0000000000000007000000100000000000000000000000' data-mask='2048' data-proctype='0' data-item-level='0' data-item-name='Flecha Cauda de Fênix' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>1222</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/33916.png' data-octet='' data-mask='0' data-proctype='19' data-item-level='0' data-item-name='Pedra de Teleporte' data-item-ext-desc='^ffcb4aPedra misteriosa.\r^00ffffTeletransporta você a um ponto de rota previamente ativado.\r^00ffffClique com o botão direito para usar. \rNão pode ser usado em combate.' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>3302</span></li><li class="grade-5" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/15261.png' data-octet='' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Chifre de Sela Primordial' data-item-ext-desc='^00ffffMaterial Nível:90\r^ffcb4aTesouros do Crepúsculo. Pode ser usado para criar Itens do Crepúsculo.' data-item-grade='5' width='80' alt='' class='item inventory-slot'></li><li class="grade-5" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/15264.png' data-octet='' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Cauda do Grande Símio' data-item-ext-desc='^00ffffMaterial Nível:90\r^ffcb4aTesouros do Crepúsculo. Pode ser usado para criar Itens do Crepúsculo.' data-item-grade='5' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/813.png' data-octet='' data-mask='0' data-proctype='8' data-item-level='0' data-item-name='Seda do Bicho-da-Seda Gigante' data-item-ext-desc='^ffcb4aTecido do nível alto para a produção de equipamento.' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>3</span></li><li class="grade-3" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/14112.png' data-octet='' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Sangue de Demônio Maligno' data-item-ext-desc='^ffcb4aEsse tipo de sangue da alma pode ser adquirido dos cadáveres das seguintes criaturas: Demônio Nojento.\rDemônio Sombrio e Demônio Celestial! \r^00ffffEsse tipo de sangue da alma pode ser adquirido na missão Símbolo do Sangue de Ferro. \rUso: pode ser usado para forjar equipamentos com poderes excepcionais.' data-item-grade='3' width='80' alt='' class='item inventory-slot'><span class='quantity'>3</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/63548.png' data-octet='23a40000' data-mask='0' data-proctype='16403' data-item-level='0' data-item-name='Caixa de Hierograma de Ouro' data-item-ext-desc='^ffcb4aClique com o botão direito para obter: Hierograma de Ouro' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>2</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/8056.png' data-octet='0000ffff0000000000000000640000006400000014000000622100004b000000000000000a000000100000000000000000000000' data-mask='2048' data-proctype='0' data-item-level='0' data-item-name='Flecha Barba de Dragão' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>153</span></li><li class="grade-0" data-item='{&quot;defense&quot;:603,&quot;armor&quot;:0,&quot;mp_enhance&quot;:0,&quot;hp_enhance&quot;:0,&quot;metal&quot;:260,&quot;wood&quot;:260,&quot;water&quot;:260,&quot;fire&quot;:260,&quot;earth&quot;:260,&quot;slots&quot;:{&quot;slotsSize&quot;:1,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[0]},&quot;addons&quot;:{&quot;count&quot;:1,&quot;addons&quot;:[{&quot;id&quot;:336,&quot;type&quot;:0,&quot;effect&quot;:0,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:76,&quot;require_class&quot;:219,&quot;require_strength&quot;:192,&quot;require_con&quot;:0,&quot;require_dex&quot;:42,&quot;require_int&quot;:0,&quot;durability_min&quot;:7200,&quot;durability_max&quot;:14400,&quot;item_class&quot;:36,&quot;item_flag&quot;:2,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/5260.png' data-octet='4c00db00c00000002a000000201c000040380000240002005b020000000000000000000000000000040100000401000004010000040100000401000001000000000000000100000050010000' data-mask='1073741952' data-proctype='0' data-item-level='0' data-item-name='☆Botas Misteriosas' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='{&quot;defense&quot;:76,&quot;armor&quot;:0,&quot;mp_enhance&quot;:0,&quot;hp_enhance&quot;:0,&quot;metal&quot;:685,&quot;wood&quot;:685,&quot;water&quot;:685,&quot;fire&quot;:685,&quot;earth&quot;:685,&quot;slots&quot;:{&quot;slotsSize&quot;:1,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[0]},&quot;addons&quot;:{&quot;count&quot;:1,&quot;addons&quot;:[{&quot;id&quot;:336,&quot;type&quot;:0,&quot;effect&quot;:0,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:86,&quot;require_class&quot;:219,&quot;require_strength&quot;:47,&quot;require_con&quot;:0,&quot;require_dex&quot;:0,&quot;require_int&quot;:132,&quot;durability_min&quot;:4400,&quot;durability_max&quot;:8800,&quot;item_class&quot;:36,&quot;item_flag&quot;:2,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/5267.png' data-octet='5600db002f000000000084003011000060220000240002004c000000000000000000000000000000ad020000ad020000ad020000ad020000ad02000001000000000000000100000050010000' data-mask='1073741952' data-proctype='0' data-item-level='0' data-item-name='☆Sapatos Púrpuras Adornados' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='{&quot;defense&quot;:441,&quot;armor&quot;:0,&quot;mp_enhance&quot;:0,&quot;hp_enhance&quot;:0,&quot;metal&quot;:209,&quot;wood&quot;:209,&quot;water&quot;:209,&quot;fire&quot;:209,&quot;earth&quot;:0,&quot;slots&quot;:{&quot;slotsSize&quot;:1,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[0]},&quot;addons&quot;:{&quot;count&quot;:0,&quot;addons&quot;:[]},&quot;retcode&quot;:0,&quot;require_level&quot;:74,&quot;require_class&quot;:219,&quot;require_strength&quot;:187,&quot;require_con&quot;:0,&quot;require_dex&quot;:41,&quot;require_int&quot;:0,&quot;durability_min&quot;:7100,&quot;durability_max&quot;:14200,&quot;item_class&quot;:36,&quot;item_flag&quot;:2,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/5269.png' data-octet='4a00db00bb00000029000000bc1b00007837000024000200b9010000000000000000000000000000d1000000d1000000d1000000d100000000000000010000000000000000000000' data-mask='256' data-proctype='0' data-item-level='0' data-item-name='☆Mangas Misteriosas' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/8058.png' data-octet='0000ffff0000000000000000640000006400000014000000632100004b000000000000000a000000100000000000000000000000' data-mask='2048' data-proctype='0' data-item-level='0' data-item-name='Dardo de Aço' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>434</span></li><li class="grade-0" data-item='{&quot;defense&quot;:0,&quot;armor&quot;:60,&quot;mp_enhance&quot;:0,&quot;hp_enhance&quot;:0,&quot;metal&quot;:0,&quot;wood&quot;:0,&quot;water&quot;:0,&quot;fire&quot;:0,&quot;earth&quot;:0,&quot;slots&quot;:{&quot;slotsSize&quot;:0,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[]},&quot;addons&quot;:{&quot;count&quot;:1,&quot;addons&quot;:[{&quot;id&quot;:1102,&quot;type&quot;:8192,&quot;effect&quot;:4,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:78,&quot;require_class&quot;:219,&quot;require_strength&quot;:0,&quot;require_con&quot;:0,&quot;require_dex&quot;:0,&quot;require_int&quot;:0,&quot;durability_min&quot;:6500,&quot;durability_max&quot;:13000,&quot;item_class&quot;:36,&quot;item_flag&quot;:2,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/6196.png' data-octet='4e00db00000000000000000064190000c832000024000200000000003c0000000000000000000000000000000000000000000000000000000000000000000000010000004e24000004000000' data-mask='1073743360' data-proctype='0' data-item-level='0' data-item-name='☆Anel Partidor de Céu' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/33790.png' data-octet='0100000074570100010014d1' data-mask='8192' data-proctype='19' data-item-level='0' data-item-name='Blusa de Halloween' data-item-ext-desc='^00ffffCor aleatória.\r^00ffffRequer 15 tinturas para tingir.\r^ff8412Apenas para Butique de Eventos' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/33791.png' data-octet='01000000007c010001004443' data-mask='65536' data-proctype='19' data-item-level='0' data-item-name='Mangas de Halloween' data-item-ext-desc='^00ffffCor aleatória.\r^00ffffRequer 3 tinturas para tingir.\r^ff8412Apenas para Eventos da Butique' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/33789.png' data-octet='010000008640010001005d43' data-mask='16384' data-proctype='19' data-item-level='0' data-item-name='Meia-Calça de Halloween' data-item-ext-desc='^00ffffCor aleatória.\r^00ffffRequer 5 tinturas para tingir.\r^ff8412Apenas para Eventos da Butique' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/33788.png' data-octet='01000000842f010001006443' data-mask='32768' data-proctype='19' data-item-level='0' data-item-name='Salto Alto de Halloween' data-item-ext-desc='^00ffffCor aleatória.\r^00ffffRequer 3 tinturas para tingir.\r^ff8412Apenas para Eventos da Butique' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li>												</ul>
+
+											</div>
+
+											<!-- Banqueiro -->
+											<div class="v-window-item wrap-item-square inventory"
+												style="display: none;">
+												<ul class="list-item">
+													<li class="grade-5" data-item='{&quot;weapon_type&quot;:1,&quot;weapon_class&quot;:13,&quot;weapon_level&quot;:9,&quot;require_projectile&quot;:8548,&quot;damage_high_min&quot;:617,&quot;damage_high_max&quot;:1034,&quot;magic_damage_high_min&quot;:0,&quot;magic_damage_high_max&quot;:0,&quot;attack_speed&quot;:26,&quot;attack_range&quot;:20,&quot;attack_short_range&quot;:4.5,&quot;slots&quot;:{&quot;slotsSize&quot;:1,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[1996]},&quot;addons&quot;:{&quot;count&quot;:5,&quot;addons&quot;:[{&quot;id&quot;:421,&quot;type&quot;:8192,&quot;effect&quot;:2,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:803,&quot;type&quot;:8192,&quot;effect&quot;:108,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1113,&quot;type&quot;:8192,&quot;effect&quot;:9,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:476,&quot;type&quot;:40960,&quot;effect&quot;:16,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1740,&quot;type&quot;:16384,&quot;effect&quot;:40,&quot;effectBonus&quot;:2,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:69,&quot;require_class&quot;:219,&quot;require_strength&quot;:35,&quot;require_con&quot;:0,&quot;require_dex&quot;:212,&quot;require_int&quot;:0,&quot;durability_min&quot;:11512,&quot;durability_max&quot;:15500,&quot;item_class&quot;:44,&quot;item_flag&quot;:4,&quot;creator&quot;:&quot;iLoo&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/8302.png' data-octet='4500db0023000000d4000000f82c00008c3c00002c00040869004c006f006f00010000000d0000000900000064210000690200000a04000000000000000000001a0000000000a0410000904001000000cc07000005000000a521000002000000232300006c0000005924000009000000dca1000010000000cc4600002800000002000000' data-mask='1073741825' data-proctype='0' data-item-level='0' data-item-name='★Funda Nuvem de Vento' data-item-ext-desc='' data-item-grade='5' width='80' alt='' class='item inventory-slot'></li><li class="grade-3" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/1996.png' data-octet='01000000dc2100001000000001000000dd2100001a000000' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Pedra Vermelha Ardente Nv.5' data-item-ext-desc='^ffcb4aUma pedra espiritual de poder misterioso.\rPode ser integrada a equipamentos do nível 5 ou acima.\r^00ffffEfeito da Arma: Ataque físico: +16. \rEfeito de defesa: Defesa física: +26.' data-item-grade='3' width='80' alt='' class='item inventory-slot'></li><li class="grade-4" data-item='{&quot;defense&quot;:138,&quot;armor&quot;:46,&quot;mp_enhance&quot;:245,&quot;hp_enhance&quot;:0,&quot;metal&quot;:0,&quot;wood&quot;:0,&quot;water&quot;:0,&quot;fire&quot;:0,&quot;earth&quot;:0,&quot;slots&quot;:{&quot;slotsSize&quot;:1,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[1996]},&quot;addons&quot;:{&quot;count&quot;:4,&quot;addons&quot;:[{&quot;id&quot;:655,&quot;type&quot;:8192,&quot;effect&quot;:69,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:655,&quot;type&quot;:8192,&quot;effect&quot;:69,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:665,&quot;type&quot;:8192,&quot;effect&quot;:46,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:477,&quot;type&quot;:40960,&quot;effect&quot;:26,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:71,&quot;require_class&quot;:219,&quot;require_strength&quot;:40,&quot;require_con&quot;:0,&quot;require_dex&quot;:0,&quot;require_int&quot;:0,&quot;durability_min&quot;:8700,&quot;durability_max&quot;:10400,&quot;item_class&quot;:36,&quot;item_flag&quot;:0,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/6096.png' data-octet='4700db002800000000000000fc210000a0280000240000008a0000002e000000f500000000000000000000000000000000000000000000000000000001000000cc070000040000008f220000450000008f22000045000000992200002e000000dda100001a000000' data-mask='1073741826' data-proctype='0' data-item-level='0' data-item-name='☆☆☆Coroa de Eurídice' data-item-ext-desc='' data-item-grade='4' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='{&quot;defense&quot;:0,&quot;armor&quot;:0,&quot;mp_enhance&quot;:0,&quot;hp_enhance&quot;:93,&quot;metal&quot;:0,&quot;wood&quot;:0,&quot;water&quot;:0,&quot;fire&quot;:0,&quot;earth&quot;:0,&quot;slots&quot;:{&quot;slotsSize&quot;:0,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[]},&quot;addons&quot;:{&quot;count&quot;:2,&quot;addons&quot;:[{&quot;id&quot;:1086,&quot;type&quot;:8192,&quot;effect&quot;:4,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:362,&quot;type&quot;:8192,&quot;effect&quot;:1,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:62,&quot;require_class&quot;:219,&quot;require_strength&quot;:0,&quot;require_con&quot;:0,&quot;require_dex&quot;:0,&quot;require_int&quot;:0,&quot;durability_min&quot;:10725,&quot;durability_max&quot;:11000,&quot;item_class&quot;:36,&quot;item_flag&quot;:2,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/1895.png' data-octet='3e00db000000000000000000e5290000f82a0000240002000000000000000000000000005d000000000000000000000000000000000000000000000000000000020000003e240000040000006a21000001000000' data-mask='1073741828' data-proctype='0' data-item-level='0' data-item-name='☆Colar Leve da Noite' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-4" data-item='{&quot;defense&quot;:55,&quot;armor&quot;:55,&quot;mp_enhance&quot;:0,&quot;hp_enhance&quot;:0,&quot;metal&quot;:0,&quot;wood&quot;:0,&quot;water&quot;:0,&quot;fire&quot;:0,&quot;earth&quot;:0,&quot;slots&quot;:{&quot;slotsSize&quot;:0,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[]},&quot;addons&quot;:{&quot;count&quot;:2,&quot;addons&quot;:[{&quot;id&quot;:356,&quot;type&quot;:8192,&quot;effect&quot;:1,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1376,&quot;type&quot;:8192,&quot;effect&quot;:70,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:60,&quot;require_class&quot;:219,&quot;require_strength&quot;:0,&quot;require_con&quot;:0,&quot;require_dex&quot;:0,&quot;require_int&quot;:0,&quot;durability_min&quot;:12550,&quot;durability_max&quot;:13400,&quot;item_class&quot;:36,&quot;item_flag&quot;:1,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/12715.png' data-octet='3c00db000000000000000000063100005834000024000100370000003700000000000000000000000000000000000000000000000000000000000000000000000200000064210000010000006025000046000000' data-mask='1073743360' data-proctype='16439' data-item-level='0' data-item-name='☆☆☆Insígnia nv. 4' data-item-ext-desc='^ffcb4aCertificado de Honra! \r^00ffffCertificado de Grau Militar: Não refinável, inseparável.' data-item-grade='4' width='80' alt='' class='item inventory-slot'></li><li class="grade-4" data-item='{&quot;defense&quot;:0,&quot;armor&quot;:0,&quot;mp_enhance&quot;:172,&quot;hp_enhance&quot;:0,&quot;metal&quot;:100,&quot;wood&quot;:100,&quot;water&quot;:100,&quot;fire&quot;:100,&quot;earth&quot;:100,&quot;slots&quot;:{&quot;slotsSize&quot;:0,&quot;slotFlag&quot;:0,&quot;slotStones&quot;:[]},&quot;addons&quot;:{&quot;count&quot;:3,&quot;addons&quot;:[{&quot;id&quot;:1378,&quot;type&quot;:8192,&quot;effect&quot;:90,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:1100,&quot;type&quot;:8192,&quot;effect&quot;:1,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0},{&quot;id&quot;:917,&quot;type&quot;:8192,&quot;effect&quot;:72,&quot;effectBonus&quot;:0,&quot;effectBonus1&quot;:0}]},&quot;retcode&quot;:0,&quot;require_level&quot;:80,&quot;require_class&quot;:219,&quot;require_strength&quot;:0,&quot;require_con&quot;:0,&quot;require_dex&quot;:0,&quot;require_int&quot;:0,&quot;durability_min&quot;:29050,&quot;durability_max&quot;:30000,&quot;item_class&quot;:36,&quot;item_flag&quot;:1,&quot;creator&quot;:&quot;&quot;}'><img src='https://theclassic.games/assets/img/iconpw126/20950.png' data-octet='5000db0000000000000000007a71000030750000240001000000000000000000ac0000000000000064000000640000006400000064000000640000000000000003000000622500005a0000004c240000010000009523000048000000' data-mask='1073741856' data-proctype='19' data-item-level='0' data-item-name='☆☆☆Rio Solar' data-item-ext-desc='^ffcb4aRecompensa da missão.\rNão pode ser decomposto. ' data-item-grade='4' width='80' alt='' class='item inventory-slot'></li><li class="grade-5" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/6367.png' data-octet='010000007a24000019000000010000007b24000029000000' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Pedra Vermelha Ardente Nv. 7' data-item-ext-desc='^ffcb4aUma pedra espiritual de poder misterioso. \rPode ser integrada a equipamentos do nível 7 ou acima. \r^00ffffEfeito da Arma: Ataque físico: +25. \rEfeito de defesa: Defesa física: +41.' data-item-grade='5' width='80' alt='' class='item inventory-slot'></li><li class="grade-5" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/6375.png' data-octet='010000008424000019000000010000008524000021000000' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Pedra das Nuvens Nv.7' data-item-ext-desc='^ffcb4aUma pedra espiritual de poder misterioso. \rPode ser integrada a equipamentos do nível 7 ou acima. \r^00ffffEfeito da Arma: Ataque de magia: +25. \rEfeito de defesa: Defesa dos cinco elementos: +33.' data-item-grade='5' width='80' alt='' class='item inventory-slot'><span class='quantity'>4</span></li><li class="grade-5" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/6380.png' data-octet='010000008e24000050000000010000008f24000029000000' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Pedra Afiada Nv.7' data-item-ext-desc='^ffcb4aUma pedra espiritual de poder misterioso. \rPode ser integrada a equipamentos do nível 7 ou acima. \r^00ffffEfeito da Arma: Acerto: +80. \rEfeito de defesa: Esquiva: +41.' data-item-grade='5' width='80' alt='' class='item inventory-slot'><span class='quantity'>6</span></li><li class="grade-5" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/6385.png' data-octet='010000009724000028000000010000009724000028000000' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Pedra Amarela Nv.7' data-item-ext-desc='^ffcb4aUma pedra espiritual de poder misterioso. \rPode ser integrada a equipamentos do nível 7 ou acima. \r^00ffffEfeito da Arma: Valor de vida: +40. \rEfeito de defesa: Valor de vida: +40.' data-item-grade='5' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/9070.png' data-octet='14000000db0000000000000066230000000000006e230000000000000800000024000000000000000000000000000000000000000000000000000000' data-mask='0' data-proctype='19' data-item-level='0' data-item-name='Cavalo de Hanxue' data-item-ext-desc='^00ffffPode ser incubado com o Gerente de Mascotes. \rA velocidade pode ser aumentada com Esporas.\r^ff8400Velocidade máxima: 8.0 m/seg' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-4" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/11208.png' data-octet='' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Pedra Imortal' data-item-ext-desc='^ffcb4aO carregador com o mais forte poder celestial da Terra Perfeita. \rA Pedra da Mágica Celestial resume todo o valor do espírito das pedras por todos os seres celestiais e \rabsorveu a essência do sol e da lua.' data-item-grade='4' width='80' alt='' class='item inventory-slot'><span class='quantity'>27</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/63618.png' data-octet='b5a50000' data-mask='0' data-proctype='19' data-item-level='0' data-item-name='Recompensa Adicional I' data-item-ext-desc='^ffcb4aUma recompensa adicional do passe do dragão.\r^aaff00Requer martelo perfeito para abrir.\r\r^ffff00Contém:\r- 1.000.000 moedas\r- 1 Cartão de Presença\r- 1 Experiência Adicional (Pequena)\r- 5 Ticket do Dragão' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/3366.png' data-octet='' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Fragmento de Pedra Imortal' data-item-ext-desc='^ffcb4aA Pedra Brilhante Imortal não apenas pode ser usada para criar mercadorias finas,\rmas também é um material indispensável para diversas formações de batalha enormes,\rgraças ao imenso poder contido nela. \rMuitos colecionadores estão atrás delas em Pan Gu.' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>174</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/3370.png' data-octet='' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Pedra Celestial Comum' data-item-ext-desc='^ffcb4aA Pedra Brilhante Imortal não apenas pode ser usada para criar mercadorias finas,\rmas também é um material indispensável para diversas formações de batalha enormes,\rgraças ao imenso poder contido nela. \rMuitos colecionadores estão atrás delas em Pan Gu.' data-item-grade='0' width='80' alt='' class='item inventory-slot'></li><li class="grade-3" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/13970.png' data-octet='' data-mask='0' data-proctype='19' data-item-level='0' data-item-name='Moeda Núm. 7 – DG 79' data-item-ext-desc='^ffcb4aUm símbolo antigo, você pode invocar um grupo de guerreiros com ele para matarem juntos as criaturas malignas Feng Yijian, Hu Dao, Linyun e Lang Fantian \rna Caverna do Tesouro Escondido! \r^00ffffCom esse símbolo, o capitão de um grupo pode liderar seus companheiros na missão do Símbolo do Sangue de Ferro. \rLocal de início da missão: Caverna do Tesouro Escondido.' data-item-grade='3' width='80' alt='' class='item inventory-slot'></li><li class="grade-3" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/14096.png' data-octet='' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Sangue de Fera Estranha' data-item-ext-desc='^ffcb4aEsse tipo de sangue da alma pode ser adquirido dos cadáveres das seguintes criaturas: Pahana.\rXuanzhui e Fenris! \r^00ffffEsse tipo de sangue da alma pode ser adquirido na missão Símbolo do Sangue de Ferro. \rUso: pode ser usado para forjar equipamentos com poderes excepcionais.' data-item-grade='3' width='80' alt='' class='item inventory-slot'><span class='quantity'>2</span></li><li class="grade-3" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/14109.png' data-octet='' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Sangue de Antigüidade' data-item-ext-desc='^ffcb4aEsse tipo de sangue da alma pode ser adquirido dos cadáveres das seguintes criaturas: Caçador de Almas.\rCabeça de Touro do Submundo e Cara de Cavalo do Submundo! \r^00ffffEsse tipo de sangue da alma pode ser adquirido na missão Símbolo do Sangue de Ferro. \rUso: pode ser usado para forjar equipamentos com poderes excepcionais.' data-item-grade='3' width='80' alt='' class='item inventory-slot'><span class='quantity'>3</span></li><li class="grade-3" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/14110.png' data-octet='' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Sangue de Fantasmagoria' data-item-ext-desc='^ffcb4aEsse tipo de sangue da alma pode ser adquirido dos cadáveres das seguintes criaturas: Feng Yijian.\rHu Dao, Linyun e Lang Fantian! \r^00ffffEsse tipo de sangue da alma pode ser adquirido na missão Símbolo do Sangue de Ferro. \rUso: pode ser usado para forjar equipamentos com poderes excepcionais.' data-item-grade='3' width='80' alt='' class='item inventory-slot'><span class='quantity'>11</span></li><li class="grade-3" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/14112.png' data-octet='' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Sangue de Demônio Maligno' data-item-ext-desc='^ffcb4aEsse tipo de sangue da alma pode ser adquirido dos cadáveres das seguintes criaturas: Demônio Nojento.\rDemônio Sombrio e Demônio Celestial! \r^00ffffEsse tipo de sangue da alma pode ser adquirido na missão Símbolo do Sangue de Ferro. \rUso: pode ser usado para forjar equipamentos com poderes excepcionais.' data-item-grade='3' width='80' alt='' class='item inventory-slot'><span class='quantity'>3</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/14313.png' data-octet='' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Sinal de Prêmio e Castigo 5' data-item-ext-desc='^ffcb4aRecompense os bons, castigue os maus, exerça a justiça em nome de Deus! \r^ffffffNível Necessário: ^00ffff80-84. \r^00ffffAceite a Missão de Recompensar a Bondade e Punir o Mal em Li Si, com esse símbolo de Recompensa e Castigo.' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>5</span></li><li class="grade-4" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/20143.png' data-octet='' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Cartão Lacre Dente de Trovão' data-item-ext-desc='^ffcb4aA assinatura do BOSS Dente de Trovão, é uma marca de dente especial.' data-item-grade='4' width='80' alt='' class='item inventory-slot'></li><li class="grade-5" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/25153.png' data-octet='' data-mask='0' data-proctype='3' data-item-level='0' data-item-name='Passados da Cidade do Gelo' data-item-ext-desc='^ffd200Memória do passado da Cidade do Gelo.' data-item-grade='5' width='80' alt='' class='item inventory-slot'><span class='quantity'>4</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/27021.png' data-octet='' data-mask='0' data-proctype='16403' data-item-level='0' data-item-name='Doce Lembrança' data-item-ext-desc='^ffa5e5Um cristal criado com doces lembranças. Feito pelo Servo Casamenteiro.' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>156</span></li><li class="grade-8" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/58236.png' data-octet='' data-mask='0' data-proctype='19' data-item-level='0' data-item-name='Ticket de Troca: Ovo Dourado' data-item-ext-desc='^ffcb4aLeve até o NPC A Estimada (576,620) para trocar por recompensas.' data-item-grade='8' width='80' alt='' class='item inventory-slot'><span class='quantity'>3</span></li><li class="grade-5" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/59689.png' data-octet='' data-mask='0' data-proctype='16407' data-item-level='0' data-item-name='EXP do Passe de Batalha' data-item-ext-desc='^aaaaaaItem utilizado para desbloquear missões no passe de batalha.\r^00ffff\rConsiga ^ffff00EXP do Passe de Batalha^ffffff ^00ffffpara desbloquear missões no seu passe de batalha!\r^ff0000Você pode conseguir ^ffff00EXP do Passe de Batalha ^ff0000nas principais atividades do servidor.\r\r^ffff00O passe de batalha está disponível no GSHOP.' data-item-grade='5' width='80' alt='' class='item inventory-slot'><span class='quantity'>8789</span></li><li class="grade-5" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/59840.png' data-octet='' data-mask='0' data-proctype='19' data-item-level='0' data-item-name='Ticket de Troca: Baú de Safira' data-item-ext-desc='^ffcb4aLeve até o NPC A Estimada (576,620) para trocar por recompensas.' data-item-grade='5' width='80' alt='' class='item inventory-slot'><span class='quantity'>3</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/12967.png' data-octet='100e0000' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Pergaminho de Treino' data-item-ext-desc='^ffcb4aUsado para aumentar a eficiência do seu treinamento.\r\r^00ffffGanhe 50% mais EXP e Alma ao matar monstros.\r^00ffffDura uma hora.' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>3</span></li><li class="grade-4" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/27049.png' data-octet='100e0000' data-mask='0' data-proctype='19' data-item-level='0' data-item-name='Pergaminho de Treino' data-item-ext-desc='^ffcb4aUsado para aumentar a eficiência do seu treinamento.\r\r^00ffffGanhe 50% mais EXP e Alma ao matar monstros.\r^00ffffDura uma hora.' data-item-grade='4' width='80' alt='' class='item inventory-slot'></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/1946.png' data-octet='0000ffff0000000000000000640000006400000014000000642100002d0000000000000007000000100000000000000000000000' data-mask='2048' data-proctype='0' data-item-level='0' data-item-name='Bala de Espingarda' data-item-ext-desc='' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>91</span></li><li class="grade-3" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/14111.png' data-octet='' data-mask='0' data-proctype='0' data-item-level='0' data-item-name='Sangue de Imortais' data-item-ext-desc='^ffcb4aEsse tipo de sangue da alma pode ser adquirido dos cadáveres das seguintes criaturas: Qian Ling.\rRaposa de Fogo Selvagem e Fan Tian! \r^00ffffEsse tipo de sangue da alma pode ser adquirido na missão Símbolo do Sangue de Ferro. \rUso: pode ser usado para forjar equipamentos com poderes excepcionais.' data-item-grade='3' width='80' alt='' class='item inventory-slot'><span class='quantity'>9</span></li><li class="grade-0" data-item='null'><img src='https://theclassic.games/assets/img/iconpw126/813.png' data-octet='' data-mask='0' data-proctype='8' data-item-level='0' data-item-name='Seda do Bicho-da-Seda Gigante' data-item-ext-desc='^ffcb4aTecido do nível alto para a produção de equipamento.' data-item-grade='0' width='80' alt='' class='item inventory-slot'><span class='quantity'>3</span></li>												</ul>
+
+											</div>
+
+											<!-- Banco de Materiais -->
+											<div class="v-window-item wrap-item-square inventory"
+												style="display: none;">
+												<ul class="list-item">
+																									</ul>
+
+											</div>
+
+											<!-- Banco de Roupas -->
+											<div class="v-window-item wrap-item-square inventory"
+												style="display: none;">
+												<ul class="list-item">
+																									</ul>
+
+											</div>
+
+										</div>
+									</div>
+
+									<div class="v-dialog__container"><!----></div>
+								</div>
+							</div>
+
+							<div>
+								<h3 class="title-sub-detail">Habilidades</h3>
+								<div class="skill">
+									<div data-character-class="6"
+										class="character-skill">
+
+										<div class="">  <div data-character-skill="0" data-skill-id="167" data-skill-level="1" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/167.png" alt="Skill 167" width="40">  </div></div><div class="">  <div data-character-skill="1" data-skill-id="234" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/234.png" alt="Skill 234" width="40">  </div></div><div class="">  <div data-character-skill="2" data-skill-id="235" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/235.png" alt="Skill 235" width="40">  </div></div><div class="">  <div data-character-skill="3" data-skill-id="236" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/236.png" alt="Skill 236" width="40">  </div></div><div class="">  <div data-character-skill="4" data-skill-id="237" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/237.png" alt="Skill 237" width="40">  </div></div><div class="">  <div data-character-skill="5" data-skill-id="238" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/238.png" alt="Skill 238" width="40">  </div></div><div class="">  <div data-character-skill="6" data-skill-id="239" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/239.png" alt="Skill 239" width="40">  </div></div><div class="">  <div data-character-skill="7" data-skill-id="240" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/240.png" alt="Skill 240" width="40">  </div></div><div class="">  <div data-character-skill="8" data-skill-id="241" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/241.png" alt="Skill 241" width="40">  </div></div><div class="">  <div data-character-skill="9" data-skill-id="242" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/242.png" alt="Skill 242" width="40">  </div></div><div class="">  <div data-character-skill="10" data-skill-id="243" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/243.png" alt="Skill 243" width="40">  </div></div><div class="">  <div data-character-skill="11" data-skill-id="244" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/244.png" alt="Skill 244" width="40">  </div></div><div class="">  <div data-character-skill="12" data-skill-id="245" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/245.png" alt="Skill 245" width="40">  </div></div><div class="">  <div data-character-skill="13" data-skill-id="246" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/246.png" alt="Skill 246" width="40">  </div></div><div class="">  <div data-character-skill="14" data-skill-id="247" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/247.png" alt="Skill 247" width="40">  </div></div><div class="">  <div data-character-skill="15" data-skill-id="248" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/248.png" alt="Skill 248" width="40">  </div></div><div class="">  <div data-character-skill="16" data-skill-id="249" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/249.png" alt="Skill 249" width="40">  </div></div><div class="">  <div data-character-skill="17" data-skill-id="250" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/250.png" alt="Skill 250" width="40">  </div></div><div class="">  <div data-character-skill="18" data-skill-id="251" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/251.png" alt="Skill 251" width="40">  </div></div><div class="">  <div data-character-skill="19" data-skill-id="252" data-skill-level="1" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/252.png" alt="Skill 252" width="40">  </div></div><div class="">  <div data-character-skill="20" data-skill-id="253" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/253.png" alt="Skill 253" width="40">  </div></div><div class="">  <div data-character-skill="21" data-skill-id="254" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/254.png" alt="Skill 254" width="40">  </div></div><div class="">  <div data-character-skill="22" data-skill-id="255" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/255.png" alt="Skill 255" width="40">  </div></div><div class="">  <div data-character-skill="23" data-skill-id="256" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/256.png" alt="Skill 256" width="40">  </div></div><div class="">  <div data-character-skill="24" data-skill-id="257" data-skill-level="1" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/257.png" alt="Skill 257" width="40">  </div></div><div class="">  <div data-character-skill="25" data-skill-id="258" data-skill-level="1" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/258.png" alt="Skill 258" width="40">  </div></div><div class="">  <div data-character-skill="26" data-skill-id="274" data-skill-level="10" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/274.png" alt="Skill 274" width="40">  </div></div><div class="">  <div data-character-skill="27" data-skill-id="361" data-skill-level="1" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/361.png" alt="Skill 361" width="40">  </div></div><div class="">  <div data-character-skill="28" data-skill-id="371" data-skill-level="1" class="badge">      <img src="https://theclassicpw.com/assets/img/skillpw/371.png" alt="Skill 371" width="40">  </div></div>
+									</div>
+								</div>
+
+							</div>
+
+							<div>
+								<h3 class="title-sub-detail">Montarias</h3>
+								<div class="skill">
+									<p>Espaço na Jaula de Mascotes: <b
+											style="color:lime;">2</b></p>
+									<div class="character-skill">
+
+										<div class="">  <div data-character-mount="0" class="badge" data-pet-name="Ovo Filhote de Cavalo Dourado" data-pet-tooltip='{&quot;name&quot;:&quot;Ovo Filhote de Cavalo Dourado&quot;,&quot;pet_level&quot;:0,&quot;loyalty&quot;:null,&quot;current_exp&quot;:737152,&quot;skill_points&quot;:null,&quot;skills&quot;:[]}'>      <img src="https://theclassic.games/assets/img/iconpw126/31088.png" alt="Montaria 31088" width="40">  </div></div><div class="">  <div data-character-mount="1" class="badge" data-pet-name="Ovo de Peixe-bolha Bebê" data-pet-tooltip='{&quot;name&quot;:&quot;Ovo de Peixe-bolha Bebê&quot;,&quot;pet_level&quot;:0,&quot;loyalty&quot;:null,&quot;current_exp&quot;:81792,&quot;skill_points&quot;:null,&quot;skills&quot;:[]}'>      <img src="https://theclassic.games/assets/img/iconpw126/26702.png" alt="Montaria 26702" width="40">  </div></div>
+									</div>
+								</div>
+							</div>
+
+														<div>
+								<h3 class="title-sub-detail">
+									Títulos Ativos
+									<span class="sub">
+										0 Títulos Encontrados
+									</span>
+								</h3>
+
+								<div style="" class="character-spirit character-mystical-piece">
+																	</div>
+							</div>
+
+
+
+
+							<script>
+								document.addEventListener("DOMContentLoaded", function () {
+									const tabs = document.querySelectorAll('.tab-rounds__item');
+									const contents = document.querySelectorAll('.v-window-item');
+
+									tabs.forEach((tab, index) => {
+										tab.addEventListener('click', function () {
+
+											// Remove classe ativa de todas as abas
+											tabs.forEach(t => {
+												t.classList.remove('v-tab--active');
+												t.setAttribute('aria-selected', 'false');
+											});
+
+											// Esconde todos os conteúdos
+											contents.forEach(c => {
+												c.style.display = 'none';
+											});
+
+											// Ativa a aba clicada
+											tab.classList.add('v-tab--active');
+											tab.setAttribute('aria-selected', 'true');
+
+											// Mostra o conteúdo correspondente
+											if (contents[index]) {
+												contents[index].style.display = '';
+											}
+										});
+									});
+								});
+							</script>
+
+
+
+
+
+
+
+							<div>
+								<h3 class="title-sub-detail" style="display: none;">
+									Histórico de Preços</h3> <!---->
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</section>
+
+		<div class="float-bottom">
+			<div class="register nft">
+				<div data-item-type="grade-5" class="item-info">
+					<div class="wrap-name">
+						<div class="item__layer">
+							<div class="item-info__img"><img
+									src="https://theclassic.games/assets/img/pw_roles/occu_6.png"
+									width="56" alt="darkist" class="item"></div>
+						</div>
+						<div class="item-info__desc">
+							<h4 class="item-info__name">Vayne</h4>
+							<p>The Classic PW - Genesis</p>
+						</div>
+					</div>
+					<div class="item-manual">
+						<ul class="item-manual__detail size-lg">
+							<li class="classname">
+								<span>Arqueiro</span>
+								<strong><img
+										src="https://theclassic.games/assets/img/pw_roles/occu_6.png"
+										width="28" alt="darkist"></strong>
+							</li>
+							<li class="level"><span>Level</span> <strong>92</strong>
+							</li>
+							<li class="power"><span>Fama</span> <strong>9710</strong>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<div class="wrap-buy">
+					<div class="price"><strong
+							class="ico-wemixcredit ico-sm add-inside">250</strong> </div>
+										<a data-open-buy-modal
+						data-buy-url="https://userpanel.theclassic.games/dashboard/buy_account_marketplace_pw/107954/pw126"
+						data-character-name="Vayne"
+						data-character-price="250"
+						data-character-level="92"
+						data-character-reputation="9710"
+						data-character-class="Arqueiro"
+						data-character-occupation="6"
+						data-character-cultivation="Diabólico (89)"
+						data-character-game="The Classic PW 1.2.6"
+						href="https://userpanel.theclassic.games/dashboard/buy_account_marketplace_pw/107954/pw126"
+						class="btn btn-primary-nft">
+						Comprar
+					</a>
+					<a href="#fazer-lance" class="btn btn-primary-nft mkt-bid-btn no-loading" data-open-bid-modal
+	data-bid-game="pw126"
+	data-bid-roleid="5424"
+	data-bid-listing-id="107954"
+	data-bid-price="250"
+	data-bid-min="175"
+	data-bid-max="250"
+	data-bid-character="Vayne"
+	data-bid-pending="0"
+	data-bid-highest="0"
+	data-bid-mine="0">
+	<span class="mkt-bid-btn__icon" aria-hidden="true">&#9878;</span>
+	<span class="mkt-bid-btn__label">Fazer lance</span>
+	<span class="mkt-bid-btn__hint">a partir de 175 TCC</span>
+</a>
+									</div>
+			</div>
+		</div>
+
+		<div id="buyConfirmationModal" class="purchase-modal" aria-hidden="true">
+			<div class="purchase-modal__dialog" role="dialog" aria-modal="true"
+				aria-labelledby="buyConfirmationTitle">
+				<button type="button" class="purchase-modal__close" data-dismiss-buy-modal aria-label="Fechar">
+					&times;
+				</button>
+				<h3 class="purchase-modal__title" id="buyConfirmationTitle">Confirmar compra</h3>
+				<span class="purchase-modal__chip" id="modalCharacterGame">The Classic PW 1.2.6</span>
+				<p class="purchase-modal__lead">Confira os detalhes do personagem antes de confirmar a compra.</p>
+				<div class="purchase-modal__card">
+					<div class="purchase-modal__avatar">
+						<img id="modalCharacterImage"
+							src="https://theclassic.games/assets/img/pw_roles/occu_6.png"
+							alt="Arqueiro"
+							data-default-src="https://theclassic.games/assets/img/pw_roles/occu_6.png">
+					</div>
+					<div class="purchase-modal__info">
+						<h4 class="purchase-modal__name" id="modalCharacterName">Vayne</h4>
+						<ul class="purchase-modal__stats">
+							<li><span>Classe</span><strong id="modalCharacterClass">Arqueiro</strong>
+							</li>
+							<li><span>Level</span><strong id="modalCharacterLevel">92</strong>
+							</li>
+							<li><span>Fama</span><strong id="modalCharacterReputation">9710</strong>
+							</li>
+														<li><span>Cultivo</span><strong id="modalCharacterCultivation">Diabólico (89)</strong>
+							</li>
+													</ul>
+					</div>
+				</div>
+				<div class="purchase-modal__price">
+					<span>Total</span>
+					<strong class="ico-wemixcredit ico-sm add-inside" id="modalCharacterPrice">250</strong>
+				</div>
+				<p class="purchase-modal__hint">Ao confirmar, os The Classic Coins serão debitados da sua conta.</p>
+								<style>.purchase-modal__buyform{display:contents}button.purchase-modal__confirm{font-family:inherit;cursor:pointer}button.purchase-modal__confirm:disabled{opacity:.65;cursor:wait}.purchase-modal__hint--account{margin:6px 0 0;font-size:12px;opacity:.85}.purchase-modal__hint--account a{color:#ffcb4a}</style>
+				<p class="purchase-modal__hint purchase-modal__hint--account">Ao confirmar, você entra com sua <strong>conta The Classic Games</strong> (painel do jogador) e a compra é concluída em seguida.</p>
+								<div class="purchase-modal__actions">
+					<button type="button" class="purchase-modal__cancel" data-dismiss-buy-modal>Cancelar</button>
+															<form method="post" action="https://marketplace.theclassic.games/conta/comprar" id="confirmPurchaseForm" class="purchase-modal__buyform">
+						<input type="hidden" name="csrf" value="cc0b6f258ab7719cbffcdb9a767f90ec">
+						<input type="hidden" name="game" value="pw126">
+						<input type="hidden" name="roleid" value="5424">
+						<input type="hidden" name="listing_id" value="107954">
+						<input type="hidden" name="character_name" value="Vayne">
+						<input type="hidden" name="price" value="250">
+						<input type="hidden" name="return" value="details/pw126/5424">
+						<button type="submit" id="confirmPurchaseLink" class="btn btn-price btn-primary-nft purchase-modal__confirm">Entrar e confirmar compra</button>
+					</form>
+									</div>
+			</div>
+		</div>
+
+
+
+	</main>
+
+	<div class="v-dialog__container"><!---->
+
+	</div>
+
+	<div class="v-dialog__container" style="z-index: 300;"><!----></div>
+</div>
+<div id="tooltip" style="background-color:black;" class="tooltip"></div>
+<style>
+	/* Pele H51/F27 (T&L, 2026-08-27). Botao "Fazer lance": hairline dourada do
+	   padrao (o CTA primario da pagina segue sendo Comprar) */
+	.mkt-bid-btn {
+		display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+		gap: 2px; margin-top: 10px; padding: 10px 18px;
+		background: rgba(216, 179, 106, .07) !important;
+		border: 1px solid rgba(216, 179, 106, .5) !important; border-radius: 0 !important;
+		color: #d8b36a !important;
+		text-decoration: none; line-height: 1.1;
+	}
+	.mkt-bid-btn:hover { background: rgba(216, 179, 106, .14) !important; border-color: #d8b36a !important; }
+	.mkt-bid-btn__icon { display: none; }
+	.mkt-bid-btn__label { font-family: 'TL', serif; font-weight: 700; font-size: 11.5px; letter-spacing: 2px; text-transform: uppercase; }
+	.mkt-bid-btn__hint { font-size: 11px; opacity: .85; font-weight: 500; text-transform: none; letter-spacing: 0; color: #e8cd8f; }
+	.wrap-button .mkt-bid-btn, .wrap-buy .mkt-bid-btn { margin-left: 8px; }
+	.wrap-buy .mkt-bid-btn { margin-top: 0; }
+	@media (max-width: 640px) {
+		.wrap-button .mkt-bid-btn { margin-left: 0; width: 100%; }
+	}
+
+	.mkt-bid-modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(5, 5, 6, .86); backdrop-filter: blur(2px); z-index: 10001; }
+	.mkt-bid-modal[aria-hidden="false"] { display: flex; }
+	.mkt-bid-modal__dialog { position: relative; width: min(520px, 100%); max-height: calc(100vh - 40px); overflow: auto; padding: 24px; border: 1px solid rgba(216, 179, 106, .28); border-top: 2px solid #d8b36a; border-radius: 0; background: linear-gradient(180deg, #121016, #0b0a0c); color: #ece8e1; box-shadow: 0 24px 70px rgba(0, 0, 0, .65); }
+	.mkt-bid-modal__close { position: absolute; top: 12px; right: 14px; width: 32px; height: 32px; border: 1px solid rgba(255, 255, 255, .18); border-radius: 0; background: transparent; color: #ece8e1; font-size: 22px; cursor: pointer; }
+	.mkt-bid-modal__close:hover { border-color: #d8b36a; color: #d8b36a; }
+	.mkt-bid-modal__title { margin: 0 38px 6px 0; font-family: 'TLHeader', serif; font-weight: 400; font-size: 22px; letter-spacing: 1.6px; text-transform: uppercase; color: #e8dfc8; }
+	.mkt-bid-modal__chip { display: inline-block; margin-bottom: 12px; padding: 4px 9px; border: 1px solid rgba(216, 179, 106, .4); border-radius: 0; background: rgba(216, 179, 106, .1); color: #d8b36a; font-family: 'TL', serif; font-weight: 700; font-size: 10.5px; letter-spacing: 1.8px; text-transform: uppercase; }
+	.mkt-bid-modal__lead { color: #b9b2a3; margin: 0 0 12px; font-size: 14px; }
+	.mkt-bid-modal__lead strong { color: #ece8e1; }
+	.mkt-bid-modal__card { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; padding: 12px 14px; border: 1px solid #33333c; background: #121016; border-radius: 2px; }
+	.mkt-bid-modal__card div span { display: block; color: #9a948a; font-size: 12px; }
+	.mkt-bid-modal__card div strong { color: #ece8e1; font-size: 15px; }
+	.mkt-bid-modal__field { margin: 14px 0 6px; }
+	.mkt-bid-modal__field label { display: block; margin-bottom: 6px; font-size: 13px; color: #b9b2a3; }
+	.mkt-bid-modal__input { display: flex; align-items: center; gap: 8px; }
+	.mkt-bid-modal__input input { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 2px; border: 1px solid rgba(216, 179, 106, .45); background: rgba(11, 10, 12, .6); color: #ece8e1; font-size: 20px; font-weight: 800; outline: none; }
+	.mkt-bid-modal__input input:focus { border-color: #d8b36a; box-shadow: 0 0 0 3px rgba(216, 179, 106, .15); }
+	.mkt-bid-modal__input em { color: #d8b36a; font-style: normal; font-weight: 800; }
+	.mkt-bid-modal__quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+	.mkt-bid-modal__quick button { padding: 6px 10px; border-radius: 0; border: 1px solid rgba(255, 255, 255, .25); background: transparent; color: #ece8e1; font-size: 12px; cursor: pointer; }
+	.mkt-bid-modal__quick button:hover { border-color: #d8b36a; color: #d8b36a; }
+	.mkt-bid-modal__feedback { min-height: 18px; margin-top: 8px; font-size: 13px; color: #b9b2a3; }
+	.mkt-bid-modal__feedback.is-error { color: #ff4b5f; }
+	.mkt-bid-modal__feedback.is-ok { color: #27ea84; }
+	.mkt-bid-modal__info { margin: 10px 0 0; padding: 10px 12px; border-radius: 0; border: 1px solid rgba(216, 179, 106, .28); background: rgba(216, 179, 106, .06); color: #ece8e1; font-size: 13px; line-height: 1.45; }
+	.mkt-bid-modal__info strong { color: #d8b36a; }
+	.mkt-bid-modal__login { margin-top: 10px; font-size: 13px; color: #b9b2a3; }
+	.mkt-bid-modal__login strong { color: #ece8e1; }
+	.mkt-bid-modal__login a { color: #d8b36a; }
+	/* Itens do MU 97D: seletor da conta que recebe o item */
+	.mkt-bid-modal__select { display: block; width: 100%; padding: 11px 12px; border-radius: 2px; border: 1px solid rgba(216, 179, 106, .45); background: rgba(11, 10, 12, .6); color: #ece8e1; font-size: 15px; outline: none; }
+	.mkt-bid-modal__select:focus { border-color: #d8b36a; box-shadow: 0 0 0 3px rgba(216, 179, 106, .15); }
+	.mkt-bid-modal__select option { background: #121016; color: #ece8e1; }
+	.mkt-bid-modal__note { margin-top: 6px; font-size: 12px; color: #9a948a; line-height: 1.4; }
+	.mkt-bid-modal__actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+	.mkt-bid-modal__cancel { padding: 11px 16px 10px; border-radius: 0; border: 1px solid rgba(255, 255, 255, .25); background: transparent; color: #f0ead9; font-family: 'TL', serif; font-weight: 500; font-size: 11.5px; letter-spacing: 2.2px; text-transform: uppercase; cursor: pointer; transition: border-color .15s, color .15s; }
+	.mkt-bid-modal__cancel:hover { border-color: #d8b36a; color: #fff; }
+	/* Enviar lance: FITA DOURADA CHANFRADA do padrao da rede */
+	.mkt-bid-modal__confirm { position: relative; padding: 12px 20px 11px 27px; border: 0; border-radius: 0; background: linear-gradient(100deg, #e8cd8f 0%, #d8b36a 40%, #a8834a 100%); clip-path: polygon(15px 0, 100% 0, 100% 100%, 0 100%); color: #181206; font-family: 'TL', serif; font-weight: 700; font-size: 11.5px; letter-spacing: 2.2px; text-transform: uppercase; line-height: 1.2; cursor: pointer; transition: filter .15s; }
+	.mkt-bid-modal__confirm::before { content: ""; position: absolute; left: 5px; top: 0; bottom: 0; width: 2px; background: rgba(24, 18, 6, .35); transform: skewX(-16deg); }
+	.mkt-bid-modal__confirm:hover { filter: brightness(1.08); }
+	.mkt-bid-modal__confirm[disabled] { opacity: .5; cursor: not-allowed; }
+	@media (max-width: 480px) {
+		.mkt-bid-modal { padding: 12px; }
+		.mkt-bid-modal__dialog { padding: 18px; }
+		.mkt-bid-modal__card { grid-template-columns: 1fr; }
+		.mkt-bid-modal__actions { flex-direction: column-reverse; }
+		.mkt-bid-modal__actions button { width: 100%; }
+	}
+</style>
+
+<div id="mktBidModal" class="mkt-bid-modal" aria-hidden="true">
+	<form class="mkt-bid-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="mktBidTitle" method="post" action="https://marketplace.theclassic.games/lances/criar" id="mktBidForm" data-bid-kind="account" data-bid-locked="0">
+		<button type="button" class="mkt-bid-modal__close" data-dismiss-bid-modal aria-label="Fechar">&times;</button>
+		<h3 class="mkt-bid-modal__title" id="mktBidTitle">Fazer lance</h3>
+		<span class="mkt-bid-modal__chip">The Classic PW 1.2.6</span>
+		<p class="mkt-bid-modal__lead">Ofereça um valor abaixo do preço pedido. O vendedor decide se aceita; <strong>nada é debitado da sua conta até ele aceitar</strong>.</p>
+
+		<div class="mkt-bid-modal__card">
+			<div><span>Personagem</span><strong id="mktBidCharacter">-</strong></div>
+			<div><span>Preço pedido</span><strong id="mktBidPrice">-</strong></div>
+			<div><span>Lance mínimo (70%)</span><strong id="mktBidMin">-</strong></div>
+			<div><span>Lances pendentes</span><strong id="mktBidPending">-</strong></div>
+		</div>
+
+		<div class="mkt-bid-modal__field">
+			<label for="mktBidAmount">Seu lance (TCC)</label>
+			<div class="mkt-bid-modal__input">
+				<input type="text" inputmode="numeric" pattern="[0-9\.]*" id="mktBidAmount" name="amount" autocomplete="off" required>
+				<em>TCC</em>
+			</div>
+			<div class="mkt-bid-modal__quick" id="mktBidQuick"></div>
+			<div class="mkt-bid-modal__feedback" id="mktBidFeedback"></div>
+		</div>
+
+		
+		<div class="mkt-bid-modal__info" id="mktBidMineInfo" hidden>Você já tem um lance pendente de <strong id="mktBidMine">-</strong> neste anúncio. Enviar de novo <strong>atualiza</strong> o valor.</div>
+		<div class="mkt-bid-modal__info">O vendedor recebe seu lance no painel, por e-mail e no Discord, e vê se você tem o saldo. Lances sem resposta expiram em <strong>72 horas</strong>. Você acompanha tudo em <strong>Minha conta &rsaquo; Lances</strong>.</div>
+
+					<div class="mkt-bid-modal__login">Ao confirmar, você entra com sua <strong>conta The Classic Games</strong> (painel do jogador) e o lance é enviado em seguida.</div>
+		
+		<input type="hidden" name="csrf" value="cc0b6f258ab7719cbffcdb9a767f90ec">
+		<input type="hidden" name="game" id="mktBidGame" value="">
+		<input type="hidden" name="roleid" id="mktBidRoleid" value="0">
+		<input type="hidden" name="listing_id" id="mktBidListingId" value="0">
+		<input type="hidden" name="return" value="details/pw126/5424">
+
+		<div class="mkt-bid-modal__actions">
+			<button type="button" class="mkt-bid-modal__cancel" data-dismiss-bid-modal>Cancelar</button>
+			<button type="submit" class="mkt-bid-modal__confirm" id="mktBidSubmit" disabled>Entrar e enviar lance</button>
+		</div>
+	</form>
+</div>
+
+<script>
+	(function () {
+		var modal = document.getElementById('mktBidModal');
+		if (!modal) { return; }
+		var form = document.getElementById('mktBidForm');
+		var amountInput = document.getElementById('mktBidAmount');
+		var feedback = document.getElementById('mktBidFeedback');
+		var submit = document.getElementById('mktBidSubmit');
+		var quick = document.getElementById('mktBidQuick');
+		var state = { min: 0, max: 0, price: 0 };
+		// Itens do MU 97D: conta que recebe o item (so logado) / logado sem conta MU vinculada.
+		var targetSelect = document.getElementById('mktBidTargetLogin');
+		var locked = form.getAttribute('data-bid-locked') === '1';
+
+		function fmt(value) {
+			return String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' TCC';
+		}
+		function parseAmount() {
+			var digits = String(amountInput.value || '').replace(/[^0-9]/g, '');
+			return digits === '' ? 0 : parseInt(digits, 10);
+		}
+		function validate() {
+			var amount = parseAmount();
+			feedback.className = 'mkt-bid-modal__feedback';
+			if (locked) {
+				feedback.textContent = 'Vincule uma conta do MU 97D ao seu The Classic ID para dar lances em itens.';
+				feedback.className += ' is-error';
+				submit.disabled = true;
+				return false;
+			}
+			if (amount <= 0) {
+				feedback.textContent = 'Informe um valor entre ' + fmt(state.min) + ' e ' + fmt(state.max) + '.';
+				submit.disabled = true;
+				return false;
+			}
+			if (amount < state.min) {
+				feedback.textContent = 'Abaixo do mínimo: o lance precisa ser de pelo menos ' + fmt(state.min) + '.';
+				feedback.className += ' is-error';
+				submit.disabled = true;
+				return false;
+			}
+			if (amount > state.max) {
+				feedback.textContent = 'Acima do preço pedido (' + fmt(state.max) + '). Para pagar o valor cheio, use Comprar.';
+				feedback.className += ' is-error';
+				submit.disabled = true;
+				return false;
+			}
+			var off = state.price > 0 ? Math.round((1 - amount / state.price) * 100) : 0;
+			feedback.textContent = off > 0 ? (off + '% abaixo do preço pedido.') : 'Igual ao preço pedido.';
+			feedback.className += ' is-ok';
+			if (targetSelect && !targetSelect.value) {
+				feedback.textContent += ' Escolha a conta do MU 97D que recebe o item.';
+				submit.disabled = true;
+				return false;
+			}
+			submit.disabled = false;
+			return true;
+		}
+		function buildQuick() {
+			quick.innerHTML = '';
+			var steps = [state.min, Math.round(state.price * 0.8), Math.round(state.price * 0.9)];
+			var seen = {};
+			steps.forEach(function (value) {
+				if (value < state.min || value > state.max || seen[value]) { return; }
+				seen[value] = true;
+				var button = document.createElement('button');
+				button.type = 'button';
+				button.textContent = fmt(value);
+				button.addEventListener('click', function () {
+					amountInput.value = String(value);
+					validate();
+					amountInput.focus();
+				});
+				quick.appendChild(button);
+			});
+		}
+		function openModal(trigger) {
+			state.price = parseInt(trigger.getAttribute('data-bid-price') || '0', 10);
+			state.min = parseInt(trigger.getAttribute('data-bid-min') || '0', 10);
+			state.max = parseInt(trigger.getAttribute('data-bid-max') || '0', 10) || state.price;
+			var pending = parseInt(trigger.getAttribute('data-bid-pending') || '0', 10);
+			var highest = parseInt(trigger.getAttribute('data-bid-highest') || '0', 10);
+			var mine = parseInt(trigger.getAttribute('data-bid-mine') || '0', 10);
+			document.getElementById('mktBidCharacter').textContent = trigger.getAttribute('data-bid-character') || '-';
+			document.getElementById('mktBidPrice').textContent = fmt(state.price);
+			document.getElementById('mktBidMin').textContent = fmt(state.min);
+			document.getElementById('mktBidPending').textContent = pending > 0 ? (pending + (pending === 1 ? ' lance' : ' lances') + (highest > 0 ? ' · maior: ' + fmt(highest) : '')) : 'Nenhum ainda';
+			document.getElementById('mktBidGame').value = trigger.getAttribute('data-bid-game') || '';
+			document.getElementById('mktBidRoleid').value = trigger.getAttribute('data-bid-roleid') || '0';
+			document.getElementById('mktBidListingId').value = trigger.getAttribute('data-bid-listing-id') || '0';
+			var mineInfo = document.getElementById('mktBidMineInfo');
+			if (mine > 0) {
+				document.getElementById('mktBidMine').textContent = fmt(mine);
+				mineInfo.hidden = false;
+			} else {
+				mineInfo.hidden = true;
+			}
+			amountInput.value = mine > 0 ? String(mine) : '';
+			buildQuick();
+			validate();
+			modal.setAttribute('aria-hidden', 'false');
+			document.body.style.overflow = 'hidden';
+			setTimeout(function () { amountInput.focus(); }, 50);
+		}
+		function closeModal() {
+			modal.setAttribute('aria-hidden', 'true');
+			document.body.style.overflow = '';
+		}
+		document.querySelectorAll('[data-open-bid-modal]').forEach(function (trigger) {
+			trigger.addEventListener('click', function (event) {
+				event.preventDefault();
+				event.stopPropagation();
+				openModal(trigger);
+			});
+		});
+		modal.querySelectorAll('[data-dismiss-bid-modal]').forEach(function (element) {
+			element.addEventListener('click', closeModal);
+		});
+		modal.addEventListener('click', function (event) {
+			if (event.target === modal) { closeModal(); }
+		});
+		document.addEventListener('keydown', function (event) {
+			if (event.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') { closeModal(); }
+		});
+		amountInput.addEventListener('input', validate);
+		if (targetSelect) {
+			targetSelect.addEventListener('change', validate);
+		}
+		form.addEventListener('submit', function (event) {
+			if (!validate()) {
+				event.preventDefault();
+				return;
+			}
+			amountInput.value = String(parseAmount());
+			submit.disabled = true;
+			submit.textContent = 'Enviando...';
+		});
+		// Volta do login (lance em item iniciado deslogado): ?lance=<valor> reabre o modal ja
+		// logado, com o valor preenchido, para o jogador escolher a conta que recebe o item.
+		try {
+			var presetMatch = /[?&]lance=(\d+)/.exec(window.location.search || '');
+			var preset = presetMatch ? parseInt(presetMatch[1], 10) : 0;
+			var firstTrigger = document.querySelector('[data-open-bid-modal]');
+			if (preset > 0 && firstTrigger) {
+				openModal(firstTrigger);
+				amountInput.value = String(preset);
+				validate();
+			}
+		} catch (e) {}
+	})();
+</script>
+<style>
+/* Tema Forge da familia, escopado (repetido aqui por robustez caso a topbar
+   nao esteja na pagina; declaracao identica a de base/tcg_global_topbar.php). */
+.tcg-footer {
+    --tcg-bg: #0c0c0e;
+    --bg-card: #1a1a1e;
+    --bg-card-hover: #24242a;
+    --border: #33333c;
+    --text: #ece8e1;
+    --text-dim: #9a948a;
+    --text-faint: #666058;
+    --accent: #d4894a;
+    --radius: 2px;
+    --font-display: 'Teko', sans-serif;
+    --font-body: 'IBM Plex Sans', 'Inter', 'Roboto', sans-serif;
+}
+.tcg-footer * { box-sizing: border-box; }
+.tcg-footer {
+    display: block; clear: both; position: relative; z-index: 5;
+    width: 100vw; max-width: 100vw;
+    margin: 48px calc(50% - 50vw) 0;
+    padding: 0; float: none;
+    border-top: 1px solid var(--border);
+    background: var(--tcg-bg) linear-gradient(180deg, rgba(0, 0, 0, .18), rgba(0, 0, 0, .35));
+    font-family: var(--font-body); font-size: 13px; line-height: 1.5;
+    color: var(--text-dim); text-align: left;
+}
+.tcg-footer .site-footer-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1.1fr;
+    gap: 28px 32px;
+    padding: 36px 16px 28px;
+    max-width: 1180px; margin: 0 auto;
+}
+.tcg-footer .sf-col { min-width: 0; }
+.tcg-footer .sf-logo { display: inline-block; margin-bottom: 12px; }
+.tcg-footer .sf-logo img {
+    display: block; height: 40px; width: auto; object-fit: contain; border: 0;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, .35));
+}
+.tcg-footer .sf-text { margin: 0 0 12px; font-size: 13px; line-height: 1.55; color: var(--text-dim); max-width: 32ch; }
+.tcg-footer .sf-contact { margin: 0 0 14px; font-size: 13px; }
+.tcg-footer .sf-contact a { color: var(--text); text-decoration: none; transition: color .15s; }
+.tcg-footer .sf-contact a:hover { color: var(--accent); }
+.tcg-footer .sf-social { display: flex; flex-wrap: wrap; gap: 8px; }
+.tcg-footer .sf-social-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 8px;
+    color: var(--accent); background: rgba(212, 137, 74, .12);
+    border: 1px solid rgba(212, 137, 74, .28); text-decoration: none;
+    transition: background .15s, border-color .15s, color .15s;
+}
+.tcg-footer .sf-social-btn:hover { background: rgba(212, 137, 74, .22); border-color: var(--accent); color: #fff; }
+.tcg-footer .sf-title {
+    margin: 0 0 12px; font-family: var(--font-display); font-size: 15px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase; color: var(--text); line-height: 1.2;
+}
+.tcg-footer .sf-list { list-style: none; margin: 0; padding: 0; }
+.tcg-footer .sf-list li { margin: 0 0 8px; padding: 0; }
+.tcg-footer .sf-list a { color: var(--text-dim); font-size: 13px; line-height: 1.4; text-decoration: none; transition: color .15s; }
+.tcg-footer .sf-list a:hover { color: var(--accent); }
+.tcg-footer .sf-games a { display: inline-flex; align-items: center; gap: 8px; }
+.tcg-footer .sf-games img { width: 16px; height: 16px; object-fit: contain; border-radius: 3px; flex: none; border: 0; }
+/* A faixa "Rede The Classic Games" e injetada pelo tcg-ecosystem.js com a
+   classe "container", que o bundle deste site estiliza (padding-top 56/64px,
+   laterais 0). Blindagem para a faixa seguir o layout padrao da familia: */
+.tcg-footer .tcg-network-inner {
+    padding: 14px 16px !important;
+    margin: 0 auto !important;
+    max-width: 1180px !important;
+    width: auto !important;
+}
+.tcg-footer .site-footer-bar {
+    border-top: 1px solid var(--border);
+    padding: 14px 16px;
+    text-align: center; font-size: 13px; color: var(--text-faint);
+}
+.tcg-footer .site-footer-bar a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.tcg-footer .site-footer-bar a:hover { color: #fff; }
+@media (max-width: 960px) {
+    .tcg-footer .site-footer-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
+}
+@media (max-width: 560px) {
+    .tcg-footer .site-footer-grid { grid-template-columns: 1fr; padding-top: 28px; }
+    .tcg-footer .sf-text { max-width: none; }
+}
+
+/* ===== F27 FOGUEIRA DO ACAMPAMENTO (T&L) (2026-08-08) — pele do footer global no tema
+   do header H51 Fita Dourada (preto + hairline dourada + TLHeader/TL), SEM a fogueira do
+   conceito original (sem clarao animado e sem a lenha em SVG, a pedido). Assinatura que
+   fica: as COSTURAS TRACEJADAS douradas (social como remendos de lona, barra final e faixa
+   da rede com costura). Pele sobre o markup existente — 4 colunas e conteudo intactos. ===== */
+.tcg-footer {
+    --tcg-bg: #0b0a0c;
+    --bg-card: #121016;
+    --bg-card-hover: #1a1720;
+    --border: #3a3222;
+    --text: #f0ead9;
+    --text-dim: #b9b2a3;
+    --text-faint: #7a7264;
+    --accent: #d8b36a;
+    --font-display: 'TL', 'TLHeader', serif;
+    --font-body: 'TL', 'IBM Plex Sans', serif;
+    background: linear-gradient(180deg, #100e12, #0b0a0c);
+    border-top: 1px solid rgba(216, 179, 106, .28);
+    color: #b9b2a3;
+}
+.tcg-footer .sf-title { font-family: 'TLHeader', serif; font-weight: 400; letter-spacing: 2.2px; color: #e8dfc8; text-transform: uppercase; }
+.tcg-footer .sf-text { color: #b9b2a3; }
+.tcg-footer .sf-contact a { color: #e8dfc8; }
+.tcg-footer .sf-contact a:hover { color: #d8b36a; }
+.tcg-footer .sf-list a { color: #b9b2a3; }
+.tcg-footer .sf-list a:hover { color: #d8b36a; }
+/* social como remendos de lona: costura tracejada dourada (assinatura do F27) */
+.tcg-footer .sf-social-btn { color: #d8b36a; background: transparent; border: 1px dashed rgba(216, 179, 106, .5); border-radius: 0; }
+.tcg-footer .sf-social-btn:hover { background: rgba(216, 179, 106, .08); border-style: solid; border-color: #d8b36a; color: #f0ead9; box-shadow: none; }
+/* barra final: costura tracejada */
+.tcg-footer .site-footer-bar { border-top: 1px dashed rgba(216, 179, 106, .4); color: #7a7264; }
+.tcg-footer .site-footer-bar a { color: #d8b36a; }
+.tcg-footer .site-footer-bar a:hover { color: #f0ead9; }
+/* faixa "Rede The Classic Games" (tcg-ecosystem.js): costura + pills hairline */
+.tcg-footer .tcg-network { border-top: 1px dashed rgba(216, 179, 106, .3); }
+.tcg-footer .tcg-network-title { color: #b9b2a3; }
+.tcg-footer .tcg-network-link { border-radius: 0; border-color: rgba(216, 179, 106, .35); color: #b9b2a3; }
+.tcg-footer .tcg-network-link:hover { color: #f0ead9; border-color: #d8b36a; }
+.tcg-footer .tcg-network-link.active { color: #d8b36a; border-color: #d8b36a; }
+</style>
+<footer class="site-footer tcg-footer">
+    <div class="site-footer-grid">
+        <div class="sf-col sf-brand">
+            <a class="sf-logo" href="https://marketplace.theclassic.games/">
+                <img src="https://marketplace.theclassic.games/assets/img/logo_tcg.png" alt="The Classic Games" width="40" height="40">
+            </a>
+            <p class="sf-text">Servidores privados de MMO RPGs old school, com a m&aacute;xima excel&ecirc;ncia e tecnologia.</p>
+            <p class="sf-contact">
+                <a href="mailto:contato@theclassic.games">contato@theclassic.games</a>
+            </p>
+            <div class="sf-social" aria-label="Social">
+                                <a class="sf-social-btn" href="https://theclassic.games/tiktok" target="_blank" rel="noopener noreferrer"
+                   aria-label="TikTok" title="TikTok">
+                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M14 3v10.2a4.2 4.2 0 1 1-3.4-4.1V12a1.8 1.8 0 1 0 1.4 1.75V3h2zM16.5 3c.4 2.1 1.8 3.7 3.5 4.2V9c-1.5-.3-2.8-1-3.5-2.1V13a6.2 6.2 0 1 1-5.4-6.15V4.2A8 8 0 0 0 16.5 3z"/></svg>
+                </a>
+                                <a class="sf-social-btn" href="https://theclassic.games/youtube" target="_blank" rel="noopener noreferrer"
+                   aria-label="YouTube" title="YouTube">
+                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M23 7.5a3 3 0 0 0-2.1-2.1C19.1 5 12 5 12 5s-7.1 0-8.9.4A3 3 0 0 0 1 7.5 31.5 31.5 0 0 0 .6 12a31.5 31.5 0 0 0 .4 4.5 3 3 0 0 0 2.1 2.1C4.9 19 12 19 12 19s7.1 0 8.9-.4a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 23.4 12 31.5 31.5 0 0 0 23 7.5zM10 15.2V8.8L15.5 12 10 15.2z"/></svg>
+                </a>
+                                <a class="sf-social-btn" href="https://theclassic.games/facebook" target="_blank" rel="noopener noreferrer"
+                   aria-label="Facebook" title="Facebook">
+                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H7v3h3v7h3v-7h3l1-3h-4v-2c0-.6.4-1 1-1z"/></svg>
+                </a>
+                                <a class="sf-social-btn" href="https://theclassic.games/instagram" target="_blank" rel="noopener noreferrer"
+                   aria-label="Instagram" title="Instagram">
+                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2A3.2 3.2 0 1 1 12 8.8a3.2 3.2 0 0 1 0 6.4zm5.4-8.5a1.2 1.2 0 1 1-2.4 0 1.2 1.2 0 0 1 2.4 0zM12 2c-2.7 0-3 .01-4.1.06A6 6 0 0 0 3.1 6.9C3 8 3 8.3 3 11s.01 3 .06 4.1A6 6 0 0 0 7.9 20.9C9 21 9.3 21 12 21s3-.01 4.1-.06a6 6 0 0 0 4.8-4.84C21 14 21 13.7 21 11s-.01-3-.06-4.1A6 6 0 0 0 16.1 2.1C15 2 14.7 2 12 2zm0 1.8c2.7 0 3 .01 4 .06a4.2 4.2 0 0 1 3.14 3.14c.05 1 .06 1.3.06 4s-.01 3-.06 4a4.2 4.2 0 0 1-3.14 3.14c-1 .05-1.3.06-4 .06s-3-.01-4-.06A4.2 4.2 0 0 1 4.86 15c-.05-1-.06-1.3-.06-4s.01-3 .06-4A4.2 4.2 0 0 1 8 3.86c1-.05 1.3-.06 4-.06z"/></svg>
+                </a>
+                                <a class="sf-social-btn" href="https://theclassic.games/discord" target="_blank" rel="noopener noreferrer"
+                   aria-label="Discord" title="Discord">
+                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M19.3 5.2A17.4 17.4 0 0 0 15 4l-.3.6a16 16 0 0 1 4 1.5 13.5 13.5 0 0 0-10.4 0A16 16 0 0 1 12.3 4.6L12 4a17.4 17.4 0 0 0-4.3 1.2C4.3 8.5 3.5 12.3 3.8 16a17.5 17.5 0 0 0 5.3 2.7l.7-1.1a11.3 11.3 0 0 1-1.8-.9l.4-.3a12.5 12.5 0 0 0 10.2 0l.5.3c-.6.4-1.2.7-1.8.9l.7 1.1A17.5 17.5 0 0 0 22.2 16c.4-4.2-.7-8-2.9-10.8zM9.7 14.2c-.8 0-1.5-.8-1.5-1.7s.7-1.7 1.5-1.7 1.5.8 1.5 1.7-.7 1.7-1.5 1.7zm4.6 0c-.8 0-1.5-.8-1.5-1.7s.7-1.7 1.5-1.7 1.5.8 1.5 1.7-.7 1.7-1.5 1.7z"/></svg>
+                </a>
+                            </div>
+        </div>
+
+        <div class="sf-col">
+            <h3 class="sf-title">P&aacute;ginas</h3>
+            <ul class="sf-list">
+                <li><a href="https://marketplace.theclassic.games/">In&iacute;cio</a></li>
+                <li><a href="https://marketplace.theclassic.games/history">Hist&oacute;rico de vendas</a></li>
+            </ul>
+        </div>
+
+        <div class="sf-col">
+            <h3 class="sf-title">Informa&ccedil;&otilde;es</h3>
+            <ul class="sf-list">
+                <li><a href="https://player.theclassic.games" target="_blank" rel="noopener noreferrer">Baixar launcher</a></li>
+                <li><a href="https://userpanel.theclassic.games" target="_blank" rel="noopener noreferrer">Painel do Jogador</a></li>
+                <li><a href="https://ranking.theclassic.games" target="_blank" rel="noopener noreferrer">Rankings</a></li>
+                <li><a href="https://database.theclassic.games" target="_blank" rel="noopener noreferrer">Base de dados</a></li>
+                <li><a href="https://theclassic.games" target="_blank" rel="noopener noreferrer">theclassic.games</a></li>
+            </ul>
+        </div>
+
+        <div class="sf-col">
+            <h3 class="sf-title">Servidores</h3>
+            <ul class="sf-list sf-games">
+                                <li>
+                    <a href="https://marketplace.theclassic.games/pw126">
+                        <img src="https://pw126.theclassic.games/assets/img/pw126/pw126.png" alt="" width="16" height="16" loading="lazy"
+                             onerror="this.style.visibility='hidden'">
+                        <span>The Classic PW 1.2.6</span>
+                    </a>
+                </li>
+                                <li>
+                    <a href="https://marketplace.theclassic.games/pw187">
+                        <img src="https://pw187.theclassic.games/assets/img/pw187/pw187.png" alt="" width="16" height="16" loading="lazy"
+                             onerror="this.style.visibility='hidden'">
+                        <span>The Classic PW 1.8.7</span>
+                    </a>
+                </li>
+                                <li>
+                    <a href="https://marketplace.theclassic.games/mu97d">
+                        <img src="https://mu.theclassic.games/assets/img/mu97d/mu97d.png" alt="" width="16" height="16" loading="lazy"
+                             onerror="this.style.visibility='hidden'">
+                        <span>The Classic MU</span>
+                    </a>
+                </li>
+                                <li>
+                    <a href="https://marketplace.theclassic.games/midnight">
+                        <img src="https://lineage2.theclassic.games/assets/img/lineage2/lineage2.png" alt="" width="16" height="16" loading="lazy"
+                             onerror="this.style.visibility='hidden'">
+                        <span>The Classic Midnight</span>
+                    </a>
+                </li>
+                            </ul>
+        </div>
+    </div>
+    <div class="site-footer-bar">
+        Copyright &copy; 2026        <a href="https://theclassic.games" target="_blank" rel="noopener noreferrer">The Classic Games</a>.
+        Todos os direitos reservados.
+    </div>
+</footer>
+<script src="https://marketplace.theclassic.games/assets/js/tcg-ecosystem.js?v=1"></script>
+</div>
+</main>
+</div>
+</div>
+</div>
+</div>
+
+<link href="https://marketplace.theclassic.games/assets/css/aafa2cb.css" rel="stylesheet" type="text/css">
+<link href="https://marketplace.theclassic.games/assets/css/6dbd045.css" rel="stylesheet" type="text/css">
+
+<link href="https://marketplace.theclassic.games/assets/css/1d8fd66.css" rel="stylesheet" type="text/css">
+<link href="https://marketplace.theclassic.games/assets/css/2254fa0.css" rel="stylesheet" type="text/css">
+<link href="https://marketplace.theclassic.games/assets/css/8c54bba.css" rel="stylesheet" type="text/css">
+<link href="https://marketplace.theclassic.games/assets/css/da46115.css" rel="stylesheet" type="text/css">
+<link href="https://marketplace.theclassic.games/assets/css/d8c1e0b.css" rel="stylesheet" type="text/css">
+<link href="https://marketplace.theclassic.games/assets/css/4e7f5d9.css" rel="stylesheet" type="text/css">
+<script src="https://marketplace.theclassic.games/assets/js/virimas11.js"></script>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		const modal = document.getElementById("buyConfirmationModal");
+		const confirmLink = document.getElementById("confirmPurchaseLink");
+		const imageField = document.getElementById("modalCharacterImage");
+		const classField = document.getElementById("modalCharacterClass");
+		const levelField = document.getElementById("modalCharacterLevel");
+		const reputationField = document.getElementById("modalCharacterReputation");
+		const cultivationField = document.getElementById("modalCharacterCultivation");
+		const gameField = document.getElementById("modalCharacterGame");
+
+		if (!modal || !confirmLink) {
+			return;
+		}
+
+		const openButtons = document.querySelectorAll("[data-open-buy-modal]");
+		const closeElements = modal.querySelectorAll("[data-dismiss-buy-modal]");
+		const nameField = document.getElementById("modalCharacterName");
+		const priceField = document.getElementById("modalCharacterPrice");
+
+		function openModal({ url, name, price }) {
+			confirmLink.setAttribute("href", url);
+			confirmLink.style.pointerEvents = "";
+			confirmLink.style.opacity = "";
+
+			if (nameField) {
+				nameField.textContent = name;
+			}
+
+			if (priceField) {
+				priceField.textContent = price;
+			}
+
+			modal.setAttribute("aria-hidden", "false");
+			document.body.classList.add("no-scroll");
+		}
+
+		function closeModal() {
+			modal.setAttribute("aria-hidden", "true");
+			document.body.classList.remove("no-scroll");
+		}
+
+		openButtons.forEach(function (trigger) {
+			trigger.addEventListener("click", function (event) {
+				event.preventDefault();
+
+				const occupation = trigger.getAttribute("data-character-occupation") || "";
+				const className = trigger.getAttribute("data-character-class") || "";
+				const level = trigger.getAttribute("data-character-level") || "";
+				const reputation = trigger.getAttribute("data-character-reputation") || "";
+				const cultivation = trigger.getAttribute("data-character-cultivation") || "-";
+				const game = trigger.getAttribute("data-character-game") || "";
+
+				if (imageField) {
+					const defaultSrc = imageField.getAttribute("data-default-src") || "";
+					imageField.setAttribute("src", occupation ? "https://theclassic.games/assets/img/pw_roles/occu_" + occupation + ".png" : defaultSrc);
+					imageField.setAttribute("alt", className || "Classe");
+				}
+
+				if (classField) {
+					classField.textContent = className;
+				}
+
+				if (levelField) {
+					levelField.textContent = level;
+				}
+
+				if (reputationField) {
+					reputationField.textContent = reputation;
+				}
+
+				if (cultivationField) {
+					cultivationField.textContent = cultivation || "-";
+				}
+
+				if (gameField) {
+					gameField.textContent = game;
+					gameField.style.display = game ? "inline-block" : "none";
+				}
+
+				openModal({
+					url: trigger.getAttribute("data-buy-url") || trigger.getAttribute("href"),
+					name: trigger.getAttribute("data-character-name") || "",
+					price: trigger.getAttribute("data-character-price") || ""
+				});
+			});
+		});
+
+		closeElements.forEach(function (element) {
+			element.addEventListener("click", function (event) {
+				event.preventDefault();
+				closeModal();
+			});
+		});
+
+		modal.addEventListener("click", function (event) {
+			if (event.target === modal) {
+				closeModal();
+			}
+		});
+
+		document.addEventListener("keydown", function (event) {
+			if (event.key === "Escape" && modal.getAttribute("aria-hidden") === "false") {
+				closeModal();
+			}
+		});
+
+		const buyForm = document.getElementById("confirmPurchaseForm");
+		if (buyForm) {
+			// Area "Minha conta" ligada: a compra e um POST na vitrine (conta/comprar).
+			buyForm.addEventListener("submit", function (event) {
+				const name = nameField ? nameField.textContent.trim() : "";
+				let price = priceField ? priceField.textContent.trim() : "";
+				if (price && price.indexOf("TCC") === -1) { price += " TCC"; }
+				if (!window.confirm("Confirmar a compra de " + name + (price ? " por " + price : "") + "? Os The Classic Coins serão debitados do seu saldo no painel do jogador e a conta é transferida na hora.")) {
+					event.preventDefault();
+					return;
+				}
+				confirmLink.disabled = true;
+				confirmLink.textContent = "Processando...";
+			});
+		} else {
+			confirmLink.addEventListener("click", function () {
+				confirmLink.style.pointerEvents = "none";
+				confirmLink.style.opacity = "0.65";
+			});
+		}
+	});
+</script>
+
+<style>
+	.no-scroll {
+		overflow: hidden;
+	}
+
+	.purchase-modal {
+		position: fixed;
+		inset: 0;
+		display: none;
+		align-items: center;
+		justify-content: center;
+		padding: 24px;
+		background: rgba(5, 7, 12, 0.85);
+		backdrop-filter: blur(2px);
+		z-index: 10000;
+	}
+
+	.purchase-modal[aria-hidden="false"] {
+		display: flex;
+	}
+
+	.purchase-modal__dialog {
+		position: relative;
+		width: 100%;
+		max-width: 420px;
+		background: #12131c;
+		color: #fff;
+		border-radius: 16px;
+		padding: 32px 28px;
+		box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+	}
+
+	.purchase-modal__title {
+		margin: 0 0 12px;
+		font-size: 22px;
+		font-weight: 700;
+	}
+
+	.purchase-modal__chip {
+		display: inline-flex;
+		align-items: center;
+		padding: 6px 12px;
+		border-radius: 999px;
+		background: rgba(88, 112, 255, 0.18);
+		color: #caddff;
+		font-size: 12px;
+		font-weight: 600;
+		letter-spacing: 0.5px;
+		text-transform: uppercase;
+		margin-bottom: 16px;
+	}
+
+	.purchase-modal__lead {
+		margin-bottom: 20px;
+		color: #b8c1d6;
+		font-size: 14px;
+	}
+
+	.purchase-modal__card {
+		display: flex;
+		gap: 18px;
+		background: rgba(255, 255, 255, 0.03);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 14px;
+		padding: 16px 18px;
+		margin-bottom: 20px;
+		align-items: center;
+	}
+
+	.purchase-modal__avatar {
+		flex: 0 0 72px;
+		width: 72px;
+		height: 72px;
+		border-radius: 16px;
+		background: rgba(23, 29, 45, 0.9);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+	}
+
+	.purchase-modal__avatar img {
+		max-width: 100%;
+		height: auto;
+	}
+
+	.purchase-modal__info {
+		flex: 1;
+	}
+
+	.purchase-modal__name {
+		margin: 0 0 12px;
+		font-size: 18px;
+		font-weight: 700;
+		color: #fff;
+	}
+
+	.purchase-modal__stats {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 10px 16px;
+		font-size: 13px;
+	}
+
+	.purchase-modal__stats li span {
+		display: block;
+		color: #8f9bb8;
+		font-weight: 500;
+		margin-bottom: 2px;
+	}
+
+	.purchase-modal__stats li strong {
+		color: #fff;
+		font-size: 15px;
+		font-weight: 700;
+	}
+
+	.purchase-modal__price {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 16px;
+		padding: 14px 18px;
+		border-radius: 12px;
+		background: rgba(47, 59, 92, 0.25);
+		border: 1px solid rgba(255, 255, 255, 0.05);
+		font-size: 14px;
+	}
+
+	.purchase-modal__price span {
+		color: #b8c1d6;
+		text-transform: uppercase;
+		letter-spacing: 0.4px;
+	}
+
+	.purchase-modal__price strong {
+		font-size: 20px;
+		color: #fff;
+	}
+
+	.purchase-modal__hint {
+		font-size: 13px;
+		color: #b8c1d6;
+	}
+
+	.purchase-modal__actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 12px;
+		margin-top: 24px;
+	}
+
+	.purchase-modal__cancel {
+		background: transparent;
+		border: 1px solid rgba(255, 255, 255, 0.35);
+		color: #fff;
+		padding: 10px 20px;
+		border-radius: 12px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+	}
+
+	.purchase-modal__cancel:hover {
+		background: rgba(255, 255, 255, 0.08);
+	}
+
+	.purchase-modal__confirm {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 160px;
+		text-transform: uppercase;
+		font-weight: 700;
+		text-align: center;
+	}
+
+	.purchase-modal__close {
+		position: absolute;
+		top: 12px;
+		right: 16px;
+		background: transparent;
+		border: none;
+		color: rgba(255, 255, 255, 0.7);
+		font-size: 24px;
+		line-height: 1;
+		cursor: pointer;
+		padding: 0;
+	}
+
+	.purchase-modal__close:hover {
+		color: #fff;
+	}
+
+	@keyframes refineRgbGamer {
+		0% {
+			color: rgb(255, 0, 128);
+			text-shadow: 0 0 8px rgba(255, 0, 128, 0.8);
+		}
+
+		20% {
+			color: rgb(255, 120, 0);
+			text-shadow: 0 0 8px rgba(255, 120, 0, 0.8);
+		}
+
+		40% {
+			color: rgb(0, 255, 110);
+			text-shadow: 0 0 8px rgba(0, 255, 110, 0.8);
+		}
+
+		60% {
+			color: rgb(0, 220, 255);
+			text-shadow: 0 0 8px rgba(0, 220, 255, 0.8);
+		}
+
+		80% {
+			color: rgb(170, 80, 255);
+			text-shadow: 0 0 8px rgba(170, 80, 255, 0.8);
+		}
+
+		100% {
+			color: rgb(255, 0, 128);
+			text-shadow: 0 0 8px rgba(255, 0, 128, 0.8);
+		}
+	}
+
+	.top-glass-rgb {
+		border: 2px solid rgb(255, 0, 128);
+		border-radius: 8px;
+		background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.03));
+		box-shadow: 0 0 10px rgba(255, 0, 128, 0.55), inset 0 0 8px rgba(255, 255, 255, 0.18);
+		animation: topGlassRgbBorder 2.2s linear infinite;
+	}
+
+	@keyframes topGlassRgbBorder {
+		0% {
+			border-color: rgb(255, 0, 128);
+			box-shadow: 0 0 10px rgba(255, 0, 128, 0.55), inset 0 0 8px rgba(255, 255, 255, 0.18);
+		}
+
+		25% {
+			border-color: rgb(255, 140, 0);
+			box-shadow: 0 0 10px rgba(255, 140, 0, 0.55), inset 0 0 8px rgba(255, 255, 255, 0.18);
+		}
+
+		50% {
+			border-color: rgb(0, 255, 170);
+			box-shadow: 0 0 10px rgba(0, 255, 170, 0.55), inset 0 0 8px rgba(255, 255, 255, 0.18);
+		}
+
+		75% {
+			border-color: rgb(80, 180, 255);
+			box-shadow: 0 0 10px rgba(80, 180, 255, 0.55), inset 0 0 8px rgba(255, 255, 255, 0.18);
+		}
+
+		100% {
+			border-color: rgb(255, 0, 128);
+			box-shadow: 0 0 10px rgba(255, 0, 128, 0.55), inset 0 0 8px rgba(255, 255, 255, 0.18);
+		}
+	}
+
+	.tooltip {
+		position: fixed;
+		/* Mantém fixo na tela */
+		background: rgba(0, 0, 0, 0.9);
+		color: white;
+		padding: 8px;
+		border-radius: 5px;
+		font-size: 12px;
+		display: none;
+		width: max-content;
+		max-width: none;
+		white-space: nowrap;
+		z-index: 99999 !important;
+		/* Aumenta para garantir que esteja acima da popup */
+		pointer-events: none;
+		/* Garante que não bloqueie eventos do mouse */
+	}
+</style>
+<script>
+	$(document).ready(function () {
+		// Move o tooltip para o <body>
+		$(".tooltip").appendTo("body");
+
+		// Evento de mouse sobre o item
+		$(document).on("mouseenter", ".item_slot", function (e) {
+			const info = $(this).attr("data-info");
+			if (!info) return;
+
+			$(".tooltip").text(info).css({
+				top: e.pageY + 10 + "px",
+				left: e.pageX + 10 + "px",
+				display: "block",
+				padding: "6px 10px",
+				backgroundColor: "#000",
+				color: "#fff",
+				borderRadius: "4px",
+				fontSize: "12px",
+				pointerEvents: "none",
+				position: "absolute",
+				zIndex: 9999,
+				maxWidth: "none",
+				whiteSpace: "nowrap"
+			});
+		});
+
+		// Evento de movimento do mouse
+		$(document).on("mousemove", ".item_slot", function (e) {
+			$(".tooltip").css({
+				top: e.pageY + 10 + "px",
+				left: e.pageX + 10 + "px"
+			});
+		});
+
+		// Evento de saída do mouse
+		$(document).on("mouseleave", ".item_slot", function () {
+			$(".tooltip").hide();
+		});
+	});
+</script>
+
+
+
+</body>
+
+</html>

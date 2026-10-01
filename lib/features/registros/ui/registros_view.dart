@@ -7,9 +7,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/di/injection.dart';
 import '../../../core/theme/pw_colors.dart';
-import '../../../core/theme/pw_theme.dart';
 import '../../ads/ad_slot.dart';
 import '../../home/domain/community.dart';
+import '../../home/ui/widgets/cabecalho.dart';
 import 'registros_state.dart';
 import 'registros_view_model.dart';
 import 'widgets/atributo_filtros.dart';
@@ -48,10 +48,13 @@ class _Tela extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Registros de Assimilação',
-          style: TextStyle(fontFamily: PWTheme.display, fontSize: 19),
-        ),
+        // Declared `false` on purpose: with no `leading` of its own, a
+        // pushed route gets Flutter's automatic back arrow — which would sit
+        // beside `Cabecalho`'s own mark, a second way home nobody asked for.
+        // The mark is the only door here, the same arrangement every screen
+        // without a hand-declared arrow shares.
+        automaticallyImplyLeading: false,
+        title: Cabecalho(wide: largura >= Cabecalho.larguraMinima),
       ),
       body: BlocBuilder<RegistrosViewModel, RegistrosState>(
         builder: (context, state) => switch (state) {

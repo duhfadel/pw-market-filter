@@ -13,6 +13,8 @@ import 'package:pw_market_filter/features/search/ui/search_view_model.dart';
 import 'package:pw_market_filter/market/index_repository.dart';
 import 'package:pw_market_filter/market/market_index.dart';
 
+import '../support/novidades_test_support.dart';
+
 const _weapon = EquippedItem(
   slot: 10,
   itemId: 50206,
@@ -68,7 +70,9 @@ Future<SearchViewModel> _pumpFilter(WidgetTester tester) async {
   await tester.pumpWidget(
     BlocProvider.value(
       value: viewModel..load(),
-      child: const MaterialApp(home: SearchView()),
+      // `SearchView` carries `Cabecalho` in its `AppBar`, and the pill's own
+      // lookup has no fallback for a missing `NovidadesViewModel`.
+      child: MaterialApp(home: comNovidades(const SearchView())),
     ),
   );
   await tester.pumpAndSettle();

@@ -4,49 +4,59 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../data/browser_memory.dart';
 import '../../../core/theme/pw_colors.dart';
-import '../../../core/theme/pw_theme.dart';
-import '../../search/ui/search_state.dart';
+import '../../../market/market_index.dart';
 import '../../ads/ad_slot.dart';
+import '../../search/domain/search_query.dart';
+import '../../search/domain/search_query_url.dart';
+import '../../search/ui/search_state.dart';
 import '../../search/ui/search_view_model.dart';
-import '../domain/tool.dart';
+import '../domain/arte_da_classe.dart';
 import '../domain/visit_label.dart';
 import 'visit_counter_view_model.dart';
 import '../domain/community.dart';
-import '../domain/novidade.dart';
 import '../../../core/widgets/brand_icon.dart';
-import 'novidades_view_model.dart';
 import 'widgets/ao_vivo_strip.dart';
+import 'widgets/cabecalho.dart';
+import 'widgets/cartaz.dart';
+import 'widgets/destaques_view.dart';
 import 'widgets/discord_strip.dart';
-import 'widgets/news_section.dart';
-import 'widgets/market_pulse.dart';
-import 'widgets/tool_card.dart';
 
-/// The Portal's front page: the mark, what the place is, live numbers, and the
-/// menu.
+/// Opens the filter already answering [query] — every Destaques card is a
+/// door into the search that produced it, encoded the same way a shared
+/// link is so the filter screen reads it back with `requestUrl`.
+void _abrirBusca(BuildContext context, MarketIndex index, SearchQuery query) {
+  final q = encodeQuery(query, index);
+  Navigator.of(context).pushNamed(q.isEmpty ? '/filtro' : '/filtro?$q');
+}
+
+/// The Portal's front page: the mark, the Cartaz, the Destaques, Streamers
+/// and Comunidade.
 ///
 /// It loads the market index like the filter does, and for the same reason it
-/// is worth the wait: the numbers here are the argument. "830 à venda, 205 com
-/// arma de 70, o mais barato a 120 TCC" says what the site is for in a way no
-/// tagline does — and it is only true because the index exists.
+/// is worth the wait: the Cartaz and the Destaques are both drawn from it. The
+/// Cartaz opens on a class's own art before a single number is known, so the
+/// wait never blanks the fold — only the class-specific parts (the Cartaz's
+/// class and the six Destaques cards) wait on the load.
 ///
-/// The cards do not wait for it. They are the menu, and a menu that appears a
-/// second late is a page that looks broken.
-/// One store for the whole page, built once.
+/// **The tool cards that used to sit below the Destaques are gone.**
+/// `Cabecalho`'s pills, on every screen, already list the same tools and the
+/// same guide — a second navigation surface for the same set, on the same
+/// page, was the thing the owner called out on 01/10/2026: "não acho que
+/// valha a pena duplicar".
 ///
-/// A fresh instance per rebuild would read `localStorage` on every frame,
-/// which is the call the guard in `BrowserMemory` exists to keep cheap and
-/// quiet — and the news bar reads its marker exactly once per load.
-final _memoriaDasNovidades = BrowserMemory.platform(
-  'portal_pw_ultima_novidade',
-);
-
+/// **The closed news bar that used to sit here is gone too, moved on the
+/// same day.** `/novidades` got a screen of its own, reachable from
+/// `Cabecalho`'s own *Novidades* pill on every screen — a second surface for
+/// the same announcements, on the same page, was the same duplication the
+/// tool cards already were. What does not survive the move: the bar's closed
+/// header showed the latest entry's own title and date, so a returning
+/// visitor could tell whether the thing inside was the one they had already
+/// read. The pill that replaces it carries only a label and an unread dot —
+/// see `cabecalho.dart`'s `_NovidadesPill`, which is also where the dot's
+/// rules now live.
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
-
-  /// Below this the grid becomes a column.
-  static const _twoColumnWidth = 680.0;
 
   /// Above this the page is not competing for space, and holding the layout at
   /// its tablet size leaves the mark reading as a small card adrift in black —
@@ -56,8 +66,15 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final wide = width >= _twoColumnWidth;
+    // The grid becomes a column below this — the same number as
+    // `Cabecalho.larguraMinima`, where its own pills collapse into the
+    // overflow menu. One breakpoint, read from the one place it is defined.
+    final wide = width >= Cabecalho.larguraMinima;
     final large = width >= _largeWidth;
+    // 1040 and not 900 at the top step, and the reason is one line of type:
+    // at 900 the old headline broke with "usando" alone on a second line at
+    // every desktop size measured — 1366 and 1920 both.
+    final maxWidth = large ? 1040.0 : 780.0;
 
     return Scaffold(
       body: Stack(
@@ -76,8 +93,8 @@ class HomeView extends StatelessWidget {
             // headline and three cards: short enough that sitting in the
             // middle of the window looked composed rather than adrift.
             //
-            // The page has grown since — figures, the news panel — and on a
-            // tall window the same rule opened a screen and a half of empty
+            // The page has grown since — the Destaques, the news panel — and on
+            // a tall window the same rule opened a screen and a half of empty
             // sky above the logo before anything was readable. Vertical
             // centring is a rule about short pages, and this one stopped being
             // one.
@@ -96,119 +113,130 @@ class HomeView extends StatelessWidget {
                 Align(
                   alignment: Alignment.topCenter,
                   child: ConstrainedBox(
-                    // 1040 and not 900 at the top step, and the reason is one
-                    // line of type: at 900 the headline broke with "usando"
-                    // alone on a second line at every desktop size measured —
-                    // 1366 and 1920 both. The first sentence a visitor reads
-                    // is not a good place to hyphenate the argument.
-                    constraints: BoxConstraints(maxWidth: large ? 1040 : 780),
+                    constraints: BoxConstraints(maxWidth: maxWidth),
+                    // Vertical padding only, applied once for the whole
+                    // column. Horizontal padding is per-section instead —
+                    // see `_ComMargem` — because the Cartaz bleeds to the
+                    // column's own edges, and a shared side padding here
+                    // would either pinch it or leave every other section
+                    // without one.
                     child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: wide ? 40 : 20,
-                        vertical: wide ? 44 : 28,
-                      ),
+                      padding: EdgeInsets.symmetric(vertical: wide ? 44 : 28),
                       child: Column(
                         // A `ListView` stretches its children across and a
                         // `Column` centres them, so the menu and the news bar
                         // would have shrunk to their own width without this.
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          DiscordStrip(wide: wide),
-                          SizedBox(height: wide ? 10 : 6),
-                          Center(
-                            child: Image.asset(
-                              'assets/images/portal-pw-logo-v2.webp',
-                              // Two thirds of what it was. The mark says the name of the
-                              // site and nothing about what it does, and at 440 px it was
-                              // the entire first fold of a phone — the visitor scrolled
-                              // before learning there was anything here to use.
-                              //
-                              // The numbers dropped a step when the wordmark lost its
-                              // ".net": the new drawing is squarer (1.39 against 1.52),
-                              // so the same width would have made it 9% taller and
-                              // quietly undone the fold this was measured for. These
-                              // widths hold the height where it was.
-                              width: large ? 280 : (wide ? 215 : 168),
-                              filterQuality: FilterQuality.medium,
-                              // The logo is the one asset whose absence would be
-                              // baffling rather than cosmetic, so it falls back to the
-                              // name rather than to a gap.
-                              errorBuilder: (_, _, _) => Text(
-                                'PORTAL PW',
-                                style: TextStyle(
-                                  fontSize: wide ? 34 : 26,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 3,
-                                ),
-                              ),
-                            ),
+                          _ComMargem(
+                            wide: wide,
+                            child: Cabecalho(wide: wide),
                           ),
-                          SizedBox(height: wide ? 18 : 14),
-                          Center(
-                            child: Text(
-                              'Ache o personagem certo pelo que ele está usando',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontFamily: PWTheme.display,
-                                color: PWColors.text,
-                                // Marcellus is lighter and wider than Roboto at the same
-                                // size, so the headline gains a couple of points and
-                                // loses the extra weight it needed as a sans.
-                                fontSize: large ? 38 : (wide ? 31 : 25),
-                                height: 1.25,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: wide ? 12 : 10),
-                          Center(
-                            child: Text(
-                              // **Diz o que só aqui se acha.** A frase antes
-                              // listava arma, cartas e refino — coisas que o
-                              // próprio marketplace deixa ver. O que este
-                              // site faz de diferente é ler a mochila e o
-                              // banco: chaves, essências e relíquias não
-                              // aparecem em lugar nenhum da busca oficial.
-                              'Ache por arma UP5, chaves, essências, '
-                              'relíquias e combos de carta — o que o '
-                              'marketplace guarda no inventário e não deixa '
-                              'procurar.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: PWColors.textMuted,
-                                fontSize: large ? 17 : (wide ? 15 : 13),
-                                height: 1.5,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: large ? 28 : (wide ? 24 : 20)),
-                          const Center(child: _SearchButton()),
-                          SizedBox(height: large ? 30 : (wide ? 24 : 20)),
+                          SizedBox(height: wide ? 22 : 16),
+                          // **The Cartaz bleeds to the reading column's own
+                          // edges.** It is not an image beside the content,
+                          // it is the ground the content stands on, and a
+                          // side margin around it would say otherwise — so,
+                          // unlike everything else on this page, it carries
+                          // no `_ComMargem` and touches the column's edges
+                          // directly. Its own internal padding is what keeps
+                          // its text off them.
                           BlocBuilder<SearchViewModel, SearchState>(
-                            builder: (context, state) => MarketPulse(
-                              state: state is SearchReady ? state : null,
-                              wide: wide,
-                              large: large,
+                            builder: (context, state) {
+                              final ready = state is SearchReady ? state : null;
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Cartaz(
+                                    classe: classeDoCartaz(
+                                      ready?.index.collectedAt,
+                                    ),
+                                    // `large`, not `wide`. Both were built and
+                                    // measured at 1200 px — close to this
+                                    // page's `large` step (1280) — and their
+                                    // "wide" typography does not fit the
+                                    // tablet band between 680 and 1279: at
+                                    // 780 px the Cartaz's own 40 px headline
+                                    // overflowed its box by 36 px. Below
+                                    // `large`, both fall back to their
+                                    // compact layout instead of the rest of
+                                    // the page's `wide` one.
+                                    wide: large,
+                                    aoBuscar: () => Navigator.of(
+                                      context,
+                                    ).pushNamed('/filtro'),
+                                  ),
+                                  if (ready != null) ...[
+                                    SizedBox(height: wide ? 8 : 4),
+                                    _ComMargem(
+                                      wide: wide,
+                                      child: DestaquesView(
+                                        index: ready.index,
+                                        wide: large,
+                                        onAbrir: (query) => _abrirBusca(
+                                          context,
+                                          ready.index,
+                                          query,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              );
+                            },
+                          ),
+                          // The tool cards and the guide line used to sit
+                          // here, under a `FERRAMENTAS`/`GUIA` heading. They
+                          // left on 01/10/2026: `Cabecalho`'s pills, on every
+                          // screen, already list the same tools and the same
+                          // guide — a card sold them with art and a tagline,
+                          // a pill only lists them, but keeping both put two
+                          // navigation surfaces for one set on the same page,
+                          // one above the other. "não acho que valha a pena
+                          // duplicar" is the owner's own call, 01/10/2026. The
+                          // *novo* badge that lived on the Títulos card moved
+                          // to `GavetaItem`, the drawer row each pill opens —
+                          // the one place left that can still show it.
+                          SizedBox(height: large ? 32 : (wide ? 26 : 20)),
+                          // The closed news bar used to sit here, between the
+                          // tools and the streamers — see the class doc above
+                          // for what left with it on 01/10/2026 and what it
+                          // cost.
+                          // Depois das ferramentas e antes da comunidade. É o
+                          // lugar que combina com o que a coisa é: cortesia a
+                          // quem transmite, não o motivo de alguém ter vindo.
+                          // Em cima disputaria com as ferramentas; no rodapé
+                          // ninguém veria.
+                          _ComMargem(
+                            wide: wide,
+                            child: AoVivoStrip(wide: wide),
+                          ),
+                          SizedBox(height: wide ? 26 : 20),
+                          _ComMargem(
+                            wide: wide,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const _Secao(nome: 'Comunidade'),
+                                SizedBox(height: wide ? 12 : 10),
+                                DiscordStrip(wide: wide),
+                              ],
                             ),
                           ),
-                          SizedBox(height: large ? 32 : (wide ? 26 : 20)),
-                          BlocBuilder<NovidadesViewModel, List<Novidade>>(
-                            builder: (context, novidades) => NewsSection(
-                              entries: novidades,
-                              wide: wide,
-                              memoria: _memoriaDasNovidades,
-                            ),
-                          ),
-                          SizedBox(height: large ? 32 : (wide ? 26 : 20)),
-                          _Menu(wide: wide),
-                          // Depois das ferramentas e antes da publicidade. É o
-                          // lugar que combina com o que a coisa é: cortesia a quem
-                          // transmite, não o motivo de alguém ter vindo. Em cima
-                          // disputaria com as ferramentas; no rodapé ninguém veria.
-                          AoVivoStrip(wide: wide),
-                          const AdSlot(),
+                          SizedBox(height: wide ? 26 : 20),
+                          // The advert came off the home when the page was
+                          // rebuilt, because the new design showed no
+                          // `PUBLICIDADE` label anywhere. The owner put it
+                          // back on 01/10/2026, in the footer.
+                          //
+                          // Below the community and above the footer, which is
+                          // the lowest place on the page that is still the
+                          // page. It is the one block here nobody came for, so
+                          // it goes last — but it is not hidden, because a
+                          // hidden advert is a dishonest one.
+                          _ComMargem(wide: wide, child: const AdSlot()),
                           SizedBox(height: wide ? 28 : 22),
-                          const _Footer(),
+                          _ComMargem(wide: wide, child: const _Footer()),
                         ],
                       ),
                     ),
@@ -291,36 +319,27 @@ class _Aurora extends StatelessWidget {
   );
 }
 
-/// The menu, under one heading per section.
+/// The page's ordinary side margin, applied one section at a time.
 ///
-/// A grid rather than a list because it is meant to be scanned, not read: four
-/// cards side by side answer "what is here?" in one glance, where four
-/// full-width rows answer it in four.
-///
-/// **The headings separate what the site does from what it explains.** Filed
-/// together, the menu said "here are four things"; split, it says "here are
-/// the tools, and here is what they are about" — and a guide stops competing
-/// with a tool for the same attention.
-class _Menu extends StatelessWidget {
-  const _Menu({required this.wide});
+/// Everything on the page carries it except the Cartaz, which bleeds to the
+/// reading column's own edges on purpose — see the comment at its call site.
+/// A margin shared by every child of one `Column` would have pinched the
+/// Cartaz along with the rest; wrapping each section individually is what
+/// lets the hero opt out.
+class _ComMargem extends StatelessWidget {
+  const _ComMargem({required this.wide, required this.child});
 
   final bool wide;
+  final Widget child;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      for (final secao in secoesDaHome) ...[
-        _Secao(nome: secao),
-        SizedBox(height: wide ? 12 : 10),
-        _Cards(tools: toolsDe(secao), wide: wide),
-        SizedBox(height: wide ? 26 : 20),
-      ],
-    ],
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.symmetric(horizontal: wide ? 40 : 20),
+    child: child,
   );
 }
 
-/// The rule above a group of cards.
+/// The rule above the Comunidade section.
 class _Secao extends StatelessWidget {
   const _Secao({required this.nome});
 
@@ -341,87 +360,6 @@ class _Secao extends StatelessWidget {
       const SizedBox(width: 12),
       const Expanded(child: Divider(color: PWColors.border, height: 1)),
     ],
-  );
-}
-
-class _Cards extends StatelessWidget {
-  const _Cards({required this.tools, required this.wide});
-
-  final List<Tool> tools;
-  final bool wide;
-
-  @override
-  Widget build(BuildContext context) {
-    if (!wide) {
-      return Column(
-        children: [
-          for (final tool in tools)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: ToolCard(tool: tool, wide: false),
-            ),
-        ],
-      );
-    }
-
-    return Column(
-      children: [
-        for (var i = 0; i < tools.length; i += 2)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 14),
-            // An odd tool at the end takes the whole row rather than half of
-            // it. Left at half width it sat beside an empty square, and an
-            // empty square in a grid reads as a card that failed to load — the
-            // full-width one reads as a decision.
-            child: i + 1 < tools.length
-                // `stretch` needs a bounded height to stretch to, and inside a
-                // shrink-wrapped list there is none: the cards were handed an
-                // infinite height and stopped painting their own background.
-                // IntrinsicHeight measures the taller card first, which is
-                // also what makes a pair line up when their taglines differ in
-                // length.
-                ? IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(child: ToolCard(tool: tools[i], wide: true)),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: ToolCard(tool: tools[i + 1], wide: true),
-                        ),
-                      ],
-                    ),
-                  )
-                : ToolCard(tool: tools[i], wide: true),
-          ),
-      ],
-    );
-  }
-}
-
-/// The one primary action on the page.
-///
-/// Before it the only way into the filter was a card that reads as an
-/// illustration, which asks a first-time visitor to guess that the picture is a
-/// door.
-class _SearchButton extends StatelessWidget {
-  const _SearchButton();
-
-  @override
-  Widget build(BuildContext context) => FilledButton.icon(
-    onPressed: () => Navigator.of(context).pushNamed('/filtro'),
-    icon: const Icon(Icons.search, size: 20),
-    label: const Text('Buscar personagens'),
-    style: FilledButton.styleFrom(
-      backgroundColor: PWColors.accent,
-      foregroundColor: PWColors.background,
-      padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
-      textStyle: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.2,
-      ),
-    ),
   );
 }
 
@@ -456,12 +394,12 @@ class _Footer extends StatelessWidget {
         style: TextStyle(color: PWColors.textMuted, fontSize: 11, height: 1.5),
       ),
       const _VisitCount(),
-      // The mark alone, in the corner. The invitation is spelled out three
-      // times higher up the page; a fourth would be nagging. What a footer
-      // icon is for is the visitor who has already decided and is looking for
-      // the door — and it carries a tooltip and a semantic label, because a
-      // lone glyph with no words is exactly the thing a screen reader cannot
-      // guess.
+      // The mark alone, in the corner. The invitation is spelled out in its
+      // own section higher up the page; a second one here would be nagging.
+      // What a footer icon is for is the visitor who has already decided and
+      // is looking for the door — and it carries a tooltip and a semantic
+      // label, because a lone glyph with no words is exactly the thing a
+      // screen reader cannot guess.
       Align(
         alignment: Alignment.centerRight,
         child: IconButton(

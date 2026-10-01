@@ -74,14 +74,14 @@ flutter:
     # fetched over HTTP at runtime, so refreshing the data is one file instead
     # of a rebuild — see IndexRepository.
     - assets/images/
-    # As artes que o Cartaz sorteia, uma por classe. Pasta separada de
-    # `images/` de proposito: as tres que estao la fora seguem nos cards de
-    # ferramenta, e sobrescreve-las trocaria a arte de um card sem ninguem
-    # pedir. Duas pastas, dois trabalhos.
+    # The 2:3 crop the Cartaz sorteia, uma por classe — see
+    # arteVerticalDaClasse. Pasta separada de `images/` de proposito: as tres
+    # que estao la fora seguem nos cards de ferramenta, e sobrescreve-las
+    # trocaria a arte de um card sem ninguem pedir.
     #
-    # No Flutter web o asset e buscado sob demanda, entao as dezesseis no
+    # No Flutter web o asset e buscado sob demanda, entao as dezessete no
     # deploy nao viram peso no navegador: o visitante baixa a do dia.
-    - assets/images/classes/
+    - assets/images/classes-verticais/
     - assets/icons/classes/
     - assets/icons/items/
 
@@ -96,6 +96,13 @@ flutter:
     - family: Marcellus
       fonts:
         - asset: assets/fonts/Marcellus-Regular.ttf
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

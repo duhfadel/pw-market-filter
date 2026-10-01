@@ -47,7 +47,7 @@ Flutter web + Bloc + GetIt, fed by an offline index that a Dart CLI collects.
 | Collector | listing + detail parsers, pacing, resume, index writing | **Done** |
 | Index | the JSON contract between collector and app | **Done** |
 | Screen | criteria form, filtered cards, empty and stale states | **Done** |
-| First visit | front page, preset chips, phone filters, shareable link, preview | **Done** |
+| First visit | Cartaz, Destaques, pill bar with drawers, preset chips, phone filters, shareable link, preview | **Done** |
 | Anedotas e itens | progresso, contagem de relíquias e chaves, no índice e na tela | **Done, awaiting the collection** |
 | Registros | a janela do NPC, 126 receitas do Supabase, filtro por atributo | **Done, não anunciado** |
 
@@ -65,12 +65,14 @@ Open: the results grid has no widget tests beyond the card itself.
 **The visit, done on 2026-08-17.** The site now receives people who have never
 seen it, through two doors and only two — the front page, from a link pasted in
 the community, and `/filtro`, from word of mouth. What that round added: a front
-page that says what the site does before it says its name, with every figure a
-link into the search that produced it; five preset chips that are the same
-`SearchQuery` objects those figures use (`domain/presets.dart`); a labelled
-filter entrance and a bottom sheet with a live count on phones; a search that
-writes itself into the address bar and reads itself back (`search_query_url.dart`);
-and `og:` tags, without which a link pasted in Discord arrived as a bare line.
+page that says what the site does before it says its name; five preset chips
+(`domain/presets.dart`); a labelled filter entrance and a bottom sheet with a
+live count on phones; a search that writes itself into the address bar and
+reads itself back (`search_query_url.dart`); and `og:` tags, without which a
+link pasted in Discord arrived as a bare line. What said what the site does was
+a row of figures built off the chips, and that mechanism is gone now — see
+*A home trocou o pulso por um Cartaz e uma Vitrine* and *A Vitrine virou seis
+Destaques* below for what replaced it, twice, and why.
 
 Still open from that round, and named on purpose: **the market has no memory.**
 Each collection overwrites the last, so there is no "new today", no "dropped
@@ -453,19 +455,21 @@ the sum said less than the chips already said, and said it with false
 precision. The ordering also broke the grid by construction, since anything
 that moves a slot stops it being the window. The idea is parked, not refuted.
 
-**It is announced.** `/registros` has a card on the front page under
-**Ferramentas**, named *Títulos* — the word players use; *registro* is what
-the item is called, and the title is what they are after. The card borrows
-`sacerdote.webp`, which the code says out loud: a priest has nothing to do
-with titles, it was sitting unused, and it fills the card until a screenshot
-of the titles screen arrives.
+**It is announced.** `/registros` is one of the tools `Cabecalho`'s own menu
+lists, under **Ferramentas**, named *Títulos* — the word players use;
+*registro* is what the item is called, and the title is what they are after.
+It has no card of its own: `ToolCard` and the front page's tool cards were
+retired on 01/10/2026, once `Cabecalho`'s pills reached every screen and made
+a second navigation surface for the same set of tools a duplicate. `GavetaItem`
+is the one place left a tool is drawn, inside the menu's drawer.
 
-**The front page groups by section, and the *novo* badge carries a date.**
-Tools and guides filed together made the menu say "here are four things"; the
-headings make it say what the site does and what it explains. The badge is a
-`DateTime` rather than a flag on purpose — a "novo" nobody remembers to remove
-stops being true within weeks, and a badge that has lied once is a badge
-nobody believes again. It expires by itself.
+**The menu groups by section, and the *novo* badge carries a date.** Tools and
+guides filed together made it say "here are four things"; the headings make it
+say what the site does and what it explains. The badge is a `DateTime` rather
+than a flag on purpose — a "novo" nobody remembers to remove stops being true
+within weeks, and a badge that has lied once is a badge nobody believes again.
+It expires by itself, inside `GavetaItem` now, the drawer row that is the one
+surface a tool has left.
 
 **The totals are two sums, and both are real.** Pages are one currency, so
 they add. Attributes add *within* an attribute — three Atk F plus fifteen is
@@ -720,27 +724,159 @@ real, mas `preset_chips_test` roda sobre um índice sintético **onde ninguém
 tem arma defensiva**: o caso que falha não era exercido. É a mesma forma do
 lote da Twitch, onde a reprodução com todos os canais offline respondeu 200.
 
-### O pulso da home lê os chips, e antes remontava as perguntas
+### A home trocou o pulso por um Cartaz e uma Vitrine, em 30/09/2026
 
-`market_pulse.dart` construía cada figura à mão — procurava `Nível de Ataque` e
-montava o próprio `SearchQuery` — enquanto os chips eram montados em
-`presets.dart`. As duas telas divergiram na primeira vez que os chips mudaram:
-o conjunto ganhou *5 essências* e *Seis cartas S* e perdeu um patamar, e a
-primeira dobra não seguiu nada disso, porque nada as ligava. O `CLAUDE.md`
-afirmava que eram os mesmos objetos `SearchQuery`, e tinha deixado de ser
-verdade.
+Por um mês o pulso da home foi `market_pulse.dart`: construía cada figura à
+mão — procurava `Nível de Ataque` e montava o próprio `SearchQuery` —
+enquanto os chips eram montados em `presets.dart`. As duas telas divergiram
+na primeira vez que os chips mudaram: o conjunto ganhou *5 essências* e *Seis
+cartas S* e perdeu um patamar, e a primeira dobra não seguiu nada disso,
+porque nada as ligava. A correção de então foi fazer `figuresFor(index)`
+percorrer `presetsFor` — um chip, uma figura, a mesma pergunta feita uma vez
+só — e essa lição sobrevive ao arquivo ter saído: **duas telas que respondem
+à mesma pergunta têm que ler da mesma fonte, ou divergem na primeira mudança
+que uma das duas não enxergar.**
 
-`figuresFor(index)` percorre `presetsFor` agora, e `figureLabels` é o mapa de
-*quais* chips viram figura e como cada um se lê aqui — `Arma de 70 ou mais` é
-uma coisa de tocar no filtro, `687 com arma de 70 ou mais` é uma frase na home.
-**Nem todo chip merece figura**: as figuras são o argumento da página, não um
-índice do filtro, então três ficam de fora de propósito.
+O arquivo inteiro saiu no branch `cara-nova-paleta`, junto com `figuresFor`,
+`figureLabels` e `MarketFigure` — zero referências a qualquer um deles
+sobrevive em `lib/` ou `test/`. Não foi corrigido de novo: foi substituído
+por duas peças que respondem à pergunta de um jeito diferente.
 
-Um chip que esta coleta não sabe montar tira a própria figura da tela sozinho,
-porque `weaponQuery` responde `null` para um patamar que o mercado não alcançou
-— o que substitui três blocos de `if` por nada. O que o teste crava é a junção:
-uma figura que nomeia um chip inexistente some da home em silêncio, e o `Wrap`
-simplesmente desenha uma a menos.
+**O Cartaz** (`ui/widgets/cartaz.dart`) é o herói da página agora: a arte de
+uma classe, cheia, com a frase escrita no espaço vazio que ela deixa — não
+uma imagem ao lado do conteúdo, o chão em que o conteúdo se apoia. A classe
+muda a cada coleta, nunca a cada build: `classeDoCartaz`
+(`domain/arte_da_classe.dart`) deriva do `collectedAt` da coleta, nunca de
+`Random()` nem do relógio — a mesma coleta tem que desenhar a mesma página, ou
+um rebuild lê como caça-níqueis em vez de site. `classesComArte` lista as
+dezessete classes que têm arte; `arteVerticalDaClasse` e `acentoDaClasse`
+(violeta ou magenta, nunca `PWColors.accent` — essa é a cor do dinheiro) vivem
+no mesmo arquivo. Havia uma irmã quadrada, `arteDaClasse`, para o card de meia
+largura que a Vitrine usava — apagada em 01/10/2026 junto com
+`assets/images/classes/` quando o Cartaz passou a ser a única chamadora e a
+irmã ficou viva só pelo próprio teste. O Cartaz e a Vitrine foram medidos e testados a 1200 px, perto do
+degrau `large` (1280) da página; entre 680 e 1279 os dois recebem `wide:
+large` em vez do `wide: wide` que todo o resto da página usa, porque a
+tipografia "wide" de ambos não cabe nessa faixa — a 780 px o título do Cartaz
+estourava a própria caixa em 36 px.
+
+**A Vitrine** (`domain/vitrine.dart`, `ui/widgets/vitrine_view.dart`, ambos
+apagados em 01/10/2026) foi o argumento antigo do pulso, refeito com pessoas
+reais em vez de uma frase: o mais barato e o mais caro do mesmo patamar de
+arma e — quando o mercado tinha alguém — o mais raro no patamar defensivo.
+`vitrineDe` partia de `strongWeaponQuery`, mas não confiava no mínimo dessa
+query: agrupava os portadores pelo nível de ataque exato que cada um
+carregava (lido por `bestMatchFor`, o mesmo laço que o card de resultados usa
+para dizer qual peça respondeu a um critério) e escolhia o par dentro do
+grupo mais numeroso — porque `strongWeaponQuery` pede *pelo menos* 70, e o
+mercado tem um patamar 80 acima dele. Sem essa restrição,
+`carriers.first`/`.last` da query inteira podiam cair em patamares
+diferentes, e caíram: medido no índice real em 30/09/2026, o par era SK_Alya
+(Arcano, +70, 45 TCC) contra KING-Von (Mercenário, +80, 20000 TCC) — duas
+armas diferentes, duas classes diferentes, impressas sob "a mesma arma" com a
+sub-linha ainda dizendo nível de ataque 70. Era a mesma forma do UP5 duas
+seções acima: um mínimo tratado como se fosse um valor exato, pela terceira
+vez neste arquivo. A revisão do branch pegou isso porque os dois testes de
+`Vitrine`, sintéticos, tinham todo mundo em exatamente um patamar — o caso
+que falha nunca era exercido; o guard foi `vitrine_real_market_test.dart`,
+sobre `web/market_index.json`, confirmado vermelho contra o código anterior
+antes do conserto. O título era **"O mesmo patamar"**, sem dígito — Marcellus
+desenha algarismos romanos, e mesmo dentro de um patamar exato eram dezessete
+armas diferentes, uma por classe, então "a mesma arma" nunca tinha sido
+literalmente verdade. Durou dois dias: ela argumentava uma coisa só, e o
+dono pediu seis portas de entrada em vez de um argumento — ver *A Vitrine
+virou seis Destaques* abaixo.
+
+**O menu de ferramentas e o cabeçalho pararam de duplicar a navegação.**
+`Cabecalho` e os cards de ferramenta tinham cada um sua própria cópia de
+"abrir esta rota, interna ou externa" — `_abrir` e `_openTool`, byte a byte
+iguais. As duas foram substituídas por `abrirTool`
+(`ui/widgets/tool_navigation.dart`), que carrega a mesma regra de sempre:
+`MaterialApp` é dono da rota, nunca um `Navigator` por baixo dele.
+
+### A Vitrine virou seis Destaques, e a barra ganhou pílulas com gaveta, em 01/10/2026
+
+Depois de quatro rodadas de maquete com o dono, a Vitrine saiu: ela
+argumentava uma coisa — "o mesmo patamar, sessenta vezes o preço" — e o que
+se queria era seis portas de entrada diferentes para o mercado, cada uma uma
+pergunta já respondida por alguém real. `domain/destaques.dart` escolhe seis
+personagens, um por categoria, nesta ordem fixa: o mais barato, a arma de 70
+mais barata, o Atq lvl UP5 mais barato, o Def lvl UP5 mais barato, o mais
+caro e quem mais carrega `Chave da Sorte`. A ordem é fixa porque decide quem
+cede numa colisão, e a colisão é real.
+
+**Nenhum card pode repetir a classe de outro, e isso é decisão do dono e não
+só estilo.** A arte é o card aqui — cada carta é a arte vertical da classe
+sangrando por trás do texto — então duas cartas de uma classe seriam duas
+fotos idênticas lado a lado, a mesma armadilha dos ovos de mascote que já
+compartilham um sprite. Medido em 30/09/2026: o Arcano era ao mesmo tempo o
+portador mais barato de arma de 70 **e** o portador mais barato da UP5
+defensiva, então a colisão não é hipotética. Quando o verdadeiro vencedor de
+uma categoria já está na tela, a carta cai para o próximo de uma classe
+ainda não usada, **e o rótulo amolece** — "o mais barato" vira "dos mais
+baratos" — porque deixou de ser o mais barato, e uma carta que ainda
+afirmasse isso estaria mentindo com um número de verdade ao lado. Uma
+categoria sem classe sobrando é descartada, nunca repetida. Isso rodou contra
+o mercado real e amoleceu de verdade: o verdadeiro portador mais barato de
+Def lvl UP5 já tinha sido gasto pela arma de 70, e o card 4 leu "Um dos mais
+baratos com Def lvl UP5" na primeira coleta testada, não só num índice
+sintético.
+
+A moldura de cada carta é exatamente `weaponTierColor(index, personagem)` —
+a mesma função que já pinta a grade de resultados, chamada e nunca restatada
+numa segunda paleta. A primeira versão do plano pintava a arma de 70 com
+`gradeColors[3]`, que é a cor de um **40**; o card teria ensinado a cor errada
+à tela em que ele manda clicar. A correção foi apagar a coluna de cor
+própria e sempre ler da função — consequência aceita de propósito: um
+personagem sem patamar não desenha moldura, e duas cartas podem legitimamente
+compartilhar cor, porque a moldura fala do que a pessoa veste, não da
+categoria que a trouxe à tela.
+
+`ui/widgets/destaques_view.dart` desenha as seis numa grade 2:3, a arte
+preenchendo o card inteiro (`arteVerticalDaClasse`, a pasta
+`assets/images/classes-verticais/`, 480×720 — a arte quadrada só mostra o
+busto, e uma carta alta cheia dela mostrava um rosto sem corpo). A coluna vem
+de `LayoutBuilder`, não do `wide` da página: seis colunas acima de 760 px de
+grade disponível, três entre 440 e 760, duas abaixo disso — nunca uma, porque
+duas cartas 2:3 a 390 px ainda mostram o corpo e uma coluna só seria seis
+telas de rolagem. `wide` só decide o espaçamento entre cartas (14 px / 10 px),
+o mesmo papel que a flag já tem em todo o resto da página. Testado dentro da
+página montada e não só isolado: a faixa de tablet (680–1279 px) prende o
+conteúdo a 780 px de largura pelo mesmo teto que o Cartaz usa, então a grade
+nunca vê mais que ~700 px ali e fica nas três colunas o tempo todo — o salto
+para seis só acontece exatamente em 1280 px, junto com o degrau `large` do
+resto da página.
+
+**A barra de Ferramentas, Guias e Novidades ganhou pílulas, e cada uma abre
+gaveta ao toque.** `Cabecalho` usava `PopupMenuButton` com um rótulo de
+texto só; a pílula (`_Pill`) é a mesma mecânica com moldura e chão próprios,
+e carrega **quantos itens prontos há dentro** — contando só `tool.isReady`,
+porque uma ferramenta não publicada entrando na conta faria o rótulo prometer
+três e a gaveta entregar duas. O toque, nunca só o rato, já era como o
+`PopupMenuButton` sempre funcionou; o que faltava era parecer uma pílula em
+vez de texto cinza num canto, e fechar ao tocar fora ou com `Esc` vem de
+graça do `PopupRoute` que `showMenu` já usa por baixo — não foi escrito à
+mão.
+
+**Cada item da gaveta ganhou uma descrição, e ela já existia.** `Tool.tagline`
+é o único texto que descreve a ferramenta — *Títulos* sozinho não diz nada a
+quem nunca usou, e a gaveta lê o campo em vez de inventar um segundo texto
+para divergir do primeiro. (O card de ferramentas que também mostrava essa
+frase saiu da home em 01/10/2026; `GavetaItem` é quem a lê hoje.) E a gaveta
+passou a listar também o
+que **não** está pronto, esmaecido e dizendo *em breve* — antes ela filtrava
+por `isReady` e simplesmente omitia, o que é o próprio defeito que o menu de
+ferramentas na página já evita: uma entrada "em breve" ausente é uma promessa
+que desapareceu, não uma promessa cumprida. Como a lista real de `tools` não
+carrega hoje nenhuma ferramenta não pronta, essa linha é provada por um
+widget isolado — `GavetaItem`, público de propósito, para um teste poder
+montar um `Tool` sem rota e checar o esmaecido sem inventar um quinto item no
+domínio só para um teste ver.
+
+*Novidades* ficou de fora da gaveta — não tem nada para listar, só um painel
+mais abaixo nesta mesma página — e virou um link direto que rola a página até
+lá (`Scrollable.ensureVisible`), em vez de um menu que abriria para mostrar
+uma entrada só.
 
 ## A licença, e por que ela existe
 
@@ -1144,15 +1280,16 @@ Each of these already cost something — measured on the live site, not guessed.
 
   No art behind it, and that was decided by rendering four versions rather than
   by arguing. The logo repeats what the page header already shows 600 px above;
-  a class portrait repeats the tool card 100 px below. The page is already full
-  of art, and this bar is the one flat thing on it — which is why the eye finds
-  it. Art here would compete with four cards that do it better and say
-  something by doing it.
+  the Destaques cards just above already carry a class portrait each, and the
+  streamer strip just below carries the streamer's own art when there is one.
+  The page is already full of art, and this bar is the one flat thing on it —
+  which is why the eye finds it. Art here would compete with cards that do it
+  better and say something by doing it.
 
   Its date sits **beside the label, not at the right edge**. It was on the
-  right in the first version and landed on top of the art, unreadable. Every
-  text on a tool card lives on the left half for the same reason: the picture
-  owns the other side.
+  right in the first version and landed on top of the art, unreadable — the
+  same reason every card with both a picture and text on this page keeps the
+  text on the half the picture does not own.
 
 - **`VisitMemory` is `BrowserMemory` and takes its key.** It held one
   hard-coded `localStorage` key while the visit counter was its only user; the
@@ -1226,14 +1363,18 @@ Each of these already cost something — measured on the live site, not guessed.
   and freezing the site for a sale would be the wrong trade. The collector
   prints one line per counted name at the end of a run, and that is where the
   question "does the Chave exist?" gets answered.
-- **The relics ended with no filter at all, and that was the right end.** The
-  *pelo menos N* field went away on the player's call: a relic count is a
-  number to compare, not a bar to clear, and *Mais relíquias* already sorts by
-  exactly what is marked. The whole `minimumOwned` half went with it — query
-  field, `tem=` link parameter, view-model setter and matcher branch — leaving
-  marking as the only relic concept.
+- **The relics lost their free-text minimum, and the slider below is a second
+  life for the same idea, not its absence.** *pelo menos N* as a typed field
+  went away on the player's call: a relic count is a number to compare, not a
+  bar to clear, and *Mais relíquias* already sorts by exactly what is marked.
+  What stayed is `minimumOwned` itself — query field, `tem=` link parameter,
+  view-model setter and matcher branch are all still live, reached now through
+  the slider under a marked item (`_slider` in `counted_items_section.dart`)
+  rather than a typed box. Marking alone still narrows nothing — the slider
+  starts at zero, which asks nothing — so a passage that once said the whole
+  concept "went with it" would be describing a feature this repository rebuilt
+  without updating the sentence.
 
-  It also removed the reason the two ever needed reconciling:
 - **Marking is not filtering, and they were one control until they had to be
   two.** A counted item answers two different questions: *how many does each of
   these carry* and *only show me who carries five*. While the number field was
@@ -1517,6 +1658,15 @@ Each of these already cost something — measured on the live site, not guessed.
   and survives any rescaling. It ran through the middle of the logo, which
   proved Flutter was centring correctly and moved the search off the layout in
   one step. Reach for it first.
+
+  **A link can be correct on the published site and 404 on this machine, and
+  the direction that matters is the inverse one.** The guides are linked
+  extensionless — `/guias/inicio-rapido` — because GitHub Pages resolves that
+  path to `inicio-rapido.html` on its own. `python3 -m http.server` does
+  nothing of the kind and answers 404 for the same href, which reads exactly
+  like a broken link while editing locally. The dangerous move is "fixing" the
+  href to silence that local 404: the fix would be guided by a server nobody
+  visits the site through, and it would break the one that matters.
 - **A rebuilt Flutter web app keeps serving the previous bundle, and it looks
   exactly like a change that did not compile.** The file on disk is new, the
   md5 served matches the md5 on disk, and the browser still runs yesterday's
@@ -1845,6 +1995,16 @@ Each of these already cost something — measured on the live site, not guessed.
   filter over last month's data is worse than no filter because it reads as
   correct. The collection date is always on screen, and past a week it is
   highlighted.
+- **"Nothing reads `MarketIndex`" and "nothing imports it" are two different
+  claims, and only the first is true of `/novidades`.** `NovidadesView`
+  reaches `getIt<NovidadeRepository>()` through the single `core/di/injection.dart`
+  container, and that same container registers `IndexRepository` — so the
+  import chain runs `novidades_view.dart` → `injection.dart` →
+  `index_repository.dart` → `market_index.dart` even though no line in the
+  screen looks at a market fact. The property worth relying on is the
+  narrower one: a future marketplace that reuses this screen inherits the
+  whole DI container, index included, which is almost certainly harmless but
+  is not "never reaches it".
 - **Repositories return `Result<T>`,** never throw. Failures are typed, never
   strings.
 - **State is Bloc.** `setState` only for state that is purely visual and local

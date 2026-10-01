@@ -1,11 +1,28 @@
-// Collects the pw187 marketplace into `web/market_index.json`.
+// Collects a Classic PW marketplace into its own `web/market_index*.json`.
 //
-//   dart run tool/collect.dart            # from scratch
-//   dart run tool/collect.dart --resume   # continue an interrupted run
+//   dart run tool/collect.dart                     # pw187, from scratch
+//   dart run tool/collect.dart --resume             # continue an interrupted run
+//   dart run tool/collect.dart --server pw126       # collect the other version
+//   dart run tool/collect.dart --server pw126 --carry-forward
+//                                                    # fetch pw126's own
+//                                                    # published index and
+//                                                    # write it to disk —
+//                                                    # no crawl at all
 //
 // This is the only file allowed to touch the network or the disk. Everything
 // it calls lives in `lib/collector/` and is pure Dart, so the tests can run it
 // and the web app can share its model.
+//
+// `--carry-forward` exists for CI alone. One workflow run collects one
+// version and deploys the whole site, so the version it did NOT collect has
+// to come from what is already live or the deploy would erase that market —
+// the index files are gitignored. See `_carryForward` below.
+//
+// `--server` selects the whole per-version profile, including which parser
+// reads the worn items — `lib/collector/servidor.dart`'s `itensEquipados` and
+// `sexo` fields. This file never names `parseEquippedItems` or
+// `parseEquippedItems126` itself; it only ever calls through `_servidor`, so
+// there is exactly one place that decides which page shape to expect.
 //
 // It is slow on purpose. Four concurrent workers earned an IP block that
 // outlived the run by more than twenty minutes, refusing even a single
@@ -20,13 +37,24 @@ import 'package:pw_market_filter/collector/detail_parser.dart';
 import 'package:pw_market_filter/collector/index_builder.dart';
 import 'package:pw_market_filter/collector/listing_parser.dart';
 import 'package:pw_market_filter/collector/memoria.dart';
+import 'package:pw_market_filter/collector/servidor.dart';
 import 'package:pw_market_filter/market/card_combos.dart';
 import 'package:pw_market_filter/market/celestial_realm.dart';
 import 'package:pw_market_filter/market/counted_items.dart';
 import 'package:pw_market_filter/market/market_index.dart';
+import 'package:pw_market_filter/market/versoes.dart';
 
-const _server = 'pw187';
-const _origin = 'https://marketplace.theclassic.games';
+/// The version being collected. `--server <chave>` picks one; `pw187` is the
+/// default so an unqualified run keeps its current behaviour. Everything that
+/// used to be the two constants `_server`/`_origin` now reads this — see
+/// `lib/collector/servidor.dart` for what varies between versions and why the
+/// detail URL shape is inverted between them.
+late final Servidor _servidor;
+
+/// What the version-chooser door calls each version. Kept here rather than
+/// on `Servidor` because it is the one thing about a version that is purely
+/// presentation — `Servidor` is addresses and file paths, this is a label.
+const _nomesLegiveis = <String, String>{'pw187': '1.8.7', 'pw126': '1.2.6'};
 const _userAgent =
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
     '(KHTML, like Gecko) Chrome/126.0 Safari/537.36';
@@ -44,12 +72,65 @@ const _attemptsPerPage = 4;
 /// on 2026-08-09 lasted well over twenty minutes.
 const _listingAttempts = 12;
 
-final _statePath = 'tool/.collect_state.json';
-final _outputPath = 'web/market_index.json';
+/// Reads `--server <chave>` or `--server=<chave>` out of the argument list.
+/// Defaults to `pw187` so an unqualified run keeps today's behaviour.
+String _serverArg(List<String> arguments) {
+  for (var i = 0; i < arguments.length; i++) {
+    final arg = arguments[i];
+    if (arg.startsWith('--server=')) return arg.substring('--server='.length);
+    if (arg == '--server' && i + 1 < arguments.length) return arguments[i + 1];
+  }
+  return 'pw187';
+}
+
+/// Reads one detail page into a [CollectedPage], through whichever parsers
+/// [servidor] names for the worn items and the sex row.
+///
+/// This is the one seam `main`'s per-character loop calls — pulled out to a
+/// public top-level function so a test can prove the 1.2.6 parser is actually
+/// wired into the production path, rather than only into its own unit tests.
+/// See `test/tool/collect_servidor_test.dart`: it is what caught the parser
+/// being built, tested and never called.
+///
+/// The other six readers — cards, anecdotes, inventory, realm, path, runes —
+/// are not yet per-version: nobody has written a 1.2.6 counterpart, and their
+/// 1.8.7 selectors (`.pw187-anecdote-summary`, `.pw187-rune-pair`, …) simply
+/// find nothing on a 1.2.6 page, the same way they find nothing on a 1.8.7
+/// page that carries none of those panels. That is a gap in scope, not a
+/// silent wrong answer — unlike the items, which were the whole point.
+CollectedPage collectedPageFrom(Servidor servidor, String page) =>
+    CollectedPage(
+      items: servidor.itensEquipados(page),
+      cards: parseEquippedCards(page),
+      sex: servidor.sexo(page),
+      anecdotes: parseAnecdotes(page),
+      inventory: parseInventory(page),
+      realm: parseCelestialRealm(page) ?? '',
+      path: parsePath(page) ?? '',
+      runes: parseRunes(page),
+    );
 
 Future<void> main(List<String> arguments) async {
   final resume = arguments.contains('--resume');
+
+  // Refused loudly rather than guessed: a typo here would collect against a
+  // 404 for forty minutes and write an empty index over a good one.
+  try {
+    _servidor = Servidor.de(_serverArg(arguments));
+  } on ArgumentError catch (e) {
+    stderr.writeln('Servidor inválido: ${e.message}');
+    exit(1);
+  }
+
   final client = HttpClient()..connectionTimeout = const Duration(seconds: 30);
+
+  // Carries the OTHER version forward into this run's deploy — no crawl, one
+  // request to our own CDN. See `_carryForward` for why a failed fetch must
+  // abort rather than publish.
+  if (arguments.contains('--carry-forward')) {
+    await _carryForward(client);
+    return;
+  }
 
   // Rewrites the index from what is already on disk. The state file keeps
   // every attribute occurrence, so a change to `attributeRules` costs this
@@ -64,23 +145,34 @@ Future<void> main(List<String> arguments) async {
     final listing = await _fetchListing(client);
     stdout.writeln('${listing.length} personagens à venda.');
 
-    final MarketIndex publicado;
+    MarketIndex? publicado;
     try {
       publicado = await _fetchPublishedIndex(client);
     } on PublishedIndexUnavailable catch (e) {
-      // Refusing to write beats writing a reset index: a stale index is still
-      // correct, and the site keeps serving it while the Worker's retry tries
-      // again. A reset index would look exactly like a working one and erase
-      // every character's history in the same breath.
-      stderr.writeln(
-        'Não consegui ler o índice publicado ($e). Não vou escrever um novo '
-        'índice agora — isso apagaria a história de preço de todo mundo. '
-        'O site continua servindo o último índice bom.',
+      if (!e.notFound) {
+        // Refusing to write beats writing a reset index: a stale index is
+        // still correct, and the site keeps serving it while the Worker's
+        // retry tries again. A reset index would look exactly like a working
+        // one and erase every character's history in the same breath.
+        stderr.writeln(
+          'Não consegui ler o índice publicado ($e). Não vou escrever um '
+          'novo índice agora — isso apagaria a história de preço de todo '
+          'mundo. O site continua servindo o último índice bom.',
+        );
+        exit(1);
+      }
+      // A 404 here is this version's first-ever collection — there is no
+      // history to lose, only none to start. `null` is exactly what
+      // `avancarTodos`/`historyFromDe` already read as "nobody has ever been
+      // seen", so this is not a special case for them, only for this message.
+      stdout.writeln(
+        'Nenhum índice publicado para ${_servidor.chave} ainda ($e) — '
+        'primeira coleta desta versão, seguindo sem histórico.',
       );
-      exit(1);
+      publicado = null;
     }
 
-    final state = _CollectState.load(_statePath, resume: resume);
+    final state = _CollectState.load(_servidor.arquivoDoEstado, resume: resume);
     // Characters that left the market since the last run. Dropping them keeps
     // the state from growing forever and keeps the index describing the market
     // as it is now, not as it once was.
@@ -112,21 +204,9 @@ Future<void> main(List<String> arguments) async {
         state.markFailed(card.roleId);
         stdout.writeln('  ${card.roleId} ${card.name}: falhou');
       } else {
-        state.markDone(
-          card.roleId,
-          CollectedPage(
-            items: parseEquippedItems(page),
-            cards: parseEquippedCards(page),
-            sex: parseSex(page),
-            anecdotes: parseAnecdotes(page),
-            inventory: parseInventory(page),
-            realm: parseCelestialRealm(page) ?? '',
-            path: parsePath(page) ?? '',
-            runes: parseRunes(page),
-          ),
-        );
+        state.markDone(card.roleId, collectedPageFrom(_servidor, page));
       }
-      state.save(_statePath);
+      state.save(_servidor.arquivoDoEstado);
 
       _reportProgress(i + 1, pending.length, card.name);
       if (i + 1 < pending.length) await Future<void>.delayed(_politeDelay);
@@ -147,7 +227,7 @@ Future<List<ListingCard>> _fetchListing(HttpClient client) async {
   // the whole point of the run is that it takes a while anyway.
   String? body;
   for (var attempt = 1; attempt <= _listingAttempts; attempt++) {
-    body = await _get(client, '$_origin/$_server');
+    body = await _get(client, '${_servidor.origem}/${_servidor.chave}');
     if (body != null) break;
     if (attempt == _listingAttempts) break;
     stdout.writeln(
@@ -183,11 +263,32 @@ Future<List<ListingCard>> _fetchListing(HttpClient client) async {
 /// all, and it must never be treated the same way: `avancarTodos` reads
 /// `publicado == null` as "nobody has ever been seen" and would stamp
 /// `firstSeen` on every character alive, erasing the market's whole memory in
-/// one run. `main` catches this and refuses to write anything.
+/// one run. `main` catches this and refuses to write anything — except for
+/// [notFound], which is the one flavour it is safe to treat as that same
+/// `null`. See [notFound] for why.
 class PublishedIndexUnavailable implements Exception {
-  const PublishedIndexUnavailable(this.reason);
+  const PublishedIndexUnavailable(this.reason, {this.notFound = false});
 
   final String reason;
+
+  /// True when the request reached the server and it answered 404 — the
+  /// *bootstrap* case: this version has never published an index, because
+  /// nobody has collected it yet. That is a fact about the world, not an
+  /// outage, and it is exactly what `publicado == null` already means
+  /// everywhere downstream — `avancarTodos` starts everyone's history today,
+  /// `historyFromDe` stamps `historyFrom` to now. Before this field existed,
+  /// a 404 here and a 500 there looked identical, and both aborted: the first
+  /// `pw126` run could never complete (its own `--carry-forward` for pw187
+  /// has no problem, but `main()` fetching pw126's own not-yet-published
+  /// index would 404 and exit before writing anything), and the first `pw187`
+  /// run after merging this code would 404 on pw126's not-yet-published index
+  /// in the carry-forward step and freeze every deploy.
+  ///
+  /// Any other failure — a different status, a connection error, a body that
+  /// will not parse — leaves this `false`, and the caller must still abort:
+  /// those are the cases where an index genuinely exists and we simply could
+  /// not read it, and writing over it would erase real history.
+  final bool notFound;
 
   @override
   String toString() => reason;
@@ -198,9 +299,16 @@ class PublishedIndexUnavailable implements Exception {
 ///
 /// Pure — no network, no clock — so this is what a test exercises instead of
 /// a live fetch: a 200 with `{"formatVersion": 2, ...}` and no `historyFrom`
-/// is the genuine first run and must succeed; any other status, or a body
-/// `MarketIndex.fromJson` rejects, must throw.
+/// is the genuine first run and must succeed; a 404 is a bootstrap and throws
+/// with [PublishedIndexUnavailable.notFound] set; any other status, or a body
+/// `MarketIndex.fromJson` rejects, is an outage and throws without it.
 MarketIndex parsePublishedIndex(int statusCode, String body) {
+  if (statusCode == 404) {
+    throw const PublishedIndexUnavailable(
+      'respondeu 404 — esta versão nunca publicou um índice',
+      notFound: true,
+    );
+  }
   if (statusCode != 200) {
     throw PublishedIndexUnavailable('respondeu $statusCode');
   }
@@ -231,9 +339,7 @@ Future<MarketIndex> _fetchPublishedIndex(HttpClient client) async {
   final int statusCode;
   final String body;
   try {
-    final request = await client.getUrl(
-      Uri.parse('https://portalpw.net/market_index.json'),
-    );
+    final request = await client.getUrl(Uri.parse(_servidor.indicePublicado));
     request.headers.set(HttpHeaders.acceptEncodingHeader, 'gzip');
     final response = await request.close();
     statusCode = response.statusCode;
@@ -242,6 +348,71 @@ Future<MarketIndex> _fetchPublishedIndex(HttpClient client) async {
     throw PublishedIndexUnavailable('não deu para conectar: $e');
   }
   return parsePublishedIndex(statusCode, body);
+}
+
+/// Downloads `_servidor`'s own published index and writes it, unchanged, to
+/// `_servidor.arquivoDoIndice` — no crawl, no state file, one request.
+///
+/// **What this exists for:** one CI job alternates between the two versions,
+/// and a deploy publishes the whole site. A run that collected `pw126` still
+/// has to publish a `pw187` index, because the index files are gitignored —
+/// without this, that deploy would serve a site with the 1.8.7 market simply
+/// absent, erasing it rather than merely leaving it stale. So the workflow
+/// runs this once more, pointed at the version it did NOT collect, to carry
+/// that version's already-live index into this run's `web/` before building.
+///
+/// Reuses [_fetchPublishedIndex] rather than a second downloader — it is the
+/// same request the price-memory feature already makes, just aimed at
+/// whichever `Servidor` `--server` selected this time.
+///
+/// **A failed fetch aborts rather than writes nothing — unless the failure is
+/// a 404.** Exiting 1 on anything else is the same decision `main()` already
+/// takes when its own published index does not arrive: publishing without
+/// the carried-forward index would erase that market from the site, and a
+/// stale-but-present index is strictly better than that.
+///
+/// **A 404 is different: it means this version has never been published at
+/// all, which is the state of the world the moment this feature first
+/// merges.** Aborting on it would deadlock every run forever — the pw187 run
+/// that carries pw126 forward 404s and freezes the whole site's deploys, and
+/// the first pw126 run that could break that deadlock 404s on its own
+/// published index in `main()` before writing anything either. So a 404 here
+/// is logged and skipped rather than aborted: this run simply does not write
+/// that version's index, and the deploy publishes the version it DID collect
+/// without the other door yet existing. The moment either version has
+/// published once, every future 404 here is a genuine outage again — a
+/// published file does not un-publish itself — and the abort below still
+/// applies to that case exactly as before.
+Future<void> _carryForward(HttpClient client) async {
+  try {
+    final index = await _fetchPublishedIndex(client);
+    final file = File(_servidor.arquivoDoIndice)
+      ..parent.createSync(recursive: true);
+    file.writeAsStringSync(jsonEncode(index.toJson()));
+    escreverVersoes(index, _servidor);
+    stdout.writeln(
+      'Arrastado: ${_servidor.chave} (${index.characters.length} '
+      'personagens, coletado em ${index.collectedAt}) -> '
+      '${_servidor.arquivoDoIndice}',
+    );
+  } on PublishedIndexUnavailable catch (e) {
+    if (e.notFound) {
+      stdout.writeln(
+        '${_servidor.chave} nunca foi publicado ($e) — nada a arrastar '
+        'ainda. Este deploy sai sem aquela porta; ela aparece assim que a '
+        'primeira coleta dessa versão rodar.',
+      );
+      return;
+    }
+    stderr.writeln(
+      'Não consegui baixar o índice publicado de ${_servidor.chave} ($e). '
+      'Abortando sem publicar — publicar sem ele apagaria aquele mercado '
+      'do site.',
+    );
+    exit(1);
+  } finally {
+    client.close(force: true);
+  }
 }
 
 /// Reads `web/market_index.json` off disk — the index this program itself
@@ -254,7 +425,7 @@ Future<MarketIndex> _fetchPublishedIndex(HttpClient client) async {
 /// and a rebuild silently discarding it would be exactly the erasure this
 /// whole fix exists to prevent.
 MarketIndex? _readLocalIndex() {
-  final file = File(_outputPath);
+  final file = File(_servidor.arquivoDoIndice);
   if (!file.existsSync()) return null;
   return MarketIndex.fromJson(
     jsonDecode(file.readAsStringSync()) as Map<String, dynamic>,
@@ -268,10 +439,11 @@ Future<String?> _fetchDetail(
   required void Function() onBlocked,
 }) async {
   for (var attempt = 1; attempt <= _attemptsPerPage; attempt++) {
-    // `/details/$server/$id` — the form the listing's links use — answers 302
-    // and redirects here. Following it doubled the request count for the whole
-    // collection, and the rate limit counts redirects.
-    final body = await _get(client, '$_origin/$_server/details/$roleId');
+    // The canonical shape is per-version and inverted between them — see
+    // `Servidor.detalhe` for the measurement. Using the other form doubles
+    // the request count for the whole collection via a redirect (pw187) or
+    // answers 404 outright (pw126).
+    final body = await _get(client, _servidor.detalhe(roleId));
     if (body != null) return body;
 
     if (attempt == _attemptsPerPage) return null;
@@ -326,7 +498,7 @@ void _writeIndex(
   MarketIndex? publicado,
 }) {
   final builder = IndexBuilder(
-    server: _server,
+    server: _servidor.chave,
     collectedAt: DateTime.now().toUtc(),
   );
 
@@ -356,8 +528,10 @@ void _writeIndex(
   }
 
   final index = builder.build(historyFrom: historyFromDe(publicado, agora));
-  final file = File(_outputPath)..parent.createSync(recursive: true);
+  final file = File(_servidor.arquivoDoIndice)
+    ..parent.createSync(recursive: true);
   file.writeAsStringSync(jsonEncode(index.toJson()));
+  escreverVersoes(index, _servidor);
 
   // Realms the scale could not place. Eight of the ten tiers had never been
   // seen on a real sheet when the table was written, so a spelling nobody
@@ -450,6 +624,67 @@ void _writeIndex(
   }
 }
 
+const _arquivoVersoes = 'web/versoes.json';
+
+/// Writes [servidor]'s row into [arquivo] — **by merge, never by
+/// replacement**. One call collects one version's row only; rewriting the
+/// whole file would erase the other version's row, and the chooser screen
+/// would open a single door with nothing on screen saying the second one went
+/// missing.
+///
+/// A missing or unreadable file is treated as the first-ever run for every
+/// version, not refused: starting a fresh file is correct the first time this
+/// ever runs, and a corrupt file holding nothing but two small numbers must
+/// not stop a collection that has nothing to do with it.
+///
+/// **This is also what closes the CI gap the merge alone cannot.** The file
+/// is gitignored and nothing restores it between jobs, so a bare checkout
+/// never has the other version's row to merge with — the merge was correct
+/// and the environment it ran in was empty, and every CI deploy published a
+/// one-row file regardless. Both the normal collect path (`_writeIndex`,
+/// above) and `_carryForward` call this now, once each, on the SAME run: a
+/// run that collects `pw187` writes that row here directly, and the
+/// carry-forward step for `pw126` reads the file this just wrote and adds
+/// pw126's row from the index it just downloaded — no extra request, no
+/// reliance on the cache or on git. By the time the job reaches `Compilar`,
+/// both rows are on disk.
+///
+/// Takes [servidor] explicitly rather than reading the top-level `_servidor`
+/// so this is callable from a test without going through `main()` — see
+/// `test/tool/escrever_versoes_test.dart` for the merge test `versoes_test`
+/// never was (its "replace one version" case only exercised `Map`'s own
+/// `[]=`, not this function).
+void escreverVersoes(
+  MarketIndex index,
+  Servidor servidor, {
+  String arquivo = _arquivoVersoes,
+}) {
+  final file = File(arquivo);
+
+  var versoes = <String, VersaoResumo>{};
+  if (file.existsSync()) {
+    try {
+      versoes = versoesFromJson(
+        jsonDecode(file.readAsStringSync()) as Map<String, dynamic>,
+      );
+    } catch (e) {
+      stdout.writeln(
+        '  AVISO: não consegui ler $arquivo ($e); recomeçando do zero — a '
+        'linha da outra versão será perdida até a próxima coleta dela.',
+      );
+    }
+  }
+
+  versoes[servidor.chave] = VersaoResumo(
+    chave: servidor.chave,
+    nome: _nomesLegiveis[servidor.chave] ?? servidor.chave,
+    personagens: index.characters.length,
+    coletadoEm: index.collectedAt,
+  );
+
+  file.writeAsStringSync(jsonEncode(versoesToJson(versoes)));
+}
+
 void _reportEstimate(int pending) {
   if (pending == 0) {
     stdout.writeln('Nada novo a buscar. Reescrevendo o índice.');
@@ -483,7 +718,7 @@ void _reportSummary(
 
   stdout
     ..writeln('')
-    ..writeln('Índice escrito em $_outputPath')
+    ..writeln('Índice escrito em ${_servidor.arquivoDoIndice}')
     ..writeln('  lidos:    ${collected.length} de ${listing.length}')
     ..writeln('  falharam: ${state.failed.length}')
     ..writeln('  sem equipamento nenhum: $bare');
@@ -504,11 +739,11 @@ void _reportSummary(
 
 /// Rewrites `web/market_index.json` from the state file alone.
 void _rebuildFromState() {
-  final state = _CollectState.load(_statePath, resume: true);
+  final state = _CollectState.load(_servidor.arquivoDoEstado, resume: true);
   if (state.listing.isEmpty) {
     stderr.writeln(
-      'Não há coleta gravada em $_statePath para reconstruir. '
-      'Rode `dart run tool/collect.dart` primeiro.',
+      'Não há coleta gravada em ${_servidor.arquivoDoEstado} para '
+      'reconstruir. Rode `dart run tool/collect.dart` primeiro.',
     );
     exit(1);
   }

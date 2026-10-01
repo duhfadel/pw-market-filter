@@ -12,7 +12,6 @@ import '../../search/domain/search_query_url.dart';
 import '../../search/ui/search_state.dart';
 import '../../search/ui/search_view_model.dart';
 import '../domain/arte_da_classe.dart';
-import '../domain/tool.dart';
 import '../domain/visit_label.dart';
 import 'visit_counter_view_model.dart';
 import '../domain/community.dart';
@@ -25,10 +24,9 @@ import 'widgets/cartaz.dart';
 import 'widgets/destaques_view.dart';
 import 'widgets/discord_strip.dart';
 import 'widgets/news_section.dart';
-import 'widgets/tool_card.dart';
-import 'widgets/tool_navigation.dart';
 
-/// The Portal's front page: the mark, the Cartaz, the Destaques, and the menu.
+/// The Portal's front page: the mark, the Cartaz, the Destaques, Novidades,
+/// Streamers and Comunidade.
 ///
 /// It loads the market index like the filter does, and for the same reason it
 /// is worth the wait: the Cartaz and the Destaques are both drawn from it. The
@@ -36,8 +34,11 @@ import 'widgets/tool_navigation.dart';
 /// wait never blanks the fold — only the class-specific parts (the Cartaz's
 /// class and the six Destaques cards) wait on the load.
 ///
-/// The tool cards do not wait for it either. They are the menu, and a menu
-/// that appears a second late is a page that looks broken.
+/// **The tool cards that used to sit below the Destaques are gone.**
+/// `Cabecalho`'s pills, on every screen, already list the same tools and the
+/// same guide — a second navigation surface for the same set, on the same
+/// page, was the thing the owner called out on 01/10/2026: "não acho que
+/// valha a pena duplicar".
 /// One store for the whole page, built once.
 ///
 /// A fresh instance per rebuild would read `localStorage` on every frame,
@@ -189,18 +190,18 @@ class HomeView extends StatelessWidget {
                               );
                             },
                           ),
-                          SizedBox(height: large ? 32 : (wide ? 26 : 20)),
-                          _ComMargem(
-                            wide: wide,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _Menu(wide: wide),
-                                SizedBox(height: wide ? 6 : 4),
-                                const _Guias(),
-                              ],
-                            ),
-                          ),
+                          // The tool cards and the guide line used to sit
+                          // here, under a `FERRAMENTAS`/`GUIA` heading. They
+                          // left on 01/10/2026: `Cabecalho`'s pills, on every
+                          // screen, already list the same tools and the same
+                          // guide — a card sold them with art and a tagline,
+                          // a pill only lists them, but keeping both put two
+                          // navigation surfaces for one set on the same page,
+                          // one above the other. "não acho que valha a pena
+                          // duplicar" is the owner's own call, 01/10/2026. The
+                          // *novo* badge that lived on the Títulos card moved
+                          // to `GavetaItem`, the drawer row each pill opens —
+                          // the one place left that can still show it.
                           SizedBox(height: large ? 32 : (wide ? 26 : 20)),
                           _ComMargem(
                             // The teaser the bar's *Novidades* pill no longer
@@ -343,127 +344,7 @@ class _ComMargem extends StatelessWidget {
   );
 }
 
-/// The tools, under the first section's own heading — `secoesDaHome.first`,
-/// which is `Ferramentas`.
-///
-/// A grid rather than a list because it is meant to be scanned, not read: four
-/// cards side by side answer "what is here?" in one glance, where four
-/// full-width rows answer it in four.
-///
-/// **Only the first section gets this treatment.** Every section past it is
-/// a guide, and `_Guias` draws those instead — one full section header and a
-/// grid for the tools, one line each for the rest. Filed together under one
-/// undivided menu, the page said "here are four things"; split like this, it
-/// says "here are the tools, and here is what they explain".
-class _Menu extends StatelessWidget {
-  const _Menu({required this.wide});
-
-  final bool wide;
-
-  @override
-  Widget build(BuildContext context) {
-    final principal = secoesDaHome.first;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _Secao(nome: principal),
-        SizedBox(height: wide ? 12 : 10),
-        _Cards(tools: toolsDe(principal), wide: wide),
-      ],
-    );
-  }
-}
-
-/// The guides, one line each — not a second section.
-///
-/// A single card under a full section header with its own rule was more
-/// chrome than content: one entry does not earn a rule of its own. `GUIA`
-/// carries the same weight `_Secao`'s label does, just not stretched across
-/// the page.
-///
-/// Reads every section past the first (`secoesDaHome.skip(1)`) rather than a
-/// literal `'Guias'`, so a future second guide falls into the same line
-/// without this file changing — though today there is exactly one.
-class _Guias extends StatelessWidget {
-  const _Guias();
-
-  @override
-  Widget build(BuildContext context) {
-    final entradas = [
-      for (final secao in secoesDaHome.skip(1))
-        ...toolsDe(secao).where((t) => t.isReady),
-    ];
-    if (entradas.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [for (final tool in entradas) _LinhaDeGuia(tool: tool)],
-    );
-  }
-}
-
-/// One guide, as a single tappable row: the `GUIA` tag, the name and the
-/// tagline on one line, an arrow. No card, no border, no heading above it.
-class _LinhaDeGuia extends StatelessWidget {
-  const _LinhaDeGuia({required this.tool});
-
-  final Tool tool;
-
-  @override
-  Widget build(BuildContext context) => Material(
-    // The one exception to "no inline colours": transparent is the absence
-    // of a colour, not a choice of one.
-    color: Colors.transparent,
-    child: InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: () => abrirTool(context, tool),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            const Text(
-              'GUIA',
-              style: TextStyle(
-                color: PWColors.textMuted,
-                fontSize: 11,
-                letterSpacing: 1.6,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: tool.name,
-                      style: const TextStyle(
-                        color: PWColors.papel,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    TextSpan(text: ' — ${tool.tagline}'),
-                  ],
-                ),
-                style: const TextStyle(
-                  color: PWColors.textMuted,
-                  fontSize: 13,
-                  height: 1.4,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Icon(Icons.arrow_forward, size: 16, color: PWColors.accent),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-/// The rule above a group of cards, or above the Discord strip.
+/// The rule above the Comunidade section.
 class _Secao extends StatelessWidget {
   const _Secao({required this.nome});
 
@@ -485,61 +366,6 @@ class _Secao extends StatelessWidget {
       const Expanded(child: Divider(color: PWColors.border, height: 1)),
     ],
   );
-}
-
-class _Cards extends StatelessWidget {
-  const _Cards({required this.tools, required this.wide});
-
-  final List<Tool> tools;
-  final bool wide;
-
-  @override
-  Widget build(BuildContext context) {
-    if (!wide) {
-      return Column(
-        children: [
-          for (final tool in tools)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: ToolCard(tool: tool, wide: false),
-            ),
-        ],
-      );
-    }
-
-    return Column(
-      children: [
-        for (var i = 0; i < tools.length; i += 2)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 14),
-            // An odd tool at the end takes the whole row rather than half of
-            // it. Left at half width it sat beside an empty square, and an
-            // empty square in a grid reads as a card that failed to load — the
-            // full-width one reads as a decision.
-            child: i + 1 < tools.length
-                // `stretch` needs a bounded height to stretch to, and inside a
-                // shrink-wrapped list there is none: the cards were handed an
-                // infinite height and stopped painting their own background.
-                // IntrinsicHeight measures the taller card first, which is
-                // also what makes a pair line up when their taglines differ in
-                // length.
-                ? IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(child: ToolCard(tool: tools[i], wide: true)),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: ToolCard(tool: tools[i + 1], wide: true),
-                        ),
-                      ],
-                    ),
-                  )
-                : ToolCard(tool: tools[i], wide: true),
-          ),
-      ],
-    );
-  }
 }
 
 class _Footer extends StatelessWidget {

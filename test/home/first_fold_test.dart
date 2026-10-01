@@ -92,12 +92,14 @@ MockClient _semRede() => MockClient((_) async => http.Response('[]', 200));
 
 /// Pumps the front page and records every route it asks for.
 Future<List<String>> _pumpHome(WidgetTester tester) async {
-  // Taller than the default 800×600, and the reason is the harness rather than
-  // the page: in `flutter_test` every glyph is a square of the font size, so
-  // the front page measures far taller here than in any browser. At 600 the
-  // fold's own content landed off-screen and `tap` refused it — a failure
-  // about the test window, not about the layout.
-  tester.view.physicalSize = const Size(1100, 1400);
+  // Shorter than the front page's own content, on purpose — the wheel test
+  // needs something to scroll. The page lost most of its height on
+  // 01/10/2026 when the duplicate tool cards and guide line left it: at the
+  // old 1400 the whole page fit inside the window with nothing left to
+  // scroll, which silently stopped testing what this file is about. 900
+  // still clears the fold — `Buscar personagens` sits in the Cartaz, above
+  // everything that was removed — while leaving real scroll extent below it.
+  tester.view.physicalSize = const Size(1100, 900);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
 

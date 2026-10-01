@@ -274,6 +274,57 @@ class GavetaItem extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                // Both badges moved here on 01/10/2026, the day the front
+                // page's tool cards left — `ToolCard` used to carry them, and
+                // a badge nobody can see is a badge that does not exist. This
+                // drawer row is the one surface a tool still has.
+                if (tool.beta) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: PWColors.accent),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'BETA',
+                      style: TextStyle(
+                        color: PWColors.accent,
+                        fontSize: 9,
+                        letterSpacing: 0.8,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+                // Outlined where `novo` is filled, so the two never read as
+                // the same kind of news: one is an invitation, the other a
+                // caveat — the same contrast `ToolCard` drew.
+                if (tool.novoEm(DateTime.now())) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: PWColors.accent,
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                    child: const Text(
+                      'novo',
+                      style: TextStyle(
+                        color: PWColors.background,
+                        fontSize: 10,
+                        letterSpacing: 0.6,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
                 if (!ready) ...[
                   const SizedBox(width: 8),
                   Container(
@@ -300,9 +351,9 @@ class GavetaItem extends StatelessWidget {
             const SizedBox(height: 2),
             // *Títulos* alone says nothing to somebody who has never used
             // it — the tagline is what the tool actually gives, and it
-            // already lives on `Tool` for the card grid further down the
-            // page, so the drawer reads it rather than inventing a second
-            // description to keep in agreement with the first.
+            // already lives on `Tool` for this same row, so the drawer reads
+            // it rather than inventing a second description to keep in
+            // agreement with the first.
             Text(
               tool.tagline,
               style: const TextStyle(

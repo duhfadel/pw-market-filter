@@ -188,16 +188,22 @@ void main() {
   setUpAll(_carregarFontesReais);
 
   testWidgets('the sections come in the order the spec fixed', (tester) async {
-    await _pumpHome(tester);
+    // A market with real characters, so Destaques actually draws a section
+    // to place in the order — `_index` alone is empty by design and would
+    // leave this step silently skipped rather than checked.
+    await _pumpHome(tester, index: _indiceComDestaques);
 
     // `AoVivoStrip`'s own heading reads `STREAMERS AMIGOS`, not
     // `AO VIVO NA TWITCH` — verified against the widget itself, which is the
     // source of truth over any brief's recollection of it.
     final ordem = [
-      find.text('FERRAMENTAS'),
+      find.byKey(const Key('cabecalho-marca')),
+      find.byType(Cartaz),
+      find.byType(DestaquesView),
       find.text('NOVIDADES DO PORTAL'),
       find.text('STREAMERS AMIGOS'),
       find.text('COMUNIDADE'),
+      find.textContaining('Projeto de fã'),
     ].map((f) => tester.getTopLeft(f).dy).toList();
 
     expect(ordem, orderedEquals([...ordem]..sort()));
@@ -210,14 +216,31 @@ void main() {
     expect(find.text('COMUNIDADE'), findsOneWidget);
   });
 
-  testWidgets('the guides are a line, not a section', (tester) async {
-    // One card under a full section header with its own rule is more chrome
-    // than content.
-    await _pumpHome(tester);
+  testWidgets(
+    'the tool cards and the guide line are gone — the header pills are the '
+    'only menu now',
+    (tester) async {
+      // Decision of 01/10: "não acho que valha a pena duplicar". The cards
+      // sold the tools with art and a tagline; the header's pills (already
+      // proven in `menu_everywhere_test.dart`) list the same set. Keeping
+      // both put two navigation surfaces for one set of tools on the same
+      // page, one above the other.
+      await _pumpHome(tester);
 
-    expect(find.text('GUIAS'), findsNothing);
-    expect(find.text('GUIA'), findsOneWidget);
-  });
+      expect(find.text('FERRAMENTAS'), findsNothing);
+      expect(find.text('GUIAS'), findsNothing);
+      expect(find.text('GUIA'), findsNothing);
+      // The tagline that used to sit on the card, in the open — it survives
+      // only inside the header's drawer now, which `GavetaItem` renders on
+      // tap and not on load, so it must not be findable on a plain pump.
+      expect(
+        find.text(
+          'Busque seu próximo personagem por arma, cartas e atributos.',
+        ),
+        findsNothing,
+      );
+    },
+  );
 
   testWidgets(
     'the tablet band keeps the Cartaz and the Destaques on their compact '

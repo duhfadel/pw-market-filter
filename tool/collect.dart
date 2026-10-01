@@ -30,6 +30,7 @@ import 'package:pw_market_filter/market/card_combos.dart';
 import 'package:pw_market_filter/market/celestial_realm.dart';
 import 'package:pw_market_filter/market/counted_items.dart';
 import 'package:pw_market_filter/market/market_index.dart';
+import 'package:pw_market_filter/market/versoes.dart';
 
 /// The version being collected. `--server <chave>` picks one; `pw187` is the
 /// default so an unqualified run keeps its current behaviour. Everything that
@@ -37,6 +38,11 @@ import 'package:pw_market_filter/market/market_index.dart';
 /// `lib/collector/servidor.dart` for what varies between versions and why the
 /// detail URL shape is inverted between them.
 late final Servidor _servidor;
+
+/// What the version-chooser door calls each version. Kept here rather than
+/// on `Servidor` because it is the one thing about a version that is purely
+/// presentation — `Servidor` is addresses and file paths, this is a label.
+const _nomesLegiveis = <String, String>{'pw187': '1.8.7', 'pw126': '1.2.6'};
 const _userAgent =
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
     '(KHTML, like Gecko) Chrome/126.0 Safari/537.36';
@@ -386,6 +392,7 @@ void _writeIndex(
   final file = File(_servidor.arquivoDoIndice)
     ..parent.createSync(recursive: true);
   file.writeAsStringSync(jsonEncode(index.toJson()));
+  _escreverVersoes(index);
 
   // Realms the scale could not place. Eight of the ten tiers had never been
   // seen on a real sheet when the table was written, so a spelling nobody
@@ -476,6 +483,45 @@ void _writeIndex(
       'Se algum acabou de entrar na tabela, o par está errado.',
     );
   }
+}
+
+const _arquivoVersoes = 'web/versoes.json';
+
+/// Writes this run's row into [_arquivoVersoes] — **by merge, never by
+/// replacement**. A run collects one version only; rewriting the whole file
+/// would erase the other version's row, and the chooser screen would open a
+/// single door with nothing on screen saying the second one went missing.
+///
+/// A missing or unreadable file is treated as the first-ever run for every
+/// version, not refused: starting a fresh file is correct the first time this
+/// ever runs, and a corrupt file holding nothing but two small numbers must
+/// not stop a collection that has nothing to do with it.
+void _escreverVersoes(MarketIndex index) {
+  final file = File(_arquivoVersoes);
+
+  var versoes = <String, VersaoResumo>{};
+  if (file.existsSync()) {
+    try {
+      versoes = versoesFromJson(
+        jsonDecode(file.readAsStringSync()) as Map<String, dynamic>,
+      );
+    } catch (e) {
+      stdout.writeln(
+        '  AVISO: não consegui ler $_arquivoVersoes ($e); recomeçando do '
+        'zero — a linha da outra versão será perdida até a próxima coleta '
+        'dela.',
+      );
+    }
+  }
+
+  versoes[_servidor.chave] = VersaoResumo(
+    chave: _servidor.chave,
+    nome: _nomesLegiveis[_servidor.chave] ?? _servidor.chave,
+    personagens: index.characters.length,
+    coletadoEm: index.collectedAt,
+  );
+
+  file.writeAsStringSync(jsonEncode(versoesToJson(versoes)));
 }
 
 void _reportEstimate(int pending) {

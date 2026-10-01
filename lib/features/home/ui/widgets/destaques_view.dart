@@ -106,26 +106,36 @@ class _Carta extends StatelessWidget {
           width: cor == null ? 1 : 1.5,
         ),
       ),
-      child: InkWell(
-        onTap: () => onAbrir(destaque.busca),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // A class with no art draws the plain ground, never a borrowed
-            // face — the same silent fallback `arteVerticalDaClasse` itself
-            // makes by returning null.
-            if (arte != null)
-              Image.asset(
-                arte,
-                fit: BoxFit.cover,
-                alignment: const Alignment(0, -0.76),
-                errorBuilder: (_, _, _) => const SizedBox.shrink(),
-              ),
-            const _Veu(),
-            if (destaque.selo != null) _Selo(texto: destaque.selo!),
-            _Rodape(destaque: destaque),
-          ],
-        ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // A class with no art draws the plain ground, never a borrowed
+          // face — the same silent fallback `arteVerticalDaClasse` itself
+          // makes by returning null.
+          if (arte != null)
+            Image.asset(
+              arte,
+              fit: BoxFit.cover,
+              alignment: const Alignment(0, -0.76),
+              errorBuilder: (_, _, _) => const SizedBox.shrink(),
+            ),
+          const _Veu(),
+          if (destaque.selo != null) _Selo(texto: destaque.selo!),
+          _Rodape(destaque: destaque),
+          // The `InkWell` on top rather than wrapping the `Stack`: an
+          // `InkWell` paints its splash on the nearest `Material` ancestor,
+          // which is the `Card` itself here — *underneath* every child
+          // painted after it, the full-bleed `Image` included. A card that
+          // is entirely a link gave no visible press feedback for it. This
+          // `Material` is its own ink surface, layered above the art and the
+          // footer, so the splash is seen rather than hidden behind them.
+          Positioned.fill(
+            child: Material(
+              type: MaterialType.transparency,
+              child: InkWell(onTap: () => onAbrir(destaque.busca)),
+            ),
+          ),
+        ],
       ),
     );
   }

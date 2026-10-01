@@ -114,11 +114,38 @@ void main() {
   });
 
   testWidgets("tapping a card asks for that card's search", (tester) async {
-    SearchQuery? pedida;
-    await _montar(tester, onAbrir: (q) => pedida = q);
+    // `expect(pedida, isNotNull)` alone would stay green even if every card
+    // handed back the same query — a refactor that passed
+    // `destaques.first.busca` to all of them, or that swapped two cards'
+    // queries, would pass that bar undetected. `SearchQuery` has no
+    // `operator ==`, so two cards are told apart by what each query actually
+    // asks rather than by identity: card 0 ("O mais barato") is the plain,
+    // criterion-less query every card starts from; card 1 ("Arma de 70 mais
+    // barata") is the one query here that names an attribute at all, and it
+    // has to be the right one.
+    final index = indiceDeTeste();
+    final nivelDeAtaque = index.attributes.indexOf('Nível de Ataque');
 
-    await tester.tap(find.byType(InkWell).first);
-    expect(pedida, isNotNull);
+    SearchQuery? pedida;
+    await _montar(tester, index: index, onAbrir: (q) => pedida = q);
+
+    await tester.tap(find.byType(InkWell).at(0));
+    final primeira = pedida;
+    expect(primeira, isNotNull);
+    expect(primeira!.criteria, isEmpty);
+
+    await tester.tap(find.byType(InkWell).at(1));
+    final segunda = pedida;
+    expect(segunda, isNotNull);
+    expect(segunda!.criteria, hasLength(1));
+    expect(segunda.criteria.single.attributeId, nivelDeAtaque);
+    expect(segunda.criteria.single.minimum, 70);
+
+    expect(
+      primeira,
+      isNot(same(segunda)),
+      reason: "two distinct cards must not hand back the same query object",
+    );
   });
 
   testWidgets('an empty market draws no section at all', (tester) async {

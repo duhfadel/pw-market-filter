@@ -2,9 +2,23 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pw_market_filter/collector/atributos_126.dart';
 import 'package:pw_market_filter/collector/detail_parser_126.dart';
 
 void main() {
+  test(
+    'the deliberately untranslated fields never gain a label by accident',
+    () {
+      // `naoTraduzidos126` is read by nothing else — `_translateAttributes`
+      // excludes by construction, iterating only `atributos126`. Without
+      // this test it was documentation nobody enforced: a column added to
+      // `atributos126` under the same key `naoTraduzidos126` names would
+      // silently start printing a number for a field nobody has confirmed
+      // the meaning of.
+      expect(atributos126.keys.toSet().intersection(naoTraduzidos126), isEmpty);
+    },
+  );
+
   // role 229217, saved 01/10/2026. Eleven worn slots, with six interchangeable
   // weapons sitting unworn in the same `Equipamento` tab — the trap this file
   // exists to guard against, the same shape as 1.8.7's spares.
@@ -32,11 +46,15 @@ void main() {
   });
 
   test('the attributes carry our labels, resolved from the JSON', () {
+    // The exact count, not `isNotEmpty` — this repository has a recorded
+    // incident where fourteen items came back as one and the loose
+    // assertion stayed green. Measured on this fixture: four of the eleven
+    // worn pieces carry elemental resistance.
     final itens = parseEquippedItems126(arqueiro);
     final comResistencia = itens.where(
       (i) => i.attributes.containsKey('Resistência ao fogo'),
     );
-    expect(comResistencia, isNotEmpty);
+    expect(comResistencia, hasLength(4));
     // Every value is a real number off the JSON, never a placeholder.
     for (final i in comResistencia) {
       expect(i.attributes['Resistência ao fogo']!.single, greaterThan(0));

@@ -4,7 +4,7 @@ import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html_parser;
 
 import 'atributos_126.dart';
-import 'detail_parser.dart' show ParsedItem;
+import 'detail_parser.dart' show ParsedItem, parseSex;
 
 final _slotPattern = RegExp(r'slot-(\d+)');
 final _gradePattern = RegExp(r'grade-(\d+)');
@@ -65,10 +65,13 @@ List<ParsedItem> parseEquippedItems126(String html) {
 
 /// `Masculino` or `Feminino`, empty when the page does not say.
 ///
-/// Read off the same `.character-info--list` / `.skill-desc` / `.value`
-/// shape 1.8.7 uses — the two versions' character sheets share this markup.
-String parseSex126(String html) =>
-    _sheetValue126(html_parser.parse(html), 'Sexo') ?? '';
+/// Delegates straight to [parseSex] — both versions' character sheets share
+/// the exact `.character-info--list` / `.skill-desc` / `.value` shape,
+/// confirmed on both 1.2.6 fixtures. Kept as its own name, rather than wiring
+/// `Servidor.sexo` to [parseSex] for both versions, so the day the sheets
+/// diverge there is one place to change and not every call site that reads a
+/// character's sex.
+String parseSex126(String html) => parseSex(html);
 
 /// The character's class, read off the header badge (`li.classname span`).
 /// Null when the page does not carry it.
@@ -79,14 +82,6 @@ String? parseClasse126(String html) {
       ?.text
       .trim();
   return (text == null || text.isEmpty) ? null : text;
-}
-
-String? _sheetValue126(Document document, String label) {
-  for (final row in document.querySelectorAll('.character-info--list')) {
-    if (row.querySelector('.skill-desc')?.text.trim() != label) continue;
-    return row.querySelector('.value')?.text.trim();
-  }
-  return null;
 }
 
 ParsedItem? _readDollItem(Element element) {

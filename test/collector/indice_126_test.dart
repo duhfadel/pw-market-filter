@@ -34,6 +34,18 @@ MarketIndex _indiceDasFixtures126() {
 }
 
 void main() {
+  test('the pw126 listing fixture has the real card count', () {
+    // `parseListing` here only ever does `singleWhere` for two role ids
+    // below, so a parser reading a tenth of the page would stay green
+    // without this — the same shape `listing_parser_test` pins 779 for
+    // pw187 to guard against. This listing now feeds every character's
+    // class, price and level in the 1.2.6 index.
+    final listing = parseListing(
+      File('test/fixtures/listing_pw126.html').readAsStringSync(),
+    );
+    expect(listing, hasLength(1308));
+  });
+
   test(
     'an index built from the 1.2.6 fixtures carries our attribute names',
     () {

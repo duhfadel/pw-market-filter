@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pw_market_filter/collector/detail_parser.dart';
+import 'package:pw_market_filter/collector/detail_parser_126.dart';
 import 'package:pw_market_filter/collector/servidor.dart';
 
 void main() {
@@ -56,15 +58,26 @@ void main() {
     );
   });
 
-  test('each version carries its own origin and CSS prefix', () {
+  test('each version carries its own origin', () {
     final pw187 = Servidor.de('pw187');
     expect(pw187.chave, 'pw187');
     expect(pw187.origem, 'https://marketplace.theclassic.games');
-    expect(pw187.prefixoCss, 'pw187-');
 
     final pw126 = Servidor.de('pw126');
     expect(pw126.chave, 'pw126');
     expect(pw126.origem, 'https://marketplace.theclassic.games');
-    expect(pw126.prefixoCss, 'pw126-');
+  });
+
+  test('each version wires its own item and sex parsers', () {
+    // This is the seam BLOCKER B closed: before it, `tool/collect.dart`
+    // called the 1.8.7 parser for every version, and a `--server pw126`
+    // collection wrote eleven worn items with zero attributes each,
+    // silently. Function identity is enough to prove the wiring — the
+    // parsers' own behaviour is pinned in `detail_parser_test.dart` and
+    // `detail_parser_126_test.dart`.
+    expect(Servidor.de('pw187').itensEquipados, parseEquippedItems);
+    expect(Servidor.de('pw126').itensEquipados, parseEquippedItems126);
+    expect(Servidor.de('pw187').sexo, parseSex);
+    expect(Servidor.de('pw126').sexo, parseSex126);
   });
 }

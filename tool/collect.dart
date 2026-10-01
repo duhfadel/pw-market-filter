@@ -18,9 +18,11 @@
 // to come from what is already live or the deploy would erase that market —
 // the index files are gitignored. See `_carryForward` below.
 //
-// `--server` is the only thing that varies by version so far — the parser
-// is still the 1.8.7 one, so `--server pw126` collects garbage today. That is
-// `lib/collector/servidor.dart`'s seam to grow into, not this file's.
+// `--server` selects the whole per-version profile, including which parser
+// reads the worn items — `lib/collector/servidor.dart`'s `itensEquipados` and
+// `sexo` fields. This file never names `parseEquippedItems` or
+// `parseEquippedItems126` itself; it only ever calls through `_servidor`, so
+// there is exactly one place that decides which page shape to expect.
 //
 // It is slow on purpose. Four concurrent workers earned an IP block that
 // outlived the run by more than twenty minutes, refusing even a single
@@ -80,6 +82,33 @@ String _serverArg(List<String> arguments) {
   }
   return 'pw187';
 }
+
+/// Reads one detail page into a [CollectedPage], through whichever parsers
+/// [servidor] names for the worn items and the sex row.
+///
+/// This is the one seam `main`'s per-character loop calls — pulled out to a
+/// public top-level function so a test can prove the 1.2.6 parser is actually
+/// wired into the production path, rather than only into its own unit tests.
+/// See `test/tool/collect_servidor_test.dart`: it is what caught the parser
+/// being built, tested and never called.
+///
+/// The other six readers — cards, anecdotes, inventory, realm, path, runes —
+/// are not yet per-version: nobody has written a 1.2.6 counterpart, and their
+/// 1.8.7 selectors (`.pw187-anecdote-summary`, `.pw187-rune-pair`, …) simply
+/// find nothing on a 1.2.6 page, the same way they find nothing on a 1.8.7
+/// page that carries none of those panels. That is a gap in scope, not a
+/// silent wrong answer — unlike the items, which were the whole point.
+CollectedPage collectedPageFrom(Servidor servidor, String page) =>
+    CollectedPage(
+      items: servidor.itensEquipados(page),
+      cards: parseEquippedCards(page),
+      sex: servidor.sexo(page),
+      anecdotes: parseAnecdotes(page),
+      inventory: parseInventory(page),
+      realm: parseCelestialRealm(page) ?? '',
+      path: parsePath(page) ?? '',
+      runes: parseRunes(page),
+    );
 
 Future<void> main(List<String> arguments) async {
   final resume = arguments.contains('--resume');
@@ -164,19 +193,7 @@ Future<void> main(List<String> arguments) async {
         state.markFailed(card.roleId);
         stdout.writeln('  ${card.roleId} ${card.name}: falhou');
       } else {
-        state.markDone(
-          card.roleId,
-          CollectedPage(
-            items: parseEquippedItems(page),
-            cards: parseEquippedCards(page),
-            sex: parseSex(page),
-            anecdotes: parseAnecdotes(page),
-            inventory: parseInventory(page),
-            realm: parseCelestialRealm(page) ?? '',
-            path: parsePath(page) ?? '',
-            runes: parseRunes(page),
-          ),
-        );
+        state.markDone(card.roleId, collectedPageFrom(_servidor, page));
       }
       state.save(_servidor.arquivoDoEstado);
 

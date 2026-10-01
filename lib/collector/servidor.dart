@@ -1,3 +1,6 @@
+import 'detail_parser.dart' show ParsedItem, parseEquippedItems, parseSex;
+import 'detail_parser_126.dart' show parseEquippedItems126, parseSex126;
+
 /// The per-version profile of a Classic PW marketplace.
 ///
 /// Pure Dart, no `dart:io` — it lives in `lib/collector/` so the tests can
@@ -10,7 +13,8 @@ class Servidor {
     required this.arquivoDoIndice,
     required this.arquivoDoEstado,
     required this.indicePublicado,
-    required this.prefixoCss,
+    required this.itensEquipados,
+    required this.sexo,
     required this._detalhe,
   });
 
@@ -43,8 +47,19 @@ class Servidor {
   /// would error to say so.
   final String indicePublicado;
 
-  /// The CSS class prefix this version's pages use — `pw187-`, `pw126-`.
-  final String prefixoCss;
+  /// This version's own parser for the worn items — the whole reason the two
+  /// versions are kept apart at all. Wiring this per version, rather than
+  /// hard-coding the 1.8.7 parser at the one call site in `tool/collect.dart`,
+  /// is what makes `--server pw126` collect attributes instead of eleven bare
+  /// items: see `detail_parser_126.dart`'s `parseEquippedItems126` for what a
+  /// 1.2.6 page requires that a 1.8.7 one does not.
+  final List<ParsedItem> Function(String html) itensEquipados;
+
+  /// This version's own reader for the `Sexo` row. Both read the same
+  /// `.character-info--list` shape today — `parseSex126` says so in its own
+  /// docstring — but it is still per-version so a future divergence costs a
+  /// change here, not a hunt through `tool/collect.dart`.
+  final String Function(String html) sexo;
 
   final String Function(int roleId) _detalhe;
 
@@ -68,7 +83,8 @@ class Servidor {
       arquivoDoIndice: 'web/market_index.json',
       arquivoDoEstado: 'tool/.collect_state.json',
       indicePublicado: 'https://portalpw.net/market_index.json',
-      prefixoCss: 'pw187-',
+      itensEquipados: parseEquippedItems,
+      sexo: parseSex,
       detalhe: (roleId) => '$_origem/pw187/details/$roleId',
     ),
     'pw126': Servidor._(
@@ -77,7 +93,8 @@ class Servidor {
       arquivoDoIndice: 'web/market_index_126.json',
       arquivoDoEstado: 'tool/.collect_state_126.json',
       indicePublicado: 'https://portalpw.net/market_index_126.json',
-      prefixoCss: 'pw126-',
+      itensEquipados: parseEquippedItems126,
+      sexo: parseSex126,
       detalhe: (roleId) => '$_origem/details/pw126/$roleId',
     ),
   };

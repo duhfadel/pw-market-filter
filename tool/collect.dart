@@ -3,10 +3,20 @@
 //   dart run tool/collect.dart                     # pw187, from scratch
 //   dart run tool/collect.dart --resume             # continue an interrupted run
 //   dart run tool/collect.dart --server pw126       # collect the other version
+//   dart run tool/collect.dart --server pw126 --carry-forward
+//                                                    # fetch pw126's own
+//                                                    # published index and
+//                                                    # write it to disk —
+//                                                    # no crawl at all
 //
 // This is the only file allowed to touch the network or the disk. Everything
 // it calls lives in `lib/collector/` and is pure Dart, so the tests can run it
 // and the web app can share its model.
+//
+// `--carry-forward` exists for CI alone. One workflow run collects one
+// version and deploys the whole site, so the version it did NOT collect has
+// to come from what is already live or the deploy would erase that market —
+// the index files are gitignored. See `_carryForward` below.
 //
 // `--server` is the only thing that varies by version so far — the parser
 // is still the 1.8.7 one, so `--server pw126` collects garbage today. That is
@@ -84,6 +94,14 @@ Future<void> main(List<String> arguments) async {
   }
 
   final client = HttpClient()..connectionTimeout = const Duration(seconds: 30);
+
+  // Carries the OTHER version forward into this run's deploy — no crawl, one
+  // request to our own CDN. See `_carryForward` for why a failed fetch must
+  // abort rather than publish.
+  if (arguments.contains('--carry-forward')) {
+    await _carryForward(client);
+    return;
+  }
 
   // Rewrites the index from what is already on disk. The state file keeps
   // every attribute occurrence, so a change to `attributeRules` costs this
@@ -274,6 +292,50 @@ Future<MarketIndex> _fetchPublishedIndex(HttpClient client) async {
     throw PublishedIndexUnavailable('não deu para conectar: $e');
   }
   return parsePublishedIndex(statusCode, body);
+}
+
+/// Downloads `_servidor`'s own published index and writes it, unchanged, to
+/// `_servidor.arquivoDoIndice` — no crawl, no state file, one request.
+///
+/// **What this exists for:** one CI job alternates between the two versions,
+/// and a deploy publishes the whole site. A run that collected `pw126` still
+/// has to publish a `pw187` index, because the index files are gitignored —
+/// without this, that deploy would serve a site with the 1.8.7 market simply
+/// absent, erasing it rather than merely leaving it stale. So the workflow
+/// runs this once more, pointed at the version it did NOT collect, to carry
+/// that version's already-live index into this run's `web/` before building.
+///
+/// Reuses [_fetchPublishedIndex] rather than a second downloader — it is the
+/// same request the price-memory feature already makes, just aimed at
+/// whichever `Servidor` `--server` selected this time.
+///
+/// **A failed fetch aborts rather than writes nothing.** Exiting 1 here is
+/// the same decision `main()` already takes when its own published index
+/// does not arrive (see the `try`/`on PublishedIndexUnavailable` block
+/// above): publishing without the carried-forward index would erase that
+/// market from the site, and a stale-but-present index is strictly better
+/// than that.
+Future<void> _carryForward(HttpClient client) async {
+  try {
+    final index = await _fetchPublishedIndex(client);
+    final file = File(_servidor.arquivoDoIndice)
+      ..parent.createSync(recursive: true);
+    file.writeAsStringSync(jsonEncode(index.toJson()));
+    stdout.writeln(
+      'Arrastado: ${_servidor.chave} (${index.characters.length} '
+      'personagens, coletado em ${index.collectedAt}) -> '
+      '${_servidor.arquivoDoIndice}',
+    );
+  } on PublishedIndexUnavailable catch (e) {
+    stderr.writeln(
+      'Não consegui baixar o índice publicado de ${_servidor.chave} ($e). '
+      'Abortando sem publicar — publicar sem ele apagaria aquele mercado '
+      'do site.',
+    );
+    exit(1);
+  } finally {
+    client.close(force: true);
+  }
 }
 
 /// Reads `web/market_index.json` off disk — the index this program itself

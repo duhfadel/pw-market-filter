@@ -6,7 +6,8 @@ que vale ter medido: pedindo `*/20`, entregou de **45 minutos a 12 horas** entre
 público e minutos ilimitados. O GitHub simplesmente não disparava.
 
 Este Worker tira o relógio das mãos dele. Acorda a cada 30 minutos e pede a
-Action pela API.
+Action pela API — alternando entre as duas versões do mercado, uma por
+disparo. Ver "O quarto trabalho" abaixo.
 
 ## O que você precisa fazer uma vez
 
@@ -139,8 +140,9 @@ Por isso o Worker tem **um segundo gatilho, `13 4 * * *`**, que chama
 
 - **Ele é um gatilho separado de propósito.** Se o ping morasse dentro da
   coleta, ele iria a zero junto com ela no dia em que o site fechasse — que é
-  exatamente quando ele mais importa. Ao fechar o site, mexe-se só no
-  `7,37 * * * *`.
+  exatamente quando ele mais importa. Ao fechar o site, mexe-se só nas duas
+  entradas de coleta, `7 * * * *` e `37 * * * *` — as duas juntas, nunca só
+  uma: publicar um mercado e esconder o outro não é fechar, é meio fechar.
 - **É `register_visit` por decisão do dono, ciente do custo:** soma uma visita
   por dia ao contador, uns 365 por ano. `visit_total()` faria o mesmo serviço
   sem escrever nada, e trocar é uma palavra no `worker.js`.
@@ -154,6 +156,45 @@ subir com `wrangler dev --test-scheduled` e uma cópia do Worker com a chamada
 ao GitHub trocada por um log: o cron da coleta não tocou no Supabase, e o do
 Supabase não tocou no GitHub.
 
+## O quarto trabalho: alternar entre as duas versões
+
+Dois mercados, dois horários: `7 * * * *` dispara o 1.8.7 e `37 * * * *`
+dispara o 1.2.6. Cada versão refresca de hora em hora; a cadência externa de
+disparos continua a mesma de antes, um a cada trinta minutos — só que agora
+alternando qual versão sai em cada um, em vez de disparar a mesma versão
+quatro vezes por hora.
+
+`publish.yml` ganhou `inputs.server` para receber isso: o `POST` de disparo
+carrega `inputs: { server: 'pw187' }` ou `inputs: { server: 'pw126' }`,
+escolhido por `SERVIDOR_POR_CRON[event.cron]`. **`CRON_DA_COLETA_187` e
+`CRON_DA_COLETA_126` têm de bater, string a string, com as duas entradas de
+`crons` no `wrangler.toml`** — a mesma armadilha que já existia com um
+horário só, agora em dobro. Deixar um dos dois divergir faz aquele ramo nunca
+disparar, caindo calado no keep-alive do Supabase, sem nada no log dizendo
+por quê. Por isso o disparo bem-sucedido também loga — `coleta disparada:
+pw187` — e não só o recusado: com dois horários, o log é o único lugar que
+diz qual dos dois realmente saiu.
+
+**Uma corrida só colhe uma versão, nunca as duas — é o que a permissão
+comprou.** Despachar as duas no mesmo disparo dobraria de uma vez a carga
+sobre o marketplace deles. A corrida ainda publica o site inteiro: antes de
+compilar, `publish.yml` baixa o índice publicado da versão que **não**
+colheu e o escreve em `web/` (`dart run tool/collect.dart --carry-forward`,
+que reaproveita `_fetchPublishedIndex` — a mesma função que já existia para a
+memória de preço). Se esse download falhar, a corrida aborta sem publicar:
+publicar sem ele apagaria aquele mercado do site inteiro, não só o deixaria
+velho.
+
+**O redisparo depois de uma falha isolada tem de saber qual versão falhou,**
+ou perderia a corrida boa que acabou de rodar e repetiria a errada.
+`publish.yml` carrega a versão no próprio título da rodada —
+`run-name: Coletar e publicar — ${{ inputs.server || 'pw187' }}` — e a API do
+GitHub devolve esse texto computado em `display_title`: é o único lugar em
+que os `inputs` de um `workflow_dispatch` já disparado voltam legíveis depois
+do fato. `servidorDaRodada` lê esse título antes de redisparar; sem isso, a
+regra "uma falha isolada, nunca duas seguidas" continuaria certa no *quando*
+e errada no *quê*.
+
 ## O que este Worker não faz
 
 **Não tem endereço público.** `workers_dev = false` no `wrangler.toml` é
@@ -164,6 +205,10 @@ IP por mais de uma hora quando é maltratado. A única porta é o cron.
 **Não faz coleta nenhuma.** Ele só bate na API do GitHub. Toda a lógica
 continua em `tool/collect.dart`, rodando no runner, com o estado no cache.
 
-**Não tenta de novo quando falha.** Um disparo perdido custa meia hora e a
-próxima tentativa resolve; repetir na hora só arrisca dois runs concorrentes
-pelo mesmo grupo de concorrência.
+**Não tenta de novo quando falha.** Isto é sobre o `POST` de disparo em si
+falhar — não sobre a coleta falhar depois de disparada, que é o que
+`ressuscitarColeta` existe para cobrir. Um disparo perdido custa uma hora
+para aquela versão, a próxima vez que o horário dela voltar — meia hora era a
+conta de quando havia um horário só para as quatro batidas por hora de uma
+única versão — e a próxima tentativa resolve; repetir na hora só arrisca dois
+runs concorrentes pelo mesmo grupo de concorrência.

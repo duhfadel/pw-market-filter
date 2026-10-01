@@ -1,5 +1,10 @@
 name: Coletar e publicar
 
+# One version and then its name, so a failed run can be told apart from the
+# air: `display_title` is what `tool/cron/worker.js` reads to know which
+# market to redispatch after an isolated failure (see `ressuscitarColeta`).
+run-name: Coletar e publicar — ${{ inputs.server || 'pw187' }}
+
 # Every thirty minutes, at :07 and :37 — and the odd minutes are the point.
 #
 # **`schedule` is best effort, and the measurement is much worse than the
@@ -17,12 +22,28 @@ name: Coletar e publicar
 #
 # The collection date is on screen for exactly this reason, and it is what
 # tells a visitor the market went stale.
+#
+# **This fallback always names `pw187`.** `schedule` and `push` carry no
+# `inputs`, so `${{ inputs.server || 'pw187' }}` below falls back to the
+# version that has existed the longest and already has a public tool pointed
+# at it. The Worker's own two cron triggers are what alternate — see
+# `tool/cron/worker.js` — and this trigger is the slow, unreliable backstop
+# for the version that matters most if both go quiet.
 on:
   schedule:
     - cron: '7,22,37,52 * * * *'
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      server:
+        description: 'Qual mercado colher'
+        required: false
+        default: pw187
+        type: choice
+        options:
+          - pw187
+          - pw126
 
 permissions:
   contents: read
@@ -31,6 +52,13 @@ permissions:
 
 # Never two collections at once against the same site, and never a half-written
 # deploy. A run already in flight wins; the next schedule picks up its state.
+#
+# This still has to hold with two versions alternating: both pw187 and pw126
+# runs join the SAME group, on purpose — two concurrent `upload-pages-artifact`
+# calls collide on the Pages artifact (`Multiple artifacts named "github-pages"
+# were unexpectedly found`, recorded in CLAUDE.md), and a deploy that races
+# another deploy can publish half of each. One job, alternating, is the whole
+# point: see CLAUDE.md on why this is not two workflows.
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -38,7 +66,7 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    # A first run crawls all 770 pages at one request every 1.5 s. The rest
+    # A first run crawls every page at one request every 1.5 s. The rest
     # finish in under a minute.
     #
     # Seventy-five and not fifty because of 2026-08-19: the anecdotes and the
@@ -47,7 +75,18 @@ jobs:
     # crawling, plus analyze, test, build and deploy. If the job times out the
     # cache is never written and the next run starts from zero, so the ceiling
     # has to clear a full crawl with room to spare.
+    #
+    # Not raised for pw126 specifically: its listing is smaller than pw187's
+    # (measured 01/10/2026, see the spec), so pw187's own first-run arithmetic
+    # already covers it. If a first pw126 crawl ever needs more, raise this
+    # then, with the measurement that showed it — not in advance of one.
     timeout-minutes: 75
+
+    env:
+      # `inputs.server` only exists on a `workflow_dispatch`; `schedule` and
+      # `push` have no `inputs` at all, so this falls back to `pw187` for
+      # both — the version that already has a public tool pointed at it.
+      SERVIDOR: ${{ inputs.server || 'pw187' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -63,13 +102,22 @@ jobs:
       # What the collector already read. Without it every run would be a fresh
       # 28-minute crawl, which is both slow and rude to the site.
       #
+      # Both state files are listed, not just the one `$SERVIDOR` names this
+      # run. `actions/cache` restores whatever is in the archive regardless of
+      # which one this run touches, so listing only `pw187`'s file here would
+      # silently never cache `tool/.collect_state_126.json` — every pw126 run
+      # would then redo its full crawl, forever, with nothing on screen saying
+      # why `--resume` stopped resuming.
+      #
       # The key rotates so the cache is rewritten rather than appended to
       # (GitHub caches are immutable once written); restore-keys picks the most
       # recent previous one.
       - name: Restaurar estado da coleta
         uses: actions/cache@v4
         with:
-          path: tool/.collect_state.json
+          path: |
+            tool/.collect_state.json
+            tool/.collect_state_126.json
           key: collect-state-${{ github.run_id }}
           restore-keys: collect-state-
 
@@ -88,10 +136,27 @@ jobs:
       # ser visível no resumo da execução em vez de silencioso.
       - name: Coletar o mercado
         run: |
-          dart run tool/collect.dart --resume && exit 0
+          dart run tool/collect.dart --server "$SERVIDOR" --resume && exit 0
           echo "::warning::A coleta caiu; segunda tentativa. Se isto virar rotina, deixou de ser azar."
           sleep 20
-          dart run tool/collect.dart --resume
+          dart run tool/collect.dart --server "$SERVIDOR" --resume
+
+      # Um deploy publica o site inteiro, e esta corrida só colheu uma das
+      # duas versões — a outra tem de vir do que já está no ar, ou este deploy
+      # apagaria aquele mercado (os índices são gitignorados). Reaproveita
+      # `_fetchPublishedIndex`, a mesma função que a memória de preço já usa
+      # para ler o índice publicado; ver `tool/collect.dart` para o `--carry-
+      # forward` e para a mesma decisão de abortar sem publicar que `main()`
+      # já toma quando o seu PRÓPRIO índice publicado não vem.
+      #
+      # Vem logo depois da coleta, antes dos ícones e dos testes: numa corrida
+      # do pw126, `web/market_index.json` só existe a partir deste passo, e
+      # `presets_test` lê esse arquivo — o mercado real do 1.8.7.
+      - name: Arrastar a versão que esta corrida não colheu
+        run: |
+          OUTRA=pw126
+          if [ "$SERVIDOR" = "pw126" ]; then OUTRA=pw187; fi
+          dart run tool/collect.dart --server "$OUTRA" --carry-forward
 
       # Skips everything already committed, so this costs nothing unless an
       # item appeared that nobody had worn before.

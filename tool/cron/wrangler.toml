@@ -7,11 +7,24 @@ compatibility_date = "2026-08-29"
 # para quem soubesse a URL, e cada coleta são ~1000 requisições ao marketplace.
 workers_dev = false
 
-# Dois gatilhos, e a separação é o ponto.
+# Quatro gatilhos, e a separação é o ponto.
 #
-# `7,37` é a coleta: :07 e :37, os mesmos minutos que o workflow pede ao
-# GitHub, fora do topo da hora. **É esta linha que vai a `[]` quando o site
-# fecha** — foi o que se fez entre 14 e 18/09.
+# **`7` e `37` são a coleta, um por versão.** `publish.yml` ganhou
+# `inputs.server` — uma corrida colhe `pw187` ou `pw126` e arrasta a outra do
+# que já está publicado (`tool/collect.dart --carry-forward`), então um
+# horário por versão é o que cobre os dois mercados sem dobrar a carga sobre
+# o site deles numa única corrida. `worker.js` tem de bater **string a
+# string** com estes dois — `CRON_DA_COLETA_187` e `CRON_DA_COLETA_126` — ou o
+# ramo daquela coleta nunca dispara e cai calado no keep-alive do Supabase.
+#
+# Cada versão refresca de hora em hora, não mais quatro vezes por hora para
+# uma só: antes de existir uma segunda versão o único cron de coleta era
+# `7,22,37,52` — quatro disparos por hora para o 187 sozinho. Era mais
+# frequente do que precisava, e dividir o mesmo orçamento de disparos entre
+# as duas versões é a troca certa.
+#
+# **São estas duas linhas que vão a `[]` quando o site fecha** — foi o que se
+# fez entre 14 e 18/09, quando só existia uma.
 #
 # `13 4` é o Supabase, e existe por causa do que aquele fechamento provou: com
 # o site fora do ar ninguém visita, ninguém chama o banco, e o projeto do plano
@@ -28,4 +41,4 @@ workers_dev = false
 # existir — o ping fica mesmo assim, porque é ele que segura o banco no dia em
 # que os streamers saírem da página.
 [triggers]
-crons = ["7,22,37,52 * * * *", "13 4 * * *", "*/5 * * * *"]
+crons = ["7 * * * *", "37 * * * *", "13 4 * * *", "*/5 * * * *"]

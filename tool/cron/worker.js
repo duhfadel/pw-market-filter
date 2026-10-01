@@ -15,9 +15,29 @@
 const REPO = 'duhfadel/pw-market-filter';
 const WORKFLOW = 'publish.yml';
 
-// O cron da coleta. O outro, o do Supabase, é qualquer coisa que não seja
-// este — comparar contra o que acorda o Worker é o que separa as duas tarefas.
-const CRON_DA_COLETA = '7,22,37,52 * * * *';
+// Dois horários da coleta agora, um por versão — de hora em hora cada, não
+// mais quatro vezes por hora para uma só. `publish.yml` ganhou `inputs.server`
+// (padrão `pw187`) justamente para isto: uma corrida colhe uma versão e
+// arrasta a outra do que já está no ar (ver `tool/collect.dart --carry-
+// forward` e o passo "Arrastar a versão que esta corrida não colheu"), então
+// alternar os dois horários é o que cobre os dois mercados sem dobrar a
+// carga sobre o site deles.
+//
+// **`CRON_DA_COLETA_187` e `CRON_DA_COLETA_126` são comparados string a
+// string com o `wrangler.toml`.** Deixar qualquer um dos dois divergir faz o
+// ramo daquela coleta nunca disparar, caindo calado no keep-alive do
+// Supabase — o `wrangler.toml` avisa disso e agora há duas formas de
+// acontecer em vez de uma.
+const CRON_DA_COLETA_187 = '7 * * * *';
+const CRON_DA_COLETA_126 = '37 * * * *';
+
+// Qual versão cada horário dispara. Uma tabela em vez de um `if/else if` por
+// uma razão prática: um terceiro horário — para um terceiro mercado — vira
+// uma linha aqui em vez de mais um lugar para comparar string a string.
+const SERVIDOR_POR_CRON = {
+  [CRON_DA_COLETA_187]: 'pw187',
+  [CRON_DA_COLETA_126]: 'pw126',
+};
 
 // O banco que guarda o contador de visitas e os donos dos territórios.
 //
@@ -75,13 +95,16 @@ export default {
     if (event.cron === CRON_DA_TWITCH) {
       await atualizarQuemEstaAoVivo(env);
       await lerAsNovidades(env);
-      // De carona nesta batida: uma coleta que quebrou esperava o próximo
-      // quarto de hora, e aqui a espera cai para cinco minutos.
+      // De carona nesta batida: uma coleta que quebrou esperava a próxima
+      // hora daquela versão, e aqui a espera cai para cinco minutos.
       await ressuscitarColeta(env);
       return;
     }
 
-    if (event.cron !== CRON_DA_COLETA) {
+    // Nem o cron do 187 nem o do 126: sobra para o keep-alive diário do
+    // Supabase, que é qualquer horário que não seja um dos de coleta.
+    const servidor = SERVIDOR_POR_CRON[event.cron];
+    if (!servidor) {
       await manterOBancoAcordado();
       return;
     }
@@ -92,17 +115,23 @@ export default {
       env,
       `/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`,
       'POST',
-      { ref: 'main' },
+      { ref: 'main', inputs: { server: servidor } },
     );
 
     // 204 é o sucesso aqui: o GitHub aceita o pedido e não devolve corpo.
     if (resposta.status !== 204) {
       // Cai no log do Worker (`wrangler tail`). Um disparo perdido não é
-      // urgência — a próxima meia hora tenta de novo, e a data da coleta no
+      // urgência — a próxima hora tenta de novo, e a data da coleta no
       // site é o que denuncia se pararem todos.
       console.error(
-        `disparo recusado: ${resposta.status} ${await resposta.text()}`,
+        `disparo recusado (${servidor}): ${resposta.status} ` +
+          `${await resposta.text()}`,
       );
+    } else {
+      // Qual versão disparou, sempre — não só no erro. Com um horário só
+      // isso era óbvio pelo relógio; com dois, o log é o único lugar que
+      // diz qual dos dois realmente saiu.
+      console.log(`coleta disparada: ${servidor}`);
     }
   },
 };
@@ -113,8 +142,9 @@ export default {
 // cada falha transformaria uma quebra persistente em doze corridas por hora
 // martelando o marketplace deles — exatamente o que o ritmo do coletor existe
 // para impedir. Duas falhas em sequência não são soluço: são problema, e
-// insistir piora. Aí o relógio de quinze minutos assume e a data da coleta no
-// site é o que denuncia.
+// insistir piora. Aí o relógio daquela versão assume — uma hora depois,
+// desde que os dois horários de coleta passaram a ser um por versão — e a
+// data da coleta no site é o que denuncia.
 //
 // Não há risco de disparar duas vezes pela mesma falha: assim que a nova
 // rodada nasce, a mais recente deixa de ser a que quebrou.
@@ -135,15 +165,31 @@ async function ressuscitarColeta(env) {
     return;
   }
 
+  // Redisparar a versão errada perderia a corrida boa que acabou de rodar e
+  // repetiria a que quebrou — então o redisparo tem de saber qual falhou, e
+  // não assumir `pw187` por hábito.
+  const servidor = servidorDaRodada(ultima);
   const disparo = await github(
     env,
     `/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`,
     'POST',
-    { ref: 'main' },
+    { ref: 'main', inputs: { server: servidor } },
   );
   console.log(
-    `rodada ${ultima.id} falhou; redisparo ${disparo.status}`,
+    `rodada ${ultima.id} (${servidor}) falhou; redisparo ${disparo.status}`,
   );
+}
+
+// Lê a versão de volta do título da rodada, em vez de assumir uma.
+//
+// `publish.yml` tem `run-name: Coletar e publicar — ${{ inputs.server ||
+// 'pw187' }}`, e a API devolve esse texto computado em `display_title` — é o
+// único lugar em que os `inputs` de um `workflow_dispatch` já disparado
+// ficam legíveis de volta. Sem isto, não haveria como distinguir "a rodada
+// do 187 falhou" de "a rodada do 126 falhou" depois do fato.
+function servidorDaRodada(rodada) {
+  const titulo = rodada.display_title || '';
+  return titulo.includes('pw126') ? 'pw126' : 'pw187';
 }
 
 // Cancela rodada que ficou presa na fila, antes de pedir a próxima.

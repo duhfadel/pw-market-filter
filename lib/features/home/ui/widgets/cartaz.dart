@@ -90,7 +90,7 @@ class _Arte extends StatelessWidget {
 }
 
 /// A vertical wash of `noite`, light at the top and heavier at the bottom —
-/// what seats the hero against the header above it and the Vitrine below.
+/// what seats the hero against the header above it and the Destaques below.
 class _LavagemVertical extends StatelessWidget {
   const _LavagemVertical();
 
@@ -170,9 +170,15 @@ class _Conteudo extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 14),
-      const SizedBox(
-        width: 430,
-        child: Text(
+      // 430 only at `wide`: fixed regardless of the flag, this box was never
+      // exercised below that width until the real page was pumped at phone
+      // size with a loaded index — `Cartaz` sits outside any `BlocBuilder`
+      // gate, so it renders at every width whether or not the market has
+      // loaded. `null` lets the text take whatever the narrow layout's own
+      // 342 px of content width actually is, instead of demanding 430 of it.
+      SizedBox(
+        width: wide ? 430 : null,
+        child: const Text(
           'Arma, cartas, relíquias, essências, runas — o que o marketplace '
           'guarda no inventário e não deixa procurar.',
           style: TextStyle(
@@ -188,16 +194,24 @@ class _Conteudo extends StatelessWidget {
         children: [
           FilledButton.icon(
             onPressed: aoBuscar,
-            icon: const Icon(Icons.search, size: 20),
+            icon: Icon(Icons.search, size: wide ? 20 : 18),
             label: const Text('Buscar personagens'),
             style: FilledButton.styleFrom(
               // The fill is gold because this is the call to action; the
               // label sits on it and must not be gold on gold.
               backgroundColor: PWColors.accent,
               foregroundColor: PWColors.noite,
-              padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
-              textStyle: const TextStyle(
-                fontSize: 16,
+              // Smaller at narrow: the same button at the wide padding and
+              // type size overflowed the 342 px the narrow layout actually
+              // has by 29 px, below `_twoColumnWidth` — never caught before
+              // because nothing had pumped `Cartaz` with `wide: false`
+              // inside the real page, only standalone at 1200 px.
+              padding: EdgeInsets.symmetric(
+                horizontal: wide ? 26 : 18,
+                vertical: wide ? 16 : 13,
+              ),
+              textStyle: TextStyle(
+                fontSize: wide ? 16 : 14,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.2,
               ),

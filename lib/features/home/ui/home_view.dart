@@ -7,6 +7,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../data/browser_memory.dart';
 import '../../../core/theme/pw_colors.dart';
 import '../../../market/market_index.dart';
+import '../../search/domain/search_query.dart';
+import '../../search/domain/search_query_url.dart';
 import '../../search/ui/search_state.dart';
 import '../../search/ui/search_view_model.dart';
 import '../domain/arte_da_classe.dart';
@@ -20,19 +22,19 @@ import 'novidades_view_model.dart';
 import 'widgets/ao_vivo_strip.dart';
 import 'widgets/cabecalho.dart';
 import 'widgets/cartaz.dart';
+import 'widgets/destaques_view.dart';
 import 'widgets/discord_strip.dart';
 import 'widgets/news_section.dart';
 import 'widgets/tool_card.dart';
 import 'widgets/tool_navigation.dart';
-import 'widgets/vitrine_view.dart';
 
-/// The Portal's front page: the mark, the Cartaz, the Vitrine, and the menu.
+/// The Portal's front page: the mark, the Cartaz, the Destaques, and the menu.
 ///
 /// It loads the market index like the filter does, and for the same reason it
-/// is worth the wait: the Cartaz and the Vitrine are both drawn from it. The
+/// is worth the wait: the Cartaz and the Destaques are both drawn from it. The
 /// Cartaz opens on a class's own art before a single number is known, so the
 /// wait never blanks the fold — only the class-specific parts (the Cartaz's
-/// class and the three Vitrine cards) wait on the load.
+/// class and the six Destaques cards) wait on the load.
 ///
 /// The tool cards do not wait for it either. They are the menu, and a menu
 /// that appears a second late is a page that looks broken.
@@ -45,21 +47,38 @@ final _memoriaDasNovidades = BrowserMemory.platform(
   'portal_pw_ultima_novidade',
 );
 
-/// Opens a character's own page on the real marketplace.
+/// Where the news section sits, so the bar's *Novidades* link can scroll to
+/// it rather than opening a drawer with nothing inside to list.
 ///
-/// The site already draws the character sheet well, so the Vitrine links out
-/// to it instead of rebuilding it — the same address and the same reasoning
-/// `CharacterCard._open` uses for the results grid.
-void _abrirPersonagem(MarketIndex index, MarketCharacter character) {
+/// A top-level singleton, not a field on [HomeView]: the widget is `const`
+/// and only ever one instance is mounted at a time — the same reasoning
+/// behind [_memoriaDasNovidades] above. A `GlobalKey` created inside `build`
+/// would be fine too as long as it travels with the closure that reads it,
+/// but it would also reset the panel's own open/closed state on every
+/// rebuild that recreates it, which a resize does.
+final _novidadesKey = GlobalKey();
+
+/// Scrolls the page to the news section. Does nothing before the first
+/// frame has attached [_novidadesKey] to anything, which is the state every
+/// widget test not about this link is in.
+void _abrirNovidades() {
+  final context = _novidadesKey.currentContext;
+  if (context == null) return;
   unawaited(
-    launchUrl(
-      Uri.parse(
-        'https://marketplace.theclassic.games/'
-        '${index.server}/details/${character.roleId}',
-      ),
-      mode: LaunchMode.externalApplication,
+    Scrollable.ensureVisible(
+      context,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
     ),
   );
+}
+
+/// Opens the filter already answering [query] — every Destaques card is a
+/// door into the search that produced it, encoded the same way a shared
+/// link is so the filter screen reads it back with `requestUrl`.
+void _abrirBusca(BuildContext context, MarketIndex index, SearchQuery query) {
+  final q = encodeQuery(query, index);
+  Navigator.of(context).pushNamed(q.isEmpty ? '/filtro' : '/filtro?$q');
 }
 
 class HomeView extends StatelessWidget {
@@ -100,7 +119,7 @@ class HomeView extends StatelessWidget {
             // headline and three cards: short enough that sitting in the
             // middle of the window looked composed rather than adrift.
             //
-            // The page has grown since — the Vitrine, the news panel — and on
+            // The page has grown since — the Destaques, the news panel — and on
             // a tall window the same rule opened a screen and a half of empty
             // sky above the logo before anything was readable. Vertical
             // centring is a rule about short pages, and this one stopped being
@@ -123,10 +142,10 @@ class HomeView extends StatelessWidget {
                     constraints: BoxConstraints(maxWidth: maxWidth),
                     // Vertical padding only, applied once for the whole
                     // column. Horizontal padding is per-section instead —
-                    // see `_ComMargem` — because the Cartaz and the Vitrine
-                    // carry their own, wider than the rest of the page, and
-                    // a shared side padding here would either pinch them or
-                    // leave every other section without one.
+                    // see `_ComMargem` — because the Cartaz bleeds to the
+                    // column's own edges, and a shared side padding here
+                    // would either pinch it or leave every other section
+                    // without one.
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: wide ? 44 : 28),
                       child: Column(
@@ -137,7 +156,10 @@ class HomeView extends StatelessWidget {
                         children: [
                           _ComMargem(
                             wide: wide,
-                            child: Cabecalho(wide: wide),
+                            child: Cabecalho(
+                              wide: wide,
+                              aoAbrirNovidades: _abrirNovidades,
+                            ),
                           ),
                           SizedBox(height: wide ? 22 : 16),
                           // **The Cartaz bleeds to the reading column's own
@@ -175,12 +197,16 @@ class HomeView extends StatelessWidget {
                                   ),
                                   if (ready != null) ...[
                                     SizedBox(height: wide ? 8 : 4),
-                                    VitrineView(
-                                      index: ready.index,
-                                      wide: large,
-                                      aoTocar: (character) => _abrirPersonagem(
-                                        ready.index,
-                                        character,
+                                    _ComMargem(
+                                      wide: wide,
+                                      child: DestaquesView(
+                                        index: ready.index,
+                                        wide: large,
+                                        onAbrir: (query) => _abrirBusca(
+                                          context,
+                                          ready.index,
+                                          query,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -202,6 +228,11 @@ class HomeView extends StatelessWidget {
                           ),
                           SizedBox(height: large ? 32 : (wide ? 26 : 20)),
                           _ComMargem(
+                            // `_novidadesKey` marks this as where the bar's
+                            // *Novidades* link scrolls to — a plain link
+                            // rather than a drawer, since there is nothing
+                            // under it to list.
+                            key: _novidadesKey,
                             wide: wide,
                             child:
                                 BlocBuilder<NovidadesViewModel, List<Novidade>>(
@@ -325,7 +356,7 @@ class _Aurora extends StatelessWidget {
 /// Cartaz along with the rest; wrapping each section individually is what
 /// lets the hero opt out.
 class _ComMargem extends StatelessWidget {
-  const _ComMargem({required this.wide, required this.child});
+  const _ComMargem({required this.wide, required this.child, super.key});
 
   final bool wide;
   final Widget child;

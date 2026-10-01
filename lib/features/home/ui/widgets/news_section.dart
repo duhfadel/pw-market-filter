@@ -163,7 +163,15 @@ class _NewsSectionState extends State<NewsSection> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
+              // `Wrap`, not `Row`: the label, the date and the dot have no
+              // flex between them, and at narrow widths with a long date
+              // string they ran 164 px past the 258 px this column actually
+              // has — never caught before because no test had pumped this
+              // panel closed, with a real entry, inside the real page at
+              // phone width. Wrapping to a second line costs nothing a
+              // `Column` above it was not already paying for.
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   // **Whose news.** A bare `NOVIDADES` sits a few hundred
                   // pixels under the Perfect World mark and reads as the

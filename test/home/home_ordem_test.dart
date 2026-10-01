@@ -15,10 +15,11 @@ import 'package:pw_market_filter/features/home/ui/home_view.dart';
 import 'package:pw_market_filter/features/home/ui/novidades_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/visit_counter_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/widgets/cartaz.dart';
-import 'package:pw_market_filter/features/home/ui/widgets/vitrine_view.dart';
+import 'package:pw_market_filter/features/home/ui/widgets/destaques_view.dart';
 import 'package:pw_market_filter/features/search/ui/search_view_model.dart';
 import 'package:pw_market_filter/market/index_repository.dart';
 import 'package:pw_market_filter/market/market_index.dart';
+import 'package:pw_market_filter/market/slot_names.dart';
 
 /// Where the assembled front page puts each section, top to bottom.
 ///
@@ -58,6 +59,50 @@ final _index = MarketIndex(
   characters: const [],
 );
 
+EquippedItem _arma({int ataque = 0, int defesa = 0}) => EquippedItem(
+  slot: weaponSlot,
+  itemId: 50206,
+  refine: 0,
+  stones: const [],
+  attributes: {0: ataque, 1: defesa},
+);
+
+MarketCharacter _personagem(
+  String nome,
+  int preco,
+  String classe, {
+  int ataque = 0,
+  int defesa = 0,
+}) => MarketCharacter(
+  roleId: nome.hashCode,
+  name: nome,
+  characterClass: classe,
+  occupation: 1,
+  level: 105,
+  price: preco,
+  fame: 0,
+  cultivation: 'Leal',
+  equipped: [_arma(ataque: ataque, defesa: defesa)],
+);
+
+/// Five carriers of five distinct classes, so the Destaques actually draw
+/// cards here — `_index` above is empty on purpose for the tests that only
+/// care about section order, but the tablet-band and phone checks below need
+/// real cards to measure a real grid.
+final _indiceComDestaques = MarketIndex(
+  server: 'pw187',
+  collectedAt: DateTime.utc(2026, 9, 30),
+  attributes: const ['Nível de Ataque', 'Nível de Defesa'],
+  items: const {},
+  characters: [
+    _personagem('barato', 100, 'Guerreiro', ataque: 30),
+    _personagem('setenta', 300, 'Mago', ataque: 70),
+    _personagem('atqUp5', 500, 'Arqueiro', ataque: 80),
+    _personagem('defUp5', 600, 'Bárbaro', defesa: 80),
+    _personagem('caro', 9000, 'Feiticeira', ataque: 40),
+  ],
+);
+
 BrowserMemory _semMemoria() =>
     BrowserMemory.platform('portal_pw_home_ordem_test');
 
@@ -69,14 +114,24 @@ MockClient _clienteDe(Object corpo) =>
 /// Pumps the whole assembled front page with real content in every section
 /// that would otherwise draw nothing — a novidade, a live channel — so the
 /// order asserted below is the order a full page actually shows.
-Future<void> _pumpHome(WidgetTester tester) async {
-  tester.view.physicalSize = const Size(1100, 2400);
+///
+/// [index] defaults to the empty market: the section-order tests do not care
+/// what the Destaques draw, only where things sit, and an empty market draws
+/// no Destaques section at all — the same "empty is an answer" rule
+/// `destaques.dart` documents for itself.
+Future<void> _pumpHome(
+  WidgetTester tester, {
+  MarketIndex? index,
+  Size size = const Size(1100, 2400),
+}) async {
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
 
+  final usedIndex = index ?? _index;
   final indexClient = MockClient(
     (_) async =>
-        http.Response.bytes(utf8.encode(jsonEncode(_index.toJson())), 200),
+        http.Response.bytes(utf8.encode(jsonEncode(usedIndex.toJson())), 200),
   );
   final searchViewModel = SearchViewModel(IndexRepository(indexClient));
 
@@ -165,27 +220,69 @@ void main() {
   });
 
   testWidgets(
-    'the tablet band keeps the Cartaz and the Vitrine on their compact '
-    'layout',
+    'the tablet band keeps the Cartaz and the Destaques on their compact '
+    'layout, and the grid holds three columns without overflowing',
     (tester) async {
       // 1100 px sits inside the 680–1279 tablet band: wide (>=680) but not
-      // large (>=1280). Cartaz and VitrineView are the two widgets that take
-      // `wide: large` rather than `wide: wide` like every other section on
-      // this page, because both were measured at 1200 px and their "wide"
-      // typography overflows between 680 and 1279 — the Cartaz's own 40 px
-      // headline by 36 px. Reverting either call site to `wide: wide` keeps
-      // every other test in the suite green, since the overflow it would
-      // reintroduce was absorbed by the height bump in `cartaz.dart`
-      // (finding 2 of the 2026-09-30 review) — so this asserts the actual
-      // `wide` value each widget was built with, not merely that nothing
-      // overflowed.
-      await _pumpHome(tester);
+      // large (>=1280). Cartaz and DestaquesView are the two widgets that
+      // take `wide: large` rather than `wide: wide` like every other section
+      // on this page, because Cartaz's own typography was measured at
+      // 1200 px and overflows between 680 and 1279 — its 40 px headline by
+      // 36 px. DestaquesView carried the same `wide: large` call forward
+      // when it replaced VitrineView, and this is the check the Task 3
+      // review asked for: the column count comes from the grid's own
+      // measured width (`destaques_view.dart`'s `_columnsFor`), not from
+      // `wide`, and nobody had rendered it inside the real page's margins
+      // before now.
+      await _pumpHome(tester, index: _indiceComDestaques);
 
       expect(tester.widget<Cartaz>(find.byType(Cartaz)).wide, isFalse);
       expect(
-        tester.widget<VitrineView>(find.byType(VitrineView)).wide,
+        tester.widget<DestaquesView>(find.byType(DestaquesView)).wide,
         isFalse,
       );
+
+      // No `RenderFlex overflowed` or similar — `flutter_test` fails a test
+      // outright the moment `FlutterError.onError` fires during it, so
+      // reaching this line at all is already half the proof; the explicit
+      // check is for a clear failure message over a buried one.
+      expect(tester.takeException(), isNull);
+
+      // Three across at this width: `_ComMargem` takes 40 px either side at
+      // `wide`, and the page's own content column caps at 780 px below
+      // `large` — so the grid never sees more than ~700 px here, which
+      // `_columnsFor` reads as the middle tier (>=440, <760), never the
+      // six-column one. The five cards split 3-then-2.
+      final topos = [
+        for (var i = 0; i < 5; i++) tester.getTopLeft(find.byType(Card).at(i)),
+      ];
+      expect(topos[0].dy, topos[1].dy);
+      expect(topos[1].dy, topos[2].dy);
+      expect(topos[3].dy, greaterThan(topos[2].dy));
+      expect(topos[3].dy, topos[4].dy);
+    },
+  );
+
+  testWidgets(
+    'on a phone, the Destaques grid holds two columns inside the real page',
+    (tester) async {
+      // Task 3's own test proved two columns in isolation at 390 px; what it
+      // could not see is whether the page's own chrome around the grid —
+      // `_ComMargem`, the Cartaz above it — leaves enough room for that to
+      // still hold once the section sits inside the real page. It does.
+      await _pumpHome(
+        tester,
+        index: _indiceComDestaques,
+        size: const Size(390, 2600),
+      );
+
+      expect(tester.takeException(), isNull);
+
+      final a = tester.getTopLeft(find.byType(Card).at(0));
+      final b = tester.getTopLeft(find.byType(Card).at(1));
+      final c = tester.getTopLeft(find.byType(Card).at(2));
+      expect(b.dy, a.dy);
+      expect(c.dy, greaterThan(a.dy));
     },
   );
 }

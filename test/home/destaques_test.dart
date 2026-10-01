@@ -12,8 +12,9 @@ import 'package:pw_market_filter/market/slot_names.dart';
 ///
 /// The distinct-class rule is the delicate part, and it is only exercised by
 /// the real collection — the two synthetic fixtures in this file are too
-/// small to reproduce the collision on their own, the same reason
-/// `vitrine_real_market_test.dart` exists next to `vitrine_test.dart`.
+/// small to reproduce the collision on their own, so the market-backed tests
+/// below read `web/market_index.json` directly rather than trusting a
+/// hand-built index to be representative.
 
 MarketIndex _indiceVazio() => MarketIndex(
   server: 'pw187',

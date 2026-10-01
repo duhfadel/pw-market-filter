@@ -205,17 +205,19 @@ void main() {
     expect(pushed, ['/filtro']);
   });
 
-  testWidgets('the Vitrine proves the claim with real people from the index', (
-    tester,
-  ) async {
-    // The figures MarketPulse used to print are gone; the Vitrine is what
-    // replaced them, and its own tests (`vitrine_view_test.dart`) cover the
-    // arithmetic in isolation. What this test guards is only that the home
-    // page actually wires the loaded index into it.
+  testWidgets('the Destaques prove the claim with real people from the '
+      'index', (tester) async {
+    // The figures MarketPulse used to print are gone, and so is the Vitrine
+    // that replaced them — `DestaquesView` is what draws from the index now,
+    // and its own tests (`destaques_view_test.dart`, `destaques_test.dart`)
+    // cover the category arithmetic in isolation. All three characters here
+    // share one class, so the distinct-class rule prunes every category but
+    // the cheapest down to a single card — Sabia, the market's real
+    // cheapest. What this test guards is only that the home page actually
+    // wires the loaded index into the section, not the arithmetic itself.
     await _pumpHome(tester);
 
-    expect(find.text('O mesmo patamar'), findsOneWidget);
-    expect(find.text('Leandrim'), findsOneWidget);
-    expect(find.text('Solaria'), findsOneWidget);
+    expect(find.text('Sabia'), findsOneWidget);
+    expect(find.text('90 TCC'), findsOneWidget);
   });
 }

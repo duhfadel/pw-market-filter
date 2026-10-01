@@ -26,7 +26,7 @@ Future<void> _carregarFontesReais() async {
   ]);
 }
 
-Future<void> _pump(WidgetTester tester, {bool wide = true}) async {
+Future<void> _montarCabecalho(WidgetTester tester, {bool wide = true}) async {
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
@@ -36,6 +36,9 @@ Future<void> _pump(WidgetTester tester, {bool wide = true}) async {
   );
 }
 
+/// The tools filed under `Ferramentas`, the same list the pill reads.
+final ferramentas = toolsDe('Ferramentas');
+
 void main() {
   setUpAll(_carregarFontesReais);
 
@@ -43,7 +46,7 @@ void main() {
     // The fan art is not discarded — it is moved to the size at which it
     // reads. At 200 px of dark red on dark violet it was the largest element
     // on the page and the least legible.
-    await _pump(tester);
+    await _montarCabecalho(tester);
 
     final marca = tester.widget<Image>(find.byType(Image).first);
     expect((marca.image as AssetImage).assetName, contains('pw-mark'));
@@ -51,34 +54,80 @@ void main() {
     expect(find.text('PORTAL PW'), findsOneWidget);
   });
 
-  testWidgets('the menu offers every tool that has a route', (tester) async {
-    await _pump(tester);
-    await tester.tap(find.text('Ferramentas'));
-    await tester.pumpAndSettle();
+  testWidgets('the pill counts only the tools that are ready', (tester) async {
+    await _montarCabecalho(tester);
 
-    expect(find.text('Filtro do Marketplace'), findsOneWidget);
-    expect(find.text('Títulos'), findsOneWidget);
+    final prontas = ferramentas.where((t) => t.isReady).length;
+    expect(find.text('$prontas'), findsOneWidget);
   });
 
-  testWidgets('it never offers a tool with no route', (tester) async {
-    // `Tool.isReady` is the existing invariant. A menu entry that goes
-    // nowhere is worse than an absent one.
-    await _pump(tester);
+  testWidgets('tapping opens the drawer, tapping away closes it', (
+    tester,
+  ) async {
+    await _montarCabecalho(tester);
+
+    expect(find.text('Calculadora de runas'), findsNothing);
+
     await tester.tap(find.text('Ferramentas'));
     await tester.pumpAndSettle();
 
-    for (final tool in tools.where((t) => !t.isReady)) {
-      expect(find.text(tool.name), findsNothing, reason: tool.name);
+    expect(find.text('Calculadora de runas'), findsOneWidget);
+
+    // Outside the drawer, which `PopupMenuButton`'s own barrier dismisses —
+    // not a custom gesture detector this file has to guess the bounds of.
+    await tester.tapAt(const Offset(5, 400));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Calculadora de runas'), findsNothing);
+  });
+
+  testWidgets('every drawer item carries a one-line description', (
+    tester,
+  ) async {
+    // *Títulos* alone says nothing to somebody who has never used it — the
+    // tagline is what makes the drawer say more than a card's title would.
+    await _montarCabecalho(tester);
+
+    await tester.tap(find.text('Ferramentas'));
+    await tester.pumpAndSettle();
+
+    for (final tool in ferramentas) {
+      expect(find.text(tool.tagline), findsOneWidget, reason: tool.name);
     }
+  });
+
+  testWidgets('a tool that is not ready is listed, dimmed, and says em breve', (
+    tester,
+  ) async {
+    // The real `tools` list carries nothing unready today — the whole
+    // reason `GavetaItem` is a public widget is so this case can still be
+    // proven without inventing a fifth tool in the domain just for a test.
+    const tool = Tool(
+      name: 'Guerras territoriais',
+      tagline: 'A guide nobody has written yet.',
+      icon: Icons.map_outlined,
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Material(child: GavetaItem(tool: tool)),
+      ),
+    );
+
+    expect(find.text('Guerras territoriais'), findsOneWidget);
+    expect(find.text('em breve'), findsOneWidget);
+
+    final opacity = tester.widget<Opacity>(find.byType(Opacity));
+    expect(opacity.opacity, lessThan(1));
   });
 
   testWidgets('on narrow, the sections collapse to one overflow button', (
     tester,
   ) async {
-    // Not a drawer: `mobile_filter_test` already fixes the rule this site
-    // follows on a phone, one panel at a time, and a second navigation
-    // surface would break it.
-    await _pump(tester, wide: false);
+    // Not a second pill row: `mobile_filter_test` already fixes the rule
+    // this site follows on a phone, one panel at a time, and a second
+    // navigation surface would break it.
+    await _montarCabecalho(tester, wide: false);
 
     expect(find.text('Ferramentas'), findsNothing);
     expect(find.byIcon(Icons.menu), findsOneWidget);

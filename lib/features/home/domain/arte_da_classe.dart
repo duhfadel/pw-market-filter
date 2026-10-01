@@ -56,25 +56,19 @@ const classesComArte = [
   'Tormentador',
 ];
 
-/// The art for [classe], or `null` where none was ever supplied.
+/// The art for [classe] at the 480×720 crop, or `null` where none was ever
+/// supplied.
 ///
 /// `null` draws the plain ground — the same silent fallback `ItemIcon` makes.
 /// A hero showing somebody else's face would be worse than a hero showing no
 /// face at all.
-String? arteDaClasse(String classe) {
-  final entrada = _classes[classe];
-  return entrada == null
-      ? null
-      : 'assets/images/classes/${entrada.arquivo}.webp';
-}
-
-/// The tall crop, 480×720, for a card whose art is the card.
 ///
-/// A second folder rather than a second size of the first: the square 560 is
-/// a bust, cropped to put the face a fifth from the top, and a 2:3 card
-/// filled with it shows a head and no body. These were re-cut from the
-/// original phone captures — which is why the two folders can hold the same
-/// class under the same file name and still not be the same picture.
+/// This used to have a square 560 sibling, `arteDaClasse`, cropped to put the
+/// face a fifth from the top for a half-width card. It was deleted on
+/// 2026-10-01 once the Cartaz moved to this tall crop and nothing else ever
+/// called the square one — kept alive only by its own test, which is the
+/// inverse of the failure CLAUDE.md names when it says "a codec with no test
+/// is where a field goes to die". `assets/images/classes/` went with it.
 String? arteVerticalDaClasse(String classe) {
   final entrada = _classes[classe];
   return entrada == null

@@ -4,25 +4,11 @@ import 'package:pw_market_filter/features/home/domain/arte_da_classe.dart';
 
 void main() {
   test('every class the market lists has art', () {
-    // Seventeen files shipped in assets/images/classes/ on 30/09/2026, one per
-    // class the collected market names. A class with no art would draw an
-    // empty hero, which is worse than drawing somebody else's.
+    // Seventeen files shipped in assets/images/classes-verticais/ on
+    // 30/09/2026, one per class the collected market names. A class with no
+    // art would draw an empty hero, which is worse than drawing somebody
+    // else's.
     expect(classesComArte, hasLength(17));
-  });
-
-  test('an accented class name still finds its file', () {
-    // The index says `Bárbaro` and `Mercenário`; the files are named without
-    // accents because a filename with one is a filename somebody will mistype.
-    expect(arteDaClasse('Bárbaro'), 'assets/images/classes/barbaro.webp');
-    expect(arteDaClasse('Mercenário'), 'assets/images/classes/mercenario.webp');
-    expect(arteDaClasse('Místico'), 'assets/images/classes/mistico.webp');
-  });
-
-  test('a class nobody has art for draws nothing', () {
-    // Silent, like ItemIcon's empty box. A hero with a missing image must fall
-    // back to the plain ground, never to a broken box or somebody else's face.
-    expect(arteDaClasse('Necromante'), isNull);
-    expect(arteDaClasse(''), isNull);
   });
 
   test('the accent is only ever one of the two', () {
@@ -74,17 +60,18 @@ void main() {
     expect(classeDoCartaz(null), classesComArte.first);
   });
 
-  test('every class with square art also has vertical art', () {
-    // The 480x720 crop re-cut for the tall cards, shipped 01/10/2026 under
-    // the same file names as the square folder — a different picture, not a
-    // resize, which is why both can share a class without sharing a file.
+  test('every class in the rotation has vertical art', () {
+    // The 480x720 crop for the tall cards, shipped 01/10/2026.
     for (final classe in classesComArte) {
       expect(arteVerticalDaClasse(classe), isNotNull, reason: classe);
       expect(arteVerticalDaClasse(classe), contains('classes-verticais'));
     }
   });
 
-  test('a class nobody has art for draws nothing in the vertical crop too', () {
+  test('a class nobody has art for draws nothing', () {
+    // Silent, like ItemIcon's empty box. A hero with a missing image must
+    // fall back to the plain ground, never to a broken box or somebody
+    // else's face.
     expect(arteVerticalDaClasse('Necromante'), isNull);
   });
 }

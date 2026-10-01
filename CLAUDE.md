@@ -747,9 +747,12 @@ muda a cada coleta, nunca a cada build: `classeDoCartaz`
 (`domain/arte_da_classe.dart`) deriva do `collectedAt` da coleta, nunca de
 `Random()` nem do relógio — a mesma coleta tem que desenhar a mesma página, ou
 um rebuild lê como caça-níqueis em vez de site. `classesComArte` lista as
-dezessete classes que têm arte; `arteDaClasse` e `acentoDaClasse` (violeta ou
-magenta, nunca `PWColors.accent` — essa é a cor do dinheiro) vivem no mesmo
-arquivo. O Cartaz e a Vitrine foram medidos e testados a 1200 px, perto do
+dezessete classes que têm arte; `arteVerticalDaClasse` e `acentoDaClasse`
+(violeta ou magenta, nunca `PWColors.accent` — essa é a cor do dinheiro) vivem
+no mesmo arquivo. Havia uma irmã quadrada, `arteDaClasse`, para o card de meia
+largura que a Vitrine usava — apagada em 01/10/2026 junto com
+`assets/images/classes/` quando o Cartaz passou a ser a única chamadora e a
+irmã ficou viva só pelo próprio teste. O Cartaz e a Vitrine foram medidos e testados a 1200 px, perto do
 degrau `large` (1280) da página; entre 680 e 1279 os dois recebem `wide:
 large` em vez do `wide: wide` que todo o resto da página usa, porque a
 tipografia "wide" de ambos não cabe nessa faixa — a 780 px o título do Cartaz

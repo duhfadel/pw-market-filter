@@ -41,27 +41,11 @@ void main() {
     expect(restored['pw126']!.personagens, 1308);
   });
 
-  test('replacing one version in the map leaves the other row untouched', () {
-    // This is the shape `tool/collect.dart` relies on: read the file into
-    // this map, replace the key for the version just collected, write the
-    // map back. A run that collects pw126 must never touch pw187's row.
-    final versoes = {
-      'pw187': VersaoResumo(
-        chave: 'pw187',
-        nome: '1.8.7',
-        personagens: 1666,
-        coletadoEm: DateTime.utc(2026, 9, 30),
-      ),
-    };
-
-    versoes['pw126'] = VersaoResumo(
-      chave: 'pw126',
-      nome: '1.2.6',
-      personagens: 1308,
-      coletadoEm: DateTime.utc(2026, 10, 1),
-    );
-
-    expect(versoes['pw187']!.personagens, 1666);
-    expect(versoes['pw126']!.personagens, 1308);
-  });
+  // The actual merge — read the file, replace one version's key, write it
+  // back — lives in `tool/collect.dart`'s `escreverVersoes`, not here. This
+  // file is `market/`, which depends on nothing and cannot touch `dart:io`;
+  // `test/tool/escrever_versoes_test.dart` is what proves that function, on a
+  // real file on disk, including the case this repository actually hit: a
+  // bare CI checkout where the merge is correct and the file it is supposed
+  // to merge with was never restored. See that file's and HIGH C's notes.
 }

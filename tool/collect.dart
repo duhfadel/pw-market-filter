@@ -531,7 +531,7 @@ void _writeIndex(
   final file = File(_servidor.arquivoDoIndice)
     ..parent.createSync(recursive: true);
   file.writeAsStringSync(jsonEncode(index.toJson()));
-  _escreverVersoes(index);
+  escreverVersoes(index, _servidor);
 
   // Realms the scale could not place. Eight of the ten tiers had never been
   // seen on a real sheet when the table was written, so a spelling nobody
@@ -626,17 +626,40 @@ void _writeIndex(
 
 const _arquivoVersoes = 'web/versoes.json';
 
-/// Writes this run's row into [_arquivoVersoes] — **by merge, never by
-/// replacement**. A run collects one version only; rewriting the whole file
-/// would erase the other version's row, and the chooser screen would open a
-/// single door with nothing on screen saying the second one went missing.
+/// Writes [servidor]'s row into [arquivo] — **by merge, never by
+/// replacement**. One call collects one version's row only; rewriting the
+/// whole file would erase the other version's row, and the chooser screen
+/// would open a single door with nothing on screen saying the second one went
+/// missing.
 ///
 /// A missing or unreadable file is treated as the first-ever run for every
 /// version, not refused: starting a fresh file is correct the first time this
 /// ever runs, and a corrupt file holding nothing but two small numbers must
 /// not stop a collection that has nothing to do with it.
-void _escreverVersoes(MarketIndex index) {
-  final file = File(_arquivoVersoes);
+///
+/// **This is also what closes the CI gap the merge alone cannot.** The file
+/// is gitignored and nothing restores it between jobs, so a bare checkout
+/// never has the other version's row to merge with — the merge was correct
+/// and the environment it ran in was empty, and every CI deploy published a
+/// one-row file regardless. Both the normal collect path (`_writeIndex`,
+/// above) and `_carryForward` call this now, once each, on the SAME run: a
+/// run that collects `pw187` writes that row here directly, and the
+/// carry-forward step for `pw126` reads the file this just wrote and adds
+/// pw126's row from the index it just downloaded — no extra request, no
+/// reliance on the cache or on git. By the time the job reaches `Compilar`,
+/// both rows are on disk.
+///
+/// Takes [servidor] explicitly rather than reading the top-level `_servidor`
+/// so this is callable from a test without going through `main()` — see
+/// `test/tool/escrever_versoes_test.dart` for the merge test `versoes_test`
+/// never was (its "replace one version" case only exercised `Map`'s own
+/// `[]=`, not this function).
+void escreverVersoes(
+  MarketIndex index,
+  Servidor servidor, {
+  String arquivo = _arquivoVersoes,
+}) {
+  final file = File(arquivo);
 
   var versoes = <String, VersaoResumo>{};
   if (file.existsSync()) {
@@ -646,16 +669,15 @@ void _escreverVersoes(MarketIndex index) {
       );
     } catch (e) {
       stdout.writeln(
-        '  AVISO: não consegui ler $_arquivoVersoes ($e); recomeçando do '
-        'zero — a linha da outra versão será perdida até a próxima coleta '
-        'dela.',
+        '  AVISO: não consegui ler $arquivo ($e); recomeçando do zero — a '
+        'linha da outra versão será perdida até a próxima coleta dela.',
       );
     }
   }
 
-  versoes[_servidor.chave] = VersaoResumo(
-    chave: _servidor.chave,
-    nome: _nomesLegiveis[_servidor.chave] ?? _servidor.chave,
+  versoes[servidor.chave] = VersaoResumo(
+    chave: servidor.chave,
+    nome: _nomesLegiveis[servidor.chave] ?? servidor.chave,
     personagens: index.characters.length,
     coletadoEm: index.collectedAt,
   );

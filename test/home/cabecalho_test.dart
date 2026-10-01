@@ -12,6 +12,8 @@ import 'package:pw_market_filter/features/home/domain/tool.dart';
 import 'package:pw_market_filter/features/home/ui/novidades_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/widgets/cabecalho.dart';
 
+import '../support/novidades_test_support.dart';
+
 /// Loads the real Marcellus and Inter files `pubspec.yaml` already declares,
 /// so this file measures text the way a browser does. `flutter_test` draws
 /// every glyph as a square of the font size by default, which can fabricate
@@ -34,14 +36,24 @@ Future<void> _carregarFontesReais() async {
   ]);
 }
 
-Future<void> _montarCabecalho(WidgetTester tester, {bool wide = true}) async {
-  await tester.pumpWidget(
-    MaterialApp(
-      home: Scaffold(
-        body: SizedBox(width: 1200, child: Cabecalho(wide: wide)),
-      ),
-    ),
+/// Mounts `Cabecalho` under a `NovidadesViewModel` with nothing posted —
+/// `comNovidades` is what every one of these tests needs just to build at
+/// all, now that the pill's own lookup has no fallback for a missing one.
+/// [comProvider] exists only for the one test proving that fallback is
+/// really gone: without it, this mounts `Cabecalho` bare, the way a screen
+/// that forgot the provider would.
+Future<void> _montarCabecalho(
+  WidgetTester tester, {
+  bool wide = true,
+  bool comProvider = true,
+}) async {
+  final cabecalho = Scaffold(
+    body: SizedBox(width: 1200, child: Cabecalho(wide: wide)),
   );
+  await tester.pumpWidget(
+    MaterialApp(home: comProvider ? comNovidades(cabecalho) : cabecalho),
+  );
+  if (comProvider) await tester.pump();
 }
 
 /// The tools filed under `Ferramentas`, the same list the pill reads.
@@ -233,17 +245,25 @@ void main() {
     );
 
     testWidgets(
-      'with no NovidadesViewModel above it, the pill draws no dot and does '
-      'not crash',
+      'with no NovidadesViewModel above it, the pill fails loudly rather '
+      'than drawing silently with no dot',
       (tester) async {
-        // The exact shape every other test in this file already mounts —
-        // `Cabecalho` on its own, the way a screen that forgot the app's
-        // shared provider would see it. The silent fallback is the point:
-        // a missing provider must read as "nothing new" rather than a red
-        // screen.
-        await _montarCabecalho(tester);
+        // The catch that used to sit around this lookup was removed on
+        // purpose — see `_NovidadesPill`'s own build method for why — and
+        // this is the behaviour that removal buys: a screen that genuinely
+        // forgets the provider gets a clear error naming the missing type,
+        // the same way `BlocProvider.of` already fails for every other bloc
+        // in this app, rather than an unlit dot that explains nothing.
+        await _montarCabecalho(tester, comProvider: false);
 
-        expect(find.byKey(const Key('novidade-nao-lida')), findsNothing);
+        // `takeException` bundles every exception recorded in one pump into
+        // a single report the moment more than one lands — here that is
+        // `BlocProvider.of`'s own error plus the layout overflow of the
+        // error widget it leaves behind, one root cause wearing two faces.
+        // So this proves the loud half of the behaviour (something failed)
+        // rather than pattern-matching the exact text of a report the
+        // framework itself may reshape.
+        expect(tester.takeException(), isNotNull);
       },
     );
   });

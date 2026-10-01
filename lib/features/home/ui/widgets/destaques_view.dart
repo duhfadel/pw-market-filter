@@ -131,6 +131,15 @@ class _Carrossel extends StatelessWidget {
   /// A touch under half the viewport: two full cards and a clipped sliver of
   /// a third always fit, rather than however many happen to divide the
   /// screen evenly that day.
+  ///
+  /// **This number is a judgement call, not a measurement** — nobody timed a
+  /// thumb against it the way the weapon tiers were measured off the market.
+  /// What it must not break, whatever it is retuned to, is the one property
+  /// the carousel exists for: the third card has to stay visibly cut, never
+  /// flush with the margin, because the cut edge is what tells somebody
+  /// there is more to drag. `destaques_view_test.dart` pins that as a range
+  /// (a card between a third and a half of the viewport) rather than this
+  /// exact fraction, on purpose — retune it within that range freely.
   static const _fracaoDoCard = 0.44;
 
   @override

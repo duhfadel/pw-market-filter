@@ -5,7 +5,6 @@ import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/theme/pw_theme.dart';
 import '../../data/browser_memory.dart';
 import '../../data/novidade_lida.dart';
-import '../../domain/novidade.dart';
 import '../../domain/tool.dart';
 import '../novidades_view_model.dart';
 import 'tool_navigation.dart';
@@ -332,25 +331,25 @@ class _NovidadesPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var entradas = const <Novidade>[];
-    try {
-      // `BlocProvider.of(listen: true)` rather than `context.watch`: on a
-      // missing ancestor it turns `provider`'s own exception into a plain
-      // `FlutterError`, so this file never has to import `package:provider`
-      // itself just to name the type it is catching.
-      entradas = BlocProvider.of<NovidadesViewModel>(
-        context,
-        listen: true,
-      ).state;
-    } on FlutterError {
-      // No `NovidadesViewModel` above this tree — true only for a test that
-      // mounts `Cabecalho` or `NovidadesView` on its own. Every real route
-      // sits under `main.dart`'s `MultiBlocProvider`, which is what lets
-      // every screen carrying this widget get the dot for free rather than
-      // wiring it up by hand; this is the silent fallback for the one case
-      // that forgot, the same shape `ItemIcon` already draws for an item
-      // with no art rather than a broken box.
-    }
+    // No fallback for a missing provider, on purpose — `BlocProvider.of`
+    // throws a clear `FlutterError` naming the missing type, and that is
+    // exactly what should happen: every real route sits under `main.dart`'s
+    // `MultiBlocProvider`, so this can only be reached by a screen that
+    // genuinely forgot it, and a test that wants to mount `Cabecalho` on its
+    // own needs to supply one (`test/support/novidades_test_support.dart`).
+    //
+    // A catch here was tried and removed. `CLAUDE.md` already records why:
+    // `VisitRepository` once swallowed every exception so a counter could
+    // never take a page down, and that same catch quietly swallowed a real
+    // `MissingPluginException` along with it — the counter miscounted for
+    // who knows how long, and the suite stayed green because its mock never
+    // exercised the failure. A catch written to keep one feature quiet keeps
+    // its bugs quiet too; better for this to fail loudly in a test (and be
+    // fixed by adding the provider) than to fail silently in production.
+    final entradas = BlocProvider.of<NovidadesViewModel>(
+      context,
+      listen: true,
+    ).state;
 
     return Material(
       // The one exception to "no inline colours": transparent is the absence

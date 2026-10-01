@@ -8,6 +8,8 @@ import 'package:pw_market_filter/features/home/data/novidade_lida.dart';
 import 'package:pw_market_filter/features/home/domain/novidade.dart';
 import 'package:pw_market_filter/features/novidades/ui/novidades_view.dart';
 
+import '../support/novidades_test_support.dart';
+
 /// Loads the real Marcellus and Inter files `pubspec.yaml` declares, the way
 /// `test/home/cartaz_test.dart` does. `flutter_test` draws every glyph as a
 /// square of the font size by default, which fabricates overflows no browser
@@ -45,7 +47,15 @@ Future<void> _montar(
   required List<Novidade> novidades,
 }) async {
   await tester.pumpWidget(
-    MaterialApp(home: NovidadesView(carregar: () async => Success(novidades))),
+    MaterialApp(
+      // `NovidadesView` carries `Cabecalho` in its `AppBar`, and the pill's
+      // own lookup has no fallback for a missing `NovidadesViewModel` —
+      // every test here needs `comNovidades` for that reason alone, not
+      // because any of them cares what the pill's dot shows.
+      home: comNovidades(
+        NovidadesView(carregar: () async => Success(novidades)),
+      ),
+    ),
   );
   await tester.pumpAndSettle();
 }
@@ -94,9 +104,11 @@ void main() {
     // into one blank state.
     await tester.pumpWidget(
       MaterialApp(
-        home: NovidadesView(
-          carregar: () async =>
-              const Failure(IndexUnreadableFailure('rede', 'timeout')),
+        home: comNovidades(
+          NovidadesView(
+            carregar: () async =>
+                const Failure(IndexUnreadableFailure('rede', 'timeout')),
+          ),
         ),
       ),
     );
@@ -137,9 +149,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: NovidadesView(
-            carregar: () async => Success(entradas),
-            lida: lida,
+          home: comNovidades(
+            NovidadesView(carregar: () async => Success(entradas), lida: lida),
           ),
         ),
       );
@@ -157,10 +168,12 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: NovidadesView(
-            carregar: () async =>
-                const Failure(IndexUnreadableFailure('rede', 'timeout')),
-            lida: lida,
+          home: comNovidades(
+            NovidadesView(
+              carregar: () async =>
+                  const Failure(IndexUnreadableFailure('rede', 'timeout')),
+              lida: lida,
+            ),
           ),
         ),
       );
@@ -177,9 +190,8 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: NovidadesView(
-            carregar: () async => const Success([]),
-            lida: lida,
+          home: comNovidades(
+            NovidadesView(carregar: () async => const Success([]), lida: lida),
           ),
         ),
       );

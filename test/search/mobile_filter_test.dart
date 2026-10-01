@@ -12,6 +12,8 @@ import 'package:pw_market_filter/features/search/ui/widgets/number_field.dart';
 import 'package:pw_market_filter/market/index_repository.dart';
 import 'package:pw_market_filter/market/market_index.dart';
 
+import '../support/novidades_test_support.dart';
+
 /// A phone is where word of mouth lands: somebody pastes the filter's link in
 /// the group and it opens on 830 results with the controls hidden behind an
 /// icon with no label. Everything here is about that screen admitting it can
@@ -64,7 +66,9 @@ Future<SearchViewModel> _pumpPhone(WidgetTester tester) async {
   await tester.pumpWidget(
     BlocProvider.value(
       value: viewModel..load(),
-      child: const MaterialApp(home: SearchView()),
+      // `SearchView` carries `Cabecalho` in its `AppBar`, and the pill's own
+      // lookup has no fallback for a missing `NovidadesViewModel`.
+      child: MaterialApp(home: comNovidades(const SearchView())),
     ),
   );
   await tester.pumpAndSettle();

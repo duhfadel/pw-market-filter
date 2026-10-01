@@ -68,6 +68,20 @@ String? arteDaClasse(String classe) {
       : 'assets/images/classes/${entrada.arquivo}.webp';
 }
 
+/// The tall crop, 480×720, for a card whose art is the card.
+///
+/// A second folder rather than a second size of the first: the square 560 is
+/// a bust, cropped to put the face a fifth from the top, and a 2:3 card
+/// filled with it shows a head and no body. These were re-cut from the
+/// original phone captures — which is why the two folders can hold the same
+/// class under the same file name and still not be the same picture.
+String? arteVerticalDaClasse(String classe) {
+  final entrada = _classes[classe];
+  return entrada == null
+      ? null
+      : 'assets/images/classes-verticais/${entrada.arquivo}.webp';
+}
+
 /// The accent the page wears while showing [classe].
 Color acentoDaClasse(String classe) =>
     (_classes[classe]?.magenta ?? false) ? PWColors.magenta : PWColors.violeta;

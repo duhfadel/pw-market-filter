@@ -82,6 +82,9 @@ flutter:
     # No Flutter web o asset e buscado sob demanda, entao as dezesseis no
     # deploy nao viram peso no navegador: o visitante baixa a do dia.
     - assets/images/classes/
+    # The 2:3 re-cut for the tall front-page cards whose art is the card — see
+    # arteVerticalDaClasse. Same file names as classes/, different pictures.
+    - assets/images/classes-verticais/
     - assets/icons/classes/
     - assets/icons/items/
 

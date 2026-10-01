@@ -85,7 +85,7 @@ void main() {
         .widgetList<Image>(find.byType(Image))
         .map((i) => (i.image as AssetImage).assetName);
 
-    expect(imagens, contains('assets/images/classes/barbaro.webp'));
+    expect(imagens, contains('assets/images/classes-verticais/barbaro.webp'));
   });
 
   testWidgets('a class with no art draws no image and does not crash', (

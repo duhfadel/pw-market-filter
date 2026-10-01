@@ -29,7 +29,7 @@ class Cartaz extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final arte = arteDaClasse(classe);
+    final arte = arteVerticalDaClasse(classe);
     final acento = acentoDaClasse(classe);
 
     return SizedBox(
@@ -77,13 +77,14 @@ class _Arte extends StatelessWidget {
   Widget build(BuildContext context) => Image.asset(
     caminho,
     fit: BoxFit.cover,
-    // Not a guess: the class arts carry their faces about a fifth of the way
-    // down, and `Alignment.center` once landed the visible band on a
-    // priest's skirt — on the widest card the site draws, which is where a
-    // bad crop shows first. This hero is wider than that card.
-    alignment: const Alignment(0, -0.6),
+    // Not a guess: this is the 480x720 vertical crop, and its face sits much
+    // higher than the square's did — `-0.6` was tuned for that square and
+    // would land this art's face on its chest. `arteVerticalDaClasse`'s own
+    // doc has the full reasoning for the second folder.
+    alignment: const Alignment(0, -0.72),
     // A missing file leaves the plain ground rather than a broken box — the
-    // same silent fallback `arteDaClasse` itself makes for an unmapped class.
+    // same silent fallback `arteVerticalDaClasse` itself makes for an
+    // unmapped class.
     errorBuilder: (_, _, _) => const SizedBox.shrink(),
   );
 }

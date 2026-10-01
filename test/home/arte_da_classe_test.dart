@@ -73,4 +73,18 @@ void main() {
   test('no collection loaded yet opens on the first class', () {
     expect(classeDoCartaz(null), classesComArte.first);
   });
+
+  test('every class with square art also has vertical art', () {
+    // The 480x720 crop re-cut for the tall cards, shipped 01/10/2026 under
+    // the same file names as the square folder — a different picture, not a
+    // resize, which is why both can share a class without sharing a file.
+    for (final classe in classesComArte) {
+      expect(arteVerticalDaClasse(classe), isNotNull, reason: classe);
+      expect(arteVerticalDaClasse(classe), contains('classes-verticais'));
+    }
+  });
+
+  test('a class nobody has art for draws nothing in the vertical crop too', () {
+    expect(arteVerticalDaClasse('Necromante'), isNull);
+  });
 }

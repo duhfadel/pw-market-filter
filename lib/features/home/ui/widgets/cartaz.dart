@@ -170,14 +170,19 @@ class _Conteudo extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 14),
-      // 430 only at `wide`: fixed regardless of the flag, this box was never
-      // exercised below that width until the real page was pumped at phone
-      // size with a loaded index — `Cartaz` sits outside any `BlocBuilder`
-      // gate, so it renders at every width whether or not the market has
-      // loaded. `null` lets the text take whatever the narrow layout's own
-      // 342 px of content width actually is, instead of demanding 430 of it.
-      SizedBox(
-        width: wide ? 430 : null,
+      // A ceiling, not a value gated on `wide`: the fixed `SizedBox(width:
+      // 430)` this replaced was never exercised below that width until the
+      // real page was pumped at phone size with a loaded index — `Cartaz`
+      // sits outside any `BlocBuilder` gate, so it renders at every width
+      // whether or not the market has loaded. Keying the fix off `wide`
+      // (this widget's `wide` is the page's `large` flag, ≥1280) over-reached:
+      // the 680–1279 tablet band has 732 px of its own content width to
+      // offer and took it, running the line out to about 120 characters
+      // where it was measured to 430. `ConstrainedBox` caps it at 430
+      // everywhere above `large`'s step down to the narrow layout's own
+      // 342 px, which is already below the cap and needs no gate at all.
+      ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 430),
         child: const Text(
           'Arma, cartas, relíquias, essências, runas — o que o marketplace '
           'guarda no inventário e não deixa procurar.',

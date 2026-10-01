@@ -248,6 +248,23 @@ void main() {
       // check is for a clear failure message over a buried one.
       expect(tester.takeException(), isNull);
 
+      // Finding 3 of the 2026-10-01 review: `Cartaz`'s `wide` being this
+      // page's `large` (>=1280) once meant the tablet band lost the 430 px
+      // ceiling on its sub-line along with the headline's typography — the
+      // line ran to the column's own ~732 px, about 120 characters wide.
+      // `ConstrainedBox(maxWidth: 430)` fixed it without a `wide` gate at
+      // all; this is the measurement the earlier version of this test could
+      // not see, since neither `takeException()` nor the grid's row geometry
+      // reads the sub-line's own width.
+      expect(
+        tester
+            .getSize(
+              find.textContaining('o que o marketplace guarda no inventário'),
+            )
+            .width,
+        lessThanOrEqualTo(430),
+      );
+
       // Three across at this width: `_ComMargem` takes 40 px either side at
       // `wide`, and the page's own content column caps at 780 px below
       // `large` — so the grid never sees more than ~700 px here, which

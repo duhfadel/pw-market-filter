@@ -176,10 +176,51 @@ responde **404** e a forma da listagem, `/details/pw126/<id>`, é a que serve.
 Medido nas duas.
 
 O ritmo não muda e não há modo rápido: uma requisição de cada vez, ~3 s, e o
-bloqueio sobrevive à corrida. **São duas coletas agora**, e o cron tem de
-alternar em vez de somar — 1.308 páginas são mais ~40 minutos, e dobrar a
-carga sobre o site deles de uma vez não é o que a permissão para existir
-comprou.
+bloqueio sobrevive à corrida.
+
+### Um job só, alternando — e não um por versão
+
+**`publish.yml` ganha um `input` de versão e o Worker alterna**: `pw187` aos
+:07, `pw126` aos :37. Cada versão refresca de hora a hora. Dois workflows
+separados seriam a escolha óbvia e seriam erro, por três razões em ordem de
+custo.
+
+**Um deploy publica o site inteiro, e é isto que decide.** Se a corrida do
+126 colheu só o 126, ela ainda assim tem de publicar o índice do 187 — que
+não está no repositório, porque é gitignorado. Um deploy "do 126" apagaria o
+mercado do 1.8.7 do ar.
+
+A peça que resolve isso **já existe**: a memória do mercado fez o coletor
+baixar o índice publicado para comparar preços (`_fetchPublishedIndex`). A
+mesma função serve aqui com outro propósito — cada corrida colhe a sua versão
+e **arrasta a outra do ar, intacta**, para dentro do deploy. Nada novo a
+construir; uma peça existente usada uma segunda vez.
+
+**Dois workflows colidiriam no deploy, e o repositório já pagou por isso.** O
+`CLAUDE.md` regista o dia em que um segundo artefato `github-pages` apareceu
+e a tentativa seguinte morreu com *"Multiple artifacts named github-pages
+were unexpectedly found"*. O grupo de `concurrency` protege dentro de um
+workflow; dois, cada um a chamar `upload-pages-artifact` e `deploy-pages`,
+colidiriam sempre que se sobrepusessem — e com ~40 minutos cada, sobrepor-se-iam.
+
+**E alternar é o que a permissão comprou.** Fazer as duas coletas em cada
+corrida dobraria a carga sobre o site deles de uma vez. *"Não iremos impedir
+ou bloquear"* não é aval para isso.
+
+A conta é menor do que parece: **os ~40 minutos são só da primeira passagem.**
+Depois `--resume` busca a listagem e só as páginas de quem nunca foi visto —
+segundos. Os 1.308 anúncios custam quarenta minutos **uma vez**.
+
+**`CRON_DA_COLETA` passa a ter duas formas de quebrar.** O `worker.js` compara
+o horário **string a string** com o `wrangler.toml`, e o próprio arquivo avisa
+que deixá-los divergir faz o ramo da coleta nunca disparar, caindo calado no
+keep-alive do Supabase. Com dois horários esse risco dobra, e o log tem de
+dizer qual versão disparou — um erro que não se vê é o modo de falha que esta
+parte do sistema já teve uma vez.
+
+**O re-disparo após falha isolada tem de saber qual versão falhou.** A regra
+de hoje — redisparar uma falha isolada, nunca duas seguidas — continua, mas
+redisparar a versão errada perderia a corrida boa e repetiria a má.
 
 ## Riscos, nomeados
 

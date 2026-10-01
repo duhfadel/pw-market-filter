@@ -8,6 +8,8 @@ class Servidor {
     required this.chave,
     required this.origem,
     required this.arquivoDoIndice,
+    required this.arquivoDoEstado,
+    required this.indicePublicado,
     required this.prefixoCss,
     required this._detalhe,
   });
@@ -23,6 +25,23 @@ class Servidor {
   /// Where this version's collection is written. Kept separate per version so
   /// a 1.2.6 run can never overwrite the 1.8.7 index, or the other way round.
   final String arquivoDoIndice;
+
+  /// Where this version's collector state — what has already been read,
+  /// resumable — is kept. **Must stay separate per version**: a shared file
+  /// means a `pw126` run loads the `pw187` state, sees 1.308 role ids it does
+  /// not recognise, and `pruneTo` deletes every `pw187` entry for not being
+  /// on the 126 listing — forty minutes of collected state gone with nothing
+  /// on screen saying so, and the next `pw187` run re-crawling the whole
+  /// market. `pw187` keeps the path that already exists on disk today, so
+  /// this change orphans no state already sitting on the collector's machine.
+  final String arquivoDoEstado;
+
+  /// The URL this version's own published index is read from, to carry price
+  /// history and `firstSeen` forward. Kept per version so a `pw126` run never
+  /// compares the 126 market against the 187 index — that would produce
+  /// first-seen and price-drop records that are pure nonsense, and nothing
+  /// would error to say so.
+  final String indicePublicado;
 
   /// The CSS class prefix this version's pages use — `pw187-`, `pw126-`.
   final String prefixoCss;
@@ -47,6 +66,8 @@ class Servidor {
       chave: 'pw187',
       origem: _origem,
       arquivoDoIndice: 'web/market_index.json',
+      arquivoDoEstado: 'tool/.collect_state.json',
+      indicePublicado: 'https://portalpw.net/market_index.json',
       prefixoCss: 'pw187-',
       detalhe: (roleId) => '$_origem/pw187/details/$roleId',
     ),
@@ -54,6 +75,8 @@ class Servidor {
       chave: 'pw126',
       origem: _origem,
       arquivoDoIndice: 'web/market_index_126.json',
+      arquivoDoEstado: 'tool/.collect_state_126.json',
+      indicePublicado: 'https://portalpw.net/market_index_126.json',
       prefixoCss: 'pw126-',
       detalhe: (roleId) => '$_origem/details/pw126/$roleId',
     ),

@@ -54,8 +54,6 @@ const _attemptsPerPage = 4;
 /// on 2026-08-09 lasted well over twenty minutes.
 const _listingAttempts = 12;
 
-final _statePath = 'tool/.collect_state.json';
-
 /// Reads `--server <chave>` or `--server=<chave>` out of the argument list.
 /// Defaults to `pw187` so an unqualified run keeps today's behaviour.
 String _serverArg(List<String> arguments) {
@@ -110,7 +108,7 @@ Future<void> main(List<String> arguments) async {
       exit(1);
     }
 
-    final state = _CollectState.load(_statePath, resume: resume);
+    final state = _CollectState.load(_servidor.arquivoDoEstado, resume: resume);
     // Characters that left the market since the last run. Dropping them keeps
     // the state from growing forever and keeps the index describing the market
     // as it is now, not as it once was.
@@ -156,7 +154,7 @@ Future<void> main(List<String> arguments) async {
           ),
         );
       }
-      state.save(_statePath);
+      state.save(_servidor.arquivoDoEstado);
 
       _reportProgress(i + 1, pending.length, card.name);
       if (i + 1 < pending.length) await Future<void>.delayed(_politeDelay);
@@ -261,9 +259,7 @@ Future<MarketIndex> _fetchPublishedIndex(HttpClient client) async {
   final int statusCode;
   final String body;
   try {
-    final request = await client.getUrl(
-      Uri.parse('https://portalpw.net/market_index.json'),
-    );
+    final request = await client.getUrl(Uri.parse(_servidor.indicePublicado));
     request.headers.set(HttpHeaders.acceptEncodingHeader, 'gzip');
     final response = await request.close();
     statusCode = response.statusCode;
@@ -536,11 +532,11 @@ void _reportSummary(
 
 /// Rewrites `web/market_index.json` from the state file alone.
 void _rebuildFromState() {
-  final state = _CollectState.load(_statePath, resume: true);
+  final state = _CollectState.load(_servidor.arquivoDoEstado, resume: true);
   if (state.listing.isEmpty) {
     stderr.writeln(
-      'Não há coleta gravada em $_statePath para reconstruir. '
-      'Rode `dart run tool/collect.dart` primeiro.',
+      'Não há coleta gravada em ${_servidor.arquivoDoEstado} para '
+      'reconstruir. Rode `dart run tool/collect.dart` primeiro.',
     );
     exit(1);
   }

@@ -18,11 +18,17 @@ import '../../home/ui/widgets/novidade_texto.dart';
 /// ran to a thousand pixels there. This is the opposite: whoever opened
 /// `/novidades` came to read, so there is no accordion and no "ver mais".
 ///
-/// **It touches nothing about a version of the game.** `Novidade` and
-/// [NovidadeRepository] are both about the site, not about a marketplace, and
-/// that is deliberate — the planned 1.2.6 marketplace reuses this screen with
-/// no change, which it could not do if a line here reached into
-/// `MarketIndex`.
+/// **Nothing here reads a market fact.** `Novidade` and [NovidadeRepository]
+/// are both about the site, not about a marketplace, and that is deliberate —
+/// the planned 1.2.6 marketplace reuses this screen with no change, which it
+/// could not do if a line here read `MarketIndex`. The import graph is wider
+/// than that property, though, and it is worth being precise about the
+/// difference: this file reaches `getIt<NovidadeRepository>()` through
+/// `core/di/injection.dart`, which also registers `IndexRepository`, so the
+/// market index is imported transitively even though nothing in this screen
+/// looks at it. A reuse of this screen inherits the whole container, index
+/// included — almost certainly harmless, but a different claim from "never
+/// reaches it".
 class NovidadesView extends StatefulWidget {
   const NovidadesView({super.key, this.carregar});
 

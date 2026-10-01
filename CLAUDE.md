@@ -1363,14 +1363,18 @@ Each of these already cost something — measured on the live site, not guessed.
   and freezing the site for a sale would be the wrong trade. The collector
   prints one line per counted name at the end of a run, and that is where the
   question "does the Chave exist?" gets answered.
-- **The relics ended with no filter at all, and that was the right end.** The
-  *pelo menos N* field went away on the player's call: a relic count is a
-  number to compare, not a bar to clear, and *Mais relíquias* already sorts by
-  exactly what is marked. The whole `minimumOwned` half went with it — query
-  field, `tem=` link parameter, view-model setter and matcher branch — leaving
-  marking as the only relic concept.
+- **The relics lost their free-text minimum, and the slider below is a second
+  life for the same idea, not its absence.** *pelo menos N* as a typed field
+  went away on the player's call: a relic count is a number to compare, not a
+  bar to clear, and *Mais relíquias* already sorts by exactly what is marked.
+  What stayed is `minimumOwned` itself — query field, `tem=` link parameter,
+  view-model setter and matcher branch are all still live, reached now through
+  the slider under a marked item (`_slider` in `counted_items_section.dart`)
+  rather than a typed box. Marking alone still narrows nothing — the slider
+  starts at zero, which asks nothing — so a passage that once said the whole
+  concept "went with it" would be describing a feature this repository rebuilt
+  without updating the sentence.
 
-  It also removed the reason the two ever needed reconciling:
 - **Marking is not filtering, and they were one control until they had to be
   two.** A counted item answers two different questions: *how many does each of
   these carry* and *only show me who carries five*. While the number field was
@@ -1654,6 +1658,15 @@ Each of these already cost something — measured on the live site, not guessed.
   and survives any rescaling. It ran through the middle of the logo, which
   proved Flutter was centring correctly and moved the search off the layout in
   one step. Reach for it first.
+
+  **A link can be correct on the published site and 404 on this machine, and
+  the direction that matters is the inverse one.** The guides are linked
+  extensionless — `/guias/inicio-rapido` — because GitHub Pages resolves that
+  path to `inicio-rapido.html` on its own. `python3 -m http.server` does
+  nothing of the kind and answers 404 for the same href, which reads exactly
+  like a broken link while editing locally. The dangerous move is "fixing" the
+  href to silence that local 404: the fix would be guided by a server nobody
+  visits the site through, and it would break the one that matters.
 - **A rebuilt Flutter web app keeps serving the previous bundle, and it looks
   exactly like a change that did not compile.** The file on disk is new, the
   md5 served matches the md5 on disk, and the browser still runs yesterday's
@@ -1982,6 +1995,16 @@ Each of these already cost something — measured on the live site, not guessed.
   filter over last month's data is worse than no filter because it reads as
   correct. The collection date is always on screen, and past a week it is
   highlighted.
+- **"Nothing reads `MarketIndex`" and "nothing imports it" are two different
+  claims, and only the first is true of `/novidades`.** `NovidadesView`
+  reaches `getIt<NovidadeRepository>()` through the single `core/di/injection.dart`
+  container, and that same container registers `IndexRepository` — so the
+  import chain runs `novidades_view.dart` → `injection.dart` →
+  `index_repository.dart` → `market_index.dart` even though no line in the
+  screen looks at a market fact. The property worth relying on is the
+  narrower one: a future marketplace that reuses this screen inherits the
+  whole DI container, index included, which is almost certainly harmless but
+  is not "never reaches it".
 - **Repositories return `Result<T>`,** never throw. Failures are typed, never
   strings.
 - **State is Bloc.** `setState` only for state that is purely visual and local

@@ -7,24 +7,56 @@ compatibility_date = "2026-08-29"
 # para quem soubesse a URL, e cada coleta são ~1000 requisições ao marketplace.
 workers_dev = false
 
-# Quatro gatilhos, e a separação é o ponto.
+# Cinco gatilhos, e a separação é o ponto.
 #
-# **`7` e `37` são a coleta, um por versão.** `publish.yml` ganhou
-# `inputs.server` — uma corrida colhe `pw187` ou `pw126` e arrasta a outra do
-# que já está publicado (`tool/collect.dart --carry-forward`), então um
-# horário por versão é o que cobre os dois mercados sem dobrar a carga sobre
-# o site deles numa única corrida. `worker.js` tem de bater **string a
-# string** com estes dois — `CRON_DA_COLETA_187` e `CRON_DA_COLETA_126` — ou o
-# ramo daquela coleta nunca dispara e cai calado no keep-alive do Supabase.
+# **`7`, `22`, `37` e `52` são a coleta — duas batidas por versão, alternadas
+# de meia em meia hora.** `7` e `37` disparam o 1.8.7; `22` e `52`, o 1.2.6.
+# `publish.yml` ganhou `inputs.server` — uma corrida colhe uma versão e
+# arrasta a outra do que já está publicado (`tool/collect.dart
+# --carry-forward`) —, então cada mercado atualiza a cada 30 minutos sem
+# nenhum deles perder a cadência que o 187 já tinha sozinho. `worker.js` tem
+# de bater **string a string** com estas quatro entradas —
+# `CRON_DA_COLETA_187` e `CRON_DA_COLETA_126` —, e os dois nomes separados,
+# não um prefixo comum, são o que faz o log dizer qual versão disparou em
+# cada uma das quatro: com um horário só isso era óbvio pelo relógio, com
+# quatro o log é o único lugar que diz qual das duas realmente saiu.
 #
-# Cada versão refresca de hora em hora, não mais quatro vezes por hora para
-# uma só: antes de existir uma segunda versão o único cron de coleta era
-# `7,22,37,52` — quatro disparos por hora para o 187 sozinho. Era mais
-# frequente do que precisava, e dividir o mesmo orçamento de disparos entre
-# as duas versões é a troca certa.
+# **Decisão do dono, registrada aqui.** O `CLAUDE.md` já registra que ele
+# levou o 187 sozinho de 30 para 15 minutos contra a recomendação — "custa o
+# dobro das corridas em todo dia que nada falha, e compra metade do pior
+# caso". Uma segunda versão não cabe nos mesmos quatro horários sem esse
+# número mudar — dividir `7,22,37,52` ao meio dá 30 minutos por mercado, não
+# 15; manter 15 por mercado pediria oito horários, dobrando o orçamento total
+# de disparos. O dono decidiu: **30 minutos por versão**, quatro disparos de
+# coleta por hora no total — o mesmo orçamento de antes de existir uma
+# segunda versão — em vez de dobrar esse orçamento ou devolver o 187 à hora
+# cheia, que foi o que uma versão anterior deste arquivo chegou a fazer sem
+# dizer que estava revertendo a escolha dele.
 #
-# **São estas duas linhas que vão a `[]` quando o site fecha** — foi o que se
-# fez entre 14 e 18/09, quando só existia uma.
+# **A conta que torna isso seguro, e por que os 30 minutos não são "metade da
+# promessa":** os 40 minutos do `timeout-minutes: 75` em `publish.yml` são só
+# a primeira coleta de cada versão. Depois dela, `--resume` busca a listagem
+# — um pedido — e só os detalhes de roleids nunca vistos; em regime a
+# corrida leva segundos. Uma segunda versão no mesmo ritmo não dobra a carga
+# sobre o marketplace deles do jeito que parece: são os mesmos personagens
+# buscados mais cedo, não mais vezes — a mesma conta que já justificava os
+# 15 minutos do 187 sozinho.
+#
+# **O redisparo depois de uma falha isolada não mora neste número, e a
+# alternância não o enfraquece.** Esse redisparo é `ressuscitarColeta`,
+# acionado pela batida de cinco minutos da Twitch e agora por versão (ver
+# `worker.js`) — ele dispara de novo assim que vê a falha, sem esperar o
+# próximo horário de coleta, e isso vale igual para as duas versões. O que
+# este arquivo decide é outra coisa, mais rara: o pior caso quando **nada
+# falhou** e o relógio simplesmente ainda não bateu, e o pior caso depois de
+# **duas falhas seguidas da mesma versão**, quando o freio de
+# `ressuscitarColeta` deixa de insistir e devolve a bola para este relógio.
+# Só nesses dois casos o pior caso de cada versão passa de 15 para 30
+# minutos — e é exatamente aí, no raro, que o dono aceitou a troca pela conta
+# do parágrafo acima.
+#
+# **São estas quatro linhas que vão a `[]` quando o site fecha** — foi o que
+# se fez entre 14 e 18/09, quando só existia uma versão e um horário.
 #
 # `13 4` é o Supabase, e existe por causa do que aquele fechamento provou: com
 # o site fora do ar ninguém visita, ninguém chama o banco, e o projeto do plano
@@ -41,4 +73,11 @@ workers_dev = false
 # existir — o ping fica mesmo assim, porque é ele que segura o banco no dia em
 # que os streamers saírem da página.
 [triggers]
-crons = ["7 * * * *", "37 * * * *", "13 4 * * *", "*/5 * * * *"]
+crons = [
+  "7 * * * *",
+  "22 * * * *",
+  "37 * * * *",
+  "52 * * * *",
+  "13 4 * * *",
+  "*/5 * * * *",
+]

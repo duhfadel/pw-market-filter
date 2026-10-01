@@ -26,12 +26,18 @@ run-name: Coletar e publicar — ${{ inputs.server || 'pw187' }}
 # **This fallback always names `pw187`.** `schedule` and `push` carry no
 # `inputs`, so `${{ inputs.server || 'pw187' }}` below falls back to the
 # version that has existed the longest and already has a public tool pointed
-# at it. The Worker's own two cron triggers are what alternate — see
-# `tool/cron/worker.js` — and this trigger is the slow, unreliable backstop
-# for the version that matters most if both go quiet.
+# at it. The Worker now alternates four cron triggers, two per version —
+# `tool/cron/wrangler.toml` has the full arithmetic — and this fallback only
+# ever fires `pw187`, so it agrees with the Worker's own `pw187` slots, `:07`
+# and `:37`, rather than also firing at `:22` and `:52`, which are the
+# Worker's `pw126` slots: a `pw187` dispatch at those minutes would not be
+# wrong, but it would not agree with what the reliable clock is doing at the
+# same instant either, and this is meant to be read beside it. This trigger
+# is the slow, unreliable backstop for the version that matters most if the
+# Worker goes quiet.
 on:
   schedule:
-    - cron: '7,22,37,52 * * * *'
+    - cron: '7,37 * * * *'
   push:
     branches: [main]
   workflow_dispatch:

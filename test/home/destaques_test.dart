@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/features/home/domain/destaques.dart';
+import 'package:pw_market_filter/features/search/ui/widgets/character_card.dart'
+    show weaponTierColor;
 import 'package:pw_market_filter/market/market_index.dart';
 import 'package:pw_market_filter/market/slot_names.dart';
 
@@ -94,6 +96,33 @@ void main() {
       reason: 'two cards of one class show the same art twice: $classes',
     );
   });
+
+  test(
+    'every card\'s frame is exactly weaponTierColor, never a parallel ladder',
+    () {
+      // Pins the agreement, not the colours: a test that hardcoded amber
+      // would stay green even if both ladders drifted together in the wrong
+      // direction. Two cards landing on the same colour is expected, not a
+      // bug — the frame says what the person wears, not which question the
+      // card answers.
+      final file = File('web/market_index.json');
+      if (!file.existsSync()) return; // a fresh clone has not collected yet
+
+      final index = MarketIndex.fromJson(
+        jsonDecode(file.readAsStringSync()) as Map<String, dynamic>,
+      );
+
+      for (final destaque in destaquesDe(index)) {
+        expect(
+          destaque.cor,
+          weaponTierColor(index, destaque.personagem),
+          reason:
+              '${destaque.rotulo} (${destaque.personagem.name}) disagrees '
+              'with the results grid about its own frame',
+        );
+      }
+    },
+  );
 
   test('an empty market draws no cards rather than throwing', () {
     expect(destaquesDe(_indiceVazio()), isEmpty);

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart' show Color;
 
-import '../../../core/theme/pw_colors.dart';
 import '../../../market/market_index.dart';
 import '../../../market/slot_names.dart';
 import '../../search/domain/matcher.dart';
 import '../../search/domain/presets.dart';
 import '../../search/domain/search_query.dart';
+import '../../search/ui/widgets/character_card.dart' show weaponTierColor;
 import 'visit_label.dart' show groupThousands;
 
 /// One card of the front page's six: a question about the market, already
@@ -30,10 +30,23 @@ class Destaque {
   /// The line under the price, and it must be derivable from this collection.
   final String nota;
 
-  /// The frame, from the game's own rarity palette — the same colours the
-  /// results card already paints, so somebody arriving at the filter
-  /// recognises them.
-  final Color cor;
+  /// The frame: exactly `weaponTierColor(index, personagem)`, the same
+  /// ladder the results grid already paints — called, never restated.
+  ///
+  /// **This is the one colour the front page is allowed to show about a
+  /// character, and it is a fact about that character's weapon, not about
+  /// which of the six questions the card answers.** A parallel ladder here
+  /// would be two copies of one fact, free to drift the day either one is
+  /// edited — the exact failure this repo's `weaponTierColor` doc already
+  /// warns about. `null` when the character carries no tier at all, which
+  /// draws the plain border: a colour on somebody with no tier would be the
+  /// lie, not the omission.
+  ///
+  /// Two cards can land on the same colour — the dearest character and the
+  /// Atq UP5 carrier can both genuinely wear an 80 — and that is correct.
+  /// The label and the badge are what say which question a card answers; the
+  /// frame only ever says what the person is actually wearing.
+  final Color? cor;
 
   /// Where tapping leads. Every card is a door into the filter.
   final SearchQuery busca;
@@ -78,10 +91,10 @@ List<Destaque> destaquesDe(MarketIndex index) {
   _tentar(
     destaques,
     usadas,
+    index,
     todosPorPreco,
     rotuloCheio: 'O mais barato',
     rotuloSuave: 'Um dos mais baratos',
-    cor: PWColors.grade(0),
     busca: const SearchQuery(),
     nota: (_, _) =>
         '${groupThousands(index.characters.length)} personagens no mercado',
@@ -94,10 +107,10 @@ List<Destaque> destaquesDe(MarketIndex index) {
     _tentar(
       destaques,
       usadas,
+      index,
       carregadores,
       rotuloCheio: 'Arma de 70 mais barata',
       rotuloSuave: 'Um dos mais baratos com arma de 70',
-      cor: PWColors.grade(3),
       busca: arma70,
       selo: (_) => 'ARMA 70',
       nota: (_, _) => '${carregadores.length} no mercado inteiro',
@@ -111,10 +124,10 @@ List<Destaque> destaquesDe(MarketIndex index) {
     _tentar(
       destaques,
       usadas,
+      index,
       carregadores,
       rotuloCheio: 'Atq lvl UP5 mais barato',
       rotuloSuave: 'Um dos mais baratos com Atq lvl UP5',
-      cor: PWColors.grade(6),
       busca: atqUp5,
       selo: (_) => 'ATQ UP5',
       nota: (_, _) => '${carregadores.length} no mercado inteiro',
@@ -128,10 +141,10 @@ List<Destaque> destaquesDe(MarketIndex index) {
     _tentar(
       destaques,
       usadas,
+      index,
       carregadores,
       rotuloCheio: 'Def lvl UP5 mais barato',
       rotuloSuave: 'Um dos mais baratos com Def lvl UP5',
-      cor: PWColors.defenceTier,
       busca: defUp5,
       selo: (_) => 'DEF UP5',
       nota: (_, _) => '${carregadores.length} no mercado inteiro',
@@ -144,10 +157,10 @@ List<Destaque> destaquesDe(MarketIndex index) {
   _tentar(
     destaques,
     usadas,
+    index,
     todosPorPrecoDesc,
     rotuloCheio: 'O mais caro',
     rotuloSuave: 'Um dos mais caros',
-    cor: PWColors.accent,
     busca: buscaDoMaisCaro,
     nota: (vencedor, _) {
       // Conditional and derived: a wrong claim about the market's own top
@@ -162,10 +175,10 @@ List<Destaque> destaquesDe(MarketIndex index) {
   _tentar(
     destaques,
     usadas,
+    index,
     porChaves,
     rotuloCheio: 'Mais Chaves da Sorte',
     rotuloSuave: 'Um dos que mais carregam Chaves da Sorte',
-    cor: PWColors.grade(2),
     busca: const SearchQuery(shownOwned: {_chaveDaSorte}),
     selo: (vencedor) =>
         groupThousands(index.countOf(vencedor, _chaveDaSorte) ?? 0),
@@ -183,13 +196,18 @@ List<Destaque> destaquesDe(MarketIndex index) {
 /// the class-collision rule — and softens the label the moment it has to
 /// skip at least one. When every candidate's class has already been used,
 /// the category is dropped rather than repeating a class already on screen.
+///
+/// The frame colour is never one of this function's own parameters: it is
+/// always `weaponTierColor(index, candidato)`, read off whichever character
+/// actually wins the category, so the colour is a fact about that person and
+/// not a label the category hands out.
 void _tentar(
   List<Destaque> destaques,
   Set<String> usadas,
+  MarketIndex index,
   List<MarketCharacter> candidatos, {
   required String rotuloCheio,
   required String rotuloSuave,
-  required Color cor,
   required SearchQuery busca,
   required String Function(MarketCharacter vencedor, bool empurrado) nota,
   String? Function(MarketCharacter vencedor)? selo,
@@ -207,7 +225,7 @@ void _tentar(
         rotulo: empurrado ? rotuloSuave : rotuloCheio,
         personagem: candidato,
         nota: nota(candidato, empurrado),
-        cor: cor,
+        cor: weaponTierColor(index, candidato),
         busca: busca,
         selo: selo?.call(candidato),
       ),

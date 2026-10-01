@@ -1,11 +1,16 @@
-// Collects the pw187 marketplace into `web/market_index.json`.
+// Collects a Classic PW marketplace into its own `web/market_index*.json`.
 //
-//   dart run tool/collect.dart            # from scratch
-//   dart run tool/collect.dart --resume   # continue an interrupted run
+//   dart run tool/collect.dart                     # pw187, from scratch
+//   dart run tool/collect.dart --resume             # continue an interrupted run
+//   dart run tool/collect.dart --server pw126       # collect the other version
 //
 // This is the only file allowed to touch the network or the disk. Everything
 // it calls lives in `lib/collector/` and is pure Dart, so the tests can run it
 // and the web app can share its model.
+//
+// `--server` is the only thing that varies by version so far — the parser
+// is still the 1.8.7 one, so `--server pw126` collects garbage today. That is
+// `lib/collector/servidor.dart`'s seam to grow into, not this file's.
 //
 // It is slow on purpose. Four concurrent workers earned an IP block that
 // outlived the run by more than twenty minutes, refusing even a single
@@ -20,13 +25,18 @@ import 'package:pw_market_filter/collector/detail_parser.dart';
 import 'package:pw_market_filter/collector/index_builder.dart';
 import 'package:pw_market_filter/collector/listing_parser.dart';
 import 'package:pw_market_filter/collector/memoria.dart';
+import 'package:pw_market_filter/collector/servidor.dart';
 import 'package:pw_market_filter/market/card_combos.dart';
 import 'package:pw_market_filter/market/celestial_realm.dart';
 import 'package:pw_market_filter/market/counted_items.dart';
 import 'package:pw_market_filter/market/market_index.dart';
 
-const _server = 'pw187';
-const _origin = 'https://marketplace.theclassic.games';
+/// The version being collected. `--server <chave>` picks one; `pw187` is the
+/// default so an unqualified run keeps its current behaviour. Everything that
+/// used to be the two constants `_server`/`_origin` now reads this — see
+/// `lib/collector/servidor.dart` for what varies between versions and why the
+/// detail URL shape is inverted between them.
+late final Servidor _servidor;
 const _userAgent =
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
     '(KHTML, like Gecko) Chrome/126.0 Safari/537.36';
@@ -45,10 +55,30 @@ const _attemptsPerPage = 4;
 const _listingAttempts = 12;
 
 final _statePath = 'tool/.collect_state.json';
-final _outputPath = 'web/market_index.json';
+
+/// Reads `--server <chave>` or `--server=<chave>` out of the argument list.
+/// Defaults to `pw187` so an unqualified run keeps today's behaviour.
+String _serverArg(List<String> arguments) {
+  for (var i = 0; i < arguments.length; i++) {
+    final arg = arguments[i];
+    if (arg.startsWith('--server=')) return arg.substring('--server='.length);
+    if (arg == '--server' && i + 1 < arguments.length) return arguments[i + 1];
+  }
+  return 'pw187';
+}
 
 Future<void> main(List<String> arguments) async {
   final resume = arguments.contains('--resume');
+
+  // Refused loudly rather than guessed: a typo here would collect against a
+  // 404 for forty minutes and write an empty index over a good one.
+  try {
+    _servidor = Servidor.de(_serverArg(arguments));
+  } on ArgumentError catch (e) {
+    stderr.writeln('Servidor inválido: ${e.message}');
+    exit(1);
+  }
+
   final client = HttpClient()..connectionTimeout = const Duration(seconds: 30);
 
   // Rewrites the index from what is already on disk. The state file keeps
@@ -147,7 +177,7 @@ Future<List<ListingCard>> _fetchListing(HttpClient client) async {
   // the whole point of the run is that it takes a while anyway.
   String? body;
   for (var attempt = 1; attempt <= _listingAttempts; attempt++) {
-    body = await _get(client, '$_origin/$_server');
+    body = await _get(client, '${_servidor.origem}/${_servidor.chave}');
     if (body != null) break;
     if (attempt == _listingAttempts) break;
     stdout.writeln(
@@ -254,7 +284,7 @@ Future<MarketIndex> _fetchPublishedIndex(HttpClient client) async {
 /// and a rebuild silently discarding it would be exactly the erasure this
 /// whole fix exists to prevent.
 MarketIndex? _readLocalIndex() {
-  final file = File(_outputPath);
+  final file = File(_servidor.arquivoDoIndice);
   if (!file.existsSync()) return null;
   return MarketIndex.fromJson(
     jsonDecode(file.readAsStringSync()) as Map<String, dynamic>,
@@ -268,10 +298,11 @@ Future<String?> _fetchDetail(
   required void Function() onBlocked,
 }) async {
   for (var attempt = 1; attempt <= _attemptsPerPage; attempt++) {
-    // `/details/$server/$id` — the form the listing's links use — answers 302
-    // and redirects here. Following it doubled the request count for the whole
-    // collection, and the rate limit counts redirects.
-    final body = await _get(client, '$_origin/$_server/details/$roleId');
+    // The canonical shape is per-version and inverted between them — see
+    // `Servidor.detalhe` for the measurement. Using the other form doubles
+    // the request count for the whole collection via a redirect (pw187) or
+    // answers 404 outright (pw126).
+    final body = await _get(client, _servidor.detalhe(roleId));
     if (body != null) return body;
 
     if (attempt == _attemptsPerPage) return null;
@@ -326,7 +357,7 @@ void _writeIndex(
   MarketIndex? publicado,
 }) {
   final builder = IndexBuilder(
-    server: _server,
+    server: _servidor.chave,
     collectedAt: DateTime.now().toUtc(),
   );
 
@@ -356,7 +387,8 @@ void _writeIndex(
   }
 
   final index = builder.build(historyFrom: historyFromDe(publicado, agora));
-  final file = File(_outputPath)..parent.createSync(recursive: true);
+  final file = File(_servidor.arquivoDoIndice)
+    ..parent.createSync(recursive: true);
   file.writeAsStringSync(jsonEncode(index.toJson()));
 
   // Realms the scale could not place. Eight of the ten tiers had never been
@@ -483,7 +515,7 @@ void _reportSummary(
 
   stdout
     ..writeln('')
-    ..writeln('Índice escrito em $_outputPath')
+    ..writeln('Índice escrito em ${_servidor.arquivoDoIndice}')
     ..writeln('  lidos:    ${collected.length} de ${listing.length}')
     ..writeln('  falharam: ${state.failed.length}')
     ..writeln('  sem equipamento nenhum: $bare');

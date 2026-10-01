@@ -145,20 +145,31 @@ Future<void> main(List<String> arguments) async {
     final listing = await _fetchListing(client);
     stdout.writeln('${listing.length} personagens à venda.');
 
-    final MarketIndex publicado;
+    MarketIndex? publicado;
     try {
       publicado = await _fetchPublishedIndex(client);
     } on PublishedIndexUnavailable catch (e) {
-      // Refusing to write beats writing a reset index: a stale index is still
-      // correct, and the site keeps serving it while the Worker's retry tries
-      // again. A reset index would look exactly like a working one and erase
-      // every character's history in the same breath.
-      stderr.writeln(
-        'Não consegui ler o índice publicado ($e). Não vou escrever um novo '
-        'índice agora — isso apagaria a história de preço de todo mundo. '
-        'O site continua servindo o último índice bom.',
+      if (!e.notFound) {
+        // Refusing to write beats writing a reset index: a stale index is
+        // still correct, and the site keeps serving it while the Worker's
+        // retry tries again. A reset index would look exactly like a working
+        // one and erase every character's history in the same breath.
+        stderr.writeln(
+          'Não consegui ler o índice publicado ($e). Não vou escrever um '
+          'novo índice agora — isso apagaria a história de preço de todo '
+          'mundo. O site continua servindo o último índice bom.',
+        );
+        exit(1);
+      }
+      // A 404 here is this version's first-ever collection — there is no
+      // history to lose, only none to start. `null` is exactly what
+      // `avancarTodos`/`historyFromDe` already read as "nobody has ever been
+      // seen", so this is not a special case for them, only for this message.
+      stdout.writeln(
+        'Nenhum índice publicado para ${_servidor.chave} ainda ($e) — '
+        'primeira coleta desta versão, seguindo sem histórico.',
       );
-      exit(1);
+      publicado = null;
     }
 
     final state = _CollectState.load(_servidor.arquivoDoEstado, resume: resume);
@@ -252,11 +263,32 @@ Future<List<ListingCard>> _fetchListing(HttpClient client) async {
 /// all, and it must never be treated the same way: `avancarTodos` reads
 /// `publicado == null` as "nobody has ever been seen" and would stamp
 /// `firstSeen` on every character alive, erasing the market's whole memory in
-/// one run. `main` catches this and refuses to write anything.
+/// one run. `main` catches this and refuses to write anything — except for
+/// [notFound], which is the one flavour it is safe to treat as that same
+/// `null`. See [notFound] for why.
 class PublishedIndexUnavailable implements Exception {
-  const PublishedIndexUnavailable(this.reason);
+  const PublishedIndexUnavailable(this.reason, {this.notFound = false});
 
   final String reason;
+
+  /// True when the request reached the server and it answered 404 — the
+  /// *bootstrap* case: this version has never published an index, because
+  /// nobody has collected it yet. That is a fact about the world, not an
+  /// outage, and it is exactly what `publicado == null` already means
+  /// everywhere downstream — `avancarTodos` starts everyone's history today,
+  /// `historyFromDe` stamps `historyFrom` to now. Before this field existed,
+  /// a 404 here and a 500 there looked identical, and both aborted: the first
+  /// `pw126` run could never complete (its own `--carry-forward` for pw187
+  /// has no problem, but `main()` fetching pw126's own not-yet-published
+  /// index would 404 and exit before writing anything), and the first `pw187`
+  /// run after merging this code would 404 on pw126's not-yet-published index
+  /// in the carry-forward step and freeze every deploy.
+  ///
+  /// Any other failure — a different status, a connection error, a body that
+  /// will not parse — leaves this `false`, and the caller must still abort:
+  /// those are the cases where an index genuinely exists and we simply could
+  /// not read it, and writing over it would erase real history.
+  final bool notFound;
 
   @override
   String toString() => reason;
@@ -267,9 +299,16 @@ class PublishedIndexUnavailable implements Exception {
 ///
 /// Pure — no network, no clock — so this is what a test exercises instead of
 /// a live fetch: a 200 with `{"formatVersion": 2, ...}` and no `historyFrom`
-/// is the genuine first run and must succeed; any other status, or a body
-/// `MarketIndex.fromJson` rejects, must throw.
+/// is the genuine first run and must succeed; a 404 is a bootstrap and throws
+/// with [PublishedIndexUnavailable.notFound] set; any other status, or a body
+/// `MarketIndex.fromJson` rejects, is an outage and throws without it.
 MarketIndex parsePublishedIndex(int statusCode, String body) {
+  if (statusCode == 404) {
+    throw const PublishedIndexUnavailable(
+      'respondeu 404 — esta versão nunca publicou um índice',
+      notFound: true,
+    );
+  }
   if (statusCode != 200) {
     throw PublishedIndexUnavailable('respondeu $statusCode');
   }
@@ -326,24 +365,45 @@ Future<MarketIndex> _fetchPublishedIndex(HttpClient client) async {
 /// same request the price-memory feature already makes, just aimed at
 /// whichever `Servidor` `--server` selected this time.
 ///
-/// **A failed fetch aborts rather than writes nothing.** Exiting 1 here is
-/// the same decision `main()` already takes when its own published index
-/// does not arrive (see the `try`/`on PublishedIndexUnavailable` block
-/// above): publishing without the carried-forward index would erase that
-/// market from the site, and a stale-but-present index is strictly better
-/// than that.
+/// **A failed fetch aborts rather than writes nothing — unless the failure is
+/// a 404.** Exiting 1 on anything else is the same decision `main()` already
+/// takes when its own published index does not arrive: publishing without
+/// the carried-forward index would erase that market from the site, and a
+/// stale-but-present index is strictly better than that.
+///
+/// **A 404 is different: it means this version has never been published at
+/// all, which is the state of the world the moment this feature first
+/// merges.** Aborting on it would deadlock every run forever — the pw187 run
+/// that carries pw126 forward 404s and freezes the whole site's deploys, and
+/// the first pw126 run that could break that deadlock 404s on its own
+/// published index in `main()` before writing anything either. So a 404 here
+/// is logged and skipped rather than aborted: this run simply does not write
+/// that version's index, and the deploy publishes the version it DID collect
+/// without the other door yet existing. The moment either version has
+/// published once, every future 404 here is a genuine outage again — a
+/// published file does not un-publish itself — and the abort below still
+/// applies to that case exactly as before.
 Future<void> _carryForward(HttpClient client) async {
   try {
     final index = await _fetchPublishedIndex(client);
     final file = File(_servidor.arquivoDoIndice)
       ..parent.createSync(recursive: true);
     file.writeAsStringSync(jsonEncode(index.toJson()));
+    escreverVersoes(index, _servidor);
     stdout.writeln(
       'Arrastado: ${_servidor.chave} (${index.characters.length} '
       'personagens, coletado em ${index.collectedAt}) -> '
       '${_servidor.arquivoDoIndice}',
     );
   } on PublishedIndexUnavailable catch (e) {
+    if (e.notFound) {
+      stdout.writeln(
+        '${_servidor.chave} nunca foi publicado ($e) — nada a arrastar '
+        'ainda. Este deploy sai sem aquela porta; ela aparece assim que a '
+        'primeira coleta dessa versão rodar.',
+      );
+      return;
+    }
     stderr.writeln(
       'Não consegui baixar o índice publicado de ${_servidor.chave} ($e). '
       'Abortando sem publicar — publicar sem ele apagaria aquele mercado '

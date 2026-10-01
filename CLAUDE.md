@@ -455,19 +455,21 @@ the sum said less than the chips already said, and said it with false
 precision. The ordering also broke the grid by construction, since anything
 that moves a slot stops it being the window. The idea is parked, not refuted.
 
-**It is announced.** `/registros` has a card on the front page under
-**Ferramentas**, named *Títulos* — the word players use; *registro* is what
-the item is called, and the title is what they are after. The card borrows
-`sacerdote.webp`, which the code says out loud: a priest has nothing to do
-with titles, it was sitting unused, and it fills the card until a screenshot
-of the titles screen arrives.
+**It is announced.** `/registros` is one of the tools `Cabecalho`'s own menu
+lists, under **Ferramentas**, named *Títulos* — the word players use;
+*registro* is what the item is called, and the title is what they are after.
+It has no card of its own: `ToolCard` and the front page's tool cards were
+retired on 01/10/2026, once `Cabecalho`'s pills reached every screen and made
+a second navigation surface for the same set of tools a duplicate. `GavetaItem`
+is the one place left a tool is drawn, inside the menu's drawer.
 
-**The front page groups by section, and the *novo* badge carries a date.**
-Tools and guides filed together made the menu say "here are four things"; the
-headings make it say what the site does and what it explains. The badge is a
-`DateTime` rather than a flag on purpose — a "novo" nobody remembers to remove
-stops being true within weeks, and a badge that has lied once is a badge
-nobody believes again. It expires by itself.
+**The menu groups by section, and the *novo* badge carries a date.** Tools and
+guides filed together made it say "here are four things"; the headings make it
+say what the site does and what it explains. The badge is a `DateTime` rather
+than a flag on purpose — a "novo" nobody remembers to remove stops being true
+within weeks, and a badge that has lied once is a badge nobody believes again.
+It expires by itself, inside `GavetaItem` now, the drawer row that is the one
+surface a tool has left.
 
 **The totals are two sums, and both are real.** Pages are one currency, so
 they add. Attributes add *within* an attribute — three Atk F plus fifteen is
@@ -857,9 +859,11 @@ graça do `PopupRoute` que `showMenu` já usa por baixo — não foi escrito à
 mão.
 
 **Cada item da gaveta ganhou uma descrição, e ela já existia.** `Tool.tagline`
-é a mesma frase que o card de ferramentas já mostra — *Títulos* sozinho não
-diz nada a quem nunca usou, e a gaveta lê o campo em vez de inventar um
-segundo texto para divergir do primeiro. E a gaveta passou a listar também o
+é o único texto que descreve a ferramenta — *Títulos* sozinho não diz nada a
+quem nunca usou, e a gaveta lê o campo em vez de inventar um segundo texto
+para divergir do primeiro. (O card de ferramentas que também mostrava essa
+frase saiu da home em 01/10/2026; `GavetaItem` é quem a lê hoje.) E a gaveta
+passou a listar também o
 que **não** está pronto, esmaecido e dizendo *em breve* — antes ela filtrava
 por `isReady` e simplesmente omitia, o que é o próprio defeito que o menu de
 ferramentas na página já evita: uma entrada "em breve" ausente é uma promessa
@@ -1276,15 +1280,16 @@ Each of these already cost something — measured on the live site, not guessed.
 
   No art behind it, and that was decided by rendering four versions rather than
   by arguing. The logo repeats what the page header already shows 600 px above;
-  a class portrait repeats the tool card 100 px below. The page is already full
-  of art, and this bar is the one flat thing on it — which is why the eye finds
-  it. Art here would compete with four cards that do it better and say
-  something by doing it.
+  the Destaques cards just above already carry a class portrait each, and the
+  streamer strip just below carries the streamer's own art when there is one.
+  The page is already full of art, and this bar is the one flat thing on it —
+  which is why the eye finds it. Art here would compete with cards that do it
+  better and say something by doing it.
 
   Its date sits **beside the label, not at the right edge**. It was on the
-  right in the first version and landed on top of the art, unreadable. Every
-  text on a tool card lives on the left half for the same reason: the picture
-  owns the other side.
+  right in the first version and landed on top of the art, unreadable — the
+  same reason every card with both a picture and text on this page keeps the
+  text on the half the picture does not own.
 
 - **`VisitMemory` is `BrowserMemory` and takes its key.** It held one
   hard-coded `localStorage` key while the visit counter was its only user; the

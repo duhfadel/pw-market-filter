@@ -80,6 +80,25 @@ MarketIndex _indiceComColisao() => MarketIndex(
   ],
 );
 
+/// A market where the cheapest carrier of at least 70 attack level actually
+/// wears 80 — nobody cheaper wears exactly 70. `strongWeaponQuery` asks for
+/// *at least* 70, so this is a legal result, not a broken collection.
+///
+/// A second, cheaper character of a different class is needed so category 1
+/// ("O mais barato") takes *him* rather than the 80-carrier — leaving the
+/// 80-carrier free to win category 2 instead of being spent, and dropped, by
+/// the class-collision rule.
+MarketIndex _indiceComVencedorDeOitenta() => MarketIndex(
+  server: 'pw187',
+  collectedAt: DateTime.utc(2026, 10, 1),
+  attributes: const ['Nível de Ataque'],
+  items: const {},
+  characters: [
+    _personagem('barato', 10, 'Mago'),
+    _personagem('oitenta', 100, 'Guerreiro', nivelAtaque: 80),
+  ],
+);
+
 void main() {
   test('six categories on the real market, all of distinct classes', () {
     final file = File('web/market_index.json');
@@ -178,6 +197,50 @@ void main() {
         cartao.nota.split(' ').first,
         reason: "the door's result count must match the card's own note",
       );
+    },
+  );
+
+  test('the weapon card\'s badge is the winner\'s own worn attack level, never '
+      'a hardcoded 70', () {
+    // Finding 6 of the 2026-10-01 review: `strongWeaponQuery` asks **at
+    // least** 70, and the market has an 80 tier above it, so a
+    // cheapest-first winner can genuinely wear 80. A badge that always
+    // printed "ARMA 70" would be the fourth appearance of a shape
+    // CLAUDE.md already names three times — a label asserting a number the
+    // data does not support.
+    final file = File('web/market_index.json');
+    if (!file.existsSync()) return; // a fresh clone has not collected yet
+
+    final index = MarketIndex.fromJson(
+      jsonDecode(file.readAsStringSync()) as Map<String, dynamic>,
+    );
+    final cartao = destaquesDe(
+      index,
+    ).firstWhere((d) => d.rotulo.contains('Arma de'));
+
+    final id = index.attributes.indexOf('Nível de Ataque');
+    final arma = cartao.personagem.equipped.firstWhere(
+      (item) => item.slot == weaponSlot,
+    );
+    final nivelReal = arma.attributes[id] ?? 0;
+
+    expect(cartao.selo, 'ARMA $nivelReal');
+    expect(cartao.rotulo, contains('Arma de $nivelReal'));
+  });
+
+  test(
+    'an 80-carrier winning the 70-weapon category badges itself 80, not 70',
+    () {
+      // Synthetic because today's real market happens to land this category
+      // on an exact 70 (SK_Alya, 45 TCC) — true, but latent, which is exactly
+      // the shape Finding 6 warns about. This market forces the 80 case so a
+      // hardcoded "ARMA 70" cannot hide behind the real collection agreeing
+      // with it by coincidence.
+      final seis = destaquesDe(_indiceComVencedorDeOitenta());
+      final cartao = seis.firstWhere((d) => d.rotulo.contains('Arma de'));
+
+      expect(cartao.selo, 'ARMA 80');
+      expect(cartao.rotulo, 'Arma de 80 mais barata');
     },
   );
 }

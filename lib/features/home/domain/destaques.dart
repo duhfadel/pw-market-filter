@@ -93,14 +93,22 @@ List<Destaque> destaquesDe(MarketIndex index) {
     usadas,
     index,
     todosPorPreco,
-    rotuloCheio: 'O mais barato',
-    rotuloSuave: 'Um dos mais baratos',
+    rotuloCheio: (_) => 'O mais barato',
+    rotuloSuave: (_) => 'Um dos mais baratos',
     busca: const SearchQuery(),
     nota: (_, _) =>
         '${groupThousands(index.characters.length)} personagens no mercado',
   );
 
-  // 2. Arma de 70 mais barata.
+  // 2. Arma de 70 mais barata — the label's "70" is derived from the winner,
+  // never hardcoded. `strongWeaponQuery` asks **at least** 70, and the market
+  // has an 80 tier above it: a cheapest-first search can land on an 80
+  // carrier the moment nobody cheaper wears exactly 70, which would make a
+  // fixed "ARMA 70" badge the fourth appearance of the shape CLAUDE.md
+  // already records three times — a label stating a number the data does not
+  // support. True on every collection measured so far (SK_Alya, 45 TCC,
+  // exactly 70), but latent is still wrong the day it changes, so the badge
+  // reads `_nivelDeAtaqueDoVencedor`, the same call category 5 already makes.
   final arma70 = strongWeaponQuery(index);
   if (arma70 != null) {
     final carregadores = runQuery(index, arma70);
@@ -109,10 +117,13 @@ List<Destaque> destaquesDe(MarketIndex index) {
       usadas,
       index,
       carregadores,
-      rotuloCheio: 'Arma de 70 mais barata',
-      rotuloSuave: 'Um dos mais baratos com arma de 70',
+      rotuloCheio: (vencedor) =>
+          'Arma de ${_nivelDeAtaqueDoVencedor(index, vencedor)} mais barata',
+      rotuloSuave: (vencedor) =>
+          'Um dos mais baratos com arma de '
+          '${_nivelDeAtaqueDoVencedor(index, vencedor)}',
       busca: arma70,
-      selo: (_) => 'ARMA 70',
+      selo: (vencedor) => 'ARMA ${_nivelDeAtaqueDoVencedor(index, vencedor)}',
       nota: (_, _) => '${carregadores.length} no mercado inteiro',
     );
   }
@@ -126,8 +137,8 @@ List<Destaque> destaquesDe(MarketIndex index) {
       usadas,
       index,
       carregadores,
-      rotuloCheio: 'Atq lvl UP5 mais barato',
-      rotuloSuave: 'Um dos mais baratos com Atq lvl UP5',
+      rotuloCheio: (_) => 'Atq lvl UP5 mais barato',
+      rotuloSuave: (_) => 'Um dos mais baratos com Atq lvl UP5',
       busca: atqUp5,
       selo: (_) => 'ATQ UP5',
       nota: (_, _) => '${carregadores.length} no mercado inteiro',
@@ -143,8 +154,8 @@ List<Destaque> destaquesDe(MarketIndex index) {
       usadas,
       index,
       carregadores,
-      rotuloCheio: 'Def lvl UP5 mais barato',
-      rotuloSuave: 'Um dos mais baratos com Def lvl UP5',
+      rotuloCheio: (_) => 'Def lvl UP5 mais barato',
+      rotuloSuave: (_) => 'Um dos mais baratos com Def lvl UP5',
       busca: defUp5,
       selo: (_) => 'DEF UP5',
       nota: (_, _) => '${carregadores.length} no mercado inteiro',
@@ -159,8 +170,8 @@ List<Destaque> destaquesDe(MarketIndex index) {
     usadas,
     index,
     todosPorPrecoDesc,
-    rotuloCheio: 'O mais caro',
-    rotuloSuave: 'Um dos mais caros',
+    rotuloCheio: (_) => 'O mais caro',
+    rotuloSuave: (_) => 'Um dos mais caros',
     busca: buscaDoMaisCaro,
     nota: (vencedor, _) {
       // Conditional and derived: a wrong claim about the market's own top
@@ -198,8 +209,8 @@ List<Destaque> destaquesDe(MarketIndex index) {
     usadas,
     index,
     porChaves,
-    rotuloCheio: 'Mais Chaves da Sorte',
-    rotuloSuave: 'Um dos que mais carregam Chaves da Sorte',
+    rotuloCheio: (_) => 'Mais Chaves da Sorte',
+    rotuloSuave: (_) => 'Um dos que mais carregam Chaves da Sorte',
     busca: const SearchQuery(
       shownOwned: {_chaveDaSorte},
       minimumOwned: {_chaveDaSorte: 1},
@@ -230,8 +241,8 @@ void _tentar(
   Set<String> usadas,
   MarketIndex index,
   List<MarketCharacter> candidatos, {
-  required String rotuloCheio,
-  required String rotuloSuave,
+  required String Function(MarketCharacter vencedor) rotuloCheio,
+  required String Function(MarketCharacter vencedor) rotuloSuave,
   required SearchQuery busca,
   required String Function(MarketCharacter vencedor, bool empurrado) nota,
   String? Function(MarketCharacter vencedor)? selo,
@@ -246,7 +257,7 @@ void _tentar(
     usadas.add(candidato.characterClass);
     destaques.add(
       Destaque(
-        rotulo: empurrado ? rotuloSuave : rotuloCheio,
+        rotulo: empurrado ? rotuloSuave(candidato) : rotuloCheio(candidato),
         personagem: candidato,
         nota: nota(candidato, empurrado),
         cor: weaponTierColor(index, candidato),

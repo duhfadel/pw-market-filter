@@ -11,11 +11,6 @@ import '../../home/domain/novidade.dart';
 import '../../home/ui/widgets/cabecalho.dart';
 import '../../home/ui/widgets/novidade_texto.dart';
 
-/// Below this, `Cabecalho` collapses its pills into one overflow button — the
-/// same breakpoint the front page uses, so the menu does not gain a second
-/// narrow shape depending on which screen is showing it.
-const _larguraDoMenu = 680.0;
-
 /// The whole history of the site's own announcements, one screen, newest
 /// first.
 ///
@@ -100,7 +95,7 @@ class _NovidadesViewState extends State<NovidadesView> {
       // hand-declared arrow shares.
       automaticallyImplyLeading: false,
       title: Cabecalho(
-        wide: MediaQuery.sizeOf(context).width >= _larguraDoMenu,
+        wide: MediaQuery.sizeOf(context).width >= Cabecalho.larguraMinima,
         aoAbrirNovidades: () => Navigator.of(context).pushNamed('/novidades'),
       ),
     ),

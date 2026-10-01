@@ -26,6 +26,20 @@ import 'tool_navigation.dart';
 class Cabecalho extends StatelessWidget {
   const Cabecalho({required this.wide, this.aoAbrirNovidades, super.key});
 
+  /// Below this, the pills do not fit in a row beside the mark, and
+  /// `Cabecalho` collapses them into one overflow button instead — every
+  /// screen that carries this widget reads its own `MediaQuery` width against
+  /// this same number, so the menu never gains a second narrow shape
+  /// depending on which screen is showing it.
+  ///
+  /// One constant, not four. `_larguraDoMenu` was this same `680.0`, copied
+  /// by hand — three-line doc comment included — into `novidades_view.dart`,
+  /// `registros_view.dart`, `runas_view.dart` and (as `_twoColumnWidth`)
+  /// `home_view.dart`. Four hand-synced copies of one number is exactly how
+  /// two of them drift apart in this codebase; it belongs on the widget whose
+  /// breakpoint it actually is.
+  static const larguraMinima = 680.0;
+
   /// Whether the page has room for one pill per section.
   ///
   /// On narrow, the pills would not fit in a row beside the mark — and a

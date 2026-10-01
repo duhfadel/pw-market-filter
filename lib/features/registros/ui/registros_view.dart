@@ -17,11 +17,6 @@ import 'widgets/plano_resumo.dart';
 import 'widgets/registro_panel.dart';
 import 'widgets/slot_grid.dart';
 
-/// Below this, `Cabecalho` collapses its pills into one overflow button — the
-/// same breakpoint the front page uses, so the menu does not gain a second
-/// narrow shape depending on which screen is showing it.
-const _larguraDoMenu = 680.0;
-
 /// The NPC's *Fabricar* window, on the web.
 ///
 /// The game trades Páginas de Registro: Assimilação for permanent stats, and
@@ -60,7 +55,7 @@ class _Tela extends StatelessWidget {
         // without a hand-declared arrow shares.
         automaticallyImplyLeading: false,
         title: Cabecalho(
-          wide: largura >= _larguraDoMenu,
+          wide: largura >= Cabecalho.larguraMinima,
           aoAbrirNovidades: () => Navigator.of(context).pushNamed('/novidades'),
         ),
       ),

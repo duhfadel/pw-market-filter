@@ -59,9 +59,6 @@ void _abrirBusca(BuildContext context, MarketIndex index, SearchQuery query) {
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
-  /// Below this the grid becomes a column.
-  static const _twoColumnWidth = 680.0;
-
   /// Above this the page is not competing for space, and holding the layout at
   /// its tablet size leaves the mark reading as a small card adrift in black —
   /// on a 1920 monitor the logo was 18% of the width. Everything grows a step.
@@ -70,7 +67,10 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final wide = width >= _twoColumnWidth;
+    // The grid becomes a column below this — the same number as
+    // `Cabecalho.larguraMinima`, where its own pills collapse into the
+    // overflow menu. One breakpoint, read from the one place it is defined.
+    final wide = width >= Cabecalho.larguraMinima;
     final large = width >= _largeWidth;
     // 1040 and not 900 at the top step, and the reason is one line of type:
     // at 900 the old headline broke with "usando" alone on a second line at

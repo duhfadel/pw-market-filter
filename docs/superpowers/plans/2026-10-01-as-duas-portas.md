@@ -38,7 +38,7 @@ Sobre os 1.293 personagens colhidos em 01/10:
 | anedotas | **0** | sai a secção e a ordem |
 | itens contados | **0** | sai *5 essências*, sai *Itens da mochila* |
 | reino celestial | **0** | sai a secção |
-| caminho God/Evil | **0** | ver abaixo — é mais subtil |
+| caminho God/Evil | **0** | planeado; falta a âncora — ver abaixo |
 | sexo | 824 M / 469 F | **fica** |
 | cultivo | 13 valores | **fica** |
 | 11 slots, 165 armas distintas | | **fica**, com tabela de nomes própria |
@@ -54,10 +54,24 @@ que o `CLAUDE.md` já regista para o 1.8.7: `sage` casa dentro de
 *Men**sage**iro*, e `Sagrado`/`Demoníaco` são nomes de item — *Colar do Osso
 Sagrado*, *Lorde Demoníaco*.
 
-**Fica em aberto e não se inventa.** Se alguém que joga disser qual é o **id**
-da perícia de erupção naquela versão, detetamos por número. Até lá a secção
-não se desenha. Um filtro que devolve nulo para toda a gente é pior que a
-ausência dele: parece que o site sabe e está errado.
+**O caminho FICA no plano — decisão do dono em 01/10 — e entra assim que
+houver sinal.** O que falta é a âncora: dois personagens da mesma classe e do
+mesmo nível, um sabidamente God e outro sabidamente Evil. Com esses dois, o
+id sai por diferença entre os conjuntos de perícias em segundos, e a deteção
+passa a ser por número em vez de por nome.
+
+**O que já foi tentado e não serviu, para ninguém repetir:** procurei um id
+que dividisse cada classe ao meio, sobre trinta páginas. Os candidatos
+`158`–`161` aparecem em Arqueiro, Feiticeira e Sacerdote — comuns, não de
+classe — mas **não são exclusivos**: treze dos trinta têm os quatro ao mesmo
+tempo. São quase de certeza perícias de nível alto, e o que separa quem as
+tem é o nível, não o caminho. A sondagem também não conseguiu ler o nível
+daquelas páginas, então essa hipótese ficou por testar — é um buraco na
+medição, não um resultado.
+
+**Até haver âncora, a secção não se desenha.** Um filtro que devolve nulo
+para toda a gente é pior que a ausência dele; e um id adivinhado dividiria o
+mercado em dois grupos errados com toda a confiança, que é pior ainda.
 
 ## Global Constraints
 

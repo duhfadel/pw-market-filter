@@ -39,8 +39,16 @@ import '../ao_vivo_view_model.dart';
 /// The bucket refuses anything over 512 KB and anything that is not an image,
 /// which is the guard that matters: the first file offered was 4.87 MB, and in
 /// a repository it would have been resized before anyone noticed.
-/// How much of the card the art holds.
-const _larguraDaArte = 0.24;
+///
+/// **The emblem's width is governed by the card's height, not by its
+/// width, and this is why.** The banner is 690×231 — almost exactly 3:1
+/// (690/231 ≈ 2.99) — so filling a box of height `H` with `BoxFit.cover`
+/// scales the whole banner to about `3H` wide. The emblem itself is the
+/// banner's left 170 px, which in that scaled picture comes out to
+/// `170/231 ≈ 0.74` of `H`. That 0.74 is a property of the art file, not a
+/// tuning knob, which is why it is a fraction of the two pixel measurements
+/// above rather than a typed decimal.
+const _proporcaoEmblemaPorAltura = 170 / 231;
 
 /// The card's height on wide — fixed, rather than following its content.
 ///
@@ -50,7 +58,32 @@ const _larguraDaArte = 0.24;
 /// streamer with a game name and one without. On narrow there is no fixed
 /// height: a phone has no neighbouring card to jump against, and the art
 /// column still needs to fill whatever height the facts settle on.
-const _alturaCard = 164.0;
+const _alturaCard = 132.0;
+
+/// The emblem column's width on wide, in pixels — derived from
+/// [_proporcaoEmblemaPorAltura] and [_alturaCard] rather than typed as a
+/// second, independent number. If the card's height ever changes again,
+/// this follows on its own instead of needing to be re-guessed: at 132 px
+/// it comes to about 97 px, tight to the emblem instead of the 264 px a
+/// flat 24%-of-width column used to reserve around a 121 px picture.
+const _larguraEmblemaWide = _proporcaoEmblemaPorAltura * _alturaCard;
+
+/// Narrow has no fixed height to feed the same formula — the card's height
+/// there is whatever the name line, the line below it, the gap between
+/// them and the padding come to, and that varies with whether a card has a
+/// second line at all. This is an estimate of the common case (both lines
+/// present), built from the same figures [_CardDoStreamerState] uses to lay
+/// them out: 14 px of padding on each edge, a 17 px name at a 1.25 line
+/// height, a 3 px gap, and a 13 px line below at a 1.4 line height. A
+/// one-line card ends up a little shorter than this in reality, which
+/// leaves its column a few spare pixels rather than cutting the emblem —
+/// the safer side to be wrong on.
+const _alturaEstreitaEstimada = 14 * 2 + 17 * 1.25 + 3 + 13 * 1.4;
+
+/// The emblem column's width on narrow, by the same relationship as
+/// [_larguraEmblemaWide].
+const _larguraEmblemaEstreita =
+    _proporcaoEmblemaPorAltura * _alturaEstreitaEstimada;
 
 String arteDoStreamer(String login) =>
     'https://yadfbwsolmkcaylbxviw.supabase.co'
@@ -127,29 +160,30 @@ class _AoVivoStripState extends State<AoVivoStrip> {
 /// `Stack(fit: StackFit.expand)`, which forces every non-positioned child
 /// to the parent's full size regardless of what it asked for. "Nothing"
 /// came out as an empty rectangle at the column's full size, painted over
-/// by the gradient below, with a hard seam at [_larguraDaArte] where that
-/// gradient ended — exactly what zMaroto's card showed: two shades of
-/// violet and a line, not the absence the rest of the app promises. Moving
-/// the yes/no decision in front of this widget, rather than inside it, is
-/// the fix: there is no card-shaped rectangle to see until there is a
-/// picture to put in it.
+/// by the gradient below, with a hard seam where that gradient ended —
+/// exactly what zMaroto's card showed: two shades of violet and a line,
+/// not the absence the rest of the app promises. Moving the yes/no decision
+/// in front of this widget, rather than inside it, is the fix: there is no
+/// card-shaped rectangle to see until there is a picture to put in it.
 ///
-/// A quarter of the width and no more, filling the card's full height — the
-/// art is a 690×231 banner whose emblem sits in its left 170 px, so cropping
-/// to [_larguraDaArte] lands exactly on it. The right edge fades into the
-/// panel rather than ending on a hard line, so the column reads as part of
-/// the card rather than a second one stitched on.
+/// Sized by the card's height, not by its width — see
+/// [_proporcaoEmblemaPorAltura] — filling the card's full height so the
+/// crop lands on the banner's emblem rather than the blank space either
+/// side of it. The right edge fades into the panel rather than ending on a
+/// hard line, so the column reads as part of the card rather than a second
+/// one stitched on.
 class _Emblema extends StatelessWidget {
-  const _Emblema({required this.login});
+  const _Emblema({required this.login, required this.wide});
 
   final String login;
+  final bool wide;
 
   @override
   Widget build(BuildContext context) => Positioned.fill(
     child: Align(
       alignment: Alignment.centerLeft,
-      child: FractionallySizedBox(
-        widthFactor: _larguraDaArte,
+      child: SizedBox(
+        width: wide ? _larguraEmblemaWide : _larguraEmblemaEstreita,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -225,8 +259,19 @@ class _SondaDeArte extends StatelessWidget {
 /// at full width would fight the scoreboard that lands over its right edge,
 /// which is exactly where the darkening has to be.
 ///
-/// Degrades the same way [_Emblema] does — a missing file draws nothing, not
-/// a broken box.
+/// **Mounted only once [_CardDoStreamerState] has confirmed art exists —
+/// the same guard [_Emblema] needs, and for the same reason.** This widget
+/// carries the identical shape that caused the empty-column defect: an
+/// `Image` whose `errorBuilder` returns `SizedBox.shrink()` inside a
+/// `Stack(fit: StackFit.expand)`, which forces that empty box to the full
+/// size of this layer regardless. It never actually showed a seam, but not
+/// because the shape was safe — it was luck: the scrim gradient here has no
+/// hard stop anywhere, so a forced-empty image under a smooth gradient that
+/// spans the whole card looks the same as a present one. That stops being
+/// true the moment somebody gives the gradient a hard edge tied to some
+/// boundary, which is exactly how it broke on [_Emblema]. So it is gated
+/// the same way instead of trusted to stay lucky: no art, no texture layer,
+/// full stop.
 class _FundoTextura extends StatelessWidget {
   const _FundoTextura({required this.login});
 
@@ -394,13 +439,14 @@ class _CardDoStreamerState extends State<CardDoStreamer> {
               // spare beyond its content, so centring changes nothing there.
               alignment: Alignment.centerLeft,
               children: [
-                _FundoTextura(login: canal.canal),
+                // No art, no texture and no column: see [_FundoTextura],
+                // [_Emblema] and [_SondaDeArte] for why both layers have to
+                // be a mount decision rather than a fallback drawn inside a
+                // widget that is always there.
+                if (_temArte) _FundoTextura(login: canal.canal),
                 _Lavagem(accent: accent),
-                // No art, no column: see [_Emblema] and [_SondaDeArte] for
-                // why this has to be a mount decision and not a fallback
-                // drawn inside one widget that is always there.
                 if (_temArte)
-                  _Emblema(login: canal.canal)
+                  _Emblema(login: canal.canal, wide: widget.wide)
                 else
                   _SondaDeArte(
                     login: canal.canal,
@@ -430,23 +476,24 @@ class _CardDoStreamerState extends State<CardDoStreamer> {
   /// the way they did before the scoreboard existed. A name at the left and a
   /// number pinned at the right already anchor both ends of the card.
   ///
-  /// Measured, not guessed. The art holds [_larguraDaArte] of the **card**,
-  /// so the space the facts must clear is a fraction of the real width — an
-  /// earlier version reserved fixed pixels and the name sat on the fade at
-  /// 350 px while looking fine at 1400.
-  Widget _linha() => LayoutBuilder(
-    builder: (context, limites) => Row(
-      children: [
-        // Only when there is art. Reserving it anyway indented every
-        // art-less card by a quarter and cut `7 assistindo` off the end of a
-        // phone — space held for a picture that was never coming.
-        if (_temArte)
-          SizedBox(
-            width: limites.maxWidth * _larguraDaArte + (widget.wide ? 0 : 12),
-          ),
-        Expanded(child: _fatos()),
-      ],
-    ),
+  /// A fixed pixel width now, not a fraction of the row's own width: the
+  /// emblem's real size comes from the card's height (see
+  /// [_proporcaoEmblemaPorAltura]), which has nothing to do with how wide
+  /// this particular card happens to be, so there is no `LayoutBuilder` to
+  /// read a width from any more.
+  Widget _linha() => Row(
+    children: [
+      // Only when there is art. Reserving it anyway indented every
+      // art-less card by the column's width and cut `7 assistindo` off the
+      // end of a phone — space held for a picture that was never coming.
+      if (_temArte)
+        SizedBox(
+          width:
+              (widget.wide ? _larguraEmblemaWide : _larguraEmblemaEstreita) +
+              (widget.wide ? 0 : 12),
+        ),
+      Expanded(child: _fatos()),
+    ],
   );
 
   /// The name and its live line on the left, the scoreboard on the right —

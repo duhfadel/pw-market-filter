@@ -110,10 +110,15 @@ void main() {
       // rectangle at the column's full size with a hard seam at its right
       // edge — reported live on zMaroto's card as two shades of violet and
       // a line, not the absence every other missing-art case in this app
-      // draws. This test builds the emblem's own signature —
-      // `FractionallySizedBox(widthFactor: 0.24)` — and demands it is
-      // simply not there when no art loaded, which is what "no column"
-      // means: not an invisible one, no column.
+      // draws.
+      //
+      // `_Emblema` and `_FundoTextura` are both private, so this looks for
+      // their signatures instead: `_Emblema`'s own three-stop surface
+      // gradient (`stops: [0, 0.55, 1]`), and `_FundoTextura`'s `Opacity`
+      // at exactly 0.42. Both were built unconditionally before this fix —
+      // forced to the full column size by the same `StackFit.expand` trap
+      // — and both must now be entirely absent, not merely invisible, when
+      // there is no art.
       await pump(
         tester,
         canal: canal(canal: 'zmaroto', nome: 'zMaroto'),
@@ -121,12 +126,20 @@ void main() {
       );
       await tester.pump(const Duration(seconds: 1));
 
+      expect(find.byWidgetPredicate(_ehGradienteDoEmblema), findsNothing);
       expect(
-        find.byWidgetPredicate(
-          (w) => w is FractionallySizedBox && w.widthFactor == 0.24,
-        ),
+        find.byWidgetPredicate((w) => w is Opacity && w.opacity == 0.42),
         findsNothing,
       );
+    });
+  });
+
+  group('the card size', () {
+    testWidgets('is 132 px tall on wide', (tester) async {
+      await pump(tester, canal: canal(), wide: true);
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(tester.getSize(find.byType(CardDoStreamer)).height, 132);
     });
   });
 
@@ -238,6 +251,24 @@ Color _bordaDoCard(WidgetTester tester) {
       .firstWhere((c) => (c.decoration as BoxDecoration?)?.border != null);
   final border = (container.decoration! as BoxDecoration).border! as Border;
   return border.top.color;
+}
+
+/// `_Emblema`'s own signature: a `BoxDecoration` with a three-stop linear
+/// gradient at exactly `[0, 0.55, 1]`. `_Emblema` is private, so its
+/// presence or absence has to be read off a shape only it builds.
+bool _ehGradienteDoEmblema(Widget w) {
+  if (w is! DecoratedBox) return false;
+  final decoration = w.decoration;
+  if (decoration is! BoxDecoration) return false;
+  final gradient = decoration.gradient;
+  const esperado = [0.0, 0.55, 1.0];
+  return gradient is LinearGradient &&
+      gradient.colors.length == 3 &&
+      gradient.stops != null &&
+      gradient.stops!.length == esperado.length &&
+      Iterable<int>.generate(
+        esperado.length,
+      ).every((i) => gradient.stops![i] == esperado[i]);
 }
 
 /// The live dot's own colour — the 10×10 circular `Container` beside the

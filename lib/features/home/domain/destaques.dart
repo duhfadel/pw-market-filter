@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' show Color;
 
+import '../../../market/counted_items.dart';
 import '../../../market/market_index.dart';
 import '../../../market/slot_names.dart';
 import '../../search/domain/matcher.dart';
@@ -58,7 +59,6 @@ class Destaque {
 /// The attribute every "70" and "UP5" question is asked about.
 const _nivelDeAtaque = 'Nível de Ataque';
 const _nivelDeDefesa = 'Nível de Defesa';
-const _chaveDaSorte = 'Chave da Sorte';
 
 /// The six characters the front page shows, one per question.
 ///
@@ -181,43 +181,48 @@ List<Destaque> destaquesDe(MarketIndex index) {
     },
   );
 
-  // 6. Mais Chaves da Sorte — most of a counted item, never a filter.
+  // 6. Mais relíquias — a soma das três, e a troca é do dono em 01/10/2026.
   //
-  // The door used to be `shownOwned` alone, which prints the count but
-  // filters nobody: it opened onto the whole market, cheapest first, with
-  // the card's own subject off the first screen and the result count (1666)
-  // contradicting the card's own note ("950 carregam alguma"). `minimumOwned`
-  // closes that gap — it is a live field (`search_view_model.dart`), a live
-  // control and a live link parameter, so using it costs nothing new — and it
-  // narrows the destination to exactly the 950 the card already promises.
+  // A carta era *Mais Chaves da Sorte* e saiu com a frase dele: *"estas são
+  // as importantes, as chave da sorte não"*. A medição concorda e por um
+  // motivo mais forte que o enunciado. Sobre os 1.666 de 01/10: a soma das
+  // três está em **1.653 (99%)**, mediana 74, topo 595 — uma escala contínua
+  // onde quase toda a gente está, e por isso ordena o mercado inteiro. A
+  // Chave não é escala: 875 a carregam, metade dessas carrega exatamente
+  // uma, e 655 das 875 vivem no primeiro 1,3% da sua faixa
+  // (`counted_items.dart` diz o mesmo). Isso mede quem nunca gastou, não o
+  // personagem.
   //
-  // `ResultOrder.mostOwned` ("Mais relíquias") is not it, measured rather
-  // than assumed: its comparator (`matcher.dart`) is hardcoded to the three
-  // `relicNames`, which deliberately exclude the key
-  // (`counted_items.dart`), so it sorts this door by relic count — unrelated
-  // to who holds the most keys. Checked against `web/market_index.json`:
-  // with `order: mostOwned` and no minimum the destination stays all 1666
-  // characters and opens on Sarsfield (700 TCC, the relic leader), not
-  // EAZIN. No `ResultOrder` sorts by this counted item at all —
-  // `_carregadoresDeChaves` above exists precisely because the card list
-  // itself has to compute that ranking by hand. So the door is correct
-  // (narrows to the 950, the card's own subject included) without also
-  // claiming an ordering the filter cannot express.
-  final porChaves = _carregadoresDeChaves(index);
+  // **E a porta fica mais simples do que a anterior.** A carta das chaves
+  // precisava de um ranking feito à mão porque nenhuma `ResultOrder` sabe
+  // ordenar por aquele item. Aqui `ResultOrder.mostOwned` **é** esta soma —
+  // o comentário dela em `search_query.dart` diz que soma as três e exclui a
+  // Chave de propósito. Então o destino abre ordenado pelo mesmo número que
+  // o selo mostra, e o sujeito da carta é o primeiro resultado.
+  //
+  // Somar as três é legítimo e a regra já está escrita: atributos somam-se
+  // *dentro* de um atributo, e as três relíquias são a mesma pergunta feita
+  // de três maneiras — é o que `buscaInicial` já diz ao marcar as três de
+  // uma vez. O que nunca se soma é um atributo a outro.
+  final porReliquias = _carregadoresDeReliquias(index);
   _tentar(
     destaques,
     usadas,
     index,
-    porChaves,
-    rotuloCheio: (_) => 'Mais Chaves da Sorte',
-    rotuloSuave: (_) => 'Um dos que mais carregam Chaves da Sorte',
+    porReliquias,
+    rotuloCheio: (_) => 'Mais relíquias',
+    rotuloSuave: (_) => 'Um dos que mais carregam relíquias',
     busca: const SearchQuery(
-      shownOwned: {_chaveDaSorte},
-      minimumOwned: {_chaveDaSorte: 1},
+      shownOwned: relicNames,
+      order: ResultOrder.mostOwned,
     ),
-    selo: (vencedor) =>
-        groupThousands(index.countOf(vencedor, _chaveDaSorte) ?? 0),
-    nota: (_, _) => '${porChaves.length} personagens carregam alguma',
+    selo: (vencedor) => groupThousands(_somaDasReliquias(index, vencedor)),
+    // A decomposição, e não só o total: um número que ninguém consegue
+    // decompor é um número que ninguém consegue conferir — a mesma razão
+    // pela qual `countedItemNotes` existe.
+    nota: (vencedor, _) => [
+      for (final nome in relicNames) '${index.countOf(vencedor, nome) ?? 0}',
+    ].join(' + '),
   );
 
   return destaques;
@@ -288,23 +293,31 @@ int _nivelDeAtaqueDoVencedor(MarketIndex index, MarketCharacter character) {
   return 0;
 }
 
-/// Carriers of at least one `Chave da Sorte`, most first.
+/// Everyone carrying at least one of the three relics, most first.
 ///
-/// Built by hand rather than through `ResultOrder`: there is no "most keys"
-/// order in the filter, because `ResultOrder.mostOwned` sums the three relics
-/// on purpose and the key is deliberately not one of them
-/// (`counted_items.dart` says why). Somebody carrying zero is not a carrier —
-/// the same call the matcher makes for every `minimumOwned` filter.
-List<MarketCharacter> _carregadoresDeChaves(MarketIndex index) {
-  if (!index.countedItems.containsKey(_chaveDaSorte)) return const [];
+/// Built here rather than taken from `ResultOrder.mostOwned` because the card
+/// needs the ordered list *before* a query exists — but it is the same sum,
+/// and `destaques_test` pins the two agreeing so they cannot drift.
+///
+/// Somebody carrying none of the three is not a carrier, the same call the
+/// matcher makes for every `minimumOwned` filter.
+List<MarketCharacter> _carregadoresDeReliquias(MarketIndex index) {
+  if (!relicNames.any(index.countedItems.containsKey)) return const [];
 
   final comContagem = <(MarketCharacter, int)>[];
   for (final character in index.characters) {
-    final contagem = index.countOf(character, _chaveDaSorte);
-    if (contagem != null && contagem > 0) {
-      comContagem.add((character, contagem));
-    }
+    final total = _somaDasReliquias(index, character);
+    if (total > 0) comContagem.add((character, total));
   }
   comContagem.sort((a, b) => b.$2.compareTo(a.$2));
   return [for (final par in comContagem) par.$1];
+}
+
+/// The three relics added together — one question asked three ways.
+int _somaDasReliquias(MarketIndex index, MarketCharacter character) {
+  var total = 0;
+  for (final nome in relicNames) {
+    total += index.countOf(character, nome) ?? 0;
+  }
+  return total;
 }

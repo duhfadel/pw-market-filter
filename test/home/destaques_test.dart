@@ -169,13 +169,17 @@ void main() {
   );
 
   test(
-    "the keys card's door contains its own subject and its note's count",
+    "the relic card's door opens on its own subject, and the note adds up to "
+    'the badge',
     () {
-      // `shownOwned` alone prints the count but filters nobody — it used to
-      // open onto the whole market with the card's own subject off the first
-      // screen and the result count contradicting the note on the card. The
-      // door must at least contain the character it names, and the
-      // destination's size must agree with what the card already says.
+      // The card was *Mais Chaves da Sorte* until 01/10/2026 and the owner
+      // swapped it: *"estas são as importantes, as chave da sorte não"*.
+      //
+      // The door is simpler than the key card's was. `ResultOrder.mostOwned`
+      // **is** this sum — `search_query.dart` says it adds the three relics
+      // and leaves the Chave out on purpose — so the destination opens
+      // ordered by the very number the badge prints, and the card's own
+      // subject is the first result rather than merely somewhere in it.
       final file = File('web/market_index.json');
       if (!file.existsSync()) return; // a fresh clone has not collected yet
 
@@ -184,18 +188,28 @@ void main() {
       );
       final cartao = destaquesDe(
         index,
-      ).firstWhere((d) => d.rotulo.contains('Chaves da Sorte'));
+      ).firstWhere((d) => d.rotulo.contains('relíquias'));
 
       final destino = runQuery(index, cartao.busca);
       expect(
-        destino.map((c) => c.roleId),
-        contains(cartao.personagem.roleId),
-        reason: "the card's door must show the character it names",
+        destino.first.roleId,
+        cartao.personagem.roleId,
+        reason:
+            'the door is ordered by the same sum the badge shows, so the '
+            'card\'s subject must be the first result',
       );
+
+      // The decomposition must add back to the badge. A total nobody can
+      // take apart is a total nobody can check — the same reason
+      // `countedItemNotes` exists.
+      final parcelas = cartao.nota
+          .split('+')
+          .map((p) => int.parse(p.trim()))
+          .toList();
+      expect(parcelas, hasLength(3), reason: 'three relics, three parts');
       expect(
-        destino.length.toString(),
-        cartao.nota.split(' ').first,
-        reason: "the door's result count must match the card's own note",
+        parcelas.reduce((a, b) => a + b).toString(),
+        cartao.selo!.replaceAll('.', ''),
       );
     },
   );

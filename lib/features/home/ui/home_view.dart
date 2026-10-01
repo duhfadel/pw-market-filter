@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../data/browser_memory.dart';
 import '../../../core/theme/pw_colors.dart';
 import '../../../market/market_index.dart';
+import '../../ads/ad_slot.dart';
 import '../../search/domain/search_query.dart';
 import '../../search/domain/search_query_url.dart';
 import '../../search/ui/search_state.dart';
@@ -236,6 +237,18 @@ class HomeView extends StatelessWidget {
                               ],
                             ),
                           ),
+                          SizedBox(height: wide ? 26 : 20),
+                          // The advert came off the home when the page was
+                          // rebuilt, because the new design showed no
+                          // `PUBLICIDADE` label anywhere. The owner put it
+                          // back on 01/10/2026, in the footer.
+                          //
+                          // Below the community and above the footer, which is
+                          // the lowest place on the page that is still the
+                          // page. It is the one block here nobody came for, so
+                          // it goes last — but it is not hidden, because a
+                          // hidden advert is a dishonest one.
+                          _ComMargem(wide: wide, child: const AdSlot()),
                           SizedBox(height: wide ? 28 : 22),
                           _ComMargem(wide: wide, child: const _Footer()),
                         ],

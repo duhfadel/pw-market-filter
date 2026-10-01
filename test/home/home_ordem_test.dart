@@ -209,11 +209,26 @@ void main() {
     expect(ordem, orderedEquals([...ordem]..sort()));
   });
 
-  testWidgets('the Discord is no longer labelled advertising', (tester) async {
+  testWidgets('the advert and the community are two different things', (
+    tester,
+  ) async {
+    // This test used to assert `PUBLICIDADE` appeared nowhere, which was true
+    // only while the advert was off the home — and that was never a rule, it
+    // was a consequence. The owner put the advert back on 01/10/2026, so the
+    // assertion that survives is the one that was always the point: the
+    // Discord strip is the community's, not a paid slot, and the two must not
+    // be confused for one another.
     await _pumpHome(tester);
 
-    expect(find.text('PUBLICIDADE'), findsNothing);
+    expect(find.text('PUBLICIDADE'), findsOneWidget);
     expect(find.text('COMUNIDADE'), findsOneWidget);
+
+    // And the advert sits below the community — the lowest place on the page
+    // that is still the page.
+    expect(
+      tester.getTopLeft(find.text('PUBLICIDADE')).dy,
+      greaterThan(tester.getTopLeft(find.text('COMUNIDADE')).dy),
+    );
   });
 
   testWidgets(

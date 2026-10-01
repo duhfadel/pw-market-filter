@@ -85,10 +85,24 @@ class _Results extends StatelessWidget {
 
   final SearchReady state;
 
+  /// Shared with the `bottom` bar's `preferredSize`, so the declared height
+  /// can never drift from the padding the content is actually built with.
+  static const _bottomPadding = EdgeInsets.fromLTRB(16, 2, 8, 8);
+
   @override
   Widget build(BuildContext context) {
     final viewModel = context.read<SearchViewModel>();
-    final wide = MediaQuery.sizeOf(context).width >= SearchView._twoColumnWidth;
+    final width = MediaQuery.sizeOf(context).width;
+    // Two independent questions, not one. `panelsWide` is this screen's own
+    // call about its own content — whether the filter panel sits beside the
+    // grid or behind a drawer — and has nothing to do with the menu. `menuWide`
+    // is `Cabecalho`'s own breakpoint, the same one every other screen reads,
+    // so the menu never gains a second narrow shape depending on which screen
+    // is showing it. Before this split, `wide` served both jobs off 900 —
+    // `Cabecalho`'s own docstring said that could not happen and was wrong the
+    // whole time this screen existed.
+    final panelsWide = width >= SearchView._twoColumnWidth;
+    final menuWide = width >= Cabecalho.larguraMinima;
 
     final panel = FilterPanel(state: state, viewModel: viewModel);
 
@@ -98,9 +112,11 @@ class _Results extends StatelessWidget {
         // Taller than the default 56 on wide: `Cabecalho`'s pills, bordered
         // and with their own padding, need more than the default toolbar
         // gives them before anything below them reads as legible chrome
-        // rather than a cramped strip.
-        toolbarHeight: wide ? 68 : null,
-        titleSpacing: wide ? null : 8,
+        // rather than a cramped strip. Tied to `menuWide`, not `panelsWide` —
+        // this is about giving `Cabecalho` room, and the two-column layout
+        // below is a different question.
+        toolbarHeight: menuWide ? 68 : null,
+        titleSpacing: menuWide ? null : 8,
         // Declared, never implied. `automaticallyImplyLeading` gives the
         // drawer's hamburger priority over the back arrow, so on a phone —
         // where the filter lives in a drawer — the way home silently vanished
@@ -108,13 +124,10 @@ class _Results extends StatelessWidget {
         // that `Cabecalho`'s own mark, in the title below, is a second door
         // home: two is better than none, and this is the one that was
         // already proven against that bug.
-        leading: _HomeButton(wide: wide),
-        leadingWidth: wide ? null : 44,
+        leading: _HomeButton(wide: menuWide),
+        leadingWidth: menuWide ? null : 44,
         automaticallyImplyLeading: false,
-        title: Cabecalho(
-          wide: wide,
-          aoAbrirNovidades: () => Navigator.of(context).pushNamed('/novidades'),
-        ),
+        title: Cabecalho(wide: menuWide),
         // `Cabecalho` alone — the mark, the name and, on wide, three bordered
         // pills — measures upward of 650 px, which a back arrow and this
         // screen's own actions never had to share room with before. There is
@@ -127,9 +140,19 @@ class _Results extends StatelessWidget {
         // widget existed to fill the first one up.
         actions: const [],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(64),
+          // Two rows, each holding an icon button or popup — `kMinInteractiveDimension`
+          // is the Material tap target both `IconButton` and `PopupMenuButton`
+          // size themselves to, so neither row ever measures less than that —
+          // plus the same padding the child below is built with. A literal 64
+          // here once named a number nobody had measured: the real subtree is
+          // 106, two rows of 48 and 10 of padding, and the gap was silent
+          // because `AppBar` shrinks its toolbar to absorb an undersized
+          // `bottom` rather than overflowing.
+          preferredSize: Size.fromHeight(
+            _bottomPadding.vertical + kMinInteractiveDimension * 2,
+          ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 2, 8, 8),
+            padding: _bottomPadding,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -166,12 +189,12 @@ class _Results extends StatelessWidget {
       ),
       body: Column(
         children: [
-          _Disclaimer(wide: wide),
+          _Disclaimer(wide: panelsWide),
           const Divider(height: 1),
           Expanded(
             child: Row(
               children: [
-                if (wide) ...[
+                if (panelsWide) ...[
                   SizedBox(width: 340, child: panel),
                   const VerticalDivider(width: 1),
                 ],
@@ -183,7 +206,7 @@ class _Results extends StatelessWidget {
                           // One strip for everything that narrows. Its own row
                           // would have cost 48 px of a 844 px screen to say
                           // one word.
-                          if (!wide) ...[
+                          if (!panelsWide) ...[
                             _FilterButton(state: state, viewModel: viewModel),
                             const SizedBox(
                               height: 26,

@@ -22,5 +22,15 @@ void abrirTool(BuildContext context, Tool tool) {
     unawaited(launchUrl(Uri.parse(href), webOnlyWindowName: '_self'));
     return;
   }
-  Navigator.of(context).pushNamed(tool.route!);
+
+  // The same hazard **M1** found in the Novidades pill: picking the tool
+  // that names the screen already open would push a second, identical copy
+  // on top of it, and the back button's first press would appear to do
+  // nothing. Compared by path, not by the whole route name — `/filtro` can
+  // carry a query string this `route` never will.
+  final route = tool.route!;
+  final atual = ModalRoute.of(context)?.settings.name;
+  if (atual != null && Uri.parse(atual).path == route) return;
+
+  Navigator.of(context).pushNamed(route);
 }

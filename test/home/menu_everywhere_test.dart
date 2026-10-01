@@ -79,9 +79,21 @@ MockClient _indiceFalso() => MockClient(
   ),
 );
 
-/// Pumps the app starting on [rota], the same five routes `main.dart` answers.
-Future<void> _abrir(WidgetTester tester, String rota) async {
-  tester.view.physicalSize = const Size(1200, 900);
+/// Pumps the app starting on [rota], the same five routes `main.dart`
+/// answers, at [largura] — narrower than the default 1200 for **H2**, the
+/// menu's own breakpoint, which only shows up at a width nothing else in this
+/// file pumps at.
+///
+/// [rotas], when given, records every route name `onGenerateRoute` is asked
+/// to build — the same log **M1** was found by reading by hand
+/// (`[/, /novidades, /novidades]`).
+Future<void> _abrir(
+  WidgetTester tester,
+  String rota, {
+  double largura = 1200,
+  List<String>? rotas,
+}) async {
+  tester.view.physicalSize = Size(largura, 900);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
 
@@ -124,6 +136,7 @@ Future<void> _abrir(WidgetTester tester, String rota) async {
       child: MaterialApp(
         initialRoute: rota,
         onGenerateRoute: (settings) {
+          rotas?.add(settings.name ?? '/');
           final route = Uri.parse(settings.name ?? '/');
           return MaterialPageRoute(
             settings: settings,
@@ -179,4 +192,83 @@ void main() {
     expect(find.byIcon(Icons.arrow_back), findsOneWidget);
     expect(find.byKey(const Key('cabecalho-marca')), findsOneWidget);
   });
+
+  group('H1 — the header is not clipped on /filtro', () {
+    // `search_view.dart`'s `bottom: PreferredSize` once declared 64 px for a
+    // subtree that measured 106, so `AppBar` shrank the toolbar to absorb the
+    // shortfall and `Cabecalho` laid out a few pixels above the viewport at
+    // every width — silently, since a `Flexible` shrinking is not an
+    // overflow and `tester.takeException()` stayed null throughout. The only
+    // shape of test that would have caught it measures the rectangle.
+    for (final largura in [390.0, 700.0, 1200.0]) {
+      testWidgets('the mark is fully on screen at ${largura}px', (
+        tester,
+      ) async {
+        await _abrir(tester, '/filtro', largura: largura);
+
+        final marca = tester.getTopLeft(
+          find.byKey(const Key('cabecalho-marca')),
+        );
+        expect(marca.dy, greaterThanOrEqualTo(0), reason: '$largura px');
+
+        final nome = tester.getTopLeft(find.text('PORTAL PW'));
+        expect(nome.dy, greaterThanOrEqualTo(0), reason: '$largura px');
+      });
+    }
+  });
+
+  group('H2 — the menu fits its own row at its own breakpoint', () {
+    // Pumped at `Cabecalho.larguraMinima` itself, read live rather than
+    // copied as a literal — if the constant ever regresses towards 680, the
+    // same assertion starts pumping at that smaller width and goes red,
+    // because the real row does not fit there. 680 was measured to overflow
+    // by 4.6 px bare, 11 px in an `AppBar` title and 64 px inside the home's
+    // own margins.
+    for (final rota in ['/', '/filtro', '/registros', '/runas', '/novidades']) {
+      testWidgets('no overflow on $rota at Cabecalho.larguraMinima', (
+        tester,
+      ) async {
+        await _abrir(tester, rota, largura: Cabecalho.larguraMinima);
+
+        expect(tester.takeException(), isNull, reason: rota);
+      });
+    }
+  });
+
+  testWidgets(
+    'M1 — the Novidades pill does not push /novidades on top of itself',
+    (tester) async {
+      final rotas = <String>[];
+      await _abrir(tester, '/novidades', rotas: rotas);
+
+      await tester.tap(find.text('Novidades'));
+      await tester.pumpAndSettle();
+
+      // `MaterialApp` generates both `/` and `/novidades` for this initial
+      // route on its own, to keep a proper back stack under a deep link —
+      // that part is unrelated to M1. Before the guard in `_abrirNovidades`,
+      // tapping the pill pushed a *third*, identical `/novidades` on top, and
+      // the stack could pop back into a copy of the same screen, which is why
+      // the back button's first press looked like it did nothing.
+      expect(rotas, ['/', '/novidades']);
+      expect(find.byType(NovidadesView), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'M1 — picking the tool that names the open screen does not push it again',
+    (tester) async {
+      // The same hazard, through `abrirTool` rather than the Novidades pill:
+      // picking *Títulos* from the drawer while already on `/registros`.
+      final rotas = <String>[];
+      await _abrir(tester, '/registros', rotas: rotas, largura: 390);
+
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Títulos'));
+      await tester.pumpAndSettle();
+
+      expect(rotas, ['/', '/registros']);
+    },
+  );
 }

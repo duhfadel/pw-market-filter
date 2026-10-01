@@ -24,7 +24,7 @@ import 'tool_navigation.dart';
 /// [PopupMenuButton]'s own [PopupRoute], which already wires a dismiss
 /// barrier and a `DismissIntent` binding for exactly this.
 class Cabecalho extends StatelessWidget {
-  const Cabecalho({required this.wide, this.aoAbrirNovidades, super.key});
+  const Cabecalho({required this.wide, super.key});
 
   /// Below this, the pills do not fit in a row beside the mark, and
   /// `Cabecalho` collapses them into one overflow button instead — every
@@ -32,13 +32,27 @@ class Cabecalho extends StatelessWidget {
   /// this same number, so the menu never gains a second narrow shape
   /// depending on which screen is showing it.
   ///
-  /// One constant, not four. `_larguraDoMenu` was this same `680.0`, copied
-  /// by hand — three-line doc comment included — into `novidades_view.dart`,
+  /// One constant, not four. `_larguraDoMenu` was this same number, copied by
+  /// hand — three-line doc comment included — into `novidades_view.dart`,
   /// `registros_view.dart`, `runas_view.dart` and (as `_twoColumnWidth`)
   /// `home_view.dart`. Four hand-synced copies of one number is exactly how
   /// two of them drift apart in this codebase; it belongs on the widget whose
   /// breakpoint it actually is.
-  static const larguraMinima = 680.0;
+  ///
+  /// **772, not 680 — and the consolidation itself had carried the wrong
+  /// value.** Measured with real fonts, the wide row overflows from 680 up to
+  /// roughly 712 inside a plain `AppBar` title and roughly 744 inside the
+  /// home's own margins. `/filtro`'s `AppBar` is not plain — it carries its
+  /// own `leading` back arrow, the one chrome none of the other four screens
+  /// add, and that pushes its own clean width a few pixels past the other
+  /// three: measured at exactly 768 it still overflowed, by 0.144 px. 772
+  /// clears every context this widget is mounted in, with margin. A single
+  /// source of truth is only as good as the number inside it, and
+  /// consolidating four copies into one is not the same task as measuring
+  /// what that one number should be — nor, it turned out, is measuring the
+  /// four original screens the same task as measuring a fifth that joined
+  /// them later with chrome the others do not have.
+  static const larguraMinima = 772.0;
 
   /// Whether the page has room for one pill per section.
   ///
@@ -48,19 +62,6 @@ class Cabecalho extends StatelessWidget {
   /// panel at a time, so the menu collapses to a single overflow button
   /// instead.
   final bool wide;
-
-  /// Called when *Novidades* is tapped.
-  ///
-  /// It opens `/novidades`, the site's own screen of past announcements —
-  /// every caller hands in `Navigator.pushNamed(context, '/novidades')`,
-  /// the home page included, where the collapsed news bar lower on the page
-  /// stays as a teaser rather than the destination. It used to scroll to a
-  /// section further down the front page; that stopped being true the day
-  /// `/novidades` got a screen of its own; a comment still claiming the old
-  /// behaviour would describe intent instead of code, and this repository
-  /// has already paid for that twice. `null` leaves the entry inert, which
-  /// is what every test that is not about it gets.
-  final VoidCallback? aoAbrirNovidades;
 
   @override
   Widget build(BuildContext context) => Row(
@@ -72,11 +73,33 @@ class Cabecalho extends StatelessWidget {
           _SectionPill(secao: secao),
           const SizedBox(width: 8),
         ],
-        _NovidadesPill(onTap: aoAbrirNovidades),
+        const _NovidadesPill(),
       ] else
-        _OverflowMenu(aoAbrirNovidades: aoAbrirNovidades),
+        const _OverflowMenu(),
     ],
   );
+}
+
+/// Opens `/novidades`, the site's own screen of past announcements — guarded
+/// against stacking it on top of itself.
+///
+/// It used to scroll to a section further down the front page; that stopped
+/// being true the day `/novidades` got a screen of its own. Every entrance
+/// to it reads through here now rather than each of the five screens that
+/// carry `Cabecalho` writing its own `Navigator.pushNamed(context,
+/// '/novidades')` — a sixth screen forgetting it used to mean an inert pill
+/// with no compile error.
+///
+/// **M1** was this exact hop, with no guard: tapping *Novidades* while
+/// already reading `/novidades` pushed a second, identical copy, so the
+/// first press of "back" appeared to do nothing. Compared by path and not
+/// by the whole route name, because `/filtro` can carry a query string no
+/// other route here does — `/novidades` never does, but the comparison is
+/// written the way `abrirTool` below needs it to be, for the same hazard.
+void _abrirNovidades(BuildContext context) {
+  final atual = ModalRoute.of(context)?.settings.name;
+  if (atual != null && Uri.parse(atual).path == '/novidades') return;
+  Navigator.of(context).pushNamed('/novidades');
 }
 
 /// The mark, the name and the game's version — and the way home from
@@ -92,44 +115,52 @@ class _Marca extends StatelessWidget {
   const _Marca({super.key});
 
   @override
-  Widget build(BuildContext context) => InkWell(
-    borderRadius: BorderRadius.circular(6),
-    onTap: () =>
-        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false),
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset(
-            'assets/images/pw-mark.webp',
-            height: 26,
-            filterQuality: FilterQuality.medium,
-            // A missing file leaves the name to carry the header alone
-            // rather than a broken box — the same silent fallback the rest
-            // of the site makes for art that failed to load.
-            errorBuilder: (_, _, _) => const SizedBox.shrink(),
-          ),
-          const SizedBox(width: 10),
-          const Text(
-            'PORTAL PW',
-            style: TextStyle(
-              fontFamily: PWTheme.display,
-              fontSize: 18,
-              letterSpacing: 0.6,
-              color: PWColors.papel,
+  Widget build(BuildContext context) => Material(
+    // The one exception to "no inline colours": transparent is the absence
+    // of a colour, not a choice of one. Without it, the home page's own
+    // `_Aurora` paints over the splash — `_Marca` sat inside an `AppBar`'s
+    // own `Material` on the tool screens and only the home page ever showed
+    // the gap, which is exactly how it went unnoticed.
+    color: Colors.transparent,
+    child: InkWell(
+      borderRadius: BorderRadius.circular(6),
+      onTap: () =>
+          Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/images/pw-mark.webp',
+              height: 26,
+              filterQuality: FilterQuality.medium,
+              // A missing file leaves the name to carry the header alone
+              // rather than a broken box — the same silent fallback the rest
+              // of the site makes for art that failed to load.
+              errorBuilder: (_, _, _) => const SizedBox.shrink(),
             ),
-          ),
-          const SizedBox(width: 8),
-          // The game's own version, not this site's — nobody asks a tool
-          // site "which release are you", they ask "which game". On Inter,
-          // never Marcellus: it is a number, and Marcellus draws Roman
-          // figures.
-          const Text(
-            '1.8.7',
-            style: TextStyle(color: PWColors.textMuted, fontSize: 11),
-          ),
-        ],
+            const SizedBox(width: 10),
+            const Text(
+              'PORTAL PW',
+              style: TextStyle(
+                fontFamily: PWTheme.display,
+                fontSize: 18,
+                letterSpacing: 0.6,
+                color: PWColors.papel,
+              ),
+            ),
+            const SizedBox(width: 8),
+            // The game's own version, not this site's — nobody asks a tool
+            // site "which release are you", they ask "which game". On
+            // Inter, never Marcellus: it is a number, and Marcellus draws
+            // Roman figures.
+            const Text(
+              '1.8.7',
+              style: TextStyle(color: PWColors.textMuted, fontSize: 11),
+            ),
+          ],
+        ),
       ),
     ),
   );
@@ -232,9 +263,7 @@ class _SectionPill extends StatelessWidget {
 /// the `/novidades` screen directly, and there is nothing to list in a
 /// drawer first.
 class _NovidadesPill extends StatelessWidget {
-  const _NovidadesPill({this.onTap});
-
-  final VoidCallback? onTap;
+  const _NovidadesPill();
 
   @override
   Widget build(BuildContext context) => Material(
@@ -243,7 +272,7 @@ class _NovidadesPill extends StatelessWidget {
     color: Colors.transparent,
     child: InkWell(
       borderRadius: BorderRadius.circular(20),
-      onTap: onTap,
+      onTap: () => _abrirNovidades(context),
       child: const _Pill(label: 'Novidades'),
     ),
   );
@@ -392,9 +421,7 @@ class GavetaItem extends StatelessWidget {
 /// same information the wide row offers, in the one panel this site allows
 /// itself on a phone.
 class _OverflowMenu extends StatelessWidget {
-  const _OverflowMenu({this.aoAbrirNovidades});
-
-  final VoidCallback? aoAbrirNovidades;
+  const _OverflowMenu();
 
   @override
   Widget build(BuildContext context) => PopupMenuButton<Tool?>(
@@ -425,7 +452,7 @@ class _OverflowMenu extends StatelessWidget {
           ),
       ],
       PopupMenuItem<Tool?>(
-        onTap: aoAbrirNovidades,
+        onTap: () => _abrirNovidades(context),
         child: const Text(
           'Novidades',
           style: TextStyle(color: PWColors.papel, fontWeight: FontWeight.w600),

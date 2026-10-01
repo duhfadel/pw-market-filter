@@ -102,7 +102,6 @@ class _NovidadesViewState extends State<NovidadesView> {
       automaticallyImplyLeading: false,
       title: Cabecalho(
         wide: MediaQuery.sizeOf(context).width >= Cabecalho.larguraMinima,
-        aoAbrirNovidades: () => Navigator.of(context).pushNamed('/novidades'),
       ),
     ),
     body: switch (_estado) {

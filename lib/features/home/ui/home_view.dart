@@ -131,11 +131,7 @@ class HomeView extends StatelessWidget {
                         children: [
                           _ComMargem(
                             wide: wide,
-                            child: Cabecalho(
-                              wide: wide,
-                              aoAbrirNovidades: () =>
-                                  Navigator.of(context).pushNamed('/novidades'),
-                            ),
+                            child: Cabecalho(wide: wide),
                           ),
                           SizedBox(height: wide ? 22 : 16),
                           // **The Cartaz bleeds to the reading column's own

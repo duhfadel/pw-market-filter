@@ -43,7 +43,6 @@ class _RunasViewState extends State<RunasView> {
         automaticallyImplyLeading: false,
         title: Cabecalho(
           wide: MediaQuery.sizeOf(context).width >= Cabecalho.larguraMinima,
-          aoAbrirNovidades: () => Navigator.of(context).pushNamed('/novidades'),
         ),
       ),
       body: ListView(

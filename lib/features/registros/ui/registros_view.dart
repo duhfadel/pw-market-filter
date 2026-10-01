@@ -54,10 +54,7 @@ class _Tela extends StatelessWidget {
         // The mark is the only door here, the same arrangement every screen
         // without a hand-declared arrow shares.
         automaticallyImplyLeading: false,
-        title: Cabecalho(
-          wide: largura >= Cabecalho.larguraMinima,
-          aoAbrirNovidades: () => Navigator.of(context).pushNamed('/novidades'),
-        ),
+        title: Cabecalho(wide: largura >= Cabecalho.larguraMinima),
       ),
       body: BlocBuilder<RegistrosViewModel, RegistrosState>(
         builder: (context, state) => switch (state) {

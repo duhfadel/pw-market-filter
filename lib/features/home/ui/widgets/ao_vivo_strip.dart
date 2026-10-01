@@ -40,6 +40,20 @@ import '../ao_vivo_view_model.dart';
 /// which is the guard that matters: the first file offered was 4.87 MB, and in
 /// a repository it would have been resized before anyone noticed.
 ///
+/// The banner's own pixel geometry — the one place these four numbers are
+/// typed, so every crop and scale elsewhere in this file is a fraction of
+/// them rather than a parallel guess.
+const _larguraDoBanner = 690.0;
+const _alturaDoBanner = 231.0;
+
+/// The emblem's own width within the banner — everything from here to
+/// [_larguraDoBanner] is the wall, the circuitry, the part that is
+/// actually scenery.
+const _larguraEmblemaNoBanner = 170.0;
+
+/// The scenery's width within the banner: the banner minus the emblem.
+const _larguraCenarioNoBanner = _larguraDoBanner - _larguraEmblemaNoBanner;
+
 /// **The emblem's width is governed by the card's height, not by its
 /// width, and this is why.** The banner is 690×231 — almost exactly 3:1
 /// (690/231 ≈ 2.99) — so filling a box of height `H` with `BoxFit.cover`
@@ -48,7 +62,7 @@ import '../ao_vivo_view_model.dart';
 /// `170/231 ≈ 0.74` of `H`. That 0.74 is a property of the art file, not a
 /// tuning knob, which is why it is a fraction of the two pixel measurements
 /// above rather than a typed decimal.
-const _proporcaoEmblemaPorAltura = 170 / 231;
+const _proporcaoEmblemaPorAltura = _larguraEmblemaNoBanner / _alturaDoBanner;
 
 /// The card's height on wide — fixed, rather than following its content.
 ///
@@ -272,6 +286,41 @@ class _SondaDeArte extends StatelessWidget {
 /// boundary, which is exactly how it broke on [_Emblema]. So it is gated
 /// the same way instead of trusted to stay lucky: no art, no texture layer,
 /// full stop.
+///
+/// **A second, separate bug lived here at 132 px: the texture showed the
+/// emblem too, blown up to fill the whole card.** At that height the
+/// banner (690×231) scales to only 396 px wide against a ~1100 px card, so
+/// `BoxFit.cover` covers by *width* instead — scaling the banner to about
+/// 2.1× and cropping it top and bottom, not left and right. Cropping
+/// vertically leaves the full 690 px width on screen regardless of
+/// `alignment`, because there is no horizontal slack left for an alignment
+/// to place: `Alignment.centerRight` on a plain `Image` only matters when
+/// the fit crops horizontally, and at this card's proportions it never
+/// does. So the whole banner, emblem included, rendered across the card at
+/// roughly twice its size.
+///
+/// **The fix has to remove the emblem from the source before `cover` ever
+/// runs, not just ask `cover` to align away from it.** The `OverflowBox` /
+/// `ClipRect` pair below renders the banner at its natural 690×231, then
+/// clips it down to a virtual [_larguraCenarioNoBanner]×[_alturaDoBanner]
+/// image holding only the scenery to the right of the emblem — the
+/// `alignment: Alignment.centerRight` on the `OverflowBox` is what decides
+/// *which* 520 px survive the clip, and it is the one property a test can
+/// actually check (see `card_do_streamer_test.dart`; nothing in
+/// `flutter_test` can see which pixels a crop keeps). Only then does the
+/// outer `FittedBox` cover the real card with that already-emblem-free
+/// image, so there is no scale or alignment left that could bring the
+/// emblem back.
+///
+/// **Checked against the real art, not assumed: gsafoot's wall carries the
+/// scale-up fine, persybr's does not.** persybr's scenery is sparse blue
+/// circuit lines on near-black, and the same ~2× stretch that reads as
+/// "concrete wall, slightly bigger" on gsafoot reads as "a few stray lines
+/// and dots" on his — confirmed by rendering the actual crop at 1100×132.
+/// Nothing here was forced to compensate: a texture that cannot carry the
+/// width is a case for the colour wash to do more of the work on that
+/// card, not for stretching the image further, and that is a follow-up,
+/// not something this fix should paper over.
 class _FundoTextura extends StatelessWidget {
   const _FundoTextura({required this.login});
 
@@ -282,15 +331,7 @@ class _FundoTextura extends StatelessWidget {
     child: Stack(
       fit: StackFit.expand,
       children: [
-        Opacity(
-          opacity: 0.42,
-          child: Image.network(
-            arteDoStreamer(login),
-            fit: BoxFit.cover,
-            alignment: Alignment.centerRight,
-            errorBuilder: (_, _, _) => const SizedBox.shrink(),
-          ),
-        ),
+        Opacity(opacity: 0.42, child: CenarioDoBanner(login: login)),
         DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -304,6 +345,60 @@ class _FundoTextura extends StatelessWidget {
           ),
         ),
       ],
+    ),
+  );
+}
+
+/// The banner, cropped to its scenery — everything right of the emblem —
+/// and scaled to cover whatever box it is given.
+///
+/// **Public, unlike almost everything else in this file, and for the same
+/// reason [CardDoStreamer] is.** What this draws depends on which pixels a
+/// crop keeps, which `flutter_test` cannot see even when an image loads —
+/// the only thing a test can pin is the configuration that decides it
+/// (`OverflowBox.alignment`, `FittedBox.alignment`), and that needs this
+/// widget mounted on its own rather than buried behind
+/// [_CardDoStreamerState]'s art-confirmed gate, which never opens in a test
+/// harness with no network. See `card_do_streamer_test.dart`.
+///
+/// The crop itself: the banner renders at its full natural 690×231 inside
+/// an [OverflowBox] that only reports [_larguraCenarioNoBanner] px wide,
+/// right-aligned — so the 170 px that overflows to the *left* is the
+/// emblem, and the [ClipRect] above cuts exactly that away before
+/// [FittedBox] ever scales anything. `BoxFit.cover` on the untouched banner
+/// cannot do this alone: at this card's proportions it always covers by
+/// width, which leaves zero horizontal slack for any alignment to act on —
+/// the full banner shows regardless of which way it points. Removing the
+/// emblem from the source first is what makes alignment meaningful again.
+class CenarioDoBanner extends StatelessWidget {
+  const CenarioDoBanner({required this.login, super.key});
+
+  final String login;
+
+  @override
+  Widget build(BuildContext context) => FittedBox(
+    fit: BoxFit.cover,
+    alignment: Alignment.centerRight,
+    clipBehavior: Clip.hardEdge,
+    child: ClipRect(
+      child: SizedBox(
+        width: _larguraCenarioNoBanner,
+        height: _alturaDoBanner,
+        child: OverflowBox(
+          minWidth: _larguraDoBanner,
+          maxWidth: _larguraDoBanner,
+          minHeight: _alturaDoBanner,
+          maxHeight: _alturaDoBanner,
+          alignment: Alignment.centerRight,
+          child: Image.network(
+            arteDoStreamer(login),
+            width: _larguraDoBanner,
+            height: _alturaDoBanner,
+            fit: BoxFit.fill,
+            errorBuilder: (_, _, _) => const SizedBox.shrink(),
+          ),
+        ),
+      ),
     ),
   );
 }

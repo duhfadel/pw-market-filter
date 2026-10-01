@@ -143,6 +143,43 @@ void main() {
     });
   });
 
+  group('the background scenery crop', () {
+    // The regression this pins: at 132 px tall the card is wide enough
+    // that `BoxFit.cover` on the untouched banner always covers by width,
+    // which crops top and bottom and leaves zero horizontal slack for any
+    // `alignment` to act on — so the banner's emblem showed in full,
+    // blown up, behind the whole card. `flutter_test` cannot see which
+    // pixels a crop keeps even when the image loads (and it never does
+    // here, with no network) — so this mounts `CenarioDoBanner` on its
+    // own, bypassing `CardDoStreamer`'s art-confirmed gate entirely, and
+    // checks the one thing that is actually checkable: that both the crop
+    // (`OverflowBox`) and the final cover (`FittedBox`) are anchored right,
+    // which is what keeps the emblem — the banner's *left* 170 px — out of
+    // what the crop and the cover each keep.
+    testWidgets('crops and covers anchored to the right of the banner', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 1100,
+              height: 132,
+              child: CenarioDoBanner(login: 'gsafoot'),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 1));
+
+      final overflow = tester.widget<OverflowBox>(find.byType(OverflowBox));
+      expect(overflow.alignment, Alignment.centerRight);
+
+      final fitted = tester.widget<FittedBox>(find.byType(FittedBox));
+      expect(fitted.alignment, Alignment.centerRight);
+    });
+  });
+
   group('the scoreboard', () {
     testWidgets('shows the raw viewer count', (tester) async {
       await pump(tester, canal: canal(espectadores: 58), wide: true);

@@ -112,26 +112,98 @@ class AoVivoStrip extends StatefulWidget {
   State<AoVivoStrip> createState() => _AoVivoStripState();
 }
 
+/// How many cards a page of the carousel holds.
+///
+/// Two on wide and one on narrow, and the number is measured rather than
+/// chosen. A card's floor is its padding, the emblem's own column, the wider
+/// of the name and the line under it, and the scoreboard — 441 px with the
+/// line whole, 352 px once `ao vivo na Twitch` drops on narrow. At 1040 px of
+/// page two cards come to 513 px each; three would be 337, under even the
+/// short floor, so three can only fit by taking away the art column or the
+/// number, which are the two things the redesign added on purpose.
+int _porPagina(bool wide) => wide ? 2 : 1;
+
+/// The streamers, two at a time, going round for ever.
+///
+/// **Infinite rather than a list with an end: after the last comes the
+/// first.** `PageView.builder` with no `itemCount` is endless in both
+/// directions, and the channel at each slot is its page's index modulo how
+/// many are live — so a window of two always lands full, and the odd-number
+/// case that would otherwise leave half a page empty never arises.
+///
+/// **Nothing moves while everyone already fits.** With two live on wide, or
+/// one on narrow, there is no second page to go to: the timer is never armed,
+/// the view does not scroll, and the section is exactly the static pair it
+/// would have been without a carousel at all. Movement that changes nothing
+/// is movement that costs attention for no answer.
+///
+/// **It stops under the pointer.** The one real defect of a carousel is the
+/// card sliding out from under somebody on their way to clicking it — and
+/// here that does not merely annoy, it opens the wrong streamer's channel.
+/// This section exists to help the people who stream; sending a visitor to
+/// the wrong one is worse than not rotating.
 class _AoVivoStripState extends State<AoVivoStrip> {
-  int _atual = 0;
+  /// Where the carousel starts, far from zero so there is room to drag
+  /// backwards: `PageView.builder` without an `itemCount` builds forwards for
+  /// ever but nothing at a negative index, and a strip that cannot be dragged
+  /// to the right reads as broken rather than as endless.
+  ///
+  /// **Everything else counts from here rather than from zero.** Taking the
+  /// raw page number as the position would make the first page land wherever
+  /// `10000 × slots` happens to fall in the list — with three live and two
+  /// slots that is the third and the first, so the strip would open mid-list
+  /// for no reason anybody could see.
+  static const _paginaInicial = 10000;
+
+  late final PageController _controlador = PageController(
+    initialPage: _paginaInicial,
+  );
   Timer? _relogio;
+  bool _parado = false;
 
-  /// Slow on purpose: fast enough that a second streamer is seen, slow enough
-  /// that the card is not moving while somebody reads it.
-  static const _troca = Duration(seconds: 7);
-
-  @override
-  void initState() {
-    super.initState();
-    _relogio = Timer.periodic(_troca, (_) {
-      if (mounted) setState(() => _atual++);
-    });
-  }
+  /// Five seconds, on the owner's call, taken against a recommendation of
+  /// seven and recorded as his.
+  ///
+  /// The argument for seven got **stronger** when the page went from one card
+  /// to two, not weaker: a page now carries twice as much to read — two
+  /// names, two games, two numbers — before anybody decides to click. What
+  /// pulls the other way is that two a page also halves how many pages there
+  /// are, so a full turn with four live is ten seconds at this rate against
+  /// twenty-eight at the old one-card-every-seven.
+  ///
+  /// Five is the floor worth defending; below it the strip reads as blinking.
+  static const _troca = Duration(seconds: 5);
 
   @override
   void dispose() {
     _relogio?.cancel();
+    _controlador.dispose();
     super.dispose();
+  }
+
+  /// Armed only once there is a page to go to, and re-armed on every build
+  /// because the number of live channels changes under us: the Worker rewrites
+  /// the table every five minutes, and a strip that was static with two live
+  /// has to start moving when a third appears.
+  void _acertarRelogio({required bool roda}) {
+    if (!roda || _parado) {
+      _relogio?.cancel();
+      _relogio = null;
+      return;
+    }
+    _relogio ??= Timer.periodic(_troca, (_) {
+      if (!mounted || !_controlador.hasClients) return;
+      _controlador.nextPage(
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  void _parar(bool parado) {
+    if (_parado == parado) return;
+    _parado = parado;
+    setState(() {});
   }
 
   @override
@@ -140,21 +212,34 @@ class _AoVivoStripState extends State<AoVivoStrip> {
         builder: (context, canais) {
           if (canais.isEmpty) return const SizedBox.shrink();
 
-          final canal = canais[_atual % canais.length];
+          final porPagina = _porPagina(widget.wide);
+          final roda = canais.length > porPagina;
+          _acertarRelogio(roda: roda);
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _Titulo(quantos: canais.length),
               SizedBox(height: widget.wide ? 12 : 10),
-              // Fades between streamers instead of cutting: a hard swap reads
-              // as a glitch on a card this quiet.
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 400),
-                child: CardDoStreamer(
-                  key: ValueKey(canal.canal),
-                  canal: canal,
-                  wide: widget.wide,
+              MouseRegion(
+                onEnter: (_) => _parar(true),
+                onExit: (_) => _parar(false),
+                child: SizedBox(
+                  height: _alturaDaFaixa(widget.wide),
+                  child: roda
+                      ? PageView.builder(
+                          controller: _controlador,
+                          itemBuilder: (_, pagina) => _pagina(
+                            canais,
+                            pagina - _paginaInicial,
+                            porPagina,
+                          ),
+                        )
+                      // No controller and no scrolling when it all fits: a
+                      // `PageView` of one page still eats drag gestures, and a
+                      // strip that moves a few pixels and springs back reads
+                      // as a bug in a section that is otherwise still.
+                      : _pagina(canais, 0, porPagina),
                 ),
               ),
               SizedBox(height: widget.wide ? 26 : 20),
@@ -162,7 +247,52 @@ class _AoVivoStripState extends State<AoVivoStrip> {
           );
         },
       );
+
+  /// The channels on one page, wrapping round the end of the list.
+  ///
+  /// The modulo is what makes the window always land full — with three live
+  /// and two slots, page 1 is the third and the first rather than the third
+  /// and a hole. The only case that shows fewer is a market with fewer live
+  /// than the page holds, where repeating somebody to fill the row would be
+  /// the strip claiming more people are streaming than are.
+  Widget _pagina(List<CanalAoVivo> canais, int pagina, int porPagina) {
+    final quantos = porPagina < canais.length ? porPagina : canais.length;
+    // Dart's `%` already returns a non-negative result for a positive right
+    // operand, so dragging back past the opening page wraps round the end of
+    // the list instead of reaching for a negative index.
+    final cartoes = [
+      for (var i = 0; i < quantos; i++)
+        canais[(pagina * porPagina + i) % canais.length],
+    ];
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < cartoes.length; i++) ...[
+          if (i > 0) const SizedBox(width: 14),
+          Expanded(
+            child: CardDoStreamer(
+              key: ValueKey('${cartoes[i].canal}-$pagina-$i'),
+              canal: cartoes[i],
+              wide: widget.wide,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
 }
+
+/// A `PageView` has no height of its own, so the strip has to name one.
+///
+/// On wide that is the card's own fixed height — the same constant the card
+/// lays itself out to, never a second guess at it. On narrow the card has no
+/// fixed height, so this is [_alturaEstreitaEstimada] built from the very
+/// figures the card uses, rounded up: a few spare pixels leave air under a
+/// one-line card, where being short would clip the line that says how many
+/// are watching.
+double _alturaDaFaixa(bool wide) =>
+    wide ? _alturaCard : _alturaEstreitaEstimada + 8;
 
 /// The streamer's own art, as the sharp emblem holding its own column.
 ///

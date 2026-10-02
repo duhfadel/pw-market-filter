@@ -24,6 +24,21 @@ import 'widgets/cartaz.dart';
 import 'widgets/destaques_view.dart';
 import 'widgets/discord_strip.dart';
 
+/// The Cartaz's own claim for the 1.8.7 market, where cards, relics,
+/// essences and runes are all real sections of the filter.
+const _subtituloPw187 =
+    'Arma, cartas, relíquias, essências, runas — o que o marketplace guarda '
+    'no inventário e não deixa procurar.';
+
+/// The 1.2.6 market's own claim. That collector has none of 1.8.7's cards,
+/// counted items or runes yet, so the hero describes the two families this
+/// market's filter actually has — weapon and armour, down to their
+/// attributes — rather than promising four it would prune on the very next
+/// screen.
+const _subtituloPw126 =
+    'Arma, armadura e atributos — o que o marketplace guarda no inventário '
+    'e não deixa procurar.';
+
 /// Opens the filter already answering [query] — every Destaques card is a
 /// door into the search that produced it, encoded the same way a shared
 /// link is so the filter screen reads it back with `requestUrl`.
@@ -204,6 +219,16 @@ class HomeView extends StatelessWidget {
                                               ? '/${rotas.pw126}/filtro'
                                               : AddressBar.canonicalFiltro,
                                         ),
+                                    // One claim per marketplace, not one
+                                    // shared between them: 1.2.6's own filter
+                                    // has no cards, relics, essences or runes
+                                    // — the pruning this branch exists for —
+                                    // so the 1.8.7 line promised four
+                                    // families the very next click did not
+                                    // have.
+                                    subtitulo: pw126
+                                        ? _subtituloPw126
+                                        : _subtituloPw187,
                                   ),
                                   if (ready != null) ...[
                                     SizedBox(height: wide ? 8 : 4),

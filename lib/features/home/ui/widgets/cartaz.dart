@@ -15,6 +15,7 @@ class Cartaz extends StatelessWidget {
     required this.classe,
     required this.wide,
     required this.aoBuscar,
+    required this.subtitulo,
     super.key,
   });
 
@@ -26,6 +27,14 @@ class Cartaz extends StatelessWidget {
 
   /// Called when the one button on the hero is pressed.
   final VoidCallback aoBuscar;
+
+  /// The claim under the headline — required rather than defaulted, because
+  /// the two marketplaces this hero can open on do not carry the same
+  /// families to promise. 1.2.6 has no cards, relics, essences or runes in
+  /// its own filter (the pruning this branch exists for), so a caller that
+  /// never says which market it is standing in is exactly how a 1.2.6 Cartaz
+  /// once shipped advertising all four anyway.
+  final String subtitulo;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +67,12 @@ class Cartaz extends StatelessWidget {
             ),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: _Conteudo(acento: acento, wide: wide, aoBuscar: aoBuscar),
+              child: _Conteudo(
+                acento: acento,
+                wide: wide,
+                aoBuscar: aoBuscar,
+                subtitulo: subtitulo,
+              ),
             ),
           ),
         ],
@@ -139,11 +153,13 @@ class _Conteudo extends StatelessWidget {
     required this.acento,
     required this.wide,
     required this.aoBuscar,
+    required this.subtitulo,
   });
 
   final Color acento;
   final bool wide;
   final VoidCallback aoBuscar;
+  final String subtitulo;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -183,10 +199,9 @@ class _Conteudo extends StatelessWidget {
       // 342 px, which is already below the cap and needs no gate at all.
       ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 430),
-        child: const Text(
-          'Arma, cartas, relíquias, essências, runas — o que o marketplace '
-          'guarda no inventário e não deixa procurar.',
-          style: TextStyle(
+        child: Text(
+          subtitulo,
+          style: const TextStyle(
             color: PWColors.apagado,
             fontSize: 13.5,
             height: 1.5,

@@ -33,6 +33,9 @@ Future<void> _pump(
   WidgetTester tester, {
   String classe = 'Espiritualista',
   VoidCallback? aoBuscar,
+  String subtitulo =
+      'Arma, cartas, relíquias, essências, runas — o que o '
+      'marketplace guarda no inventário e não deixa procurar.',
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -51,6 +54,7 @@ Future<void> _pump(
               classe: classe,
               wide: true,
               aoBuscar: aoBuscar ?? () {},
+              subtitulo: subtitulo,
             ),
           ),
         ),

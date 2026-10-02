@@ -30,8 +30,8 @@ const WORKFLOW = 'publish.yml';
 // coleta nunca disparar, caindo calado no keep-alive do Supabase — o
 // `wrangler.toml` avisa disso e agora há quatro formas de acontecer em vez
 // de uma.
-const CRON_DA_COLETA_187 = ['7 * * * *', '37 * * * *'];
-const CRON_DA_COLETA_126 = ['22 * * * *', '52 * * * *'];
+const CRON_DA_COLETA_187 = ['7 * * * *'];
+const CRON_DA_COLETA_126 = ['37 * * * *'];
 
 // Qual versão cada horário dispara. Uma tabela construída das duas listas
 // acima, em vez de um `if/else if` por horário — um terceiro horário, ou um

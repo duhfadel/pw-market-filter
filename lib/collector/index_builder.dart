@@ -1,6 +1,7 @@
 import '../market/counted_items.dart';
 import '../market/market_index.dart';
 import '../market/price_history.dart';
+import '../market/romanos.dart';
 import 'detail_parser.dart';
 import 'listing_parser.dart';
 
@@ -76,6 +77,7 @@ class IndexBuilder {
     String realm = '',
     String path = '',
     List<ParsedRune> runes = const [],
+    ParsedTitles? titles,
     PriceHistory? history,
   }) {
     _characters.add(
@@ -96,6 +98,7 @@ class IndexBuilder {
         realm: realm,
         path: path,
         runes: _runesOf(runes),
+        founderTier: _founderTierOf(titles),
         history: history,
         equipped: items.map(_convert).toList(growable: false),
         cards: cards
@@ -164,6 +167,19 @@ class IndexBuilder {
   }
 
   /// Registers each rune's kind once and keeps only the ids on the character.
+  /// `Fundador X` becomes 10, and anything else becomes null.
+  ///
+  /// This is where the ladder is read, and it is here rather than in the
+  /// parser so that getting it wrong costs `--rebuild` and not another crawl
+  /// — the bargain the whole state file exists for. A founder name the ten
+  /// figures cannot place is dropped rather than guessed at: a wrong rung
+  /// would sort somebody into a pack they never bought.
+  int? _founderTierOf(ParsedTitles? titles) {
+    final nome = titles?.founder ?? '';
+    if (!nome.startsWith('Fundador ')) return null;
+    return grauDoRomano(nome.substring('Fundador '.length));
+  }
+
   List<int> _runesOf(List<ParsedRune> runes) {
     for (final rune in runes) {
       _runeKinds.putIfAbsent(

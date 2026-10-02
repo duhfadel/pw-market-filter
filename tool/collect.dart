@@ -92,7 +92,8 @@ String _serverArg(List<String> arguments) {
 /// See `test/tool/collect_servidor_test.dart`: it is what caught the parser
 /// being built, tested and never called.
 ///
-/// The other six readers — cards, anecdotes, inventory, realm, path, runes —
+/// The other seven readers — cards, anecdotes, inventory, realm, path, runes,
+/// titles —
 /// are not yet per-version: nobody has written a 1.2.6 counterpart, and their
 /// 1.8.7 selectors (`.pw187-anecdote-summary`, `.pw187-rune-pair`, …) simply
 /// find nothing on a 1.2.6 page, the same way they find nothing on a 1.8.7
@@ -108,6 +109,7 @@ CollectedPage collectedPageFrom(Servidor servidor, String page) =>
       realm: parseCelestialRealm(page) ?? '',
       path: parsePath(page) ?? '',
       runes: parseRunes(page),
+      titles: parseTitles(page),
     );
 
 Future<void> main(List<String> arguments) async {
@@ -522,6 +524,7 @@ void _writeIndex(
         realm: collected.realm,
         path: collected.path,
         runes: collected.runes,
+        titles: collected.titles,
         history: memoria[card.roleId],
       );
     }

@@ -76,10 +76,7 @@ void main() {
       // the emblem appeared — exactly what happened to the three
       // `slotGroups126` ids until `--server pw126` existed to fetch them.
       final emblema = emblemaDeCartas(index);
-      for (final id in [
-        for (final group in grupos) group.emblem,
-        ?emblema,
-      ]) {
+      for (final id in [for (final group in grupos) group.emblem, ?emblema]) {
         expect(
           File('assets/icons/items/$id.png').existsSync(),
           isTrue,

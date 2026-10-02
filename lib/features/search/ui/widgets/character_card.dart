@@ -8,6 +8,7 @@ import '../../../../core/widgets/game_icon.dart';
 import '../../../../market/counted_items.dart';
 import '../../../../market/market_index.dart';
 import '../../../../market/price_history.dart';
+import '../../../../market/romanos.dart';
 import '../../../../market/slot_names.dart';
 import '../../domain/index_facets.dart';
 import '../../domain/matcher.dart';
@@ -524,6 +525,21 @@ class CharacterCard extends StatelessWidget {
           detail:
               '${anecdotes.done} de ${anecdotes.total}'
               '  ·  ${anecdotes.percent}%',
+        ),
+      );
+    }
+
+    // Only while the founder filter is in force, by the same rule: a card
+    // states what answered the question. A scarce title is tempting to print
+    // always, but a card that volunteers facts nobody asked for is the one
+    // the quiet redesign took apart.
+    final fundador = character.founderTier;
+    if (query.minFounderTier != null && fundador != null) {
+      facts.add(
+        _Fact(
+          icon: Icons.workspace_premium_outlined,
+          title: 'Fundador ${romanoDe(fundador)}',
+          detail: 'pré-lançamento',
         ),
       );
     }

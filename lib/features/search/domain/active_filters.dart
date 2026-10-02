@@ -1,6 +1,7 @@
 import '../../../market/celestial_realm.dart';
 import '../../../market/counted_items.dart';
 import '../../../market/market_index.dart';
+import '../../../market/romanos.dart';
 import '../../../market/slot_names.dart';
 import 'item_criterion.dart';
 import 'search_query.dart';
@@ -71,6 +72,17 @@ List<ActiveFilter> activeFilters(MarketIndex index, SearchQuery query) {
         ? '${celestialTierLabel(celestialTiers[tier])} ${_roman(step)}'
         : 'céu $rung';
     add('$nome ou mais', (q) => q.copyWith(minRealm: () => null));
+  }
+
+  final fundador = query.minFounderTier;
+  if (fundador != null) {
+    // `1` is the floor at its lowest, which is the *qualquer fundador* entry —
+    // printing "Fundador I ou mais" there would name a pack the person never
+    // picked out of the menu.
+    add(
+      fundador == 1 ? 'Fundador' : 'Fundador ${romanoDe(fundador)} ou mais',
+      (q) => q.copyWith(minFounderTier: () => null),
+    );
   }
 
   if (query.minAnecdotes != null) {

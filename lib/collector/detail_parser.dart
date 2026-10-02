@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html_parser;
 
+import '../market/romanos.dart';
+
 /// One item the character is actually wearing.
 ///
 /// Attributes are keyed by the name the site prints — including the
@@ -490,4 +492,120 @@ int _firstNumber(RegExp pattern, String? source) {
   if (source == null) return 0;
   final match = pattern.firstMatch(source);
   return match == null ? 0 : int.tryParse(match.group(1)!) ?? 0;
+}
+
+/// The `Títulos` panel, summarised.
+///
+/// The panel is the richest thing on a character page that nothing used to
+/// read: 646 title cards on the fattest one measured, each with an id, a name
+/// and its own bonuses, over a summary that says what they add up to. Only
+/// the summary and the founder title are kept — the cards themselves are 646
+/// strings per character against 1.680 characters, which is a state file an
+/// order of magnitude larger to answer a question nobody has asked yet.
+///
+/// **The summary is kept whole even though no screen reads it**, and that is
+/// the rule this collector works by rather than an oversight. It arrives in
+/// bytes already being downloaded, it costs nine numbers in the state, and
+/// the alternative is paying the eighty-three minutes of a full crawl again
+/// the first time somebody asks what titles are worth. One of those numbers
+/// is `Nível de ataque`, which ran +2 on one character and +24 on another —
+/// a third of the 70-level weapon this whole site exists to compare.
+class ParsedTitles {
+  const ParsedTitles({
+    required this.decoded,
+    required this.inOctet,
+    required this.equipped,
+    required this.attributes,
+    required this.founder,
+  });
+
+  /// How many titles the page could name.
+  final int decoded;
+
+  /// How many the octet claims. It runs higher than [decoded] — 656 against
+  /// 646 — so the two are kept apart: flattening them would hide that the
+  /// page itself cannot name everything the character holds.
+  final int inOctet;
+
+  /// The one title being worn, empty when none is.
+  final String equipped;
+
+  /// What every title together grants, as the panel sums it. An attribute the
+  /// summary does not list is **absent rather than zero**: zero would assert
+  /// the titles grant none of it, which nobody checked.
+  final Map<String, int> attributes;
+
+  /// The founder title exactly as the page writes it — `Fundador X` — and
+  /// empty when the character has none.
+  ///
+  /// Raw, not reduced to its rung, for the same reason [parseCelestialRealm]
+  /// keeps its row raw: reading the ladder wrong is a mistake to fix with
+  /// `--rebuild`, never with another crawl.
+  final String founder;
+}
+
+/// Everything in `data-pw187-panel="titles"`, or null when the page has no
+/// such panel at all.
+///
+/// Null and not an empty [ParsedTitles]: "this page has no titles panel" and
+/// "this character has no titles" are different facts, and only the first may
+/// read as unknown.
+ParsedTitles? parseTitles(String html) {
+  final panel = html_parser
+      .parse(html)
+      .querySelector('[data-pw187-panel="titles"]');
+  if (panel == null) return null;
+
+  final resumo = _labelledNumbers(panel.querySelector('.pw187-title-summary'));
+
+  return ParsedTitles(
+    decoded: resumo['Total decodificado'] ?? 0,
+    inOctet: resumo['Total no octet'] ?? 0,
+    equipped: _labelledText(
+      panel.querySelector('.pw187-title-summary'),
+      'Equipado',
+    ),
+    attributes: _labelledNumbers(
+      panel.querySelector('.pw187-title-summary-attrs'),
+    ),
+    founder: _founderIn(panel),
+  );
+}
+
+/// The title whose name is a founder pack's.
+///
+/// Matched on the whole name against the ten figures, never on a prefix:
+/// `Fundador Ilustre` would otherwise read as `Fundador I`, and a tier
+/// invented out of a different title is worse than no tier at all.
+String _founderIn(Element panel) {
+  for (final card in panel.querySelectorAll('.pw187-title-card')) {
+    final nome = card.querySelector('h4')?.text.trim() ?? '';
+    for (final romano in romanosAteDez) {
+      if (nome == 'Fundador $romano') return nome;
+    }
+  }
+  return '';
+}
+
+/// The `<li><span>label</span><strong>value</strong></li>` rows of a block,
+/// as numbers. `+24` and `24` are the same number; anything unreadable is
+/// left out rather than counted as zero.
+Map<String, int> _labelledNumbers(Element? block) {
+  final out = <String, int>{};
+  for (final row in block?.querySelectorAll('li') ?? const <Element>[]) {
+    final label = row.querySelector('span')?.text.trim();
+    final raw = row.querySelector('strong')?.text.trim().replaceFirst('+', '');
+    final value = int.tryParse(raw ?? '');
+    if (label != null && value != null) out[label] = value;
+  }
+  return out;
+}
+
+/// The same rows, read as text — for `Equipado`, whose value is a name.
+String _labelledText(Element? block, String label) {
+  for (final row in block?.querySelectorAll('li') ?? const <Element>[]) {
+    if (row.querySelector('span')?.text.trim() != label) continue;
+    return row.querySelector('strong')?.text.trim() ?? '';
+  }
+  return '';
 }

@@ -14,6 +14,7 @@ import 'card_section.dart';
 import 'anecdote_section.dart';
 import 'counted_items_section.dart';
 import 'criterion_row.dart';
+import 'founder_section.dart';
 import 'name_field.dart';
 import 'number_field.dart';
 import 'pet_section.dart';
@@ -104,6 +105,10 @@ class FilterPanel extends StatelessWidget {
             style: TextButton.styleFrom(foregroundColor: PWColors.accent),
           ),
         ),
+        // Below the advanced block, where the owner put it. It draws nothing
+        // at all until a collection has found a founder, so on an index older
+        // than 2026-10-02 this is the end of the panel exactly as it was.
+        FounderSection(state: state, viewModel: viewModel),
       ],
     );
   }

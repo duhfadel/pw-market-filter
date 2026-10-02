@@ -23,6 +23,7 @@ class CollectedPage {
     this.realm = '',
     this.path = '',
     this.runes = const [],
+    this.titles,
   });
 
   /// What this version knows how to write. An entry stamped with anything else
@@ -32,7 +33,7 @@ class CollectedPage {
   /// A stamp, and not "is the anecdotes key there?": a page may legitimately
   /// have no anecdote panel, and that character would then be re-fetched on
   /// every run for ever.
-  static const version = 3;
+  static const version = 4;
 
   final List<ParsedItem> items;
   final List<ParsedCard> cards;
@@ -57,6 +58,16 @@ class CollectedPage {
   /// question might.
   final List<ParsedRune> runes;
 
+  /// The `Títulos` panel's summary, and the founder title if there is one.
+  ///
+  /// Null when the page carried no panel, which is not the same as a
+  /// character holding no titles — [ParsedTitles] says why.
+  ///
+  /// The founder rung is **not** stored: `founder` keeps the name the page
+  /// printed and the ladder is read in the app, so correcting the ladder is
+  /// `--rebuild` rather than another crawl. Same bargain as [realm].
+  final ParsedTitles? titles;
+
   static bool isCurrent(Map<String, dynamic> json) => json['v'] == version;
 
   Map<String, dynamic> toJson() => {
@@ -79,6 +90,7 @@ class CollectedPage {
     if (realm.isNotEmpty) 'realm': realm,
     if (path.isNotEmpty) 'path': path,
     if (runes.isNotEmpty) 'runes': runes.map(_runeToJson).toList(),
+    if (titles != null) 'titles': _titlesToJson(titles!),
   };
 
   /// [names] is the state's shared id-to-name table.
@@ -117,6 +129,9 @@ class CollectedPage {
       runes: (json['runes'] as List<dynamic>? ?? const [])
           .map((r) => _runeFromJson(r as Map<String, dynamic>))
           .toList(),
+      titles: json['titles'] == null
+          ? null
+          : _titlesFromJson(json['titles'] as Map<String, dynamic>),
     );
   }
 }
@@ -160,6 +175,24 @@ ParsedItem _itemFromJson(Map<String, dynamic> json) => ParsedItem(
   ),
   requireLevel: json['requireLevel'] as int? ?? 0,
   weaponLevel: json['weaponLevel'] as int? ?? 0,
+);
+
+Map<String, dynamic> _titlesToJson(ParsedTitles titles) => {
+  'decoded': titles.decoded,
+  'inOctet': titles.inOctet,
+  if (titles.equipped.isNotEmpty) 'equipped': titles.equipped,
+  if (titles.attributes.isNotEmpty) 'attributes': titles.attributes,
+  if (titles.founder.isNotEmpty) 'founder': titles.founder,
+};
+
+ParsedTitles _titlesFromJson(Map<String, dynamic> json) => ParsedTitles(
+  decoded: json['decoded'] as int? ?? 0,
+  inOctet: json['inOctet'] as int? ?? 0,
+  equipped: json['equipped'] as String? ?? '',
+  attributes: (json['attributes'] as Map<String, dynamic>? ?? const {}).map(
+    (key, value) => MapEntry(key, value as int),
+  ),
+  founder: json['founder'] as String? ?? '',
 );
 
 Map<String, dynamic> _runeToJson(ParsedRune rune) => {

@@ -27,6 +27,7 @@ library;
 
 import '../../../market/celestial_realm.dart';
 import '../../../market/market_index.dart';
+import '../../../market/romanos.dart';
 import 'item_criterion.dart';
 import 'search_query.dart';
 
@@ -60,6 +61,7 @@ const _ownedParam = 'tem';
 const _anecdotesShown = 'anedotas';
 const _petParam = 'mascote';
 const _realmParam = 'ceu';
+const _founderParam = 'fundador';
 const _pathParam = 'caminho';
 const _runeParam = 'runa';
 const _orderParam = 'ordem';
@@ -141,6 +143,12 @@ String encodeQuery(SearchQuery query, [MarketIndex? index]) {
       put(_realmParam, '${celestialTiers[tier]}$_fieldSeparator$step');
     }
   }
+
+  // The founder goes as its own figure — `fundador=X`, not `fundador=10`.
+  // The rung is a position this app computes; the figure is what the game
+  // prints on the title, and a link has to outlive our arithmetic.
+  final minFounder = query.minFounderTier;
+  if (minFounder != null) put(_founderParam, romanoDe(minFounder));
 
   final runes = query.runes;
   if (runes != null) {
@@ -230,6 +238,11 @@ SearchQuery decodeQuery(
     }
   }
 
+  // A figure this version cannot place drops the filter rather than falling
+  // back to *qualquer*: a link that silently widens is worse than one that
+  // does nothing, because the count on screen looks like an answer.
+  final minFounderTier = grauDoRomano(first(_founderParam)?.trim() ?? '');
+
   RuneCriterion? runes;
   final runeRaw = first(_runeParam);
   if (runeRaw != null) {
@@ -278,6 +291,7 @@ SearchQuery decodeQuery(
     anecdotesOnCard: anecdotesOnCard,
     pets: pets,
     minRealm: minRealm,
+    minFounderTier: minFounderTier,
     path: first(_pathParam),
     runes: runes,
     criteria: criteria,

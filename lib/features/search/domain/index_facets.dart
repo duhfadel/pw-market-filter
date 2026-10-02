@@ -106,6 +106,16 @@ class IndexFacets {
   };
   late final List<String> cultivations = _distinct((c) => c.cultivation);
 
+  /// The founder packs this scope actually holds, lowest rung first.
+  ///
+  /// Read from the market and not from the ten that exist, so the menu can
+  /// never offer a pack nobody on screen bought — the same rule every other
+  /// control here follows, and the one that keeps a choice from walking
+  /// somebody to zero results with no hint which tick did it.
+  late final List<int> founderTiers =
+      (scope.map((c) => c.founderTier).whereType<int>().toSet().toList()
+        ..sort());
+
   late final int lowestPrice = _lowest((c) => c.price);
   late final int highestPrice = _highest((c) => c.price);
   late final int lowestLevel = _lowest((c) => c.level);

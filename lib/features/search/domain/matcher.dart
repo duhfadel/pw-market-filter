@@ -152,6 +152,14 @@ bool _matchesInventory(
     if (realm == null || realm.ordinal < minRealm) return false;
   }
 
+  final minFounder = query.minFounderTier;
+  if (minFounder != null) {
+    // No founder title fails, the same way an unread realm fails: a character
+    // we cannot place must never pass a filter by being unknown.
+    final tier = character.founderTier;
+    if (tier == null || tier < minFounder) return false;
+  }
+
   // A path that was never read is neither. Sorting an unknown into one half
   // would put it under somebody's filter without having measured it.
   if (query.path != null && character.path != query.path) return false;

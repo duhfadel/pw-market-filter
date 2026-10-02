@@ -26,6 +26,7 @@ void main() {
       realm: parseCelestialRealm(html) ?? '',
       path: parsePath(html) ?? '',
       runes: parseRunes(html),
+      titles: parseTitles(html),
     );
   });
 
@@ -106,9 +107,47 @@ void main() {
     expect(restored.runes.first.skillName, 'ΨIra do Paraíso');
   });
 
+  test('the titles summary survives the disk, founder included', () {
+    final leandrim = roundTrip(page).titles!;
+
+    expect(leandrim.decoded, 400);
+    expect(leandrim.attributes['Nível de ataque'], 2);
+    // He has 400 titles and not one is a founder's.
+    expect(leandrim.founder, '');
+
+    final html = File('test/fixtures/detail_2192.html').readAsStringSync();
+    final comFundador = roundTrip(
+      CollectedPage(
+        items: const [],
+        cards: const [],
+        sex: '',
+        titles: parseTitles(html),
+      ),
+    ).titles!;
+
+    expect(comFundador.founder, 'Fundador X');
+    expect(comFundador.equipped, 'Filha dos Dragões');
+    expect(comFundador.attributes['Nível de ataque'], 24);
+  });
+
+  test('a page with no titles panel stays null across the disk', () {
+    // Not an empty summary: unknown and none are different facts, and only
+    // the first may read as unknown.
+    final json = CollectedPage(
+      items: const [],
+      cards: const [],
+      sex: '',
+      titles: null,
+    ).toJson();
+
+    expect(json.containsKey('titles'), isFalse);
+    expect(CollectedPage.fromJson(json, const {}).titles, isNull);
+  });
+
   test('the stamp moved, so every older entry is fetched again', () {
-    // Realm, path and runes are in no state written before them, which is what
-    // makes the re-collection happen by itself.
-    expect(CollectedPage.version, greaterThan(2));
+    // Realm, path and runes are in no state written before them, and the
+    // titles panel is in none written before 2026-10-02 — which is what makes
+    // each re-collection happen by itself rather than needing a flag.
+    expect(CollectedPage.version, greaterThan(3));
   });
 }

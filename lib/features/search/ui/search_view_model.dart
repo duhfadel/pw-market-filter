@@ -162,6 +162,11 @@ class SearchViewModel extends Cubit<SearchState> {
 
   void setMinRealm(int? rung) => _apply(_query!.copyWith(minRealm: () => rung));
 
+  /// The lowest founder pack that still passes. `1` is *qualquer fundador*;
+  /// `null` puts the question away.
+  void setMinFounderTier(int? tier) =>
+      _apply(_query!.copyWith(minFounderTier: () => tier));
+
   void setPath(String? path) => _apply(_query!.copyWith(path: () => path));
 
   /// `null` puts the rune question away entirely; anything else replaces it.

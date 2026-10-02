@@ -1,3 +1,4 @@
+import '../market/endereco_do_mercado.dart';
 import 'detail_parser.dart' show ParsedItem, parseEquippedItems, parseSex;
 import 'detail_parser_126.dart' show parseEquippedItems126, parseSex126;
 
@@ -63,12 +64,15 @@ class Servidor {
 
   final String Function(int roleId) _detalhe;
 
-  /// The canonical detail URL for a character — the form that answers 200
-  /// without a redirect. **Inverted between the two versions**, measured
-  /// 01/10/2026: `pw187/details/<id>` is canonical and `details/pw187/<id>`
-  /// redirects into it; `details/pw126/<id>` is canonical and
-  /// `pw126/details/<id>` answers 404. Copying one version's shape onto the
-  /// other is the natural mistake.
+  /// The canonical detail URL for a character, from the one table that holds
+  /// the shape — see [enderecoDoPersonagem], which also records why it is
+  /// inverted between the two versions. It lives in `market/` rather than
+  /// here because the results card needs the same answer, and `features/`
+  /// may never reach into `collector/`.
+  ///
+  /// Still a field per profile rather than a direct call, so a version that
+  /// one day needs a query string or a different host has somewhere to say
+  /// so without the screen inheriting it.
   String detalhe(int roleId) => _detalhe(roleId);
 
   static const _origem = 'https://marketplace.theclassic.games';
@@ -85,7 +89,7 @@ class Servidor {
       indicePublicado: 'https://portalpw.net/market_index.json',
       itensEquipados: parseEquippedItems,
       sexo: parseSex,
-      detalhe: (roleId) => '$_origem/pw187/details/$roleId',
+      detalhe: (roleId) => enderecoDoPersonagem('pw187', roleId),
     ),
     'pw126': Servidor._(
       chave: 'pw126',
@@ -95,7 +99,7 @@ class Servidor {
       indicePublicado: 'https://portalpw.net/market_index_126.json',
       itensEquipados: parseEquippedItems126,
       sexo: parseSex126,
-      detalhe: (roleId) => '$_origem/details/pw126/$roleId',
+      detalhe: (roleId) => enderecoDoPersonagem('pw126', roleId),
     ),
   };
 

@@ -160,11 +160,32 @@ void main() {
   test(
     'the label softens when a class collision pushes past the true winner',
     () {
-      // Two categories whose real winner is the same person: the second says
-      // "dos mais baratos", never "o mais barato", because it no longer is.
+      // Duas categorias cujo vencedor real é a mesma pessoa: a segunda recua
+      // para outra classe e o rótulo deixa de afirmar o superlativo, porque
+      // deixou de ser verdade.
+      //
+      // Procurava-se aqui um rótulo contendo `'dos mais'`, e isso amarrava o
+      // teste à redação: em 02/10 os rótulos suaves foram encurtados porque
+      // estavam a ser cortados na carta, e este teste quebrou sem que nada do
+      // comportamento tivesse mudado. A lista abaixo é explícita de propósito
+      // — encurtar um rótulo passa a obrigar a atualizá-la, que é o lugar
+      // certo para esse custo.
+      const suaves = {
+        'Um dos mais baratos',
+        'Barato com arma de 70',
+        'Barato com Atq lvl UP5',
+        'Barato com Def lvl UP5',
+        'Um dos mais caros',
+        'Muitas relíquias',
+      };
+
       final seis = destaquesDe(_indiceComColisao());
-      final empurrado = seis.firstWhere((d) => d.rotulo.contains('dos mais'));
-      expect(empurrado.rotulo, isNot(contains('o mais')));
+      final empurrado = seis.firstWhere((d) => suaves.contains(d.rotulo));
+
+      // E o que importa de verdade: nenhum superlativo sobreviveu ao recuo.
+      expect(empurrado.rotulo, isNot(startsWith('O mais')));
+      expect(empurrado.rotulo, isNot(contains('mais barato')));
+      expect(empurrado.rotulo, isNot(contains('Mais relíquias')));
     },
   );
 

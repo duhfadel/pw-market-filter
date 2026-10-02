@@ -96,8 +96,7 @@ List<Destaque> destaquesDe(MarketIndex index) {
     rotuloCheio: (_) => 'O mais barato',
     rotuloSuave: (_) => 'Um dos mais baratos',
     busca: const SearchQuery(),
-    nota: (_, _) =>
-        '${groupThousands(index.characters.length)} personagens no mercado',
+    nota: (_, _) => '${groupThousands(index.characters.length)} no mercado',
   );
 
   // 2. Arma de 70 mais barata — the label's "70" is derived from the winner,
@@ -120,8 +119,7 @@ List<Destaque> destaquesDe(MarketIndex index) {
       rotuloCheio: (vencedor) =>
           'Arma de ${_nivelDeAtaqueDoVencedor(index, vencedor)} mais barata',
       rotuloSuave: (vencedor) =>
-          'Um dos mais baratos com arma de '
-          '${_nivelDeAtaqueDoVencedor(index, vencedor)}',
+          'Barato com arma de ${_nivelDeAtaqueDoVencedor(index, vencedor)}',
       busca: arma70,
       selo: (vencedor) => 'ARMA ${_nivelDeAtaqueDoVencedor(index, vencedor)}',
       nota: (_, _) => '${carregadores.length} no mercado inteiro',
@@ -138,7 +136,7 @@ List<Destaque> destaquesDe(MarketIndex index) {
       index,
       carregadores,
       rotuloCheio: (_) => 'Atq lvl UP5 mais barato',
-      rotuloSuave: (_) => 'Um dos mais baratos com Atq lvl UP5',
+      rotuloSuave: (_) => 'Barato com Atq lvl UP5',
       busca: atqUp5,
       selo: (_) => 'ATQ UP5',
       nota: (_, _) => '${carregadores.length} no mercado inteiro',
@@ -155,7 +153,7 @@ List<Destaque> destaquesDe(MarketIndex index) {
       index,
       carregadores,
       rotuloCheio: (_) => 'Def lvl UP5 mais barato',
-      rotuloSuave: (_) => 'Um dos mais baratos com Def lvl UP5',
+      rotuloSuave: (_) => 'Barato com Def lvl UP5',
       busca: defUp5,
       selo: (_) => 'DEF UP5',
       nota: (_, _) => '${carregadores.length} no mercado inteiro',
@@ -211,7 +209,7 @@ List<Destaque> destaquesDe(MarketIndex index) {
     index,
     porReliquias,
     rotuloCheio: (_) => 'Mais relíquias',
-    rotuloSuave: (_) => 'Um dos que mais carregam relíquias',
+    rotuloSuave: (_) => 'Muitas relíquias',
     busca: const SearchQuery(
       shownOwned: relicNames,
       order: ResultOrder.mostOwned,

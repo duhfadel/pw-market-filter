@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/game_icon.dart';
 import '../../../../market/counted_items.dart';
+import '../../../../market/endereco_do_mercado.dart';
 import '../../../../market/market_index.dart';
 import '../../../../market/price_history.dart';
 import '../../../../market/romanos.dart';
@@ -700,14 +701,14 @@ class CharacterCard extends StatelessWidget {
 
   /// The site already draws the character sheet well; rebuilding it here would
   /// be work for no gain.
-  /// The canonical form. `/details/<server>/<id>` — the one the listing links
-  /// to — answers 302 and redirects here, costing a needless round trip.
+  ///
+  /// The address comes from [enderecoDoPersonagem] and is never spelled out
+  /// here: the shape is inverted between the two versions, and this card used
+  /// to carry its own copy of the 1.8.7 one — which meant every *ver no
+  /// marketplace* button on the 1.2.6 side opened a 404.
   void _open() => unawaited(
     launchUrl(
-      Uri.parse(
-        'https://marketplace.theclassic.games/'
-        '${index.server}/details/${character.roleId}',
-      ),
+      Uri.parse(enderecoDoPersonagem(index.server, character.roleId)),
       mode: LaunchMode.externalApplication,
     ),
   );

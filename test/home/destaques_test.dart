@@ -66,9 +66,8 @@ MarketIndex _indiceOnde({required int ataqueMaximo}) => MarketIndex(
 /// A market built so category 1 (the cheapest overall) and category 2 (the
 /// cheapest 70-weapon carrier) have the same true winner: `barato`, a
 /// Guerreiro, is both the cheapest character on the whole market and the
-/// cheapest carrier of a 70 weapon. Category 1 takes him and spends
-/// `Guerreiro`, so category 2 has to fall through to `mago`, the next
-/// cheapest 70-weapon carrier, of a class nobody has used yet.
+/// cheapest carrier of a 70 weapon. Nothing ties him, so both cards name him
+/// and the page shows the same portrait twice — which is the honest answer.
 MarketIndex _indiceComColisao() => MarketIndex(
   server: 'pw187',
   collectedAt: DateTime.utc(2026, 10, 1),
@@ -100,7 +99,11 @@ MarketIndex _indiceComVencedorDeOitenta() => MarketIndex(
 );
 
 void main() {
-  test('six categories on the real market, all of distinct classes', () {
+  test('every card on the real market names its category\'s true winner', () {
+    // The rule the owner set on 2026-10-02, after spotting the defensive UP5
+    // card reading 1900 TCC while somebody at 1499 carried one: *"se o preço
+    // é menor, mostrar este, independente"*. A distinct class is a
+    // preference among equals, never a reason to name the wrong person.
     final file = File('web/market_index.json');
     if (!file.existsSync()) return; // a fresh clone has not collected yet
 
@@ -108,14 +111,21 @@ void main() {
       jsonDecode(file.readAsStringSync()) as Map<String, dynamic>,
     );
     final seis = destaquesDe(index);
-
     expect(seis, hasLength(6));
-    final classes = seis.map((d) => d.personagem.characterClass).toList();
-    expect(
-      classes.toSet(),
-      hasLength(6),
-      reason: 'two cards of one class show the same art twice: $classes',
-    );
+
+    for (final destaque in seis) {
+      final melhor = runQuery(index, destaque.busca).first;
+      // Equal on the measure, not necessarily the same person: a tie broken
+      // towards a free class is exactly what the rule allows.
+      expect(
+        destaque.personagem.price,
+        melhor.price,
+        reason:
+            '${destaque.rotulo} names ${destaque.personagem.name} at '
+            '${destaque.personagem.price} while ${melhor.name} is at '
+            '${melhor.price}',
+      );
+    }
   });
 
   test(
@@ -157,37 +167,84 @@ void main() {
     expect(rotulos, contains(contains('O mais barato')));
   });
 
-  test(
-    'the label softens when a class collision pushes past the true winner',
-    () {
-      // Duas categorias cujo vencedor real é a mesma pessoa: a segunda recua
-      // para outra classe e o rótulo deixa de afirmar o superlativo, porque
-      // deixou de ser verdade.
-      //
-      // Procurava-se aqui um rótulo contendo `'dos mais'`, e isso amarrava o
-      // teste à redação: em 02/10 os rótulos suaves foram encurtados porque
-      // estavam a ser cortados na carta, e este teste quebrou sem que nada do
-      // comportamento tivesse mudado. A lista abaixo é explícita de propósito
-      // — encurtar um rótulo passa a obrigar a atualizá-la, que é o lugar
-      // certo para esse custo.
-      const suaves = {
-        'Um dos mais baratos',
-        'Barato com arma de 70',
-        'Barato com Atq lvl UP5',
-        'Barato com Def lvl UP5',
-        'Um dos mais caros',
-        'Muitas relíquias',
-      };
+  test('a tie goes to a class nobody has used, at no cost in price', () {
+    // The whole of what class is allowed to do now. `igualBarato` and
+    // `igualMago` both sit at 10 TCC — equal on the measure — so preferring
+    // the one whose class is still free costs nothing and spares the page a
+    // repeated portrait. Nobody worse is ever promoted to achieve it.
+    final empate = MarketIndex(
+      server: 'pw187',
+      collectedAt: DateTime.utc(2026, 10, 2),
+      attributes: const ['Nível de Ataque'],
+      items: const {},
+      characters: [
+        // The 70-weapon card is the scarcer category, so it picks first and
+        // spends Guerreiro on its only candidate.
+        _personagem('comArma', 900, 'Guerreiro', nivelAtaque: 70),
+        _personagem('igualBarato', 10, 'Guerreiro'),
+        _personagem('igualMago', 10, 'Mago'),
+      ],
+    );
 
-      final seis = destaquesDe(_indiceComColisao());
-      final empurrado = seis.firstWhere((d) => suaves.contains(d.rotulo));
+    final seis = destaquesDe(empate);
+    final porRotulo = {for (final d in seis) d.rotulo: d.personagem.name};
 
-      // E o que importa de verdade: nenhum superlativo sobreviveu ao recuo.
-      expect(empurrado.rotulo, isNot(startsWith('O mais')));
-      expect(empurrado.rotulo, isNot(contains('mais barato')));
-      expect(empurrado.rotulo, isNot(contains('Mais relíquias')));
-    },
-  );
+    expect(porRotulo['Arma de 70 mais barata'], 'comArma');
+    // Still 10 TCC — the cheapest there is — but of the free class.
+    expect(porRotulo['O mais barato'], 'igualMago');
+  });
+
+  test('the scarcer category chooses first, so it keeps its own winner', () {
+    // The defect the owner reported on 2026-10-02: a category with hundreds
+    // of candidates was spending the class a four-candidate one needed.
+    // `soUm` is the only 80-carrier on this market; `maisBarato` ties with
+    // `igualOutraClasse` at 10, so letting the big pool pick first would
+    // have cost the UP5 card its single candidate for nothing.
+    final escassez = MarketIndex(
+      server: 'pw187',
+      collectedAt: DateTime.utc(2026, 10, 2),
+      attributes: const ['Nível de Ataque'],
+      items: const {},
+      characters: [
+        _personagem('soUm', 900, 'Mago', nivelAtaque: 80),
+        _personagem('maisBarato', 10, 'Mago'),
+        _personagem('igualOutraClasse', 10, 'Bárbaro'),
+      ],
+    );
+
+    final porRotulo = {
+      for (final d in destaquesDe(escassez)) d.rotulo: d.personagem.name,
+    };
+
+    expect(porRotulo['Atq lvl UP5 mais barato'], 'soUm');
+    expect(porRotulo['O mais barato'], 'igualOutraClasse');
+  });
+
+  test('a shared winner is named twice rather than one card backing off', () {
+    // `barato` is both the cheapest character and the cheapest 70-weapon
+    // carrier. The old rule pushed card 2 to `mago` at 500 TCC and softened
+    // its label; the owner replaced it on 2026-10-02 — *"se precisar ser
+    // todos a mesma classe porque vencem nesse atributo do preço, não tem
+    // problema nenhum"*. Two identical portraits cost less than a card that
+    // names the wrong person at the wrong price.
+    final seis = destaquesDe(_indiceComColisao());
+    final porRotulo = {for (final d in seis) d.rotulo: d.personagem.name};
+
+    // Both questions `barato` wins, he answers — the old rule handed the
+    // second to `mago` at five times the price.
+    expect(porRotulo['O mais barato'], 'barato');
+    expect(porRotulo['Arma de 70 mais barata'], 'barato');
+    // And the one he does not win still goes to whoever does.
+    expect(porRotulo['O mais caro'], 'mago');
+
+    // No label hedges any more: nothing ever moves off the winner, so there
+    // is nothing left for a softened wording to be honest about.
+    for (final destaque in seis) {
+      expect(destaque.rotulo, isNot(startsWith('Um dos')));
+      expect(destaque.rotulo, isNot(startsWith('Barato com')));
+      expect(destaque.rotulo, isNot(startsWith('Muitas')));
+    }
+  });
 
   test(
     "the relic card's door opens on its own subject, and the note adds up to "

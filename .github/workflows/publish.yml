@@ -86,7 +86,11 @@ jobs:
     # (measured 01/10/2026, see the spec), so pw187's own first-run arithmetic
     # already covers it. If a first pw126 crawl ever needs more, raise this
     # then, with the measurement that showed it — not in advance of one.
-    timeout-minutes: 75
+    # 83 minutos é o que uma coleta completa do pw187 custa (1.666 × 3 s), e
+    # o timeout era 75 — ou seja, uma coleta do zero **nunca** podia terminar,
+    # e sem terminar nunca gravava a cache que a tornaria desnecessária. 120
+    # dá folga para o pior caso mais o build.
+    timeout-minutes: 120
 
     env:
       # `inputs.server` only exists on a `workflow_dispatch`; `schedule` and
@@ -118,14 +122,35 @@ jobs:
       # The key rotates so the cache is rewritten rather than appended to
       # (GitHub caches are immutable once written); restore-keys picks the most
       # recent previous one.
-      - name: Restaurar estado da coleta
+      # **Dois passos, um caminho cada, e isto não é arrumação.**
+      #
+      # `actions/cache` deriva a identidade de uma cache da **lista de
+      # caminhos**. Em 01/10 acrescentei o segundo arquivo a este passo e isso
+      # tornou inalcançáveis as 841 caches que existiam — chave a casar,
+      # conteúdo lá, e invisíveis.
+      #
+      # O que se seguiu foi um laço fechado: sem cache o `--resume` não tem
+      # estado e faz coleta completa; a coleta completa de 1.666 personagens a
+      # 3 s cada precisa de **83 minutos** e o `timeout-minutes` cortava aos
+      # 75; uma corrida que falha **não grava cache**. Nove horas sem deploy e
+      # 32 cancelamentos, e nada disso sairia sozinho.
+      #
+      # Separados, cada cache mantém a sua lista de caminhos estável para
+      # sempre, e acrescentar uma terceira versão nunca mais invalida as
+      # outras duas.
+      - name: Restaurar o estado do pw187
         uses: actions/cache@v4
         with:
-          path: |
-            tool/.collect_state.json
-            tool/.collect_state_126.json
+          path: tool/.collect_state.json
           key: collect-state-${{ github.run_id }}
           restore-keys: collect-state-
+
+      - name: Restaurar o estado do pw126
+        uses: actions/cache@v4
+        with:
+          path: tool/.collect_state_126.json
+          key: collect-state-126-${{ github.run_id }}
+          restore-keys: collect-state-126-
 
       # Uma segunda tentativa, e ela é barata: o coletor salva o estado a cada
       # personagem, então `--resume` continua de onde parou em vez de recomeçar.

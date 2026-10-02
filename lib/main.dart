@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/di/injection.dart';
+import 'core/rotas.dart';
 import 'core/theme/pw_theme.dart';
 import 'features/home/ui/home_view.dart';
 import 'features/home/ui/ao_vivo_view_model.dart';
@@ -39,20 +40,35 @@ class PortalPWApp extends StatelessWidget {
     // takes the platform's route whenever it is not `/`, which is exactly what
     // makes a shared search openable.
     initialRoute: '/',
+    // The routing table itself lives in `core/rotas.dart`, as a pure function
+    // from a URL to what it means — this closure only turns that answer into
+    // widgets. See that file for the full table, including the one path that
+    // predates the two marketplaces (`/filtro`) and must redirect forever.
     onGenerateRoute: (settings) {
-      // The name carries the query string once a search is being shared, so it
-      // cannot be compared to '/filtro' whole — that comparison sent every
-      // shared link to the front page.
-      final route = Uri.parse(settings.name ?? '/');
+      final resolvida = resolverRota(settings.name);
 
       return MaterialPageRoute(
         settings: settings,
-        builder: (_) => switch (route.path) {
-          '/filtro' => SearchView(arriving: route.queryParametersAll),
-          '/registros' => const RegistrosView(),
-          '/runas' => const RunasView(),
-          '/novidades' => const NovidadesView(),
-          _ => const HomeView(),
+        builder: (_) => switch (resolvida) {
+          RotaRedirecionada(:final destino) => LegacyRedirect(destino: destino),
+          // Both filters share this screen for now. `SearchView` and its
+          // matcher are already blind to which marketplace fed the index
+          // (proven on 01/10/2026 by serving the 1.2.6 index through it
+          // unchanged), and only *which* index to load is version-specific —
+          // wiring that up is later work; this route only gives the 1.2.6
+          // filter a URL of its own.
+          RotaTela(tela: Tela.filtro187, :final query) ||
+          RotaTela(
+            tela: Tela.filtro126,
+            :final query,
+          ) => SearchView(arriving: query),
+          RotaTela(tela: Tela.registros) => const RegistrosView(),
+          RotaTela(tela: Tela.runas) => const RunasView(),
+          RotaTela(tela: Tela.novidades) => const NovidadesView(),
+          // escolha, home187 and home126 all draw today's home: the choice
+          // screen and the 1.2.6 home are later tasks, and until they exist
+          // every one of these three names the same front page.
+          RotaTela() => const HomeView(),
         },
       );
     },

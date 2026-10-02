@@ -1,6 +1,7 @@
 // Downloads the icons the screen needs, straight from the index.
 //
-//   dart run tool/fetch_icons.dart
+//   dart run tool/fetch_icons.dart                  # pw187
+//   dart run tool/fetch_icons.dart --server pw126    # the other marketplace
 //
 // Idempotent: a file already on disk is never fetched again, so a re-run after
 // a fresh collection costs only the items that are new to the market.
@@ -9,6 +10,14 @@
 // limits: class art from theclassic.games and item art from
 // pwdatabase.theclassic.games. Still one at a time, still with a pause — the
 // lesson from the marketplace was that a block outlives the run by an hour.
+//
+// Both markets' icons are written into the same `assets/icons/...`
+// directories: an item id names one file regardless of which index met it
+// first, the same way `assets/icons/items` already holds cards and counted
+// items alongside equipment. There is nothing per-version to keep apart here
+// the way `tool/collect.dart` keeps `.collect_state_126.json` apart from the
+// 1.8.7 one — only *which index to read ids from* differs, which is exactly
+// what `--server` selects.
 
 import 'dart:convert';
 import 'dart:io';
@@ -23,10 +32,35 @@ const _userAgent =
     '(KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 const _pause = Duration(milliseconds: 250);
 
-Future<void> main() async {
-  final file = File('web/market_index.json');
+/// One index file per marketplace — the same keys and defaulting
+/// `tool/collect.dart`'s own `_serverArg` uses, so `--server pw126` means the
+/// same thing in both tools.
+const _indexFiles = {'pw187': 'web/market_index.json', 'pw126': 'web/market_index_126.json'};
+
+/// Reads `--server <chave>` out of the argument list. Defaults to `pw187` so
+/// an unqualified run keeps today's behaviour.
+String _serverArg(List<String> arguments) {
+  for (var i = 0; i < arguments.length; i++) {
+    if (arguments[i] == '--server' && i + 1 < arguments.length) {
+      return arguments[i + 1];
+    }
+  }
+  return 'pw187';
+}
+
+Future<void> main(List<String> arguments) async {
+  final server = _serverArg(arguments);
+  final indexPath = _indexFiles[server];
+  if (indexPath == null) {
+    stderr.writeln(
+      'Servidor desconhecido: $server — conhecidos: ${_indexFiles.keys.join(', ')}',
+    );
+    exit(1);
+  }
+
+  final file = File(indexPath);
   if (!file.existsSync()) {
-    stderr.writeln('web/market_index.json não existe. Rode a coleta primeiro.');
+    stderr.writeln('$indexPath não existe. Rode a coleta primeiro.');
     exit(1);
   }
 

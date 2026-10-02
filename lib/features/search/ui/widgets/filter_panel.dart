@@ -74,7 +74,13 @@ class FilterPanel extends StatelessWidget {
           ),
         CardSection(state: state, viewModel: viewModel),
         RuneSection(state: state, viewModel: viewModel),
-        _grupo('Inventário'),
+        // A heading with nothing under it is the same mistake the sections
+        // below it already refuse to make on their own — `PetSection` and
+        // `CountedItemsSection` both draw `SizedBox.shrink()` with nothing to
+        // show, but the signpost above them used to draw regardless. 1.2.6
+        // has collected neither pets nor counted items yet, so `INVENTÁRIO`
+        // sat over empty space between `ACESSÓRIOS` and `AVANÇADO`.
+        if (_hasInventario(state.index)) _grupo('Inventário'),
         PetSection(state: state, viewModel: viewModel),
         CountedItemsSection(state: state, viewModel: viewModel),
         _grupo('Avançado'),
@@ -180,6 +186,15 @@ class FilterPanel extends StatelessWidget {
   /// up on at least one character.
   bool _hasPath(MarketIndex index) =>
       index.characters.any((c) => c.path.isNotEmpty);
+
+  /// Whether `PetSection` or `CountedItemsSection` can draw anything at all.
+  ///
+  /// Both already read `index.countedItems` to decide whether to shrink to
+  /// nothing — a pet or a counted relic that this collection never met gets
+  /// no row, the same `sem_dados` idea the Registros table uses. Mirroring
+  /// that one field here, rather than asking each section, is what keeps the
+  /// heading and its sections from being able to disagree.
+  bool _hasInventario(MarketIndex index) => index.countedItems.isNotEmpty;
 
   /// Beside the class, because that is what it is: a property of the
   /// character, chosen once and never mixed. Nobody in the market was found

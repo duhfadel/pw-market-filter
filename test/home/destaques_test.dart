@@ -191,13 +191,34 @@ void main() {
       ).firstWhere((d) => d.rotulo.contains('relíquias'));
 
       final destino = runQuery(index, cartao.busca);
+
+      // **O sujeito está na porta, e é o primeiro só quando nada o empurrou.**
+      //
+      // Esta asserção exigia `destino.first` até 02/10/2026, e estava errada
+      // de um jeito que os dados de um dia esconderam: a porta ordena pela
+      // soma verdadeira, mas o *card* obedece à regra das classes distintas —
+      // então, quando a classe do verdadeiro líder já está gasta, o card cai
+      // para o seguinte de classe livre e o rótulo amolece. Nesse dia o
+      // primeiro resultado da porta é o líder verdadeiro e o card nomeia outra
+      // pessoa, e as duas coisas estão certas.
+      //
+      // O CI apanhou numa coleta nova; o índice da minha máquina calhou não
+      // ter colisão. Uma asserção que só vale para os dados de um dia é uma
+      // asserção à espera de quebrar.
       expect(
-        destino.first.roleId,
-        cartao.personagem.roleId,
-        reason:
-            'the door is ordered by the same sum the badge shows, so the '
-            'card\'s subject must be the first result',
+        destino.map((c) => c.roleId),
+        contains(cartao.personagem.roleId),
+        reason: 'a porta do card tem de conter quem ele nomeia',
       );
+      if (cartao.rotulo == 'Mais relíquias') {
+        expect(
+          destino.first.roleId,
+          cartao.personagem.roleId,
+          reason:
+              'com o rótulo cheio nada empurrou o card, então a porta tem de '
+              'abrir no sujeito dele',
+        );
+      }
 
       // The decomposition must add back to the badge. A total nobody can
       // take apart is a total nobody can check — the same reason

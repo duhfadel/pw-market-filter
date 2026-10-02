@@ -25,6 +25,13 @@ abstract final class StreamerAccent {
     // 9.4:1 — and silver is correct here, not a missed extraction: the
     // emblem itself is monochrome, so grey *is* the brand.
     'persybr': Color(0xFFC0C0C0),
+    // 5.9:1, and the mascot's own blue rather than a blue chosen to look
+    // well: it is the commonest saturated colour in the peacock itself,
+    // measured off the art. The teals that scored higher on contrast drift
+    // off the bird and towards [persybr]'s silver — at 136 and 64 ΔE from
+    // the two accents already here, this is the one that stays furthest
+    // from both, which is what a strip cycling between cards needs.
+    'pavaotv': Color(0xFF2A95FF),
   };
 
   /// The site's own violet, for anybody not yet in the table.
@@ -35,4 +42,11 @@ abstract final class StreamerAccent {
   static const fallback = PWColors.glowViolet;
 
   static Color of(String login) => _porLogin[login.toLowerCase()] ?? fallback;
+
+  /// Every colour the table holds, so a rule about accents can be checked
+  /// over all of them instead of over a list somebody has to remember to
+  /// extend. The gold rule below is the one that matters, and a hand-written
+  /// enumeration would stop covering the table on the first entry added
+  /// after it — silently, which is the only way that kind of test fails.
+  static Iterable<Color> get todas => _porLogin.values;
 }

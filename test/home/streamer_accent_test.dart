@@ -19,6 +19,10 @@ void main() {
       expect(StreamerAccent.of('persybr'), const Color(0xFFC0C0C0));
     });
 
+    test('pavaotv wears the blue measured off the mascot itself', () {
+      expect(StreamerAccent.of('pavaotv'), const Color(0xFF2A95FF));
+    });
+
     test('the login is matched case-insensitively', () {
       expect(StreamerAccent.of('GSAFOOT'), StreamerAccent.of('gsafoot'));
     });
@@ -38,14 +42,14 @@ void main() {
   });
 
   test('no entry is the money gold, known or fallback', () {
-    final todas = [
-      StreamerAccent.of('gsafoot'),
-      StreamerAccent.of('persybr'),
-      StreamerAccent.fallback,
-    ];
-
-    for (final cor in todas) {
+    // Read off the table rather than listed here: a hand-written list stops
+    // covering the entry added after it, and says nothing while it does.
+    for (final cor in [...StreamerAccent.todas, StreamerAccent.fallback]) {
       expect(cor, isNot(PWColors.accent));
     }
+  });
+
+  test('the table is not empty, so the rule above is not vacuous', () {
+    expect(StreamerAccent.todas, isNotEmpty);
   });
 }

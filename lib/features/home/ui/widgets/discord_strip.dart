@@ -61,15 +61,27 @@ class DiscordStrip extends StatelessWidget {
                       ),
                     ),
                     // The reason to click, and the half that is dropped first
-                    // on a narrow screen: the invitation survives, the sales
-                    // pitch does not.
+                    // on a narrow screen: the invitation survives, the reason
+                    // does not.
+                    //
+                    // It said *"e converse com quem joga também"* until
+                    // 02/10/2026, and the owner killed it with the only
+                    // argument that matters: **nobody joins a Discord to talk
+                    // to strangers.** An invitation has to offer something the
+                    // reader already wants, and what somebody on this page
+                    // wants is a tool that works and a tool that exists.
+                    //
+                    // So it names the two things this server is actually for,
+                    // and both are errands the reader may already have: a
+                    // defect to report, and a tool to ask for. Neither is a
+                    // promise about other people.
                     //
                     // Not "novidades" — the page has its own `NOVIDADES DO
                     // PORTAL` section a few rows up, and the same word here
                     // would read as the same thing.
                     if (wide)
                       const TextSpan(
-                        text: '  e converse com quem joga também.',
+                        text: '  achou um bug? quer pedir uma ferramenta?',
                       ),
                   ],
                 ),

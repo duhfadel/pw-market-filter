@@ -39,9 +39,16 @@ const pw126 = '1.2.6';
 /// `MarketIndex.server`/`IndexRepository.server` (`'pw187'`, `'pw126'`), the
 /// file key rather than the number a visitor reads.
 ///
-/// An index cannot carry anything else: `IndexRepository.fileName` already
-/// refuses an unknown `server` before any screen gets this far, so this is
-/// a lookup and never a guess.
+/// **Nothing guards this one against a third value.** `search_view.dart`
+/// calls this unconditionally with `MarketIndex.server`, which comes straight
+/// out of the fetched JSON (`market_index.dart`) — not with
+/// `IndexRepository.server`, the value `IndexRepository.fileName` actually
+/// refuses before the request is even made. Those are two different strings:
+/// one is decided in code when a repository is built, the other arrives over
+/// the network and could in principle disagree with it. Today only `'pw187'`
+/// and `'pw126'` are ever written to either file, so the two happen to always
+/// agree and this cannot fire — but that is a fact about the collector, not
+/// something this function or `IndexRepository` enforces.
 String versaoDoServidor(String server) => switch (server) {
   'pw187' => pw187,
   'pw126' => pw126,

@@ -17,7 +17,9 @@ final getIt = GetIt.instance;
 /// `injectable` setup would bring along.
 void configureDependencies() {
   getIt
-    ..registerLazySingleton<IndexRepository>(IndexRepository.new)
+    ..registerLazySingleton<IndexRepository>(
+      () => IndexRepository(null, IndexRepository.pw187),
+    )
     ..registerLazySingleton<VisitRepository>(VisitRepository.new)
     ..registerLazySingleton<RegistroRepository>(RegistroRepository.new)
     ..registerLazySingleton<AoVivoRepository>(AoVivoRepository.new)

@@ -58,11 +58,12 @@ MarketIndex _indiceDeSeisClasses() => MarketIndex(
 );
 
 /// A market where the cheapest character and the true dearest share a class:
-/// `barato` is both the cheapest overall (10) and a Guerreiro, and
-/// `caroGuerreiro` is the true dearest (9000) and a Guerreiro too. Category 1
-/// spends `Guerreiro` on `barato`, so category 2 has to fall past
-/// `caroGuerreiro` to `segundoCaroLivre` (5000, Mago) — dearer than `barato`
-/// but not the true dearest, of a class nobody has used yet.
+/// `barato` is the cheapest overall (10) and a Guerreiro, and `caroGuerreiro`
+/// is the true dearest (9000) and a Guerreiro too. Nothing ties either of
+/// them, so both cards name their true winner and the page shows two
+/// Guerreiros — the owner's call on 2026-10-02: *"se precisar ser todos a
+/// mesma classe porque vencem nesse atributo do preço, não tem problema
+/// nenhum"*.
 MarketIndex _indiceComColisao() => MarketIndex(
   server: 'pw126',
   collectedAt: DateTime.utc(2026, 10, 1),
@@ -109,30 +110,32 @@ void main() {
     expect(classes, hasLength(2));
   });
 
-  test(
-    'the dearest card softens when it shares the cheapest card\'s class',
-    () {
-      final cartas = destaques126De(_indiceComColisao());
+  test('the dearest card names the dearest, class collision or not', () {
+    // The rule the owner set on 2026-10-02, replacing one that preferred a
+    // free class over the truth: the price decides, always. Naming
+    // `segundoCaroLivre` here to avoid two Guerreiros would be the card
+    // lying about the market with a real number printed beside it.
+    final cartas = destaques126De(_indiceComColisao());
 
-      expect(cartas, hasLength(2));
-      final maisBarato = cartas.firstWhere((d) => d.rotulo.contains('barato'));
-      final maisCaro = cartas.firstWhere((d) => d.rotulo.contains('caro'));
+    expect(cartas, hasLength(2));
+    final maisBarato = cartas.firstWhere((d) => d.rotulo.contains('barato'));
+    final maisCaro = cartas.firstWhere((d) => d.rotulo.contains('caro'));
 
-      expect(maisBarato.personagem.name, 'barato');
-      expect(maisBarato.rotulo, 'O mais barato');
-      // `caroGuerreiro` is the true dearest but shares `barato`'s already-spent
-      // class, so the card falls through to `segundoCaroLivre` — of a free
-      // class — and the label has to say it no longer names the true winner.
-      expect(maisCaro.personagem.name, 'segundoCaroLivre');
-      expect(maisCaro.rotulo, 'Um dos mais caros');
-    },
-  );
+    expect(maisBarato.personagem.name, 'barato');
+    expect(maisBarato.rotulo, 'O mais barato');
+    expect(maisCaro.personagem.name, 'caroGuerreiro');
+    expect(maisCaro.rotulo, 'O mais caro');
+    // And the repeat it costs is accepted rather than hidden.
+    expect(cartas.map((d) => d.personagem.characterClass).toSet(), {
+      'Guerreiro',
+    });
+  });
 
   test('an empty market draws no cards rather than throwing', () {
     expect(destaques126De(_indiceVazio()), isEmpty);
   });
 
-  test('a single-class market yields only one card, not a repeat', () {
+  test('a single-class market still answers both questions', () {
     final umaClasse = MarketIndex(
       server: 'pw126',
       collectedAt: DateTime.utc(2026, 10, 1),
@@ -146,8 +149,11 @@ void main() {
 
     final cartas = destaques126De(umaClasse);
 
-    expect(cartas, hasLength(1));
-    expect(cartas.single.rotulo, 'O mais barato');
+    // Dropping the second card to avoid a repeated portrait would answer one
+    // of the two questions the page asks, and answer it by silence.
+    expect(cartas, hasLength(2));
+    expect(cartas.map((d) => d.rotulo), ['O mais barato', 'O mais caro']);
+    expect(cartas.map((d) => d.personagem.name), ['a', 'b']);
   });
 
   test('every card frame reads the worn weapon, same as destaquesDe, and is '

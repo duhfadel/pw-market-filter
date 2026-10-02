@@ -62,41 +62,47 @@ const _nivelDeDefesa = 'Nível de Defesa';
 
 /// The six characters the front page shows, one per question.
 ///
-/// **No two cards may share a class, and that is not a nicety.** The art is
-/// the card here, so two cards of one class are two identical pictures side
-/// by side — which promises a difference that is not there, the same defect
-/// as the pet eggs sharing one sprite. Measured on 2026-09-30: the Arcano was
-/// simultaneously the cheapest carrier of a 70 weapon *and* the cheapest
-/// carrier of the defensive UP5, so the collision is not hypothetical.
+/// **The measure always wins: every card shows its category's true winner.**
+/// Cheapest means cheapest. A card that moved off the winner to keep the page
+/// pretty would be lying with a real number printed beside it, and the owner
+/// called that on 2026-10-02 after spotting it himself — the defensive UP5
+/// card read 1900 TCC while somebody at 1499 carried one.
 ///
-/// When a category's true winner is already on screen, the card falls to the
-/// next cheapest (or next best) of a class nobody has used, **and its label
-/// softens** — *o mais barato* becomes *dos mais baratos*, because it no
-/// longer is the cheapest and a card that says otherwise is lying with a real
-/// number beside it. A category with no untaken class left is dropped rather
-/// than repeated.
+/// **Class only breaks ties.** The art is the card here, so two cards of one
+/// class are two identical pictures side by side — the same defect as the pet
+/// eggs sharing one sprite. So among the candidates that are *equal on the
+/// measure*, one of a class nobody has used yet is preferred. Nobody is ever
+/// pushed past somebody worse to achieve it.
+///
+/// **The scarce categories choose first, and that is what makes the tie-break
+/// bite.** Measured on the live market: the cheapest-of-all has 1.648
+/// candidates and four of them tie at 40 TCC, while the defensive UP5 has
+/// four candidates in total. Letting the big pool pick first spent a class
+/// the small one needed; letting the small one pick first costs the big pool
+/// nothing, because its tie has a spare class in it. Repeated classes fell
+/// from two to one on that collection, at no cost in price.
+///
+/// A repeat that survives all this is honest and stays: two unique winners of
+/// two categories can genuinely be the same class, and the alternative is
+/// dropping a card or naming the wrong person.
 ///
 /// Empty is an answer: a market with nobody at a tier draws fewer cards,
 /// never a hole and never an exception.
-///
-/// The six categories are walked **in a fixed order** — the table's order —
-/// because the order decides who cedes a class to whom in a collision, and
-/// that has to be stable rather than alphabetical or incidental.
 List<Destaque> destaquesDe(MarketIndex index) {
-  final destaques = <Destaque>[];
-  final usadas = <String>{};
+  // Built in the order the page draws them, resolved in order of scarcity,
+  // emitted in the drawing order again. The two orders are different things
+  // and conflating them is what the fixed walk used to do.
+  final pedidos = <_Pedido>[];
 
   // 1. O mais barato — the cheapest character of the whole market.
   final todosPorPreco = runQuery(index, const SearchQuery());
-  _tentar(
-    destaques,
-    usadas,
-    index,
+  _pedir(
+    pedidos,
     todosPorPreco,
-    rotuloCheio: (_) => 'O mais barato',
-    rotuloSuave: (_) => 'Um dos mais baratos',
+    medida: (c) => c.price,
+    rotulo: (_) => 'O mais barato',
     busca: const SearchQuery(),
-    nota: (_, _) => '${groupThousands(index.characters.length)} no mercado',
+    nota: (_) => '${groupThousands(index.characters.length)} no mercado',
   );
 
   // 2. Arma de 70 mais barata — the label's "70" is derived from the winner,
@@ -111,18 +117,15 @@ List<Destaque> destaquesDe(MarketIndex index) {
   final arma70 = strongWeaponQuery(index);
   if (arma70 != null) {
     final carregadores = runQuery(index, arma70);
-    _tentar(
-      destaques,
-      usadas,
-      index,
+    _pedir(
+      pedidos,
       carregadores,
-      rotuloCheio: (vencedor) =>
+      medida: (c) => c.price,
+      rotulo: (vencedor) =>
           'Arma de ${_nivelDeAtaqueDoVencedor(index, vencedor)} mais barata',
-      rotuloSuave: (vencedor) =>
-          'Barato com arma de ${_nivelDeAtaqueDoVencedor(index, vencedor)}',
       busca: arma70,
       selo: (vencedor) => 'ARMA ${_nivelDeAtaqueDoVencedor(index, vencedor)}',
-      nota: (_, _) => '${carregadores.length} no mercado inteiro',
+      nota: (_) => '${carregadores.length} no mercado inteiro',
     );
   }
 
@@ -130,16 +133,14 @@ List<Destaque> destaquesDe(MarketIndex index) {
   final atqUp5 = weaponQuery(index, _nivelDeAtaque, 80);
   if (atqUp5 != null) {
     final carregadores = runQuery(index, atqUp5);
-    _tentar(
-      destaques,
-      usadas,
-      index,
+    _pedir(
+      pedidos,
       carregadores,
-      rotuloCheio: (_) => 'Atq lvl UP5 mais barato',
-      rotuloSuave: (_) => 'Barato com Atq lvl UP5',
+      medida: (c) => c.price,
+      rotulo: (_) => 'Atq lvl UP5 mais barato',
       busca: atqUp5,
       selo: (_) => 'ATQ UP5',
-      nota: (_, _) => '${carregadores.length} no mercado inteiro',
+      nota: (_) => '${carregadores.length} no mercado inteiro',
     );
   }
 
@@ -147,31 +148,27 @@ List<Destaque> destaquesDe(MarketIndex index) {
   final defUp5 = weaponQuery(index, _nivelDeDefesa, 80);
   if (defUp5 != null) {
     final carregadores = runQuery(index, defUp5);
-    _tentar(
-      destaques,
-      usadas,
-      index,
+    _pedir(
+      pedidos,
       carregadores,
-      rotuloCheio: (_) => 'Def lvl UP5 mais barato',
-      rotuloSuave: (_) => 'Barato com Def lvl UP5',
+      medida: (c) => c.price,
+      rotulo: (_) => 'Def lvl UP5 mais barato',
       busca: defUp5,
       selo: (_) => 'DEF UP5',
-      nota: (_, _) => '${carregadores.length} no mercado inteiro',
+      nota: (_) => '${carregadores.length} no mercado inteiro',
     );
   }
 
   // 5. O mais caro — the dearest character of the whole market.
   const buscaDoMaisCaro = SearchQuery(order: ResultOrder.dearest);
   final todosPorPrecoDesc = runQuery(index, buscaDoMaisCaro);
-  _tentar(
-    destaques,
-    usadas,
-    index,
+  _pedir(
+    pedidos,
     todosPorPrecoDesc,
-    rotuloCheio: (_) => 'O mais caro',
-    rotuloSuave: (_) => 'Um dos mais caros',
+    medida: (c) => c.price,
+    rotulo: (_) => 'O mais caro',
     busca: buscaDoMaisCaro,
-    nota: (vencedor, _) {
+    nota: (vencedor) {
       // Conditional and derived: a wrong claim about the market's own top
       // would be a sentence tomorrow's collection could contradict.
       final nivel = _nivelDeAtaqueDoVencedor(index, vencedor);
@@ -203,13 +200,11 @@ List<Destaque> destaquesDe(MarketIndex index) {
   // de três maneiras — é o que `buscaInicial` já diz ao marcar as três de
   // uma vez. O que nunca se soma é um atributo a outro.
   final porReliquias = _carregadoresDeReliquias(index);
-  _tentar(
-    destaques,
-    usadas,
-    index,
+  _pedir(
+    pedidos,
     porReliquias,
-    rotuloCheio: (_) => 'Mais relíquias',
-    rotuloSuave: (_) => 'Muitas relíquias',
+    medida: (c) => _somaDasReliquias(index, c),
+    rotulo: (_) => 'Mais relíquias',
     busca: const SearchQuery(
       shownOwned: relicNames,
       order: ResultOrder.mostOwned,
@@ -218,60 +213,120 @@ List<Destaque> destaquesDe(MarketIndex index) {
     // A decomposição, e não só o total: um número que ninguém consegue
     // decompor é um número que ninguém consegue conferir — a mesma razão
     // pela qual `countedItemNotes` existe.
-    nota: (vencedor, _) => [
+    nota: (vencedor) => [
       for (final nome in relicNames) '${index.countOf(vencedor, nome) ?? 0}',
     ].join(' + '),
   );
 
-  return destaques;
+  return _resolver(index, pedidos);
 }
 
-/// Tries to add one [Destaque] to [destaques] from [candidatos], an
-/// already-ordered list where the first entry is the true winner of the
-/// category.
-///
-/// Walks past every candidate whose class is already in [usadas] — that is
-/// the class-collision rule — and softens the label the moment it has to
-/// skip at least one. When every candidate's class has already been used,
-/// the category is dropped rather than repeating a class already on screen.
-///
-/// The frame colour is never one of this function's own parameters: it is
-/// always `weaponTierColor(index, candidato)`, read off whichever character
-/// actually wins the category, so the colour is a fact about that person and
-/// not a label the category hands out.
-void _tentar(
-  List<Destaque> destaques,
-  Set<String> usadas,
-  MarketIndex index,
-  List<MarketCharacter> candidatos, {
-  required String Function(MarketCharacter vencedor) rotuloCheio,
-  required String Function(MarketCharacter vencedor) rotuloSuave,
-  required SearchQuery busca,
-  required String Function(MarketCharacter vencedor, bool empurrado) nota,
-  String? Function(MarketCharacter vencedor)? selo,
-}) {
-  var empurrado = false;
-  for (final candidato in candidatos) {
-    if (usadas.contains(candidato.characterClass)) {
-      empurrado = true;
-      continue;
-    }
+/// One card's question, before anybody has been chosen for it.
+class _Pedido {
+  const _Pedido({
+    required this.candidatos,
+    required this.medida,
+    required this.rotulo,
+    required this.busca,
+    required this.nota,
+    this.selo,
+  });
 
-    usadas.add(candidato.characterClass);
-    destaques.add(
-      Destaque(
-        rotulo: empurrado ? rotuloSuave(candidato) : rotuloCheio(candidato),
-        personagem: candidato,
-        nota: nota(candidato, empurrado),
-        cor: weaponTierColor(index, candidato),
-        busca: busca,
-        selo: selo?.call(candidato),
-      ),
+  /// Already ordered, best first — cheapest, dearest or most owned, whichever
+  /// this category asks.
+  final List<MarketCharacter> candidatos;
+
+  /// The number [candidatos] is ordered by. Only ever compared for equality,
+  /// so its direction does not matter here: what it answers is "is this one
+  /// just as good as the best?".
+  final int Function(MarketCharacter) medida;
+
+  final String Function(MarketCharacter vencedor) rotulo;
+  final SearchQuery busca;
+  final String Function(MarketCharacter vencedor) nota;
+  final String? Function(MarketCharacter vencedor)? selo;
+}
+
+void _pedir(
+  List<_Pedido> pedidos,
+  List<MarketCharacter> candidatos, {
+  required int Function(MarketCharacter) medida,
+  required String Function(MarketCharacter vencedor) rotulo,
+  required SearchQuery busca,
+  required String Function(MarketCharacter vencedor) nota,
+  String? Function(MarketCharacter vencedor)? selo,
+}) => pedidos.add(
+  _Pedido(
+    candidatos: candidatos,
+    medida: medida,
+    rotulo: rotulo,
+    busca: busca,
+    nota: nota,
+    selo: selo,
+  ),
+);
+
+/// Chooses a character for each card, then puts the cards back in the order
+/// the page draws them.
+///
+/// **Scarcity decides who picks first, never the drawing order.** A category
+/// with four candidates that yields a class has nowhere else to go; one with
+/// 1.648 has a tie at the top with a spare class in it. Sorting by candidate
+/// count is the cheapest expression of that, and it is stable: `sort` on a
+/// list of indices keeps equal counts in the drawing order, so two categories
+/// of the same size still resolve predictably rather than incidentally.
+List<Destaque> _resolver(MarketIndex index, List<_Pedido> pedidos) {
+  final usadas = <String>{};
+  final escolhidos = <int, Destaque>{};
+
+  final ordem = [for (var i = 0; i < pedidos.length; i++) i]
+    ..sort(
+      (a, b) =>
+          pedidos[a].candidatos.length.compareTo(pedidos[b].candidatos.length),
     );
-    return;
+
+  for (final i in ordem) {
+    final destaque = _escolher(index, pedidos[i], usadas);
+    if (destaque != null) escolhidos[i] = destaque;
   }
-  // No candidate left of a class nobody has used: the category draws
-  // nothing, same as a market with nobody at the tier at all.
+
+  return [
+    for (var i = 0; i < pedidos.length; i++)
+      if (escolhidos[i] != null) escolhidos[i]!,
+  ];
+}
+
+/// The winner of one category: the best on the measure, and among those tied
+/// with it, one whose class is still free.
+///
+/// The frame colour is never a parameter: it is always
+/// `weaponTierColor(index, vencedor)`, read off whichever character actually
+/// won, so the colour is a fact about that person and not a label the
+/// category hands out.
+Destaque? _escolher(MarketIndex index, _Pedido pedido, Set<String> usadas) {
+  if (pedido.candidatos.isEmpty) return null;
+
+  final topo = pedido.medida(pedido.candidatos.first);
+  final empatados = [
+    for (final c in pedido.candidatos)
+      if (pedido.medida(c) == topo) c,
+  ];
+  // The first of a free class, and the plain winner when every tied class is
+  // already on screen. Never anybody worse than the top.
+  final vencedor = empatados.firstWhere(
+    (c) => !usadas.contains(c.characterClass),
+    orElse: () => empatados.first,
+  );
+
+  usadas.add(vencedor.characterClass);
+  return Destaque(
+    rotulo: pedido.rotulo(vencedor),
+    personagem: vencedor,
+    nota: pedido.nota(vencedor),
+    cor: weaponTierColor(index, vencedor),
+    busca: pedido.busca,
+    selo: pedido.selo?.call(vencedor),
+  );
 }
 
 /// The attack level actually worn on [character]'s weapon, 0 when this
@@ -309,45 +364,39 @@ int _nivelDeAtaqueDoVencedor(MarketIndex index, MarketCharacter character) {
 /// [destaquesDe] because the two questions sets answer different briefs, not
 /// because the code could not be shared.
 ///
-/// **The distinct-class rule still applies, and it bites harder here.** Six
-/// classes stand behind this market instead of seventeen, so a collision is
-/// six times likelier before either card is drawn — measured as one in six
-/// against one in seventeen. The same softening [destaquesDe] already uses
-/// (`_tentar`) covers it: the second card's label turns from *o mais caro* to
-/// *um dos mais caros* the moment it has to cede the cheapest card's class.
+/// **The class preference still applies, and it bites harder here.** Six
+/// classes stand behind this market instead of seventeen, so two cards
+/// landing on one class is six times likelier — one in six against one in
+/// seventeen. It is only ever a tie-break, though: the dearest character is
+/// shown even when he shares the cheapest one's class, because naming the
+/// second-dearest to avoid repeating a picture would be the card lying about
+/// the market.
 ///
 /// Empty is an answer, same rule as [destaquesDe]: a market with nobody in it
 /// draws no cards, never an exception.
 List<Destaque> destaques126De(MarketIndex index) {
-  final destaques = <Destaque>[];
-  final usadas = <String>{};
+  final pedidos = <_Pedido>[];
 
-  final maisBaratos = runQuery(index, const SearchQuery());
-  _tentar(
-    destaques,
-    usadas,
-    index,
-    maisBaratos,
-    rotuloCheio: (_) => 'O mais barato',
-    rotuloSuave: (_) => 'Um dos mais baratos',
+  _pedir(
+    pedidos,
+    runQuery(index, const SearchQuery()),
+    medida: (c) => c.price,
+    rotulo: (_) => 'O mais barato',
     busca: const SearchQuery(),
-    nota: (_, _) => '${groupThousands(index.characters.length)} no mercado',
+    nota: (_) => '${groupThousands(index.characters.length)} no mercado',
   );
 
   const buscaDoMaisCaro = SearchQuery(order: ResultOrder.dearest);
-  final maisCaros = runQuery(index, buscaDoMaisCaro);
-  _tentar(
-    destaques,
-    usadas,
-    index,
-    maisCaros,
-    rotuloCheio: (_) => 'O mais caro',
-    rotuloSuave: (_) => 'Um dos mais caros',
+  _pedir(
+    pedidos,
+    runQuery(index, buscaDoMaisCaro),
+    medida: (c) => c.price,
+    rotulo: (_) => 'O mais caro',
     busca: buscaDoMaisCaro,
-    nota: (_, _) => '${groupThousands(index.characters.length)} no mercado',
+    nota: (_) => '${groupThousands(index.characters.length)} no mercado',
   );
 
-  return destaques;
+  return _resolver(index, pedidos);
 }
 
 /// Everyone carrying at least one of the three relics, most first.

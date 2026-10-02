@@ -204,7 +204,9 @@ void main() {
     await tester.tap(find.text('Buscar personagens'));
     await tester.pumpAndSettle();
 
-    expect(pushed, ['/filtro']);
+    // The canonical path, not the bare `/filtro` — see `AddressBar`'s note on
+    // why the app never writes that one again.
+    expect(pushed, ['/1.8.7/filtro']);
   });
 
   testWidgets('the Destaques prove the claim with real people from the '

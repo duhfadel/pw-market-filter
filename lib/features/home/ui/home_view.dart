@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/pw_colors.dart';
 import '../../../market/market_index.dart';
 import '../../ads/ad_slot.dart';
+import '../../search/data/address_bar.dart';
 import '../../search/domain/search_query.dart';
 import '../../search/domain/search_query_url.dart';
 import '../../search/ui/search_state.dart';
@@ -25,9 +26,14 @@ import 'widgets/discord_strip.dart';
 /// Opens the filter already answering [query] — every Destaques card is a
 /// door into the search that produced it, encoded the same way a shared
 /// link is so the filter screen reads it back with `requestUrl`.
+///
+/// Pushes `AddressBar.canonicalFiltro`, never the bare `/filtro` —
+/// `core/rotas.dart` only reads that path, forever, for links already out
+/// in the world; nothing in the app may write it again.
 void _abrirBusca(BuildContext context, MarketIndex index, SearchQuery query) {
   final q = encodeQuery(query, index);
-  Navigator.of(context).pushNamed(q.isEmpty ? '/filtro' : '/filtro?$q');
+  final path = AddressBar.canonicalFiltro;
+  Navigator.of(context).pushNamed(q.isEmpty ? path : '$path?$q');
 }
 
 /// The Portal's front page: the mark, the Cartaz, the Destaques, Streamers
@@ -162,9 +168,11 @@ class HomeView extends StatelessWidget {
                                     // compact layout instead of the rest of
                                     // the page's `wide` one.
                                     wide: large,
+                                    // The canonical path, same reason as
+                                    // `_abrirBusca` above.
                                     aoBuscar: () => Navigator.of(
                                       context,
-                                    ).pushNamed('/filtro'),
+                                    ).pushNamed(AddressBar.canonicalFiltro),
                                   ),
                                   if (ready != null) ...[
                                     SizedBox(height: wide ? 8 : 4),

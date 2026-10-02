@@ -98,6 +98,13 @@ RotaResolvida resolverRota(String? name) {
   // search encoded in its query string (`search_query_url.dart`), and that
   // string has to travel untouched — an empty filter at the far end would
   // read as the search having broken rather than moved.
+  //
+  // **This is a reader only, forever, and never a writer again.** Nothing in
+  // this app may produce a bare `/filtro` link from here on —
+  // `AddressBar.canonicalFiltro` and `tool.dart`'s own route both point at
+  // `/1.8.7/filtro` already. If this match is ever removed on the theory that
+  // "nothing writes it any more", every link already pasted in the community
+  // 404s on the spot.
   if (uri.path == '/filtro') {
     final query = uri.query.isEmpty ? '' : '?${uri.query}';
     return RotaRedirecionada('/$pw187/filtro$query');

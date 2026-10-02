@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/core/rotas.dart';
+import 'package:pw_market_filter/features/home/domain/tool.dart';
+import 'package:pw_market_filter/features/search/data/address_bar.dart';
 
 /// Records every push and replace a `Navigator` makes, so a test can tell
 /// "landed somewhere new" apart from "stacked on top of what was already
@@ -116,6 +118,54 @@ void main() {
       final destino = Uri.parse(resolvida.destino);
 
       expect(destino.queryParametersAll['c'], ['10~0~70', '5~0~40']);
+    });
+  });
+
+  group('one canonical writer, one permanent reader — never the reverse', () {
+    // `/filtro` must keep resolving forever (the group above), but nothing in
+    // the app may *produce* that path any more: every place that builds a
+    // destination for the filter — the address bar, the "copiar link"
+    // control, and the menu's own tool entry — has to write the canonical
+    // `/1.8.7/filtro` from the day this shipped onward. A regression here is
+    // silent on screen: the redirect absorbs a wrongly-written `/filtro`
+    // link just as well as an old one, so nothing looks broken — the only
+    // thing that happens is the legacy path never gets to retire.
+    test('AddressBar writes the canonical path, not the bare one', () {
+      expect(AddressBar.canonicalFiltro, '/$pw187/filtro');
+      expect(AddressBar.uriFor('classe=Mago').path, '/1.8.7/filtro');
+    });
+
+    test('AddressBar.linkTo shares a search at the canonical path', () {
+      final link = AddressBar.linkTo(
+        Uri.parse('https://portalpw.net/'),
+        'classe=Mago',
+      );
+
+      expect(link, 'https://portalpw.net/#/1.8.7/filtro?classe=Mago');
+    });
+
+    test('a link with no search still points at the canonical path', () {
+      final link = AddressBar.linkTo(Uri.parse('https://portalpw.net/'), '');
+
+      expect(link, 'https://portalpw.net/#/1.8.7/filtro');
+    });
+
+    test("the menu's own Filtro tool writes the canonical path", () {
+      final filtro = tools.firstWhere((t) => t.name == 'Filtro do Marketplace');
+
+      expect(filtro.route, AddressBar.canonicalFiltro);
+    });
+
+    test('what the app writes is exactly what resolverRota already treats '
+        'as canonical — no redirect in the loop', () {
+      final resolvida = resolverRota(AddressBar.canonicalFiltro);
+
+      expect(resolvida, isA<RotaTela>());
+      expect((resolvida as RotaTela).tela, Tela.filtro187);
+    });
+
+    test('a bare /filtro still resolves — the permanent half of the pair', () {
+      expect(resolverRota('/filtro'), isA<RotaRedirecionada>());
     });
   });
 

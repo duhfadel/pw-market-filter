@@ -119,7 +119,12 @@ final tools = <Tool>[
     icon: Icons.travel_explore,
     // Moeda de Ouro. The filter is about price as much as about gear.
     emblem: 39873,
-    route: '/filtro',
+    // The canonical path, not the bare `/filtro` the redirect in
+    // `core/rotas.dart` keeps alive for old links. This menu writes a fresh
+    // link every time somebody opens it from here, and a fresh link has to
+    // carry the version from the start — see `AddressBar`'s own note on the
+    // same asymmetry.
+    route: '/1.8.7/filtro',
   ),
   Tool(
     name: 'Títulos',

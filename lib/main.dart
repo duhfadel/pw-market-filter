@@ -14,11 +14,29 @@ import 'features/registros/ui/registros_view.dart';
 import 'features/runas/ui/runas_view.dart';
 import 'features/search/ui/search_view.dart';
 import 'features/search/ui/search_view_model.dart';
+import 'market/index_repository.dart';
 
 void main() {
   configureDependencies();
   runApp(const PortalPWApp());
 }
+
+/// Wraps [child] with its own `SearchViewModel`, backed by the 1.2.6 index
+/// rather than the ambient 1.8.7 one every other route reads — see
+/// `injection.dart` for why the two live under separate GetIt instance names
+/// instead of one bare registration shadowing the other.
+///
+/// Scoped to just the route this builds, not to the whole app: the
+/// `MultiBlocProvider` in [PortalPWApp.builder] stays the single 1.8.7
+/// `SearchViewModel` above the Navigator, untouched, and this provider only
+/// shadows it for the one subtree the 1.2.6 routes build. Two ambient
+/// providers of the same type above the whole Navigator would not coexist —
+/// the inner one would win for every route, 1.8.7's included.
+Widget _comIndicePw126(Widget child) => BlocProvider<SearchViewModel>(
+  create: (_) =>
+      getIt<SearchViewModel>(instanceName: IndexRepository.pw126)..load(),
+  child: child,
+);
 
 class PortalPWApp extends StatelessWidget {
   const PortalPWApp({super.key});
@@ -52,24 +70,30 @@ class PortalPWApp extends StatelessWidget {
         settings: settings,
         builder: (_) => switch (resolvida) {
           RotaRedirecionada(:final destino) => LegacyRedirect(destino: destino),
-          // Both filters share this screen for now. `SearchView` and its
-          // matcher are already blind to which marketplace fed the index
-          // (proven on 01/10/2026 by serving the 1.2.6 index through it
-          // unchanged), and only *which* index to load is version-specific —
-          // wiring that up is later work; this route only gives the 1.2.6
-          // filter a URL of its own.
-          RotaTela(tela: Tela.filtro187, :final query) ||
-          RotaTela(
-            tela: Tela.filtro126,
-            :final query,
-          ) => SearchView(arriving: query),
+          // Both filters share the same `SearchView` screen — `SearchView`
+          // and its matcher are already blind to which marketplace fed the
+          // index (proven on 01/10/2026 by serving the 1.2.6 index through it
+          // unchanged) — but not the same index any more. `filtro126` wraps
+          // it in its own `SearchViewModel`, so a 1.2.6 query is never run
+          // against the 1.8.7 market behind its back.
+          RotaTela(tela: Tela.filtro187, :final query) => SearchView(
+            arriving: query,
+          ),
+          RotaTela(tela: Tela.filtro126, :final query) => _comIndicePw126(
+            SearchView(arriving: query),
+          ),
           RotaTela(tela: Tela.registros) => const RegistrosView(),
           RotaTela(tela: Tela.runas) => const RunasView(),
           RotaTela(tela: Tela.novidades) => const NovidadesView(),
           // The choice screen now exists on its own — `/` no longer opens
-          // the 1.8.7 home directly. home187 and home126 still draw today's
-          // front page: the 1.2.6 home of its own is a later task.
+          // the 1.8.7 home directly.
           RotaTela(tela: Tela.escolha) => const PortasView(),
+          // The 1.2.6 home: the same `HomeView`, `pw126: true`, reading the
+          // 1.2.6-backed `SearchViewModel` wrapped around it here rather than
+          // the ambient 1.8.7 one every other route below falls through to.
+          RotaTela(tela: Tela.home126) => _comIndicePw126(
+            const HomeView(pw126: true),
+          ),
           RotaTela() => const HomeView(),
         },
       );

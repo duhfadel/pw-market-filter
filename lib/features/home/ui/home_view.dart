@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/rotas.dart' as rotas;
 import '../../../core/theme/pw_colors.dart';
 import '../../../market/market_index.dart';
 import '../../ads/ad_slot.dart';
@@ -27,12 +28,20 @@ import 'widgets/discord_strip.dart';
 /// door into the search that produced it, encoded the same way a shared
 /// link is so the filter screen reads it back with `requestUrl`.
 ///
-/// Pushes `AddressBar.canonicalFiltro`, never the bare `/filtro` —
-/// `core/rotas.dart` only reads that path, forever, for links already out
-/// in the world; nothing in the app may write it again.
-void _abrirBusca(BuildContext context, MarketIndex index, SearchQuery query) {
+/// Pushes `AddressBar.canonicalFiltro` for the 1.8.7 home, never the bare
+/// `/filtro` — `core/rotas.dart` only reads that path, forever, for links
+/// already out in the world; nothing in the app may write it again. The
+/// 1.2.6 home ([pw126]) pushes `/1.2.6/filtro` instead: a card built from the
+/// 1.2.6 index opening the 1.8.7 filter would hand the query to an index it
+/// was never checked against.
+void _abrirBusca(
+  BuildContext context,
+  MarketIndex index,
+  SearchQuery query, {
+  required bool pw126,
+}) {
   final q = encodeQuery(query, index);
-  final path = AddressBar.canonicalFiltro;
+  final path = pw126 ? '/${rotas.pw126}/filtro' : AddressBar.canonicalFiltro;
   Navigator.of(context).pushNamed(q.isEmpty ? path : '$path?$q');
 }
 
@@ -62,7 +71,19 @@ void _abrirBusca(BuildContext context, MarketIndex index, SearchQuery query) {
 /// see `cabecalho.dart`'s `_NovidadesPill`, which is also where the dot's
 /// rules now live.
 class HomeView extends StatelessWidget {
-  const HomeView({super.key});
+  const HomeView({super.key, this.pw126 = false});
+
+  /// Whether this is the 1.2.6 marketplace's home rather than 1.8.7's.
+  ///
+  /// The two homes share every section below the Cartaz — the streamers, the
+  /// community, the advert, the footer — because none of that is about which
+  /// marketplace a visitor is in. What changes is the two places that *are*:
+  /// the Cartaz's own class rotates through [classesClassicasPw126] instead
+  /// of the full seventeen, and the Destaques below it draw two cards
+  /// (`destaques126De`) instead of six. `main.dart` is what supplies the
+  /// right index behind this flag — see its own routing table for the
+  /// version-named `SearchViewModel` each home reads from.
+  final bool pw126;
 
   /// Above this the page is not competing for space, and holding the layout at
   /// its tablet size leaves the mark reading as a small card adrift in black —
@@ -156,6 +177,9 @@ class HomeView extends StatelessWidget {
                                   Cartaz(
                                     classe: classeDoCartaz(
                                       ready?.index.collectedAt,
+                                      classes: pw126
+                                          ? classesClassicasPw126
+                                          : classesComArte,
                                     ),
                                     // `large`, not `wide`. Both were built and
                                     // measured at 1200 px — close to this
@@ -168,11 +192,15 @@ class HomeView extends StatelessWidget {
                                     // compact layout instead of the rest of
                                     // the page's `wide` one.
                                     wide: large,
-                                    // The canonical path, same reason as
-                                    // `_abrirBusca` above.
-                                    aoBuscar: () => Navigator.of(
-                                      context,
-                                    ).pushNamed(AddressBar.canonicalFiltro),
+                                    // The canonical path for 1.8.7, the
+                                    // version-prefixed one for 1.2.6 — same
+                                    // reason as `_abrirBusca` above.
+                                    aoBuscar: () =>
+                                        Navigator.of(context).pushNamed(
+                                          pw126
+                                              ? '/${rotas.pw126}/filtro'
+                                              : AddressBar.canonicalFiltro,
+                                        ),
                                   ),
                                   if (ready != null) ...[
                                     SizedBox(height: wide ? 8 : 4),
@@ -181,10 +209,12 @@ class HomeView extends StatelessWidget {
                                       child: DestaquesView(
                                         index: ready.index,
                                         wide: large,
+                                        pw126: pw126,
                                         onAbrir: (query) => _abrirBusca(
                                           context,
                                           ready.index,
                                           query,
+                                          pw126: pw126,
                                         ),
                                       ),
                                     ),

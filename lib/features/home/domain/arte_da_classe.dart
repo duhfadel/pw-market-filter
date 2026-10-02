@@ -80,20 +80,46 @@ String? arteVerticalDaClasse(String classe) {
 Color acentoDaClasse(String classe) =>
     (_classes[classe]?.magenta ?? false) ? PWColors.magenta : PWColors.violeta;
 
+/// The 1.2.6 marketplace's own six classes — the classic ones, in the same
+/// order [classesComArte] already lists them.
+///
+/// **Measured, not guessed: all six were checked one by one against
+/// `assets/images/classes-verticais/` on 01/10/2026, and no new art was
+/// needed.** [classeDoCartaz] takes this as its rotation pool for the 1.2.6
+/// home, because rotating through the full seventeen there would eventually
+/// land on a class — Andarilho, say — that game does not have, which is a
+/// small lie told by the hero of the very page that introduces it.
+const classesClassicasPw126 = [
+  'Arqueiro',
+  'Bárbaro',
+  'Feiticeira',
+  'Guerreiro',
+  'Mago',
+  'Sacerdote',
+];
+
 /// Which class the Cartaz wears for a collection made at [collectedAt].
 ///
 /// Derived from the collection's own timestamp — never `Random()`, never the
 /// wall clock. The same collection has to draw the same page, or a rebuild
 /// reads as a slot machine instead of a site. `null` (no collection loaded
-/// yet) opens on the first class in the list rather than waiting to show any
+/// yet) opens on the first class of [classes] rather than waiting to show any
 /// art at all.
+///
+/// [classes] defaults to [classesComArte], the 1.8.7 pool of seventeen. The
+/// 1.2.6 home passes [classesClassicasPw126] instead — the smaller pool is
+/// what keeps the hero honest about which game it is rotating through.
 ///
 /// Lifted out of `home_view.dart` so a test can call it directly rather than
 /// only through the assembled page — a regression to `DateTime.now()` here
 /// would otherwise stay invisible to every widget test, since none of them
 /// pump the same index twice in the same run.
-String classeDoCartaz(DateTime? collectedAt) {
-  if (collectedAt == null) return classesComArte.first;
-  final posicao = collectedAt.millisecondsSinceEpoch % classesComArte.length;
-  return classesComArte[posicao];
+String classeDoCartaz(
+  DateTime? collectedAt, {
+  List<String> classes = classesComArte,
+}) {
+  if (classes.isEmpty) return classesComArte.first;
+  if (collectedAt == null) return classes.first;
+  final posicao = collectedAt.millisecondsSinceEpoch % classes.length;
+  return classes[posicao];
 }

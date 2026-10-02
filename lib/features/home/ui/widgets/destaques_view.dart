@@ -6,17 +6,18 @@ import '../../../search/domain/search_query.dart';
 import '../../domain/arte_da_classe.dart';
 import '../../domain/destaques.dart';
 
-/// The front page's argument, made of six real people instead of a sentence:
-/// one character per question about the market (`destaquesDe`), drawn
-/// full-bleed so the art itself is the card — the same reasoning the Cartaz
-/// already carries, one size down.
+/// The front page's argument, made of real people instead of a sentence: one
+/// character per question about the market — six for 1.8.7 (`destaquesDe`),
+/// two for 1.2.6 (`destaques126De`, [pw126]) — drawn full-bleed so the art
+/// itself is the card, the same reasoning the Cartaz already carries, one
+/// size down.
 ///
 /// Draws nothing when the market answers no cards at all: a section with a
 /// frame and no content inside it would be a claim this collection cannot
-/// back up. A market that answers fewer than six — a class collision with no
-/// untaken class left, or a tier the collection never reached — draws fewer
-/// cards rather than a gap, which is `destaquesDe`'s own rule and not
-/// repeated here.
+/// back up. A market that answers fewer cards than the question set asks —
+/// a class collision with no untaken class left, or a tier the collection
+/// never reached — draws fewer rather than a gap, which is the chosen
+/// function's own rule and not repeated here.
 ///
 /// **On a phone the six scroll sideways in one row instead of wrapping to
 /// three** — the owner's own call, 01/10/2026, over the grid's three rows of
@@ -27,10 +28,17 @@ class DestaquesView extends StatelessWidget {
     required this.index,
     required this.wide,
     required this.onAbrir,
+    this.pw126 = false,
     super.key,
   });
 
   final MarketIndex index;
+
+  /// Reads `destaques126De` instead of `destaquesDe` — two cards instead of
+  /// six, since nobody has studied the 1.2.6 market enough yet to ask it the
+  /// other four questions. See `destaques.dart` for the reasoning; this flag
+  /// only chooses which function this widget calls.
+  final bool pw126;
 
   /// Whether the page has room for the wide layout. The grid itself reads its
   /// own available width to pick a column count — see [_columnsFor] — so this
@@ -62,7 +70,7 @@ class DestaquesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final destaques = destaquesDe(index);
+    final destaques = pw126 ? destaques126De(index) : destaquesDe(index);
     if (destaques.isEmpty) return const SizedBox.shrink();
 
     final spacing = wide ? 14.0 : 10.0;

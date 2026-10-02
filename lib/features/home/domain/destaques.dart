@@ -293,6 +293,67 @@ int _nivelDeAtaqueDoVencedor(MarketIndex index, MarketCharacter character) {
   return 0;
 }
 
+/// The front page's argument for the 1.2.6 marketplace: two cards, never six.
+///
+/// **No domain knowledge, on purpose — the owner's own words, 01/10/2026:**
+/// *"no momento a gente não sabe o que é importante no 1.2.6 para fazer novos
+/// filtros"*. `destaquesDe` asks six questions this market has been studied
+/// enough to pick — a weapon tier, a relic sum — and none of that study exists
+/// for 1.2.6 yet. Six cards built the same way would be the site asserting a
+/// ranking nobody asked for, which is exactly what the owner's four dropped
+/// categories (most damage per TCC, highest damage, highest defence, highest
+/// fire resistance) would have been.
+///
+/// Price needs no domain knowledge at all — every market answers it by
+/// itself — so that is the whole list: the cheapest character, then the
+/// dearest. Both read [MarketIndex] generically, so this same function would
+/// work unchanged on the 1.8.7 index too; it is kept separate from
+/// [destaquesDe] because the two questions sets answer different briefs, not
+/// because the code could not be shared.
+///
+/// **The distinct-class rule still applies, and it bites harder here.** Six
+/// classes stand behind this market instead of seventeen, so a collision is
+/// six times likelier before either card is drawn — measured as one in six
+/// against one in seventeen. The same softening [destaquesDe] already uses
+/// (`_tentar`) covers it: the second card's label turns from *o mais caro* to
+/// *um dos mais caros* the moment it has to cede the cheapest card's class.
+///
+/// Empty is an answer, same rule as [destaquesDe]: a market with nobody in it
+/// draws no cards, never an exception.
+List<Destaque> destaques126De(MarketIndex index) {
+  final destaques = <Destaque>[];
+  final usadas = <String>{};
+
+  final maisBaratos = runQuery(index, const SearchQuery());
+  _tentar(
+    destaques,
+    usadas,
+    index,
+    maisBaratos,
+    rotuloCheio: (_) => 'O mais barato',
+    rotuloSuave: (_) => 'Um dos mais baratos',
+    busca: const SearchQuery(),
+    nota: (_, _) =>
+        '${groupThousands(index.characters.length)} personagens no mercado',
+  );
+
+  const buscaDoMaisCaro = SearchQuery(order: ResultOrder.dearest);
+  final maisCaros = runQuery(index, buscaDoMaisCaro);
+  _tentar(
+    destaques,
+    usadas,
+    index,
+    maisCaros,
+    rotuloCheio: (_) => 'O mais caro',
+    rotuloSuave: (_) => 'Um dos mais caros',
+    busca: buscaDoMaisCaro,
+    nota: (_, _) =>
+        '${groupThousands(index.characters.length)} personagens no mercado',
+  );
+
+  return destaques;
+}
+
 /// Everyone carrying at least one of the three relics, most first.
 ///
 /// Built here rather than taken from `ResultOrder.mostOwned` because the card

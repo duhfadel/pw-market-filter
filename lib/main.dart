@@ -9,6 +9,7 @@ import 'features/home/ui/ao_vivo_view_model.dart';
 import 'features/home/ui/novidades_view_model.dart';
 import 'features/home/ui/visit_counter_view_model.dart';
 import 'features/novidades/ui/novidades_view.dart';
+import 'features/portas/ui/portas_view.dart';
 import 'features/registros/ui/registros_view.dart';
 import 'features/runas/ui/runas_view.dart';
 import 'features/search/ui/search_view.dart';
@@ -65,9 +66,10 @@ class PortalPWApp extends StatelessWidget {
           RotaTela(tela: Tela.registros) => const RegistrosView(),
           RotaTela(tela: Tela.runas) => const RunasView(),
           RotaTela(tela: Tela.novidades) => const NovidadesView(),
-          // escolha, home187 and home126 all draw today's home: the choice
-          // screen and the 1.2.6 home are later tasks, and until they exist
-          // every one of these three names the same front page.
+          // The choice screen now exists on its own — `/` no longer opens
+          // the 1.8.7 home directly. home187 and home126 still draw today's
+          // front page: the 1.2.6 home of its own is a later task.
+          RotaTela(tela: Tela.escolha) => const PortasView(),
           RotaTela() => const HomeView(),
         },
       );

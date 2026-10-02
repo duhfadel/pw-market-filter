@@ -39,10 +39,10 @@ const pw126 = '1.2.6';
 /// `main.dart` owns the widgets, this file only owns which URL means which
 /// name, so a test can assert the mapping without importing a single view.
 enum Tela {
-  /// The landing choice between the two marketplaces. Until that screen
-  /// exists (a later task) this is drawn the same as [home187], by the
-  /// owner's own call: "a home de hoje continua a ser a raiz até a tela de
-  /// escolha existir".
+  /// The landing choice between the two marketplaces — `PortasView`,
+  /// `features/portas/ui/portas_view.dart`. `/` no longer opens the 1.8.7
+  /// home directly; every link shared in the community already names a
+  /// version and never passes through here.
   escolha,
   home187,
   home126,

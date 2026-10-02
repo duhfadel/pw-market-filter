@@ -1000,6 +1000,42 @@ Each of these already cost something — measured on the live site, not guessed.
   command in an `&&` list is exempt from errexit. Verified before shipping,
   both paths — first-fails-then-succeeds exits 0, both-fail exits 1.
 
+- **Mudar a lista de caminhos de um passo de cache invalida todas as caches
+  que existem, e o site parou dez horas por causa disso.** `actions/cache`
+  deriva a identidade de uma cache da **lista de caminhos**, não só da chave.
+  Em 01/10/2026 acrescentei `tool/.collect_state_126.json` ao lado do estado do
+  1.8.7, num passo só — e as 841 caches existentes ficaram **inalcançáveis**:
+  chave a casar, conteúdo lá, e invisíveis.
+
+  O que se seguiu foi um laço fechado, e é a parte que vale guardar. Sem cache
+  o `--resume` não tem de onde continuar e faz **coleta completa**. Uma coleta
+  completa do pw187 são 1.666 páginas a 3 s = **83 minutos**, e
+  `timeout-minutes` era **75** — ou seja, **nunca podia terminar**. E uma
+  corrida que não termina **não grava cache**, portanto a seguinte repetia
+  tudo. Trinta e duas corridas seguidas, dez horas sem deploy, e nada disso
+  saía sozinho.
+
+  **A conta `páginas × 3 s` contra o `timeout` é obrigatória** sempre que a
+  coleta ou o mercado crescerem. Hoje: 1.666 → 83 min e 1.302 → 65 min, contra
+  um teto de 120. Se o mercado passar dos ~2.300 anúncios, o teto volta a ser
+  o limite.
+
+  **A cache é por versão, um caminho por passo**, para que cada lista fique
+  estável para sempre — acrescentar uma terceira versão não pode invalidar as
+  outras duas.
+
+  **E o sintoma mente.** As corridas apareciam como **canceladas**, que é a
+  palavra que a nota abaixo manda ler como "não é problema do repositório".
+  Aqui era: com `cancel-in-progress: false` o GitHub guarda **uma** pendente
+  só, então cada disparo novo matava a que esperava. O teste que separa os
+  dois casos é `gh api .../runs/<id>/jobs --jq '.jobs|length'` — **zero jobs
+  significa que a corrida nunca arrancou**, e aí o problema é fila, não
+  código.
+
+  A cadência também era minha e piorava tudo: quatro disparos espaçados de 15
+  minutos para corridas de 20 a 45. Agora é **um por versão por hora**, `:07`
+  e `:37`.
+
 - **A failed deploy is usually GitHub, and `gh run rerun --failed` makes it
   worse.** On 2026-08-17 the collect, analyze, test and build steps all passed
   and `actions/deploy-pages` answered **503 — "No server is currently available"**;

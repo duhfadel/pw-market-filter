@@ -15,8 +15,14 @@ import 'search_state.dart';
 /// re-runs it — 779 characters against a handful of criteria is nothing, so
 /// there is no reason to make the user press a button.
 class SearchViewModel extends Cubit<SearchState> {
-  SearchViewModel(this._repository, [this._addressBar = const AddressBar()])
-    : super(const SearchLoading());
+  // The address bar defaults to one built for `repository.server` rather than
+  // a bare `const AddressBar()` — the two marketplaces share this class, and
+  // a hardcoded default is exactly how a 1.2.6 search once rewrote its own
+  // address into the 1.8.7 market (see `AddressBar`'s own note).
+  SearchViewModel(IndexRepository repository, [AddressBar? addressBar])
+    : _repository = repository,
+      _addressBar = addressBar ?? AddressBar(repository.server),
+      super(const SearchLoading());
 
   final IndexRepository _repository;
   final AddressBar _addressBar;

@@ -15,6 +15,9 @@ class _Recording implements AddressBar {
   final writes = <String>[];
 
   @override
+  String get server => IndexRepository.pw187;
+
+  @override
   void writeFilter(String query) => writes.add(query);
 }
 

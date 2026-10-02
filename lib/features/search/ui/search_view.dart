@@ -261,6 +261,7 @@ class _CopyLink extends StatelessWidget {
       final link = AddressBar.linkTo(
         Uri.base,
         encodeQuery(state.query, state.index),
+        server: state.index.server,
       );
       Clipboard.setData(ClipboardData(text: link));
 

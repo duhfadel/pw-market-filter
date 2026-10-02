@@ -190,6 +190,38 @@ void main() {
       },
     );
 
+    testWidgets(
+      "an unready door's art dims with it — never a bright picture over a "
+      'greyed-out door',
+      (tester) async {
+        _registrarRepositorio(
+          _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
+        );
+
+        await _montar(tester);
+
+        // The class art for the dimmed pw126 door is a descendant of its own
+        // `Opacity` (0.5, asserted above by another case) rather than a
+        // sibling painted outside it — the only arrangement that actually
+        // dims the picture along with the rest of the door.
+        final arteFechada = find.descendant(
+          of: _porta('pw126'),
+          matching: find.byType(Image),
+        );
+        expect(arteFechada, findsOneWidget);
+
+        final opacidadeFechada = tester.widget<Opacity>(_porta('pw126'));
+        expect(opacidadeFechada.opacity, 0.5);
+
+        // The ready door carries its own art too, at full strength.
+        final arteAberta = find.descendant(
+          of: _porta('pw187'),
+          matching: find.byType(Image),
+        );
+        expect(arteAberta, findsOneWidget);
+      },
+    );
+
     testWidgets("tapping a ready door opens that version's home", (
       tester,
     ) async {

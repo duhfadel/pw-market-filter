@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/rotas.dart' as rotas;
 import '../../../core/theme/pw_colors.dart';
 import '../../ads/ad_slot.dart';
 import '../../home/domain/community.dart';
@@ -54,7 +55,12 @@ class _Tela extends StatelessWidget {
         // The mark is the only door here, the same arrangement every screen
         // without a hand-declared arrow shares.
         automaticallyImplyLeading: false,
-        title: Cabecalho(wide: largura >= Cabecalho.larguraMinima),
+        title: Cabecalho(
+          wide: largura >= Cabecalho.larguraMinima,
+          // Only the 1.8.7 door leads here — `core/rotas.dart` has no
+          // `/1.2.6/registros` at all.
+          versao: rotas.pw187,
+        ),
       ),
       body: BlocBuilder<RegistrosViewModel, RegistrosState>(
         builder: (context, state) => switch (state) {

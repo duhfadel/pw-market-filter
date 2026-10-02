@@ -123,7 +123,8 @@ List<ActiveFilter> activeFilters(MarketIndex index, SearchQuery query) {
     // item the collection no longer carries must still be removable, which is
     // the whole dead end this list exists to close.
     final nome =
-        index.items[chosen.value]?.name ?? '${slotLabel(chosen.key)} escolhida';
+        index.items[chosen.value]?.name ??
+        '${slotLabel(chosen.key, index)} escolhida';
     add(
       nome,
       (q) => q.copyWith(itemBySlot: {...q.itemBySlot}..remove(chosen.key)),
@@ -151,7 +152,7 @@ String? _rangeLabel(int? min, int? max, String unidade) {
 
 String _criterionLabel(MarketIndex index, ItemCriterion criterion) {
   final partes = <String>[
-    if (criterion.slot != null) slotLabel(criterion.slot!),
+    if (criterion.slot != null) slotLabel(criterion.slot!, index),
     if (criterion.attributeId != null &&
         criterion.attributeId! < index.attributes.length)
       '${index.attributes[criterion.attributeId!]} ${criterion.minimum}',

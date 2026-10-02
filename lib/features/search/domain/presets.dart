@@ -64,6 +64,20 @@ List<Preset> presetsFor(MarketIndex index) {
   final atqUp5 = weaponQuery(index, 'Nível de Ataque', 80);
   final defUp5 = weaponQuery(index, 'Nível de Defesa', 80);
 
+  // Cartas e combos não existem em toda coleta — medido em 01/10/2026 sobre o
+  // 1.2.6, zero dos 1.293 personagens carregam uma só. A mesma pergunta que
+  // `weaponQuery` já faz do vocabulário de atributos, feita aqui do
+  // vocabulário de cartas: `CardSection` já esconde o próprio painel com este
+  // sinal, e o chip tem de seguir a mesma regra, em vez de existir e achar
+  // zero — o que ensina que o site está partido.
+  final hasCards = index.characters.any((c) => c.cards.isNotEmpty);
+
+  // Itens contados (a Essência Dracônica, aqui) também não existem em toda
+  // coleta — o 1.2.6 nunca lê o inventário, então `countedItems` não tem a
+  // entrada. O mesmo cheque que `CountedItemsSection` já faz por linha.
+  final hasEssencias =
+      index.countedItems['Essência Dracônica']?.isNotEmpty ?? false;
+
   return [
     // **Dois chips e não um, e a medição é o argumento.** Eles foram fundidos
     // num só por um dia, com o raciocínio de que dividir a mesma ideia em duas
@@ -86,10 +100,12 @@ List<Preset> presetsFor(MarketIndex index) {
     // personagens, quase metade do mercado. Fica por último entre as armas.
     if (weapon != null) Preset('Arma de 70 ou mais', weapon),
     // 161 personagens. A essência é o item novo do mercado e ninguém tinha
-    // como procurá-la.
-    Preset('5 essências ou mais', essenciasQuery),
-    const Preset('Seis cartas S', SearchQuery(cardRarity: 'S')),
-    Preset('Portal de Nuema', nuemaQuery),
+    // como procurá-la. Ausente sozinho quando a coleta nunca leu o inventário.
+    if (hasEssencias) Preset('5 essências ou mais', essenciasQuery),
+    // As cartas e o combo que elas formam, ausentes juntos quando a coleta
+    // não sabe o que é uma carta.
+    if (hasCards) const Preset('Seis cartas S', SearchQuery(cardRarity: 'S')),
+    if (hasCards) Preset('Portal de Nuema', nuemaQuery),
     const Preset('Até 100 TCC', SearchQuery(maxPrice: 100)),
   ];
 }

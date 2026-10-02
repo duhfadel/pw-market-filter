@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/game_icon.dart';
+import '../../../../market/market_index.dart';
 import '../../../../market/slot_names.dart';
 import '../../domain/index_facets.dart';
 import '../../domain/search_query.dart';
@@ -46,8 +47,10 @@ class FilterPanel extends StatelessWidget {
           query.characterClass,
         ),
         const SizedBox(height: 10),
-        _pathDropdown(query.path),
-        const SizedBox(height: 10),
+        if (_hasPath(state.index)) ...[
+          _pathDropdown(query.path),
+          const SizedBox(height: 10),
+        ],
         _range(
           label: 'Preço (TCC)',
           min: query.minPrice,
@@ -60,9 +63,9 @@ class FilterPanel extends StatelessWidget {
         RealmSection(state: state, viewModel: viewModel),
         AnecdoteSection(state: state, viewModel: viewModel),
         _grupo('Equipamento'),
-        for (var i = 0; i < slotGroups.length; i++)
+        for (var i = 0; i < slotGroupsFor(state.index).length; i++)
           SlotSection(
-            group: slotGroups[i],
+            group: slotGroupsFor(state.index)[i],
             state: state,
             viewModel: viewModel,
             // Only the weapon opens by itself. It is the slot that decides a
@@ -164,6 +167,19 @@ class FilterPanel extends StatelessWidget {
       onChanged: viewModel.setClass,
     );
   }
+
+  /// Whether this collection can tell God from Evil at all.
+  ///
+  /// 1.2.6's collector does not store skills yet, so every character's `path`
+  /// is empty — the same signal every other pruned family here reads before
+  /// drawing itself. The path is pending rather than cancelled: the owner
+  /// decided on 01/10/2026 it stays once the collector gains it, and the
+  /// signal is already known (path skills in 1.2.6 come in even/odd pairs,
+  /// anchored against two level-101 Magos). Nothing here guesses it in the
+  /// meantime — the dropdown simply does not draw until a real `path` shows
+  /// up on at least one character.
+  bool _hasPath(MarketIndex index) =>
+      index.characters.any((c) => c.path.isNotEmpty);
 
   /// Beside the class, because that is what it is: a property of the
   /// character, chosen once and never mixed. Nobody in the market was found

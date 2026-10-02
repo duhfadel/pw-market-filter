@@ -499,7 +499,7 @@ class CharacterCard extends StatelessWidget {
         attributeId == null
             ? _attackLevelNote(item)
             : _Note(
-                '${slotLabel(item.slot)} · ${index.attributes[attributeId]}',
+                '${slotLabel(item.slot, index)} · ${index.attributes[attributeId]}',
                 '${item.attributes[attributeId]}',
               ),
       );
@@ -560,7 +560,7 @@ class CharacterCard extends StatelessWidget {
   _Note _attackLevelNote(EquippedItem item) {
     final id = index.attributes.indexOf(IndexFacets.attackLevelName);
     final value = id < 0 ? null : item.attributes[id];
-    final slot = slotLabel(item.slot);
+    final slot = slotLabel(item.slot, index);
     return value == null
         ? _Note(slot)
         : _Note('$slot · ${IndexFacets.attackLevelName}', '$value');

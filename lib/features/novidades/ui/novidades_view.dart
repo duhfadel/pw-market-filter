@@ -124,6 +124,9 @@ class _NovidadesViewState extends State<NovidadesView> {
       automaticallyImplyLeading: false,
       title: Cabecalho(
         wide: MediaQuery.sizeOf(context).width >= Cabecalho.larguraMinima,
+        // No `versao`, on purpose: this one screen reads the same twenty
+        // messages for both marketplaces, so neither version is more true of
+        // it than the other.
       ),
     ),
     body: switch (_estado) {

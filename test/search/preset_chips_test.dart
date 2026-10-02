@@ -23,27 +23,54 @@ const _weapon = EquippedItem(
   attributes: {0: 70},
 );
 
-MarketCharacter _character(int roleId, String name, int price) =>
-    MarketCharacter(
-      roleId: roleId,
-      name: name,
-      characterClass: 'Guerreiro',
-      occupation: 1,
-      level: 105,
-      price: price,
-      fame: 1,
-      cultivation: 'Leal',
-      equipped: const [_weapon],
-    );
+MarketCharacter _character(
+  int roleId,
+  String name,
+  int price, {
+  List<EquippedCard> cards = const [],
+}) => MarketCharacter(
+  roleId: roleId,
+  name: name,
+  characterClass: 'Guerreiro',
+  occupation: 1,
+  level: 105,
+  price: price,
+  fame: 1,
+  cultivation: 'Leal',
+  equipped: const [_weapon],
+  cards: cards,
+);
 
-/// Nobody here wears a card, so the Nuema chip matches nobody — which is the
-/// case worth testing, not the happy one.
+/// One S card, not the Nuema six, so the combo chip still matches nobody —
+/// the case worth testing — while telling `presetsFor` this collection knows
+/// what a card is at all, the same signal `CardSection` reads before drawing
+/// its own panel. Without it, the preset-pruning this suite otherwise relies
+/// on (`poda_126_test.dart`) would hide the two card chips here too.
+const _card = EquippedCard(
+  cardId: 1,
+  name: 'Carta de Teste',
+  rarity: 'S',
+  type: 'Destruidor',
+  level: 1,
+  maxLevel: 10,
+);
+
+/// Nobody here wears the whole Nuema combo, so that chip matches nobody —
+/// which is the case worth testing, not the happy one.
 final _index = MarketIndex(
   server: 'pw187',
   collectedAt: DateTime.utc(2026, 8, 9),
   attributes: const ['Nível de Ataque'],
   items: const {50206: MarketItem(name: '★★★Dilacerador Raivoso', grade: 6)},
-  characters: [_character(1, 'Leandrim', 300), _character(2, 'Solaria', 120)],
+  characters: [
+    _character(1, 'Leandrim', 300, cards: const [_card]),
+    _character(2, 'Solaria', 120),
+  ],
+  // A label `presetsFor` needs resolved before it offers the essence chip —
+  // the same check `CountedItemsSection` makes before drawing its own row.
+  countedItems: const {
+    'Essência Dracônica': [50264],
+  },
 );
 
 Future<SearchViewModel> _pumpFilter(WidgetTester tester) async {

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:flutter/services.dart';
 
+import '../../../core/rotas.dart' as rotas;
 import '../../../core/theme/pw_colors.dart';
 import '../../../market/slot_names.dart';
 import '../../ads/ad_slot.dart';
@@ -127,7 +128,10 @@ class _Results extends StatelessWidget {
         leading: _HomeButton(wide: menuWide),
         leadingWidth: menuWide ? null : 44,
         automaticallyImplyLeading: false,
-        title: Cabecalho(wide: menuWide),
+        title: Cabecalho(
+          wide: menuWide,
+          versao: rotas.versaoDoServidor(state.index.server),
+        ),
         // `Cabecalho` alone — the mark, the name and, on wide, three bordered
         // pills — measures upward of 650 px, which a back arrow and this
         // screen's own actions never had to share room with before. There is

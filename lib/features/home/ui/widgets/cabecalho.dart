@@ -28,7 +28,12 @@ import 'tool_navigation.dart';
 /// [PopupMenuButton]'s own [PopupRoute], which already wires a dismiss
 /// barrier and a `DismissIntent` binding for exactly this.
 class Cabecalho extends StatelessWidget {
-  const Cabecalho({required this.wide, this.memoriaDeNovidades, super.key});
+  const Cabecalho({
+    required this.wide,
+    this.versao,
+    this.memoriaDeNovidades,
+    super.key,
+  });
 
   /// Below this, the pills do not fit in a row beside the mark, and
   /// `Cabecalho` collapses them into one overflow button instead — every
@@ -67,6 +72,22 @@ class Cabecalho extends StatelessWidget {
   /// instead.
   final bool wide;
 
+  /// The game's own version beside the mark — `1.8.7`, `1.2.6` — or `null` to
+  /// draw none at all.
+  ///
+  /// It was hard-coded to `1.8.7` until two marketplaces made that simply
+  /// false on every 1.2.6 screen. Each screen now says which market it is —
+  /// `HomeView` and `SearchView` read it off `MarketIndex.server`, the
+  /// Supabase-backed tools (`/runas`, `/registros`) pass `1.8.7` because
+  /// neither exists for the other market yet.
+  ///
+  /// **`null` on purpose for `/` and `/novidades`.** The chooser is the one
+  /// screen that has not picked a marketplace yet — printing either version
+  /// there would be the site answering a question nobody asked it — and
+  /// `/novidades` serves the same announcements to both, so no single version
+  /// is more true than the other for it either.
+  final String? versao;
+
   /// Injected so the suite can prove the dot against a store nobody else
   /// touches; `null` — every real call site — reaches for the real browser
   /// storage `NovidadeLida` already defaults to. None of the five screens
@@ -78,7 +99,7 @@ class Cabecalho extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
     children: [
-      const _Marca(key: Key('cabecalho-marca')),
+      _Marca(key: const Key('cabecalho-marca'), versao: versao),
       const Spacer(),
       if (wide) ...[
         for (final secao in secoesDaHome) ...[
@@ -124,7 +145,11 @@ void _abrirNovidades(BuildContext context) {
 /// `/` instead, which is also correct for a visitor who arrived straight at
 /// a tool's deep link with no home beneath it to pop back to.
 class _Marca extends StatelessWidget {
-  const _Marca({super.key});
+  const _Marca({this.versao, super.key});
+
+  /// `Cabecalho.versao`, forwarded — `null` draws no version text at all,
+  /// which is the chooser's and `/novidades`' own case.
+  final String? versao;
 
   @override
   Widget build(BuildContext context) => Material(
@@ -162,15 +187,18 @@ class _Marca extends StatelessWidget {
                 color: PWColors.papel,
               ),
             ),
-            const SizedBox(width: 8),
             // The game's own version, not this site's — nobody asks a tool
             // site "which release are you", they ask "which game". On
             // Inter, never Marcellus: it is a number, and Marcellus draws
-            // Roman figures.
-            const Text(
-              '1.8.7',
-              style: TextStyle(color: PWColors.textMuted, fontSize: 11),
-            ),
+            // Roman figures. Absent on the chooser and on `/novidades`,
+            // neither of which has picked (or speaks for) one market.
+            if (versao != null) ...[
+              const SizedBox(width: 8),
+              Text(
+                versao!,
+                style: const TextStyle(color: PWColors.textMuted, fontSize: 11),
+              ),
+            ],
           ],
         ),
       ),

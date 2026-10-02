@@ -157,7 +157,10 @@ class HomeView extends StatelessWidget {
                         children: [
                           _ComMargem(
                             wide: wide,
-                            child: Cabecalho(wide: wide),
+                            child: Cabecalho(
+                              wide: wide,
+                              versao: pw126 ? rotas.pw126 : rotas.pw187,
+                            ),
                           ),
                           SizedBox(height: wide ? 22 : 16),
                           // **The Cartaz bleeds to the reading column's own

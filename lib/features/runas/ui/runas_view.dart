@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/rotas.dart' as rotas;
 import '../../../core/theme/pw_colors.dart';
 import '../../../core/widgets/game_icon.dart';
 import '../../ads/ad_slot.dart';
@@ -43,6 +44,8 @@ class _RunasViewState extends State<RunasView> {
         automaticallyImplyLeading: false,
         title: Cabecalho(
           wide: MediaQuery.sizeOf(context).width >= Cabecalho.larguraMinima,
+          // Only the 1.8.7 door leads here — there is no 1.2.6 `/runas`.
+          versao: rotas.pw187,
         ),
       ),
       body: ListView(

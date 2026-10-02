@@ -107,7 +107,12 @@ class _PortasViewState extends State<PortasView> {
         // mark is the only door here, the same arrangement every screen
         // without a hand-declared arrow shares.
         automaticallyImplyLeading: false,
-        title: Cabecalho(wide: largura >= Cabecalho.larguraMinima),
+        title: Cabecalho(
+          wide: largura >= Cabecalho.larguraMinima,
+          // No `versao`: this is the one screen that has not picked a
+          // marketplace yet, and printing either version here would be the
+          // site answering a question nobody asked it.
+        ),
       ),
       body: switch (_estado) {
         _Carregando() => const Center(

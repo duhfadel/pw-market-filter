@@ -106,7 +106,7 @@ class _ItemPicker extends StatelessWidget {
         .itemsIn(slot, characterClass: state.query.characterClass);
     if (items.isEmpty) return const SizedBox.shrink();
 
-    final label = slotLabel(slot);
+    final label = slotLabel(slot, state.index);
     final chosen = state.query.itemBySlot[slot];
     final valid = items.any((i) => i.itemId == chosen) ? chosen : null;
 

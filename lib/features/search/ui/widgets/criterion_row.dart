@@ -103,8 +103,10 @@ class CriterionRow extends StatelessWidget {
   /// An unnamed slot is identified by what is usually found in it — always
   /// right, because it comes from the collected data.
   String _slotText(int slot) {
-    final label = slotLabel(slot);
-    if (slotNames.containsKey(slot)) return label;
+    final index = facets.index;
+    final label = slotLabel(slot, index);
+    final named = isPw126(index) ? slotNames126 : slotNames;
+    if (named.containsKey(slot)) return label;
     final example = facets.exampleItemIn(slot);
     return example.isEmpty ? label : '$label · ex.: $example';
   }

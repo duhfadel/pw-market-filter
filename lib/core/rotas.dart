@@ -35,6 +35,19 @@ const pw187 = '1.8.7';
 /// The 1.2.6 marketplace's prefix.
 const pw126 = '1.2.6';
 
+/// [pw187] or [pw126] — the readable label `Cabecalho.versao` draws — from
+/// `MarketIndex.server`/`IndexRepository.server` (`'pw187'`, `'pw126'`), the
+/// file key rather than the number a visitor reads.
+///
+/// An index cannot carry anything else: `IndexRepository.fileName` already
+/// refuses an unknown `server` before any screen gets this far, so this is
+/// a lookup and never a guess.
+String versaoDoServidor(String server) => switch (server) {
+  'pw187' => pw187,
+  'pw126' => pw126,
+  _ => throw ArgumentError.value(server, 'server', 'unknown marketplace'),
+};
+
 /// Every screen a URL can resolve to. Named rather than built here —
 /// `main.dart` owns the widgets, this file only owns which URL means which
 /// name, so a test can assert the mapping without importing a single view.

@@ -22,6 +22,7 @@ enum FacetDimension {
   realm,
   path,
   runes,
+  founder,
 }
 
 /// How the results are ordered.
@@ -145,6 +146,7 @@ class SearchQuery {
     this.anecdotesOnCard = false,
     this.pets = const {},
     this.minRealm,
+    this.minFounderTier,
     this.path,
     this.runes,
     this.order = ResultOrder.cheapest,
@@ -252,6 +254,15 @@ class SearchQuery {
   /// tier and the step are how the game writes it, not how it compares.
   final int? minRealm;
 
+  /// The lowest founder pack that still passes — 1 for *qualquer fundador*,
+  /// 10 for `Fundador X` alone.
+  ///
+  /// A floor and not an exact rung, the same shape [minRealm] uses and for
+  /// the same reason: the question is "a founder, at least this high", never
+  /// "rung VI on the nose". It also means one control covers both ends —
+  /// *qualquer* is simply the floor at its lowest.
+  final int? minFounderTier;
+
   /// `God` or `Evil`. A character whose path could not be read fails either
   /// one, rather than being sorted into the half he might not belong to.
   final String? path;
@@ -292,6 +303,7 @@ class SearchQuery {
       pets.isEmpty &&
       minimumOwned.isEmpty &&
       minRealm == null &&
+      minFounderTier == null &&
       path == null &&
       runes == null;
 
@@ -323,6 +335,7 @@ class SearchQuery {
     FacetDimension.criteria => copyWith(criteria: const []),
     FacetDimension.anecdotes => copyWith(minAnecdotes: () => null),
     FacetDimension.realm => copyWith(minRealm: () => null),
+    FacetDimension.founder => copyWith(minFounderTier: () => null),
     FacetDimension.path => copyWith(path: () => null),
     FacetDimension.runes => copyWith(runes: () => null),
     FacetDimension.owned => copyWith(
@@ -351,6 +364,7 @@ class SearchQuery {
     bool? anecdotesOnCard,
     Set<String>? pets,
     int? Function()? minRealm,
+    int? Function()? minFounderTier,
     String? Function()? path,
     RuneCriterion? Function()? runes,
     ResultOrder? order,
@@ -375,6 +389,9 @@ class SearchQuery {
     anecdotesOnCard: anecdotesOnCard ?? this.anecdotesOnCard,
     pets: pets ?? this.pets,
     minRealm: minRealm == null ? this.minRealm : minRealm(),
+    minFounderTier: minFounderTier == null
+        ? this.minFounderTier
+        : minFounderTier(),
     path: path == null ? this.path : path(),
     runes: runes == null ? this.runes : runes(),
     order: order ?? this.order,

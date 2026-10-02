@@ -199,6 +199,7 @@ class MarketCharacter {
     this.realm = '',
     this.path = '',
     this.runes = const [],
+    this.founderTier,
     this.history,
   });
 
@@ -248,6 +249,18 @@ class MarketCharacter {
   /// exists; an empty list is a character with none, which is real.
   final List<int> runes;
 
+  /// Which founder pack this character's title came from — 1 to 10 for
+  /// `Fundador I` through `Fundador X` — or `null` for everybody else.
+  ///
+  /// Null rather than zero, and the distinction is the whole honesty of the
+  /// control: zero would read as a rung, and "has no founder title" is not
+  /// rung nought. It is also null on every index collected before 2026-10-02,
+  /// which is the same answer a filter wants from both.
+  ///
+  /// A rung here and the raw name in the state: the ladder is a fact about
+  /// the game, so reading it wrong is a `--rebuild`, never another crawl.
+  final int? founderTier;
+
   /// What the market remembers about this character between collections, or
   /// `null` where no collection has recorded it yet.
   final PriceHistory? history;
@@ -272,6 +285,9 @@ class MarketCharacter {
     if (realm.isNotEmpty) 'realm': realm,
     if (path.isNotEmpty) 'path': path,
     if (runes.isNotEmpty) 'runes': runes,
+    // Omitted rather than written null: almost nobody is a founder, and
+    // 1.600 nulls are weight the browser downloads to learn nothing.
+    if (founderTier != null) 'founderTier': founderTier,
     if (history != null) 'history': history!.toJson(),
   };
 
@@ -304,6 +320,7 @@ class MarketCharacter {
         realm: json['realm'] as String? ?? '',
         path: json['path'] as String? ?? '',
         runes: (json['runes'] as List<dynamic>? ?? const []).cast<int>(),
+        founderTier: json['founderTier'] as int?,
         history: json['history'] == null
             ? null
             : PriceHistory.fromJson(json['history'] as Map<String, dynamic>),

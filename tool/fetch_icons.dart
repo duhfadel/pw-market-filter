@@ -35,7 +35,10 @@ const _pause = Duration(milliseconds: 250);
 /// One index file per marketplace — the same keys and defaulting
 /// `tool/collect.dart`'s own `_serverArg` uses, so `--server pw126` means the
 /// same thing in both tools.
-const _indexFiles = {'pw187': 'web/market_index.json', 'pw126': 'web/market_index_126.json'};
+const _indexFiles = {
+  'pw187': 'web/market_index.json',
+  'pw126': 'web/market_index_126.json',
+};
 
 /// Reads `--server <chave>` out of the argument list. Defaults to `pw187` so
 /// an unqualified run keeps today's behaviour.

@@ -53,4 +53,20 @@ void main() {
     expect(weapon.stones, [51112, 51112]);
     expect(weapon.attributes['Nível de Ataque'], [70]);
   });
+
+  test(
+    'the founder title arrives through the same seam, not just the parser',
+    () {
+      // The lesson this file exists for, applied again: `parseTitles` passing
+      // its own test says nothing about `collectedPageFrom` calling it. The
+      // 1.2.6 parser was built, tested and never wired, and nothing went red.
+      final html = File('test/fixtures/detail_2192.html').readAsStringSync();
+
+      final page = collectedPageFrom(Servidor.de('pw187'), html);
+
+      expect(page.titles, isNotNull);
+      expect(page.titles!.founder, 'Fundador X');
+      expect(page.titles!.decoded, 646);
+    },
+  );
 }

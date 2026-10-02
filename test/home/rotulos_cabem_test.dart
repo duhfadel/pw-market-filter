@@ -69,29 +69,45 @@ void main() {
     return pintor.width;
   }
 
-  test('every label on the real market fits the card on one line', () {
-    final arquivo = File('web/market_index.json');
-    if (!arquivo.existsSync()) return; // a fresh clone has not collected yet
-
-    final index = MarketIndex.fromJson(
-      jsonDecode(arquivo.readAsStringSync()) as Map<String, dynamic>,
-    );
-
-    for (final destaque in destaquesDe(index)) {
+  void verificarRotulos(String arquivo, List<Destaque> destaques) {
+    for (final destaque in destaques) {
       expect(
         larguraDe(destaque.rotulo),
         lessThanOrEqualTo(larguraDoTexto),
         reason:
-            'o rótulo "${destaque.rotulo}" seria cortado, e um rótulo cortado '
-            'não diz do que é o filtro',
+            '[$arquivo] o rótulo "${destaque.rotulo}" seria cortado, e um '
+            'rótulo cortado não diz do que é o filtro',
       );
       expect(
         larguraDe(destaque.nota),
         lessThanOrEqualTo(larguraDoTexto),
-        reason: 'a nota "${destaque.nota}" seria cortada',
+        reason: '[$arquivo] a nota "${destaque.nota}" seria cortada',
       );
     }
-  });
+  }
+
+  // Both markets, not just 1.8.7 — this is the exact gap that let
+  // `1.293 personagens no mercado` ship truncated on 02/10/2026: this test
+  // existed, named precisely what it was guarding, and only ever opened
+  // `web/market_index.json`. `destaques126De` and its own index were never
+  // read, so the one card the 1.2.6 home actually draws was never measured.
+  for (final par in [
+    ('web/market_index.json', destaquesDe),
+    ('web/market_index_126.json', destaques126De),
+  ]) {
+    final (caminho, construir) = par;
+
+    test('every label on $caminho fits the card on one line', () {
+      final arquivo = File(caminho);
+      if (!arquivo.existsSync()) return; // a fresh clone has not collected yet
+
+      final index = MarketIndex.fromJson(
+        jsonDecode(arquivo.readAsStringSync()) as Map<String, dynamic>,
+      );
+
+      verificarRotulos(caminho, construir(index));
+    });
+  }
 
   test('the softened labels fit too, and they are the ones that broke', () {
     // They only appear when a class collision pushes a category past its true

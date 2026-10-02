@@ -331,8 +331,7 @@ List<Destaque> destaques126De(MarketIndex index) {
     rotuloCheio: (_) => 'O mais barato',
     rotuloSuave: (_) => 'Um dos mais baratos',
     busca: const SearchQuery(),
-    nota: (_, _) =>
-        '${groupThousands(index.characters.length)} personagens no mercado',
+    nota: (_, _) => '${groupThousands(index.characters.length)} no mercado',
   );
 
   const buscaDoMaisCaro = SearchQuery(order: ResultOrder.dearest);
@@ -345,8 +344,7 @@ List<Destaque> destaques126De(MarketIndex index) {
     rotuloCheio: (_) => 'O mais caro',
     rotuloSuave: (_) => 'Um dos mais caros',
     busca: buscaDoMaisCaro,
-    nota: (_, _) =>
-        '${groupThousands(index.characters.length)} personagens no mercado',
+    nota: (_, _) => '${groupThousands(index.characters.length)} no mercado',
   );
 
   return destaques;

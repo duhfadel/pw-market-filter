@@ -1056,6 +1056,50 @@ Each of these already cost something — measured on the live site, not guessed.
   from "actually broken" is to compare `md5` of the served bundle against
   `build/web/main.dart.js`, not to look at the page.
 
+- **Um teste que não percorre o caminho do utilizador não é uma rede, é um
+  enfeite — e em 02/10/2026 três defeitos bloqueantes chegaram a um build
+  verificado no navegador com 699 testes verdes.** Os três têm a mesma forma,
+  e é a forma que vale guardar: o teste cobria um caminho que ninguém toma.
+
+  **A tela de escolha nunca carregava.** `getIt<VersoesRepository>()` não
+  estava registado, a exceção era engolida por um `unawaited`, e `/` girava
+  para sempre. O teste passava porque **injetava sempre** a função de
+  carregar: o único percurso que um visitante faz era o único que nenhum teste
+  fazia. Um `fake` injetado prova a lógica e nada diz sobre a montagem — e é a
+  montagem que quebra.
+
+  **O filtro do 1.2.6 reescrevia o endereço para o 1.8.7.** O trabalho de
+  tornar a app escritora da URL canónica cravou uma versão. Há **uma escritora
+  canónica por versão**, não uma escritora canónica. Ninguém viu porque nenhum
+  teste escrevia URL do lado do 1.2.6.
+
+  **E as notas cortavam nas duas cartas do 1.2.6** — 162 px contra 153 — com
+  um teste escrito nesse mesmo dia **para medir exatamente isso**, que só
+  carregava o índice do 1.8.7. O próximo rótulo longo vem sempre da versão que
+  o teste não cobre.
+
+  A mesma forma apareceu mais duas vezes no mesmo dia: `preset_chips_test`
+  corria sobre uma fixture sem carta e sem item contado, portanto testava
+  "não há coleta" em vez de "há uma coleta real"; e a primeira versão do teste
+  de largura mediu a **fonte falsa** do harness, onde todo glifo é um quadrado,
+  dando 226 px a um rótulo de 115.
+
+  **O que fazer com isto, em três linhas:**
+
+  - **Monte como `main.dart` monta.** Um teste que injeta o que a produção
+    resolve está a testar outra app.
+  - **Rode a suíte com os índices reais em `web/`**, não só com fixtures
+    sintéticas. Três vezes num dia uma fixture escondeu o caso que falha — a
+    última foi um card que passou local e falhou no CI porque o índice da
+    máquina não tinha colisão de classe.
+  - **Com duas versões, todo teste que leia um índice tem de correr nas
+    duas.** Os vocabulários não são disjuntos: `HP` é atributo real do 1.8.7 e
+    é também o nosso rótulo para `hp_enhance` no 1.2.6, e um atributo é
+    referenciado pela **posição** na lista.
+
+  E a verificação que apanhou os três foi abrir o site construído num
+  navegador. Nenhum deles apareceu na suíte.
+
 - **Never write a test that hits the live site.** It fails for reasons that have
   nothing to do with the code, and it earns the block above. The fixtures in
   `test/fixtures/` are the site, as far as the suite is concerned.

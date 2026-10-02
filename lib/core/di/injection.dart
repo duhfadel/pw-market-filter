@@ -10,6 +10,7 @@ import '../../features/registros/data/registro_repository.dart';
 import '../../features/home/ui/visit_counter_view_model.dart';
 import '../../features/search/ui/search_view_model.dart';
 import '../../market/index_repository.dart';
+import '../../market/versoes_repository.dart';
 
 final getIt = GetIt.instance;
 
@@ -39,6 +40,7 @@ void configureDependencies() {
       () => IndexRepository(null, IndexRepository.pw126),
       instanceName: IndexRepository.pw126,
     )
+    ..registerLazySingleton<VersoesRepository>(VersoesRepository.new)
     ..registerLazySingleton<VisitRepository>(VisitRepository.new)
     ..registerLazySingleton<RegistroRepository>(RegistroRepository.new)
     ..registerLazySingleton<AoVivoRepository>(AoVivoRepository.new)

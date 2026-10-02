@@ -5,7 +5,7 @@ import 'package:flutter/services.dart' show FontLoader, rootBundle;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:pw_market_filter/core/result/result.dart';
+import 'package:pw_market_filter/core/di/injection.dart';
 import 'package:pw_market_filter/core/theme/pw_theme.dart';
 import 'package:pw_market_filter/features/portas/ui/portas_view.dart';
 import 'package:pw_market_filter/market/versoes.dart';
@@ -46,10 +46,36 @@ VersaoResumo _resumo({
   coletadoEm: coletadoEm ?? DateTime.utc(2026, 10, 2, 7, 30),
 );
 
-Future<void> _montar(
-  WidgetTester tester, {
-  required Future<Result<Map<String, VersaoResumo>>> Function() carregar,
-}) async {
+/// Every request the fake `versoes.json` endpoint received, so a test can
+/// assert what was asked for without caring what answered it.
+final _urisPedidas = <Uri>[];
+
+/// Registers `VersoesRepository` in the real `GetIt` instance,
+/// `configureDependencies()` never does for the suite, backed by [client] —
+/// a network double, never the real one. This is what makes the mount below
+/// exercise `getIt<VersoesRepository>().carregar` in
+/// `_PortasViewState._carregar`, the only branch production ever runs: before
+/// this test registered anything here, every case constructed `PortasView`
+/// with its own `carregar:` override, so the `getIt` lookup — unregistered in
+/// `injection.dart` — was never once reached, and the `StateError` it threw
+/// was silently absorbed by the `unawaited(...)` call in `initState`, leaving
+/// the real `/` spinning forever with a green suite on top of it.
+void _registrarRepositorio(http.Client client) {
+  getIt.registerLazySingleton<VersoesRepository>(
+    () => VersoesRepository(client),
+  );
+}
+
+MockClient _cliente(http.Response Function(http.Request) responder) =>
+    MockClient((request) async {
+      _urisPedidas.add(request.url);
+      return responder(request);
+    });
+
+http.Response _corpo(Object json, [int status = 200]) =>
+    http.Response(jsonEncode(json), status);
+
+Future<void> _montar(WidgetTester tester) async {
   await tester.pumpWidget(
     MaterialApp(
       theme: PWTheme.build(),
@@ -58,7 +84,10 @@ Future<void> _montar(
         builder: (_) =>
             comNovidades(Scaffold(body: Text('rota: ${settings.name}'))),
       ),
-      home: comNovidades(PortasView(carregar: carregar)),
+      // No `carregar:` override anywhere in this file — `PortasView` has none
+      // any more. Every case below reaches `web/versoes.json` only through
+      // `getIt<VersoesRepository>()`, registered per-test above.
+      home: comNovidades(const PortasView()),
     ),
   );
   await tester.pumpAndSettle();
@@ -84,27 +113,38 @@ Finder _contendoNaPorta(String chave, String trecho) =>
 void main() {
   setUpAll(_carregarFontesReais);
 
+  setUp(() {
+    _urisPedidas.clear();
+  });
+
+  tearDown(() async {
+    await getIt.reset();
+  });
+
   group('as duas portas', () {
     testWidgets('both versions collected: both doors show their own facts', (
       tester,
     ) async {
-      await _montar(
-        tester,
-        carregar: () async => Success({
-          'pw187': _resumo(
-            chave: 'pw187',
-            nome: '1.8.7',
-            personagens: 1715,
-            coletadoEm: DateTime.utc(2026, 10, 2, 7, 30),
-          ),
-          'pw126': _resumo(
-            chave: 'pw126',
-            nome: '1.2.6',
-            personagens: 1293,
-            coletadoEm: DateTime.utc(2026, 10, 1, 18, 19),
-          ),
-        }),
+      _registrarRepositorio(
+        _cliente(
+          (_) => _corpo({
+            'pw187': _resumo(
+              chave: 'pw187',
+              nome: '1.8.7',
+              personagens: 1715,
+              coletadoEm: DateTime.utc(2026, 10, 2, 7, 30),
+            ).toJson(),
+            'pw126': _resumo(
+              chave: 'pw126',
+              nome: '1.2.6',
+              personagens: 1293,
+              coletadoEm: DateTime.utc(2026, 10, 1, 18, 19),
+            ).toJson(),
+          }),
+        ),
       );
+
+      await _montar(tester);
 
       expect(_textoNaPorta('pw187', '1.8.7'), findsOneWidget);
       expect(_textoNaPorta('pw126', '1.2.6'), findsOneWidget);
@@ -120,10 +160,11 @@ void main() {
     testWidgets(
       'a version with no index yet is dimmed, labelled em breve, and opens nothing',
       (tester) async {
-        await _montar(
-          tester,
-          carregar: () async => Success({'pw187': _resumo()}),
+        _registrarRepositorio(
+          _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
         );
+
+        await _montar(tester);
 
         expect(_textoNaPorta('pw187', '1.8.7'), findsOneWidget);
         expect(_textoNaPorta('pw126', '1.2.6'), findsOneWidget);
@@ -152,10 +193,11 @@ void main() {
     testWidgets("tapping a ready door opens that version's home", (
       tester,
     ) async {
-      await _montar(
-        tester,
-        carregar: () async => Success({'pw187': _resumo()}),
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
       );
+
+      await _montar(tester);
 
       await tester.tap(_porta('pw187'));
       await tester.pumpAndSettle();
@@ -166,10 +208,9 @@ void main() {
     testWidgets(
       'no collection has ever run: both doors still draw, both dimmed — not an error screen',
       (tester) async {
-        await _montar(
-          tester,
-          carregar: () async => const Failure(IndexMissingFailure()),
-        );
+        _registrarRepositorio(_cliente((_) => http.Response('', 404)));
+
+        await _montar(tester);
 
         expect(_textoNaPorta('pw187', '1.8.7'), findsOneWidget);
         expect(_textoNaPorta('pw126', '1.2.6'), findsOneWidget);
@@ -182,12 +223,11 @@ void main() {
     testWidgets(
       'the file existing and failing to parse is a real error, not a blank screen',
       (tester) async {
-        await _montar(
-          tester,
-          carregar: () async => const Failure(
-            IndexUnreadableFailure('(arquivo)', 'json inválido'),
-          ),
+        _registrarRepositorio(
+          _cliente((_) => http.Response('não é json', 200)),
         );
+
+        await _montar(tester);
 
         expect(_porta('pw187'), findsNothing);
         expect(_porta('pw126'), findsNothing);
@@ -195,19 +235,33 @@ void main() {
       },
     );
 
+    testWidgets(
+      'the registration missing from GetIt is a real error too, never an '
+      'eternal spinner',
+      (tester) async {
+        // No `_registrarRepositorio` call at all — the exact shape of B1:
+        // `getIt<VersoesRepository>()` throws `StateError` because nothing
+        // registered it. Before the `try`/`catch` in `_carregar`, that throw
+        // escaped the `unawaited` call in `initState` unseen, `setState` was
+        // never reached, and the screen stayed in `_Carregando` forever.
+        await _montar(tester);
+
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+        expect(find.textContaining('Não deu para carregar'), findsOneWidget);
+      },
+    );
+
     testWidgets('the chooser never fetches either market index', (
       tester,
     ) async {
-      final urisPedidas = <Uri>[];
-      final client = MockClient((request) async {
-        urisPedidas.add(request.url);
-        return http.Response(jsonEncode({'pw187': _resumo().toJson()}), 200);
-      });
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
+      );
 
-      await _montar(tester, carregar: VersoesRepository(client).carregar);
+      await _montar(tester);
 
-      expect(urisPedidas, isNotEmpty);
-      for (final uri in urisPedidas) {
+      expect(_urisPedidas, isNotEmpty);
+      for (final uri in _urisPedidas) {
         expect(uri.path, endsWith('versoes.json'));
         expect(uri.path, isNot(contains('market_index')));
       }
@@ -216,17 +270,20 @@ void main() {
     testWidgets('no number on the doors is drawn in the display face', (
       tester,
     ) async {
-      await _montar(
-        tester,
-        carregar: () async => Success({
-          'pw187': _resumo(
-            chave: 'pw187',
-            nome: '1.8.7',
-            personagens: 1715,
-            coletadoEm: DateTime.utc(2026, 10, 2),
-          ),
-        }),
+      _registrarRepositorio(
+        _cliente(
+          (_) => _corpo({
+            'pw187': _resumo(
+              chave: 'pw187',
+              nome: '1.8.7',
+              personagens: 1715,
+              coletadoEm: DateTime.utc(2026, 10, 2),
+            ).toJson(),
+          }),
+        ),
       );
+
+      await _montar(tester);
 
       final nomeDaPorta = tester.widget<Text>(_textoNaPorta('pw187', '1.8.7'));
       expect(

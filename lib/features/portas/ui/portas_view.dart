@@ -31,13 +31,7 @@ import '../domain/versao.dart';
 /// index is ~4 MB; downloading either one just to print a character count
 /// would make the cheapest screen on the site the heaviest one to load.
 class PortasView extends StatefulWidget {
-  const PortasView({super.key, this.carregar});
-
-  /// Reads `versoes.json`. Injected so the suite can hand in a fixed
-  /// [Result] without a network — `null` reaches for the real
-  /// [VersoesRepository] through GetIt, the way `NovidadesView` already does
-  /// for its own repository.
-  final Future<Result<Map<String, VersaoResumo>>> Function()? carregar;
+  const PortasView({super.key});
 
   @override
   State<PortasView> createState() => _PortasViewState();
@@ -78,21 +72,35 @@ class _PortasViewState extends State<PortasView> {
   }
 
   Future<void> _carregar() async {
-    final carregar = widget.carregar ?? getIt<VersoesRepository>().carregar;
-    final resultado = await carregar();
-    if (!mounted) return;
+    try {
+      final resultado = await getIt<VersoesRepository>().carregar();
+      if (!mounted) return;
 
-    setState(() {
-      _estado = resultado.fold((versoes) => _Pronta(portasDe(versoes)), (
-        failure,
-      ) {
-        // No collection has ever run for any version — not a failure, the
-        // screen one would see before the collector's first pass. An empty
-        // map draws every door dimmed, which is exactly what is true.
-        if (failure is IndexMissingFailure) return _Pronta(portasDe(const {}));
-        return const _Inacessivel();
+      setState(() {
+        _estado = resultado.fold((versoes) => _Pronta(portasDe(versoes)), (
+          failure,
+        ) {
+          // No collection has ever run for any version — not a failure, the
+          // screen one would see before the collector's first pass. An empty
+          // map draws every door dimmed, which is exactly what is true.
+          if (failure is IndexMissingFailure) {
+            return _Pronta(portasDe(const {}));
+          }
+          return const _Inacessivel();
+        });
       });
-    });
+    } catch (_) {
+      // `VersoesRepository.carregar` itself never throws — it folds every
+      // failure into a `Result`. The one thing that can still throw here is
+      // `getIt<VersoesRepository>()` failing to resolve — a registration that
+      // never ran, or ran against the wrong GetIt instance — and this used to
+      // reach `unawaited` in `initState` unguarded, which swallowed it and
+      // left the screen spinning forever with no error anywhere. A loading
+      // state that cannot fail is a lie: any throw here draws the same error
+      // screen an unreadable `versoes.json` would.
+      if (!mounted) return;
+      setState(() => _estado = const _Inacessivel());
+    }
   }
 
   @override

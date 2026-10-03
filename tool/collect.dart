@@ -220,6 +220,11 @@ Future<void> main(List<String> arguments) async {
     final entradas = _writeIndex(listing, state, publicado: publicado);
     _reportSummary(listing, state, blockedPauses);
     await avisarEntradas(entradas, _servidor.chave);
+    await avisarLevantamento(
+      _catchup,
+      Platform.environment['ALERTAS_CATCHUP'] ?? '',
+      _servidor.chave,
+    );
   } finally {
     client.close(force: true);
   }
@@ -498,6 +503,20 @@ Future<String?> _get(HttpClient client, String url) async {
   }
 }
 
+/// The carriers a manual `ALERTAS_CATCHUP` run turned up, for `main` to send.
+List<EntradaNova> _catchup = const [];
+
+List<AnuncioNoMercado> _anunciosDe(List<ListingCard> listing) => [
+  for (final card in listing)
+    AnuncioNoMercado(
+      roleId: card.roleId,
+      nome: card.name,
+      classe: card.characterClass,
+      nivel: card.level,
+      preco: card.price,
+    ),
+];
+
 /// An inventory as name to total, summing the stacks that share a name.
 ///
 /// Summed rather than taken one stack at a time because the same name can
@@ -561,6 +580,13 @@ List<EntradaNova> _writeIndex(
       if (state.itemsFor(card.roleId) case final colhido?)
         card.roleId: _porNome(colhido.inventory),
   };
+  final inventariosPorId = {
+    for (final card in listing)
+      if (state.itemsFor(card.roleId) case final colhido?)
+        card.roleId: {
+          for (final stack in colhido.inventory) stack.itemId: stack.count,
+        },
+  };
 
   // Which watched names this collection never met. A quiet channel and a
   // misspelt item look identical from the outside, and this is the line that
@@ -573,6 +599,26 @@ List<EntradaNova> _writeIndex(
     );
   }
 
+  // The one-off catch-up, asked for by name through `workflow_dispatch`.
+  // Printed to the run log as well as sent, because the log is where a list
+  // longer than a Discord message can be read whole.
+  final aLevantar = Platform.environment['ALERTAS_CATCHUP'] ?? '';
+  if (aLevantar.isNotEmpty) {
+    final portadores = quemCarrega(
+      item: aLevantar,
+      anuncios: _anunciosDe(listing),
+      inventarios: inventarios,
+    );
+    stdout.writeln('  levantamento de "$aLevantar": ${portadores.length}');
+    for (final p in portadores) {
+      stdout.writeln(
+        '    ${p.nome} · ${p.preco} TCC · nv ${p.nivel} ${p.classe} · '
+        '${p.achados[aLevantar]}',
+      );
+    }
+    _catchup = portadores;
+  }
+
   // How common each watched item actually is, and who carries most. This is
   // what turns a floor from taste into a measurement: an item nearly everybody
   // carries needs one, and this line is where that becomes visible instead of
@@ -583,26 +629,25 @@ List<EntradaNova> _writeIndex(
         if ((inventario[entry.key] ?? 0) > 0) inventario[entry.key]!,
     ]..sort();
     if (quantidades.isEmpty) continue;
+    // Percentis e não só mediana e topo: o piso de um item comum escolhe-se
+    // pela cauda, e mediana com topo não diz onde a cauda começa. O Cupom
+    // Perfeito de Prata saiu com 1525 portadores, mediana 61 e topo 298 — e
+    // nenhum desses três números diz quantos passam de 200.
+    int percentil(double p) =>
+        quantidades[((quantidades.length - 1) * p).round()];
     final acima = quantidades.where((q) => q >= entry.value).length;
     stdout.writeln(
-      '  vigia "${entry.key}": ${quantidades.length} carregam '
-      '(mediana ${quantidades[quantidades.length ~/ 2]}, '
-      'topo ${quantidades.last}) · $acima acima do piso de ${entry.value}',
+      '  vigia "${entry.key}": ${quantidades.length} carregam · '
+      'p50 ${percentil(0.5)} · p90 ${percentil(0.9)} · '
+      'p99 ${percentil(0.99)} · topo ${quantidades.last} · '
+      '$acima acima do piso de ${entry.value}',
     );
   }
 
   final entradas = entradasParaAvisar(
-    anuncios: [
-      for (final card in listing)
-        AnuncioNoMercado(
-          roleId: card.roleId,
-          nome: card.name,
-          classe: card.characterClass,
-          nivel: card.level,
-          preco: card.price,
-        ),
-    ],
+    anuncios: _anunciosDe(listing),
     inventarios: inventarios,
+    inventariosPorId: inventariosPorId,
     memoria: memoria,
     agora: agora,
   );

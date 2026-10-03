@@ -1,3 +1,4 @@
+import 'counted_items.dart';
 import 'price_history.dart';
 
 /// Which items are worth waking somebody up for, and how many of each.
@@ -37,8 +38,6 @@ const vigiaDeItens = <String, int>{
   'Cartão Gente Boa': 1,
   'Cartão de Gente Boa': 1,
   'Cartão Gente Sortuda': 1,
-  'Ovo de Harpia': 1,
-  'Ovo Mascote Gigante Celestial': 1,
   // **Common, so the floor is the whole entry.** Three of the four real pages
   // saved here carry one, at 10, 28 and 33 — at a floor of one this would
   // fire on nearly every arrival, which is the relics' defect. A hundred is
@@ -47,6 +46,52 @@ const vigiaDeItens = <String, int>{
   // guess with a measurement rather than leaving it to taste.
   'Cupom Perfeito de Prata': 100,
 };
+
+/// Pets, which are watched by **id** and never by name.
+///
+/// **A pet's name belongs to its owner.** `38587` prints as *Ovo de Harpia*
+/// on three characters and as *GabirÚ* on a fourth, and naming the pet is
+/// exactly what somebody does when they get one — so a name watch would miss
+/// precisely the people worth alerting about. The first run proved it:
+/// `Ovo de Harpia` matched one carrier where the index counts several by id,
+/// and `Ovo Mascote Gigante Celestial` matched nobody at all.
+///
+/// Presence and not quantity, the same call `countedItemIds` already makes
+/// for the filter: a pet is a yes or a no, and there is no number to compare
+/// between characters.
+const vigiaDePets = countedItemIds;
+
+/// Everybody carrying [item] right now, dearest stash first.
+///
+/// **The feed answers "who just arrived"; this answers "who has one".** They
+/// are different questions and the first cannot be made to answer the second:
+/// announcing the people already here would repeat them every half hour for
+/// ever, which is why the trigger is a first sighting. This is the one-off
+/// catch-up for an item that has just been put under watch, and it is
+/// deliberately a manual run rather than something the schedule does.
+List<EntradaNova> quemCarrega({
+  required String item,
+  required Iterable<AnuncioNoMercado> anuncios,
+  required Map<int, Map<String, int>> inventarios,
+}) {
+  final portadores = <EntradaNova>[];
+  for (final anuncio in anuncios) {
+    final quantos = inventarios[anuncio.roleId]?[item] ?? 0;
+    if (quantos <= 0) continue;
+    portadores.add(
+      EntradaNova(
+        roleId: anuncio.roleId,
+        nome: anuncio.nome,
+        classe: anuncio.classe,
+        nivel: anuncio.nivel,
+        preco: anuncio.preco,
+        achados: {item: quantos},
+      ),
+    );
+  }
+  portadores.sort((a, b) => b.achados[item]!.compareTo(a.achados[item]!));
+  return portadores;
+}
 
 /// The watched names this collection never met in anybody's inventory.
 ///
@@ -115,11 +160,15 @@ const limiteDeEnxurrada = 50;
 /// nothing to store and nothing to drift.
 ///
 /// [inventarios] is role id to the item names and counts that character owns.
+/// [inventarios] is role id to the item **names** and counts that character
+/// owns; [inventariosPorId] is the same inventory keyed by item id, which is
+/// what [vigiaDePets] needs.
 List<EntradaNova> entradasParaAvisar({
   required Iterable<AnuncioNoMercado> anuncios,
   required Map<int, Map<String, int>> inventarios,
   required Map<int, PriceHistory> memoria,
   required DateTime agora,
+  Map<int, Map<int, int>> inventariosPorId = const {},
 }) {
   final entradas = <EntradaNova>[];
 
@@ -132,6 +181,12 @@ List<EntradaNova> entradasParaAvisar({
       final quantos = inventario[entry.key] ?? 0;
       if (quantos >= entry.value) achados[entry.key] = quantos;
     }
+    final porId = inventariosPorId[anuncio.roleId] ?? const {};
+    for (final entry in vigiaDePets.entries) {
+      final quantos = porId[entry.value] ?? 0;
+      if (quantos > 0) achados[entry.key] = quantos;
+    }
+
     if (achados.isEmpty) continue;
 
     entradas.add(

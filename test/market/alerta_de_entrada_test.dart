@@ -58,11 +58,18 @@ void main() {
       final saida = correr(
         vistos: {1: agora},
         inventarios: {
-          1: const {'Cartão Gente Boa': 1, 'Ovo de Harpia': 3, 'Pedra': 90},
+          1: const {
+            'Cartão Gente Boa': 1,
+            'Cartão Recompensa Homem Nobre': 2,
+            'Pedra': 90,
+          },
         },
       );
 
-      expect(saida.single.achados, {'Cartão Gente Boa': 1, 'Ovo de Harpia': 3});
+      expect(saida.single.achados, {
+        'Cartão Recompensa Homem Nobre': 2,
+        'Cartão Gente Boa': 1,
+      });
     });
   });
 
@@ -159,6 +166,28 @@ void main() {
       expect(nomesNuncaVistos(const []), vigiaDeItens.keys.toSet());
     });
 
+    test('a pet is watched by id, never by the name its owner gave it', () {
+      // `38587` prints as `Ovo de Harpia` on three characters and as `GabirÚ`
+      // on a fourth — naming the pet is what somebody does when they get one,
+      // so a name watch misses exactly the people worth alerting about. The
+      // first live run measured it: the name matched one carrier, the id
+      // several.
+      final saida = entradasParaAvisar(
+        anuncios: [anuncio(1)],
+        inventarios: const {
+          1: {'GabirÚ': 1},
+        },
+        inventariosPorId: const {
+          1: {38587: 1},
+        },
+        memoria: {1: visto(agora)},
+        agora: agora,
+      );
+
+      expect(saida.single.achados.keys, contains('Harpia'));
+      expect(vigiaDeItens.keys, isNot(contains('Ovo de Harpia')));
+    });
+
     test('both spellings of the card are carried, on purpose', () {
       // The game uses both shapes — `Cartão de Empolgação` has the
       // preposition, `Cartão Recompensa Cara Legal` does not — and no
@@ -166,6 +195,54 @@ void main() {
       // server prints is unknown. A name that matches nobody costs nothing.
       expect(vigiaDeItens, contains('Cartão Gente Boa'));
       expect(vigiaDeItens, contains('Cartão de Gente Boa'));
+    });
+  });
+
+  group('the one-off catch-up', () {
+    test('lists who carries it now, biggest stash first', () {
+      // The feed answers "who just arrived" and cannot be made to answer
+      // "who has one": announcing the people already here would repeat them
+      // every half hour for ever.
+      final lista = quemCarrega(
+        item: 'Cartão Recompensa Homem Nobre',
+        anuncios: [anuncio(1, preco: 900), anuncio(2, preco: 100), anuncio(3)],
+        inventarios: const {
+          1: {'Cartão Recompensa Homem Nobre': 1},
+          2: {'Cartão Recompensa Homem Nobre': 4},
+          3: {'Outra Coisa': 50},
+        },
+      );
+
+      expect(lista.map((e) => e.roleId), [2, 1]);
+      expect(lista.first.achados, {'Cartão Recompensa Homem Nobre': 4});
+      expect(lista.first.preco, 100);
+    });
+
+    test('ignores when somebody arrived — that is the other question', () {
+      // No `memoria` and no `agora`: a carrier counts whether they came
+      // today or a month ago.
+      final lista = quemCarrega(
+        item: 'Baú Essência Dracônica',
+        anuncios: [anuncio(1)],
+        inventarios: const {
+          1: {'Baú Essência Dracônica': 2},
+        },
+      );
+
+      expect(lista, hasLength(1));
+    });
+
+    test('an item nobody carries lists nobody, rather than everybody', () {
+      expect(
+        quemCarrega(
+          item: 'Cartão Gente Sortuda',
+          anuncios: [anuncio(1)],
+          inventarios: const {
+            1: {'Cartão Recompensa Homem Nobre': 1},
+          },
+        ),
+        isEmpty,
+      );
     });
   });
 

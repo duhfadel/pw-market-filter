@@ -106,24 +106,21 @@ void main() {
     });
   });
 
-  test('a common item is watched by its quantity, never by its presence', () {
-    // Three of the four real pages in `test/fixtures/` carry a
-    // `Cupom Perfeito de Prata`, at 10, 28 and 33. At a floor of one this
-    // would fire on nearly every arrival — the relics' defect, which is the
-    // reason the floor exists at all.
-    expect(vigiaDeItens['Cupom Perfeito de Prata'], greaterThan(33));
+  test('only what the owner asked for is watched', () {
+    // Three entries came off on 2026-10-03 because they were mine and not
+    // his: the chest, the Harpia and the Hércules. A watch list that grows
+    // by whoever is implementing it is a channel that fills with somebody
+    // else's idea of interesting.
+    expect(vigiaDeItens, isNot(contains('Baú Essência Dracônica')));
+    expect(vigiaDeItens.keys.any((n) => n.contains('Ovo')), isFalse);
+  });
 
-    final saida = entradasParaAvisar(
-      anuncios: [anuncio(1), anuncio(2)],
-      inventarios: {
-        1: const {'Cupom Perfeito de Prata': 33},
-        2: const {'Cupom Perfeito de Prata': 4000},
-      },
-      memoria: {1: visto(agora), 2: visto(agora)},
-      agora: agora,
-    );
-
-    expect(saida.map((e) => e.roleId), [2]);
+  test('nothing common enough to drown the channel is watched', () {
+    // The `Cupom Perfeito de Prata` was on this list and came off: 1518 of
+    // the 1648 characters carry one, and even at a floor of 100 it fired on
+    // 361 — about fifty messages a day against five for the whole rest of
+    // the list. A watch that fires on a fifth of the market is not a watch.
+    expect(vigiaDeItens, isNot(contains('Cupom Perfeito de Prata')));
   });
 
   test('the count on the list is a floor, not a flag', () {
@@ -164,28 +161,6 @@ void main() {
 
     test('an empty market reports every watched name', () {
       expect(nomesNuncaVistos(const []), vigiaDeItens.keys.toSet());
-    });
-
-    test('a pet is watched by id, never by the name its owner gave it', () {
-      // `38587` prints as `Ovo de Harpia` on three characters and as `GabirÚ`
-      // on a fourth — naming the pet is what somebody does when they get one,
-      // so a name watch misses exactly the people worth alerting about. The
-      // first live run measured it: the name matched one carrier, the id
-      // several.
-      final saida = entradasParaAvisar(
-        anuncios: [anuncio(1)],
-        inventarios: const {
-          1: {'GabirÚ': 1},
-        },
-        inventariosPorId: const {
-          1: {38587: 1},
-        },
-        memoria: {1: visto(agora)},
-        agora: agora,
-      );
-
-      expect(saida.single.achados.keys, contains('Harpia'));
-      expect(vigiaDeItens.keys, isNot(contains('Ovo de Harpia')));
     });
 
     test('both spellings of the card are carried, on purpose', () {

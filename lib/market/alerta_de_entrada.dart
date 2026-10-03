@@ -1,4 +1,3 @@
-import 'counted_items.dart';
 import 'price_history.dart';
 
 /// Which items are worth waking somebody up for, and how many of each.
@@ -33,35 +32,25 @@ import 'price_history.dart';
 /// both and letting [nomesNuncaVistos] report it is cheaper than being right.
 const vigiaDeItens = <String, int>{
   'Essência Dracônica Bruta': 1,
-  'Baú Essência Dracônica': 1,
   'Cartão Recompensa Homem Nobre': 1,
   'Cartão Gente Boa': 1,
   'Cartão de Gente Boa': 1,
   'Cartão Gente Sortuda': 1,
-  // **Common, so the floor is the whole entry.** Three of the four real pages
-  // saved here carry one, at 10, 28 and 33 — at a floor of one this would
-  // fire on nearly every arrival, which is the relics' defect. A hundred is
-  // a provisional number and says so: the collector reports how many carry
-  // each watched item and who carries most, so the next run replaces this
-  // guess with a measurement rather than leaving it to taste.
-  'Cupom Perfeito de Prata': 100,
 };
 
-/// Pets, which are watched by **id** and never by name.
-///
-/// **A pet's name belongs to its owner.** `38587` prints as *Ovo de Harpia*
-/// on three characters and as *GabirÚ* on a fourth, and naming the pet is
-/// exactly what somebody does when they get one — so a name watch would miss
-/// precisely the people worth alerting about. The first run proved it:
-/// `Ovo de Harpia` matched one carrier where the index counts several by id,
-/// and `Ovo Mascote Gigante Celestial` matched nobody at all.
-///
-/// Presence and not quantity, the same call `countedItemIds` already makes
-/// for the filter: a pet is a yes or a no, and there is no number to compare
-/// between characters.
-const vigiaDePets = countedItemIds;
+// **O `Cupom Perfeito de Prata` esteve aqui e saiu, decisão do dono em
+// 03/10/2026, e vale guardar o número que a decidiu.** Entrou com piso de 100
+// porque três das quatro páginas guardadas o carregavam, a 10, 28 e 33 — uma
+// amostra que subestimou tudo. A corrida mediu: **1518 dos 1648 carregam**,
+// p50 61, p90 124, p99 207, topo 298. Com o piso em 100 passavam 361, cerca
+// de cinquenta mensagens por dia, contra as cinco de todo o resto da lista
+// somado — o canal teria virado um feed de cupões.
+//
+// A lição não é o número, é a forma: **uma amostra de três diz se um item
+// existe, nunca se ele é raro.** O piso de um item comum escolhe-se pela
+// cauda medida, e é por isso que o relatório da coleta imprime percentis.
 
-/// Everybody carrying [item] right now, dearest stash first.
+/// Everybody carrying [item] right now, biggest stash first.
 ///
 /// **The feed answers "who just arrived"; this answers "who has one".** They
 /// are different questions and the first cannot be made to answer the second:
@@ -161,14 +150,12 @@ const limiteDeEnxurrada = 50;
 ///
 /// [inventarios] is role id to the item names and counts that character owns.
 /// [inventarios] is role id to the item **names** and counts that character
-/// owns; [inventariosPorId] is the same inventory keyed by item id, which is
-/// what [vigiaDePets] needs.
+/// owns.
 List<EntradaNova> entradasParaAvisar({
   required Iterable<AnuncioNoMercado> anuncios,
   required Map<int, Map<String, int>> inventarios,
   required Map<int, PriceHistory> memoria,
   required DateTime agora,
-  Map<int, Map<int, int>> inventariosPorId = const {},
 }) {
   final entradas = <EntradaNova>[];
 
@@ -181,12 +168,6 @@ List<EntradaNova> entradasParaAvisar({
       final quantos = inventario[entry.key] ?? 0;
       if (quantos >= entry.value) achados[entry.key] = quantos;
     }
-    final porId = inventariosPorId[anuncio.roleId] ?? const {};
-    for (final entry in vigiaDePets.entries) {
-      final quantos = porId[entry.value] ?? 0;
-      if (quantos > 0) achados[entry.key] = quantos;
-    }
-
     if (achados.isEmpty) continue;
 
     entradas.add(

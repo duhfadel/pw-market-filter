@@ -580,13 +580,6 @@ List<EntradaNova> _writeIndex(
       if (state.itemsFor(card.roleId) case final colhido?)
         card.roleId: _porNome(colhido.inventory),
   };
-  final inventariosPorId = {
-    for (final card in listing)
-      if (state.itemsFor(card.roleId) case final colhido?)
-        card.roleId: {
-          for (final stack in colhido.inventory) stack.itemId: stack.count,
-        },
-  };
 
   // Which watched names this collection never met. A quiet channel and a
   // misspelt item look identical from the outside, and this is the line that
@@ -647,7 +640,6 @@ List<EntradaNova> _writeIndex(
   final entradas = entradasParaAvisar(
     anuncios: _anunciosDe(listing),
     inventarios: inventarios,
-    inventariosPorId: inventariosPorId,
     memoria: memoria,
     agora: agora,
   );

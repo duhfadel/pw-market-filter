@@ -61,6 +61,38 @@ const vigiaDeItens = <String, int>{
 /// between characters.
 const vigiaDePets = countedItemIds;
 
+/// Everybody carrying [item] right now, dearest stash first.
+///
+/// **The feed answers "who just arrived"; this answers "who has one".** They
+/// are different questions and the first cannot be made to answer the second:
+/// announcing the people already here would repeat them every half hour for
+/// ever, which is why the trigger is a first sighting. This is the one-off
+/// catch-up for an item that has just been put under watch, and it is
+/// deliberately a manual run rather than something the schedule does.
+List<EntradaNova> quemCarrega({
+  required String item,
+  required Iterable<AnuncioNoMercado> anuncios,
+  required Map<int, Map<String, int>> inventarios,
+}) {
+  final portadores = <EntradaNova>[];
+  for (final anuncio in anuncios) {
+    final quantos = inventarios[anuncio.roleId]?[item] ?? 0;
+    if (quantos <= 0) continue;
+    portadores.add(
+      EntradaNova(
+        roleId: anuncio.roleId,
+        nome: anuncio.nome,
+        classe: anuncio.classe,
+        nivel: anuncio.nivel,
+        preco: anuncio.preco,
+        achados: {item: quantos},
+      ),
+    );
+  }
+  portadores.sort((a, b) => b.achados[item]!.compareTo(a.achados[item]!));
+  return portadores;
+}
+
 /// The watched names this collection never met in anybody's inventory.
 ///
 /// **A guessed name is an alert that never fires while looking like it

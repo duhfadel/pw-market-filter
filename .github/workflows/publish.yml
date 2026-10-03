@@ -50,6 +50,16 @@ on:
         options:
           - pw187
           - pw126
+      # O levantamento único de um item que acabou de entrar na vigia. Só
+      # existe em disparo manual e nunca no horário, de propósito: lista quem
+      # **já** carrega, e o horário repeti-lo-ia de meia em meia hora para
+      # sempre. O feed normal responde à outra pergunta, quem acabou de
+      # chegar, e essa é dita uma vez por pessoa.
+      catchup:
+        description: 'Listar quem já carrega este item (nome exato, opcional)'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -173,6 +183,7 @@ jobs:
         # mensagem no canal de alguém.
         env:
           DISCORD_ALERTAS: ${{ secrets.DISCORD_ALERTAS }}
+          ALERTAS_CATCHUP: ${{ inputs.catchup }}
         run: |
           dart run tool/collect.dart --server "$SERVIDOR" --resume && exit 0
           echo "::warning::A coleta caiu; segunda tentativa. Se isto virar rotina, deixou de ser azar."

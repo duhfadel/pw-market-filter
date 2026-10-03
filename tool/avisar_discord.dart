@@ -85,3 +85,62 @@ Future<void> _postar(String url, String conteudo) async {
     cliente.close();
   }
 }
+
+/// The one-off catch-up: everybody who already carries [item].
+///
+/// **Chunked, because Discord refuses a message over 2.000 characters and a
+/// list of carriers has no ceiling.** The 1.8.7 market has 364 characters
+/// above the coupon's floor; sending that as one message would fail entirely
+/// rather than arrive truncated, which is the worst of both.
+///
+/// The whole list is in the run's log either way — the channel is for reading
+/// at a glance, the log for reading in full.
+Future<void> avisarLevantamento(
+  List<EntradaNova> portadores,
+  String item,
+  String servidor,
+) async {
+  if (item.isEmpty || portadores.isEmpty) return;
+
+  final url = Platform.environment[_variavel];
+  if (url == null || url.isEmpty) {
+    stdout.writeln('$_variavel não definido: levantamento não enviado');
+    return;
+  }
+
+  final linhas = [
+    for (final p in portadores)
+      '**${p.nome}** — ${p.preco} TCC · nv ${p.nivel} ${p.classe} · '
+          '**${p.achados[item]}**',
+  ];
+
+  var bloco = <String>['**Quem já carrega $item** · $servidor', ''];
+  var tamanho = bloco.join('\n').length;
+  final blocos = <String>[];
+
+  for (final linha in linhas) {
+    if (tamanho + linha.length + 1 > 1900) {
+      blocos.add(bloco.join('\n'));
+      bloco = <String>[];
+      tamanho = 0;
+    }
+    bloco.add(linha);
+    tamanho += linha.length + 1;
+  }
+  if (bloco.isNotEmpty) blocos.add(bloco.join('\n'));
+
+  try {
+    for (final texto in blocos) {
+      await _postar(url, texto);
+      // Um webhook aceita 5 pedidos por segundo; meio segundo entre blocos
+      // mantém uma lista longa bem dentro disso sem nunca ser estrangulada
+      // a meio e anunciar metade dos portadores.
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+    }
+    stdout.writeln(
+      'Discord: levantamento de "$item" enviado em ${blocos.length} parte(s)',
+    );
+  } catch (e) {
+    stdout.writeln('::warning::falha ao enviar o levantamento: $e');
+  }
+}

@@ -198,6 +198,54 @@ void main() {
     });
   });
 
+  group('the one-off catch-up', () {
+    test('lists who carries it now, biggest stash first', () {
+      // The feed answers "who just arrived" and cannot be made to answer
+      // "who has one": announcing the people already here would repeat them
+      // every half hour for ever.
+      final lista = quemCarrega(
+        item: 'Cartão Recompensa Homem Nobre',
+        anuncios: [anuncio(1, preco: 900), anuncio(2, preco: 100), anuncio(3)],
+        inventarios: const {
+          1: {'Cartão Recompensa Homem Nobre': 1},
+          2: {'Cartão Recompensa Homem Nobre': 4},
+          3: {'Outra Coisa': 50},
+        },
+      );
+
+      expect(lista.map((e) => e.roleId), [2, 1]);
+      expect(lista.first.achados, {'Cartão Recompensa Homem Nobre': 4});
+      expect(lista.first.preco, 100);
+    });
+
+    test('ignores when somebody arrived — that is the other question', () {
+      // No `memoria` and no `agora`: a carrier counts whether they came
+      // today or a month ago.
+      final lista = quemCarrega(
+        item: 'Baú Essência Dracônica',
+        anuncios: [anuncio(1)],
+        inventarios: const {
+          1: {'Baú Essência Dracônica': 2},
+        },
+      );
+
+      expect(lista, hasLength(1));
+    });
+
+    test('an item nobody carries lists nobody, rather than everybody', () {
+      expect(
+        quemCarrega(
+          item: 'Cartão Gente Sortuda',
+          anuncios: [anuncio(1)],
+          inventarios: const {
+            1: {'Cartão Recompensa Homem Nobre': 1},
+          },
+        ),
+        isEmpty,
+      );
+    });
+  });
+
   test('the flood valve is far above anything a market can do', () {
     // It guards against our own bookkeeping, not against the market: a lost
     // CI cache stamps every character alive with today's `firstSeen`.

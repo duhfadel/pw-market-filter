@@ -116,7 +116,7 @@ def desenhar_com_logo():
     _centrar(
         d,
         topo + 52,
-        "para todas as versões do Perfect World Classic",
+        "para todas as versões do TheClassic PW",
         _fonte("Inter-Regular.ttf", 16),
         MUDO,
     )
@@ -150,7 +150,7 @@ def desenhar():
         d, 190, "para todas as versões do", _fonte("Inter-Regular.ttf", 19), MUDO
     )
     _centrar(
-        d, 218, "Perfect World Classic", _fonte("Inter-SemiBold.ttf", 19), PAPEL
+        d, 218, "TheClassic PW", _fonte("Inter-SemiBold.ttf", 19), PAPEL
     )
 
     _centrar(d, 262, "portalpw.net", _fonte("Inter-Bold.ttf", 30), OURO)

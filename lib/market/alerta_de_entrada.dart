@@ -35,7 +35,6 @@ const vigiaDeItens = <String, int>{
   'Cartão Recompensa Homem Nobre': 1,
   'Cartão Gente Boa': 1,
   'Cartão de Gente Boa': 1,
-  'Cartão Gente Sortuda': 1,
 };
 
 // **O `Cupom Perfeito de Prata` esteve aqui e saiu, decisão do dono em

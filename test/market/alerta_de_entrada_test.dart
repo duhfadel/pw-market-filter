@@ -112,6 +112,7 @@ void main() {
     // by whoever is implementing it is a channel that fills with somebody
     // else's idea of interesting.
     expect(vigiaDeItens, isNot(contains('Baú Essência Dracônica')));
+    expect(vigiaDeItens, isNot(contains('Cartão Gente Sortuda')));
     expect(vigiaDeItens.keys.any((n) => n.contains('Ovo')), isFalse);
   });
 

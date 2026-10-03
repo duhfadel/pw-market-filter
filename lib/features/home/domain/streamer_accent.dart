@@ -32,6 +32,25 @@ abstract final class StreamerAccent {
     // the two accents already here, this is the one that stays furthest
     // from both, which is what a strip cycling between cards needs.
     'pavaotv': Color(0xFF2A95FF),
+    // 7.6:1, and a decision rather than an extraction — the owner's, on
+    // 2026-10-03, after the art was measured and gave nothing safe.
+    //
+    // **The moon's own two colours are the two forbidden neighbourhoods.**
+    // Its lit limb is a copper that lands ΔE 38 from [PWColors.accent], the
+    // money gold, where the closest accent already shipping sits at 61 — and
+    // gold on a streamer card reads as paid placement, which is the one thing
+    // this strip must never look like. Its shadowed disc is a 206° blue that
+    // falls on top of [pavaotv]. Sweeping every hue under those bars left
+    // only pinks, which are not that picture.
+    //
+    // So violet, which suits the name — and **his own violet, not the
+    // fallback**. The fallback is what a channel wears when nobody has chosen
+    // for it, and two channels already wear it; the strip shows two cards at
+    // a time, so leaving him there would eventually put two identical violets
+    // side by side, which is precisely what an accent exists to prevent. At
+    // ΔE 30 from [fallback] this is unmistakably violet and unmistakably not
+    // that one.
+    'penumbrapw': Color(0xFFDB87F5),
   };
 
   /// The site's own violet, for anybody not yet in the table.

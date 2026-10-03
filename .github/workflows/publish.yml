@@ -166,6 +166,13 @@ jobs:
       # frequência, e o dia em que isto passar a acontecer toda corrida tem de
       # ser visível no resumo da execução em vez de silencioso.
       - name: Coletar o mercado
+        # O feed privado de chegadas. Ausente numa bifurcação do repositório e
+        # ausente na máquina de quem desenvolve, e as duas coisas são de
+        # propósito: sem a variável o coletor imprime quantas entradas teria
+        # anunciado e não publica nada. Um `--rebuild` local nunca pode pôr
+        # mensagem no canal de alguém.
+        env:
+          DISCORD_ALERTAS: ${{ secrets.DISCORD_ALERTAS }}
         run: |
           dart run tool/collect.dart --server "$SERVIDOR" --resume && exit 0
           echo "::warning::A coleta caiu; segunda tentativa. Se isto virar rotina, deixou de ser azar."

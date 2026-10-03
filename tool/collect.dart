@@ -37,6 +37,9 @@ import 'package:pw_market_filter/collector/detail_parser.dart';
 import 'package:pw_market_filter/collector/index_builder.dart';
 import 'package:pw_market_filter/collector/listing_parser.dart';
 import 'package:pw_market_filter/collector/memoria.dart';
+import 'package:pw_market_filter/market/alerta_de_entrada.dart';
+
+import 'avisar_discord.dart';
 import 'package:pw_market_filter/collector/servidor.dart';
 import 'package:pw_market_filter/market/card_combos.dart';
 import 'package:pw_market_filter/market/celestial_realm.dart';
@@ -214,8 +217,9 @@ Future<void> main(List<String> arguments) async {
       if (i + 1 < pending.length) await Future<void>.delayed(_politeDelay);
     }
 
-    _writeIndex(listing, state, publicado: publicado);
+    final entradas = _writeIndex(listing, state, publicado: publicado);
     _reportSummary(listing, state, blockedPauses);
+    await avisarEntradas(entradas, _servidor.chave);
   } finally {
     client.close(force: true);
   }
@@ -494,7 +498,29 @@ Future<String?> _get(HttpClient client, String url) async {
   }
 }
 
-void _writeIndex(
+/// An inventory as name to total, summing the stacks that share a name.
+///
+/// Summed rather than taken one stack at a time because the same name can
+/// arrive under more than one id — *Essência Dracônica* is two items in the
+/// game's own database — and because a bag stack and a bank stack of one item
+/// are the same item to anybody deciding whether to buy.
+Map<String, int> _porNome(List<ParsedStack> inventario) {
+  final total = <String, int>{};
+  for (final stack in inventario) {
+    if (stack.name.isEmpty) continue;
+    total[stack.name] = (total[stack.name] ?? 0) + stack.count;
+  }
+  return total;
+}
+
+/// Writes the index and returns the arrivals worth announcing.
+///
+/// The alert is computed **here** rather than from the published index, and
+/// that is forced by what the feed is for: the index merges the essence, the
+/// raw essence and the chest under one label on purpose, and the raw one is
+/// the rare half — two arrivals a day against 233. Only the state knows which
+/// is which, because only the state keeps the inventory name by name.
+List<EntradaNova> _writeIndex(
   List<ListingCard> listing,
   _CollectState state, {
   MarketIndex? publicado,
@@ -529,6 +555,39 @@ void _writeIndex(
       );
     }
   }
+
+  final inventarios = {
+    for (final card in listing)
+      if (state.itemsFor(card.roleId) case final colhido?)
+        card.roleId: _porNome(colhido.inventory),
+  };
+
+  // Which watched names this collection never met. A quiet channel and a
+  // misspelt item look identical from the outside, and this is the line that
+  // tells them apart — the same job the unresolved counted names already get.
+  final nuncaVistos = nomesNuncaVistos(inventarios.values);
+  if (nuncaVistos.isNotEmpty) {
+    stdout.writeln(
+      '  AVISO: item(ns) vigiado(s) que não apareceram em nenhum '
+      'inventário: ${nuncaVistos.join(', ')}.',
+    );
+  }
+
+  final entradas = entradasParaAvisar(
+    anuncios: [
+      for (final card in listing)
+        AnuncioNoMercado(
+          roleId: card.roleId,
+          nome: card.name,
+          classe: card.characterClass,
+          nivel: card.level,
+          preco: card.price,
+        ),
+    ],
+    inventarios: inventarios,
+    memoria: memoria,
+    agora: agora,
+  );
 
   final index = builder.build(historyFrom: historyFromDe(publicado, agora));
   final file = File(_servidor.arquivoDoIndice)
@@ -625,6 +684,8 @@ void _writeIndex(
       'Se algum acabou de entrar na tabela, o par está errado.',
     );
   }
+
+  return entradas;
 }
 
 const _arquivoVersoes = 'web/versoes.json';
@@ -767,6 +828,10 @@ void _rebuildFromState() {
   // index this program itself last wrote, so it is the right record to carry
   // history forward from. Nothing existing on disk is a genuine first
   // rebuild, and `_writeIndex` starting fresh from `null` there is correct.
+  // Nothing is announced from a rebuild. It rewrites the index from a state
+  // that was already collected, so every arrival in it has already been
+  // through a real run — announcing again would repeat the channel's last
+  // hour every time somebody corrects a label.
   _writeIndex(state.listing, state, publicado: _readLocalIndex());
   _reportSummary(state.listing, state, 0);
 }

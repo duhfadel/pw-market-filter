@@ -561,6 +561,13 @@ List<EntradaNova> _writeIndex(
       if (state.itemsFor(card.roleId) case final colhido?)
         card.roleId: _porNome(colhido.inventory),
   };
+  final inventariosPorId = {
+    for (final card in listing)
+      if (state.itemsFor(card.roleId) case final colhido?)
+        card.roleId: {
+          for (final stack in colhido.inventory) stack.itemId: stack.count,
+        },
+  };
 
   // Which watched names this collection never met. A quiet channel and a
   // misspelt item look identical from the outside, and this is the line that
@@ -583,11 +590,18 @@ List<EntradaNova> _writeIndex(
         if ((inventario[entry.key] ?? 0) > 0) inventario[entry.key]!,
     ]..sort();
     if (quantidades.isEmpty) continue;
+    // Percentis e não só mediana e topo: o piso de um item comum escolhe-se
+    // pela cauda, e mediana com topo não diz onde a cauda começa. O Cupom
+    // Perfeito de Prata saiu com 1525 portadores, mediana 61 e topo 298 — e
+    // nenhum desses três números diz quantos passam de 200.
+    int percentil(double p) =>
+        quantidades[((quantidades.length - 1) * p).round()];
     final acima = quantidades.where((q) => q >= entry.value).length;
     stdout.writeln(
-      '  vigia "${entry.key}": ${quantidades.length} carregam '
-      '(mediana ${quantidades[quantidades.length ~/ 2]}, '
-      'topo ${quantidades.last}) · $acima acima do piso de ${entry.value}',
+      '  vigia "${entry.key}": ${quantidades.length} carregam · '
+      'p50 ${percentil(0.5)} · p90 ${percentil(0.9)} · '
+      'p99 ${percentil(0.99)} · topo ${quantidades.last} · '
+      '$acima acima do piso de ${entry.value}',
     );
   }
 
@@ -603,6 +617,7 @@ List<EntradaNova> _writeIndex(
         ),
     ],
     inventarios: inventarios,
+    inventariosPorId: inventariosPorId,
     memoria: memoria,
     agora: agora,
   );

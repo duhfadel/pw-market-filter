@@ -99,6 +99,26 @@ void main() {
     });
   });
 
+  test('a common item is watched by its quantity, never by its presence', () {
+    // Three of the four real pages in `test/fixtures/` carry a
+    // `Cupom Perfeito de Prata`, at 10, 28 and 33. At a floor of one this
+    // would fire on nearly every arrival — the relics' defect, which is the
+    // reason the floor exists at all.
+    expect(vigiaDeItens['Cupom Perfeito de Prata'], greaterThan(33));
+
+    final saida = entradasParaAvisar(
+      anuncios: [anuncio(1), anuncio(2)],
+      inventarios: {
+        1: const {'Cupom Perfeito de Prata': 33},
+        2: const {'Cupom Perfeito de Prata': 4000},
+      },
+      memoria: {1: visto(agora), 2: visto(agora)},
+      agora: agora,
+    );
+
+    expect(saida.map((e) => e.roleId), [2]);
+  });
+
   test('the count on the list is a floor, not a flag', () {
     // What lets a common item earn a place: the Chave fires on 147 arrivals a
     // day at one, and almost never at five hundred.

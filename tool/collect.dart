@@ -573,6 +573,24 @@ List<EntradaNova> _writeIndex(
     );
   }
 
+  // How common each watched item actually is, and who carries most. This is
+  // what turns a floor from taste into a measurement: an item nearly everybody
+  // carries needs one, and this line is where that becomes visible instead of
+  // being discovered by a channel filling up.
+  for (final entry in vigiaDeItens.entries) {
+    final quantidades = [
+      for (final inventario in inventarios.values)
+        if ((inventario[entry.key] ?? 0) > 0) inventario[entry.key]!,
+    ]..sort();
+    if (quantidades.isEmpty) continue;
+    final acima = quantidades.where((q) => q >= entry.value).length;
+    stdout.writeln(
+      '  vigia "${entry.key}": ${quantidades.length} carregam '
+      '(mediana ${quantidades[quantidades.length ~/ 2]}, '
+      'topo ${quantidades.last}) · $acima acima do piso de ${entry.value}',
+    );
+  }
+
   final entradas = entradasParaAvisar(
     anuncios: [
       for (final card in listing)

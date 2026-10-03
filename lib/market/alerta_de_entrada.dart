@@ -39,6 +39,13 @@ const vigiaDeItens = <String, int>{
   'Cartão Gente Sortuda': 1,
   'Ovo de Harpia': 1,
   'Ovo Mascote Gigante Celestial': 1,
+  // **Common, so the floor is the whole entry.** Three of the four real pages
+  // saved here carry one, at 10, 28 and 33 — at a floor of one this would
+  // fire on nearly every arrival, which is the relics' defect. A hundred is
+  // a provisional number and says so: the collector reports how many carry
+  // each watched item and who carries most, so the next run replaces this
+  // guess with a measurement rather than leaving it to taste.
+  'Cupom Perfeito de Prata': 100,
 };
 
 /// The watched names this collection never met in anybody's inventory.

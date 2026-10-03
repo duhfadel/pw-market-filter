@@ -23,6 +23,14 @@ void main() {
       expect(StreamerAccent.of('pavaotv'), const Color(0xFF2A95FF));
     });
 
+    test('penumbrapw wears a violet of its own, not the fallback', () {
+      // The fallback is what "nobody chose yet" looks like, and two channels
+      // already wear it. A chosen colour that equalled it would be invisible
+      // as a choice — and the strip draws two cards at once.
+      expect(StreamerAccent.of('penumbrapw'), const Color(0xFFDB87F5));
+      expect(StreamerAccent.of('penumbrapw'), isNot(StreamerAccent.fallback));
+    });
+
     test('the login is matched case-insensitively', () {
       expect(StreamerAccent.of('GSAFOOT'), StreamerAccent.of('gsafoot'));
     });

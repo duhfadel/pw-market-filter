@@ -26,14 +26,26 @@ class CollectedPage {
     this.titles,
   });
 
-  /// What this version knows how to write. An entry stamped with anything else
-  /// — or with nothing, which is every entry written before the inventory
-  /// existed — is stale, and the collector fetches its page again.
+  /// What this reader knows how to write, **per marketplace**. An entry
+  /// stamped with anything else — or with nothing, which is every entry
+  /// written before the inventory existed — is stale, and the collector
+  /// fetches its page again.
   ///
   /// A stamp, and not "is the anecdotes key there?": a page may legitimately
   /// have no anecdote panel, and that character would then be re-fetched on
   /// every run for ever.
-  static const version = 4;
+  ///
+  /// **One number per version, and that is what makes a new field affordable.**
+  /// A single shared stamp meant adding a field only one marketplace publishes
+  /// re-crawled the other for nothing: measured on 2026-10-04, the 1.2.6 asked
+  /// for its slot counts, its pets and its crafting skills, and none of the
+  /// three exists on a 1.8.7 page — so bumping one number would have spent
+  /// eighty-four minutes of their server's traffic to learn nothing. The cost
+  /// of a field should fall on the version that gains it.
+  static const versoes = <String, int>{'pw187': 4, 'pw126': 5};
+
+  /// The stamp a page collected from [servidor] carries.
+  static int versaoDe(String servidor) => versoes[servidor] ?? 0;
 
   final List<ParsedItem> items;
   final List<ParsedCard> cards;
@@ -68,10 +80,11 @@ class CollectedPage {
   /// `--rebuild` rather than another crawl. Same bargain as [realm].
   final ParsedTitles? titles;
 
-  static bool isCurrent(Map<String, dynamic> json) => json['v'] == version;
+  static bool isCurrent(Map<String, dynamic> json, String servidor) =>
+      json['v'] == versaoDe(servidor);
 
-  Map<String, dynamic> toJson() => {
-    'v': version,
+  Map<String, dynamic> toJson(String servidor) => {
+    'v': versaoDe(servidor),
     'items': items.map(_itemToJson).toList(),
     'cards': cards.map(_cardToJson).toList(),
     'sex': sex,

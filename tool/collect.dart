@@ -923,7 +923,7 @@ class _CollectState {
       // most of the market without them and nothing on screen saying why.
       final value = entry.value;
       if (value is! Map<String, dynamic>) continue;
-      if (!CollectedPage.isCurrent(value)) continue;
+      if (!CollectedPage.isCurrent(value, _servidor.chave)) continue;
       done[int.parse(entry.key)] = CollectedPage.fromJson(value, names);
     }
     return _CollectState(
@@ -964,7 +964,7 @@ class _CollectState {
       jsonEncode({
         'done': {
           for (final entry in done.entries)
-            entry.key.toString(): entry.value.toJson(),
+            entry.key.toString(): entry.value.toJson(_servidor.chave),
         },
         'itemNames': {
           for (final entry in names.entries) entry.key.toString(): entry.value,

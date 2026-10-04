@@ -87,7 +87,7 @@ Future<void> _montar(WidgetTester tester) async {
       // No `carregar:` override anywhere in this file — `PortasView` has none
       // any more. Every case below reaches `web/versoes.json` only through
       // `getIt<VersoesRepository>()`, registered per-test above.
-      home: comNovidades(const PortasView()),
+      home: comVisitas(comNovidades(const PortasView())),
     ),
   );
   await tester.pumpAndSettle();
@@ -336,5 +336,25 @@ void main() {
       );
       expect(data.style?.fontFamily, isNot(PWTheme.display));
     });
+  });
+
+  testWidgets('o rodapé diz de quem é o site, na página que estranhos veem', (
+    tester,
+  ) async {
+    // O seletor passou a ser a porta de entrada, e era a única tela que não
+    // dizia nada sobre o que este site é. A primeira frase do rodapé é a
+    // linha em que a permissão para existir assenta — e quem chega de um link
+    // colado na comunidade aterra aqui, não na home.
+    _registrarRepositorio(
+      _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
+    );
+    await _montar(tester);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Projeto de fã'), findsOneWidget);
+    expect(
+      find.textContaining('Nomes, atributos e arte do jogo'),
+      findsOneWidget,
+    );
   });
 }

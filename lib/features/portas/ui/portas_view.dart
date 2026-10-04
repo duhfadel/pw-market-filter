@@ -12,6 +12,7 @@ import '../../../market/versoes_repository.dart';
 import '../../home/domain/arte_da_classe.dart';
 import '../../home/domain/visit_label.dart' show groupThousands;
 import '../../home/ui/widgets/cabecalho.dart';
+import '../../home/ui/widgets/rodape.dart';
 import '../domain/versao.dart';
 
 /// The front door, now that the site is two marketplaces.
@@ -230,14 +231,48 @@ class _Portas extends StatelessWidget {
       ],
     );
 
-    return Center(
-      child: SingleChildScrollView(
+    final rodape = Padding(
+      padding: EdgeInsets.fromLTRB(24, 0, 24, 16),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 760),
+        child: Rodape(),
+      ),
+    );
+
+    final grade = Center(
+      child: Padding(
         padding: const EdgeInsets.all(24),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 760),
           child: linha,
         ),
       ),
+    );
+
+    // **Os dois casos são mesmo diferentes, e cada um tem o seu ramo.**
+    //
+    // Lado a lado, as portas cabem com folga: o rodapé fica preso em baixo e
+    // elas ficam centradas no que sobra, que é a página que o ecrã grande
+    // mostrou sempre.
+    //
+    // Empilhadas, duas cartas 2:3 não cabem em nenhum telemóvel. Pregar o
+    // rodapé ali punha a segunda porta a passar por trás dele, com o texto
+    // assente na arte — foi assim que saiu da primeira vez. Ali o rodapé é o
+    // fim da página e rola com ela.
+    //
+    // Houve uma tentativa de servir os dois com um desenho só
+    // (`minHeight` + `IntrinsicHeight`), e ela empurrou o rodapé para fora do
+    // ecrã no caso largo. Dois ramos que se veem são melhores que um truque
+    // que só uma captura de ecrã desmente.
+    if (!ladoALado) {
+      return SingleChildScrollView(child: Column(children: [grade, rodape]));
+    }
+
+    return Column(
+      children: [
+        Expanded(child: SingleChildScrollView(child: grade)),
+        rodape,
+      ],
     );
   }
 }

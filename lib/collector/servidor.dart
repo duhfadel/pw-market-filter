@@ -1,6 +1,18 @@
 import '../market/endereco_do_mercado.dart';
 import 'detail_parser.dart' show ParsedItem, parseEquippedItems, parseSex;
-import 'detail_parser_126.dart' show parseEquippedItems126, parseSex126;
+import 'detail_parser_126.dart'
+    show
+        EspacoDeItens,
+        MascoteDoPersonagem,
+        parseEquippedItems126,
+        parseEspacos126,
+        parseMascotes126,
+        parsePericias126,
+        parseSex126;
+
+Map<String, EspacoDeItens> _nenhumEspaco(String _) => const {};
+List<MascoteDoPersonagem> _nenhumMascote(String _) => const [];
+Map<int, int> _nenhumaPericia(String _) => const {};
 
 /// The per-version profile of a Classic PW marketplace.
 ///
@@ -16,6 +28,9 @@ class Servidor {
     required this.indicePublicado,
     required this.itensEquipados,
     required this.sexo,
+    required this.espacos,
+    required this.mascotes,
+    required this.pericias,
     required this._detalhe,
   });
 
@@ -62,6 +77,14 @@ class Servidor {
   /// change here, not a hunt through `tool/collect.dart`.
   final String Function(String html) sexo;
 
+  /// The three readers that only one marketplace has anything for. A version
+  /// without them answers empty, which is the right answer rather than a gap:
+  /// `Itens do Personagem`, the pet cage and the per-skill badges do not
+  /// exist on a 1.8.7 page at all.
+  final Map<String, EspacoDeItens> Function(String html) espacos;
+  final List<MascoteDoPersonagem> Function(String html) mascotes;
+  final Map<int, int> Function(String html) pericias;
+
   final String Function(int roleId) _detalhe;
 
   /// The canonical detail URL for a character, from the one table that holds
@@ -89,6 +112,9 @@ class Servidor {
       indicePublicado: 'https://portalpw.net/market_index.json',
       itensEquipados: parseEquippedItems,
       sexo: parseSex,
+      espacos: _nenhumEspaco,
+      mascotes: _nenhumMascote,
+      pericias: _nenhumaPericia,
       detalhe: (roleId) => enderecoDoPersonagem('pw187', roleId),
     ),
     'pw126': Servidor._(
@@ -99,6 +125,9 @@ class Servidor {
       indicePublicado: 'https://portalpw.net/market_index_126.json',
       itensEquipados: parseEquippedItems126,
       sexo: parseSex126,
+      espacos: parseEspacos126,
+      mascotes: parseMascotes126,
+      pericias: parsePericias126,
       detalhe: (roleId) => enderecoDoPersonagem('pw126', roleId),
     ),
   };

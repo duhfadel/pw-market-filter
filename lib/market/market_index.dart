@@ -200,6 +200,8 @@ class MarketCharacter {
     this.path = '',
     this.runes = const [],
     this.founderTier,
+    this.espacos = const {},
+    this.mascotes = const [],
     this.history,
   });
 
@@ -261,6 +263,20 @@ class MarketCharacter {
   /// the game, so reading it wrong is a `--rebuild`, never another crawl.
   final int? founderTier;
 
+  /// How full each of the character's stores is, and how big it is —
+  /// `Inventário`, `Banqueiro`, `Roupas` e `Materiais`. Empty on 1.8.7,
+  /// which publishes none of them.
+  ///
+  /// **Two numbers and not one, because they answer different questions.**
+  /// The capacity is what a seller paid to expand — measured over the live
+  /// market it runs 32, 40, 48 and 64 on the bag alone — while the occupancy
+  /// is what they happened to leave inside.
+  final Map<String, EspacoDeItens> espacos;
+
+  /// The pets and mounts in the cage, by the name the page prints. Empty on
+  /// 1.8.7, where the owner renames the egg and only the item id survives.
+  final List<String> mascotes;
+
   /// What the market remembers about this character between collections, or
   /// `null` where no collection has recorded it yet.
   final PriceHistory? history;
@@ -288,6 +304,12 @@ class MarketCharacter {
     // Omitted rather than written null: almost nobody is a founder, and
     // 1.600 nulls are weight the browser downloads to learn nothing.
     if (founderTier != null) 'founderTier': founderTier,
+    if (espacos.isNotEmpty)
+      'espacos': {
+        for (final e in espacos.entries)
+          e.key: [e.value.usados, e.value.capacidade],
+      },
+    if (mascotes.isNotEmpty) 'mascotes': mascotes,
     if (history != null) 'history': history!.toJson(),
   };
 
@@ -321,10 +343,37 @@ class MarketCharacter {
         path: json['path'] as String? ?? '',
         runes: (json['runes'] as List<dynamic>? ?? const []).cast<int>(),
         founderTier: json['founderTier'] as int?,
+        espacos: {
+          for (final e
+              in (json['espacos'] as Map<String, dynamic>? ?? const {}).entries)
+            e.key: EspacoDeItens(
+              usados: (e.value as List<dynamic>)[0] as int,
+              capacidade: (e.value as List<dynamic>)[1] as int,
+            ),
+        },
+        mascotes: (json['mascotes'] as List<dynamic>? ?? const [])
+            .cast<String>(),
         history: json['history'] == null
             ? null
             : PriceHistory.fromJson(json['history'] as Map<String, dynamic>),
       );
+}
+
+/// How full one of a character's stores is, and how big it is.
+///
+/// A record of two numbers rather than one: the capacity is what the seller
+/// paid to expand, the occupancy is what they left inside, and a card that
+/// printed only one of them would be answering the wrong question half the
+/// time.
+class EspacoDeItens {
+  const EspacoDeItens({required this.usados, required this.capacidade});
+
+  final int usados;
+  final int capacidade;
+
+  /// Whether the store is full. **Not whether it is expanded** — a `32/32`
+  /// and a `38/72` are both real, and only the second has been paid for.
+  bool get cheio => capacidade > 0 && usados >= capacidade;
 }
 
 /// What a rune is, independent of which copy of it somebody owns.

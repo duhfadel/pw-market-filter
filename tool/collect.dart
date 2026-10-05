@@ -113,6 +113,13 @@ CollectedPage collectedPageFrom(Servidor servidor, String page) =>
       path: parsePath(page) ?? '',
       runes: parseRunes(page),
       titles: parseTitles(page),
+      // Os três só existem no 1.2.6 — medido em 04/10/2026, zero ocorrências
+      // nas duas fixtures do 1.8.7 — e por isso são lidos através do perfil
+      // em vez de chamados directamente. Num mercado que não os publique,
+      // devolvem vazio, que é a resposta certa e não uma falta.
+      espacos: servidor.espacos(page),
+      mascotes: servidor.mascotes(page),
+      pericias: servidor.pericias(page),
     );
 
 Future<void> main(List<String> arguments) async {
@@ -570,6 +577,8 @@ List<EntradaNova> _writeIndex(
         path: collected.path,
         runes: collected.runes,
         titles: collected.titles,
+        espacos: collected.espacos,
+        mascotes: collected.mascotes,
         history: memoria[card.roleId],
       );
     }
@@ -923,7 +932,7 @@ class _CollectState {
       // most of the market without them and nothing on screen saying why.
       final value = entry.value;
       if (value is! Map<String, dynamic>) continue;
-      if (!CollectedPage.isCurrent(value)) continue;
+      if (!CollectedPage.isCurrent(value, _servidor.chave)) continue;
       done[int.parse(entry.key)] = CollectedPage.fromJson(value, names);
     }
     return _CollectState(
@@ -964,7 +973,7 @@ class _CollectState {
       jsonEncode({
         'done': {
           for (final entry in done.entries)
-            entry.key.toString(): entry.value.toJson(),
+            entry.key.toString(): entry.value.toJson(_servidor.chave),
         },
         'itemNames': {
           for (final entry in names.entries) entry.key.toString(): entry.value,

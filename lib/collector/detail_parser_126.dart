@@ -172,3 +172,152 @@ int _firstNumber(RegExp pattern, String? source) {
   final match = pattern.firstMatch(source);
   return match == null ? 0 : int.tryParse(match.group(1)!) ?? 0;
 }
+
+/// How many of each store a character is using, and how big that store is.
+///
+/// The 1.2.6 page has a section the 1.8.7 one does not — `Itens do
+/// Personagem` — with five tabs, four of which print `usados / capacidade`.
+///
+/// **The capacity is the fact worth having, and it is the second number.**
+/// Measured over nine real pages: the bag runs 32, 40, 48 and 64, and the
+/// materials store runs 0, 16, 48 and 96. Expanding costs money in the game,
+/// so the capacity says something about the character while the occupancy
+/// says what the seller happened to leave inside.
+class EspacoDeItens {
+  const EspacoDeItens({required this.usados, required this.capacidade});
+
+  final int usados;
+
+  /// Zero where the character has never opened that store at all — four of
+  /// the nine measured had `0/0` in both Roupas and Materiais. Zero is a
+  /// real answer there, not a missing one.
+  final int capacidade;
+}
+
+/// The five tabs, by the label the page prints.
+///
+/// `Equipamento` has no capacity — it is a count of worn pieces, not a store —
+/// so it is read with a capacity of zero and kept anyway: it costs nothing and
+/// it is the only one of the five this collector would otherwise have to
+/// compute for itself.
+Map<String, EspacoDeItens> parseEspacos126(String html) {
+  final espacos = <String, EspacoDeItens>{};
+
+  for (final aba
+      in html_parser
+          .parse(html)
+          .querySelectorAll('.character-inventory .v-tab span')) {
+    final em = aba.querySelector('em');
+    if (em == null) continue;
+
+    final rotulo = aba.nodes
+        .whereType<Text>()
+        .map((t) => t.text.trim())
+        .firstWhere((t) => t.isNotEmpty, orElse: () => '');
+    if (rotulo.isEmpty) continue;
+
+    // The occupancy is `em`'s own text, before the two `<b>` children that
+    // carry the slash and the capacity. Reading `em.text` whole would glue
+    // the three together into `27/64` and then into 2764.
+    final usados = int.tryParse(
+      em.nodes.whereType<Text>().map((t) => t.text.trim()).join(),
+    );
+    if (usados == null) continue;
+
+    final capacidade = int.tryParse(
+      aba.querySelectorAll('em > b').last.text.trim(),
+    );
+    espacos[rotulo] = EspacoDeItens(
+      usados: usados,
+      capacidade: capacidade ?? 0,
+    );
+  }
+
+  return espacos;
+}
+
+/// A pet or a mount the character owns.
+class MascoteDoPersonagem {
+  const MascoteDoPersonagem({
+    required this.nome,
+    required this.montaria,
+    required this.nivel,
+  });
+
+  /// As the page prints it — `Ovo de Hércules`. **This version names the
+  /// species where 1.8.7 lets the owner rename the egg**, which is why the
+  /// filter there has to go by item id and this one can go by name. Worth
+  /// knowing before copying either rule onto the other.
+  final String nome;
+
+  /// `data-character-mount`: a mount rather than a combat pet.
+  final bool montaria;
+
+  final int nivel;
+}
+
+/// Every pet and mount in the character's cage.
+///
+/// Kept whole even though only one of them is filtered on today: the owner
+/// asked for the Hércules and for the rest to be mapped anyway, and a crawl
+/// that is already paid for should take everything the page offers.
+List<MascoteDoPersonagem> parseMascotes126(String html) {
+  final mascotes = <MascoteDoPersonagem>[];
+
+  for (final badge
+      in html_parser.parse(html).querySelectorAll('[data-pet-name]')) {
+    final nome = badge.attributes['data-pet-name']?.trim() ?? '';
+    if (nome.isEmpty) continue;
+
+    var nivel = 0;
+    final tooltip = badge.attributes['data-pet-tooltip'];
+    if (tooltip != null) {
+      try {
+        final json = jsonDecode(tooltip);
+        if (json is Map && json['pet_level'] is int) {
+          nivel = json['pet_level'] as int;
+        }
+      } on FormatException {
+        // A tooltip this reader cannot decode costs the level and nothing
+        // else — the name is on the element itself.
+      }
+    }
+
+    mascotes.add(
+      MascoteDoPersonagem(
+        nome: nome,
+        montaria: badge.attributes['data-character-mount'] == '1',
+        nivel: nivel,
+      ),
+    );
+  }
+
+  return mascotes;
+}
+
+/// Every skill the page lists, as id to level.
+///
+/// **No names anywhere on the page**, which is the whole difficulty: the four
+/// crafting skills the 1.2.6 players asked about are ids 158, 159, 160 and
+/// 161, found by intersecting the skills of four characters of four different
+/// classes — five ids survive that intersection, four of them consecutive and
+/// all four sitting at 7 or 8 on a level-102 character. The fifth, 167, is 1
+/// on everybody.
+///
+/// Which of the four is the weapon forge and which the apothecary cannot be
+/// read off the page, so nothing here guesses: the levels are stored by id
+/// and named only once somebody reads them in the game. Storing them raw is
+/// what makes that naming a rebuild instead of another crawl.
+Map<int, int> parsePericias126(String html) {
+  final pericias = <int, int>{};
+  for (final badge
+      in html_parser
+          .parse(html)
+          .querySelectorAll('[data-skill-id][data-skill-level]')) {
+    final id = int.tryParse(badge.attributes['data-skill-id'] ?? '');
+    if (id == null) continue;
+    pericias[id] =
+        int.tryParse(badge.attributes['data-skill-level'] ?? '') ?? 0;
+  }
+  return pericias;
+}

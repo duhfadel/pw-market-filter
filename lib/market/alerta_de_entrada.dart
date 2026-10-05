@@ -35,6 +35,19 @@ const vigiaDeItens = <String, int>{
   'Cartão Recompensa Homem Nobre': 1,
   'Cartão Gente Boa': 1,
   'Cartão de Gente Boa': 1,
+  // **`Cupom Perfeito` e `Cupom Perfeito de Prata` são itens diferentes**, e
+  // é o de prata que não serve — decisão do dono, 04/10/2026. Vale guardar o
+  // número que o condenava de qualquer maneira: **1.518 dos 1.648 carregam
+  // um de prata**, p50 61, p90 124, p99 207, topo 298. Mesmo com piso em 100
+  // passavam 361, cerca de cinquenta mensagens por dia contra as três de
+  // todo o resto somado.
+  //
+  // O `Cupom Perfeito` não apareceu em nenhuma das dezasseis páginas
+  // guardadas — 2.182 nomes distintos, das duas versões — portanto entra com
+  // piso de 1 e sem distribuição conhecida. Herdar os 207 medidos no outro
+  // item seria inventar um número, e `nomesNuncaVistos` diz na próxima
+  // corrida se este existe de todo.
+  'Cupom Perfeito': 1,
 };
 
 // **O `Cupom Perfeito de Prata` esteve aqui e saiu, decisão do dono em

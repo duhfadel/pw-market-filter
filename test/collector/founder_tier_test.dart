@@ -83,7 +83,7 @@ void main() {
       sex: '',
       titles: parseTitles(html),
     );
-    final restored = CollectedPage.fromJson(page.toJson(), const {});
+    final restored = CollectedPage.fromJson(page.toJson('pw187'), const {});
 
     expect(tierOf(restored.titles), 10);
   });

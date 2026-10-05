@@ -278,6 +278,10 @@ class CharacterCard extends StatelessWidget {
                   ),
                 ],
               ),
+              if (character.espacos.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _EspacosDoPersonagem(espacos: character.espacos),
+              ],
               if (character.realm.isNotEmpty)
                 Text(
                   character.realm,
@@ -747,6 +751,114 @@ class _Queda extends StatelessWidget {
         fontSize: 11,
         decoration: TextDecoration.lineThrough,
       ),
+    );
+  }
+}
+
+/// As quatro lojas de itens do 1.2.6, numa linha: ícone, ocupado e capacidade.
+///
+/// **O primeiro número é cinzento e o segundo é que leva cor**, e essa é a
+/// leitura certa do par — do dono, 05/10/2026: num `50/64`, o 50 não diz nada
+/// sobre o personagem, porque aquilo podia estar no banqueiro. O 64 é o que
+/// ele pagou para expandir, e é esse que o distingue.
+///
+/// **Verde quando a loja foi expandida, azul quando está no tamanho de
+/// origem.** A regra compara com o ponto de partida e nunca com o tecto, e
+/// isso não é um detalhe: os tectos crescem quando o jogo os muda — medi
+/// Roupas em 80 e Materiais em 96, bem acima do que se julgava ser o limite —
+/// enquanto o ponto de partida não muda nunca. Os nove personagens medidos
+/// confirmam os mínimos: ninguém aparece abaixo deles, e a Freya está
+/// exactamente em 32 e 16, que é por onde se começa.
+///
+/// Uma loja que o personagem nunca abriu sai com capacidade zero e não se
+/// desenha: um `0/0` ocupa uma linha para dizer menos que o silêncio. Isso
+/// torna Roupas e Materiais sempre verdes quando aparecem — o que é honesto,
+/// porque ali existir já significa ter pago.
+class _EspacosDoPersonagem extends StatelessWidget {
+  const _EspacosDoPersonagem({required this.espacos});
+
+  final Map<String, EspacoDeItens> espacos;
+
+  /// O tamanho com que cada loja começa, dado pelo dono e confirmado contra o
+  /// mercado: nenhuma das nove capacidades medidas fica abaixo destes.
+  static const _deOrigem = <String, int>{
+    'Inventário': 32,
+    'Banqueiro': 16,
+    'Roupas': 0,
+    'Materiais': 0,
+  };
+
+  /// A arte do próprio jogo, 32×32, as quatro.
+  ///
+  /// A das Roupas chegou depois das outras três e por uma boa razão: a
+  /// primeira tentativa foi uma captura de ecrã ampliada, com o fundo da
+  /// célula colado, e aos 16 px que esta linha desenha saía um borrão
+  /// laranja. Renderizar no tamanho real antes de aceitar é o que apanhou
+  /// isso — a mesma verificação que o card faz com tudo o resto.
+  static const _arte = <String, String>{
+    'Inventário': 'assets/icons/lojas/inventario.png',
+    'Banqueiro': 'assets/icons/lojas/banqueiro.png',
+    'Roupas': 'assets/icons/lojas/roupas.png',
+    'Materiais': 'assets/icons/lojas/materiais.png',
+  };
+
+  static const _ordem = ['Inventário', 'Banqueiro', 'Roupas', 'Materiais'];
+
+  @override
+  Widget build(BuildContext context) {
+    final linha = <Widget>[];
+    for (final nome in _ordem) {
+      final espaco = espacos[nome];
+      if (espaco == null || espaco.capacidade == 0) continue;
+      if (linha.isNotEmpty) linha.add(const SizedBox(width: 12));
+
+      final expandida = espaco.capacidade > (_deOrigem[nome] ?? 0);
+
+      linha.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              _arte[nome]!,
+              width: 16,
+              height: 16,
+              filterQuality: FilterQuality.medium,
+              semanticLabel: nome,
+              // O mesmo recuo silencioso que `ItemIcon` faz: um ícone que não
+              // carrega deixa o número falar, nunca uma caixa partida.
+              errorBuilder: (_, _, _) => const SizedBox(width: 16),
+            ),
+            const SizedBox(width: 4),
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: '${espaco.usados}/',
+                    style: const TextStyle(color: PWColors.textMuted),
+                  ),
+                  TextSpan(
+                    text: '${espaco.capacidade}',
+                    style: TextStyle(
+                      color: expandida ? PWColors.ok : PWColors.espacoLivre,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              style: const TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    }
+    if (linha.isEmpty) return const SizedBox.shrink();
+
+    // `FittedBox` e não `Wrap`: quatro pares numa segunda linha fariam este
+    // cartão mais alto que o seu mosaico, e uma grade só sabe uma altura.
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Row(mainAxisSize: MainAxisSize.min, children: linha),
     );
   }
 }

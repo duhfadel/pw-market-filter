@@ -1,4 +1,5 @@
 import 'detail_parser.dart';
+import 'detail_parser_126.dart';
 
 /// Everything one detail page yielded, in the shape the collector's state file
 /// keeps it.
@@ -24,16 +25,31 @@ class CollectedPage {
     this.path = '',
     this.runes = const [],
     this.titles,
+    this.espacos = const {},
+    this.mascotes = const [],
+    this.pericias = const {},
   });
 
-  /// What this version knows how to write. An entry stamped with anything else
-  /// — or with nothing, which is every entry written before the inventory
-  /// existed — is stale, and the collector fetches its page again.
+  /// What this reader knows how to write, **per marketplace**. An entry
+  /// stamped with anything else — or with nothing, which is every entry
+  /// written before the inventory existed — is stale, and the collector
+  /// fetches its page again.
   ///
   /// A stamp, and not "is the anecdotes key there?": a page may legitimately
   /// have no anecdote panel, and that character would then be re-fetched on
   /// every run for ever.
-  static const version = 4;
+  ///
+  /// **One number per version, and that is what makes a new field affordable.**
+  /// A single shared stamp meant adding a field only one marketplace publishes
+  /// re-crawled the other for nothing: measured on 2026-10-04, the 1.2.6 asked
+  /// for its slot counts, its pets and its crafting skills, and none of the
+  /// three exists on a 1.8.7 page — so bumping one number would have spent
+  /// eighty-four minutes of their server's traffic to learn nothing. The cost
+  /// of a field should fall on the version that gains it.
+  static const versoes = <String, int>{'pw187': 4, 'pw126': 5};
+
+  /// The stamp a page collected from [servidor] carries.
+  static int versaoDe(String servidor) => versoes[servidor] ?? 0;
 
   final List<ParsedItem> items;
   final List<ParsedCard> cards;
@@ -68,10 +84,24 @@ class CollectedPage {
   /// `--rebuild` rather than another crawl. Same bargain as [realm].
   final ParsedTitles? titles;
 
-  static bool isCurrent(Map<String, dynamic> json) => json['v'] == version;
+  /// The `Itens do Personagem` tabs — a 1.2.6 section, empty elsewhere.
+  final Map<String, EspacoDeItens> espacos;
 
-  Map<String, dynamic> toJson() => {
-    'v': version,
+  /// Every pet and mount in the cage, 1.2.6 only. Kept whole although one
+  /// name is filtered on today: a crawl already paid for takes what the page
+  /// offers.
+  final List<MascoteDoPersonagem> mascotes;
+
+  /// Skill id to level, 1.2.6 only. **By id, with no names**, because the
+  /// page publishes none — see [parsePericias126] for how the four crafting
+  /// ids were found and why naming them is a rebuild rather than a crawl.
+  final Map<int, int> pericias;
+
+  static bool isCurrent(Map<String, dynamic> json, String servidor) =>
+      json['v'] == versaoDe(servidor);
+
+  Map<String, dynamic> toJson(String servidor) => {
+    'v': versaoDe(servidor),
     'items': items.map(_itemToJson).toList(),
     'cards': cards.map(_cardToJson).toList(),
     'sex': sex,
@@ -91,6 +121,18 @@ class CollectedPage {
     if (path.isNotEmpty) 'path': path,
     if (runes.isNotEmpty) 'runes': runes.map(_runeToJson).toList(),
     if (titles != null) 'titles': _titlesToJson(titles!),
+    if (espacos.isNotEmpty)
+      'espacos': {
+        for (final e in espacos.entries)
+          e.key: [e.value.usados, e.value.capacidade],
+      },
+    if (mascotes.isNotEmpty)
+      'mascotes': [
+        for (final m in mascotes)
+          {'nome': m.nome, if (m.montaria) 'montaria': 1, 'nivel': m.nivel},
+      ],
+    if (pericias.isNotEmpty)
+      'pericias': {for (final e in pericias.entries) e.key.toString(): e.value},
   };
 
   /// [names] is the state's shared id-to-name table.
@@ -132,6 +174,27 @@ class CollectedPage {
       titles: json['titles'] == null
           ? null
           : _titlesFromJson(json['titles'] as Map<String, dynamic>),
+      espacos: {
+        for (final e
+            in (json['espacos'] as Map<String, dynamic>? ?? const {}).entries)
+          e.key: EspacoDeItens(
+            usados: (e.value as List<dynamic>)[0] as int,
+            capacidade: (e.value as List<dynamic>)[1] as int,
+          ),
+      },
+      mascotes: [
+        for (final m in (json['mascotes'] as List<dynamic>? ?? const []))
+          MascoteDoPersonagem(
+            nome: (m as Map<String, dynamic>)['nome'] as String,
+            montaria: m['montaria'] == 1,
+            nivel: m['nivel'] as int? ?? 0,
+          ),
+      ],
+      pericias: {
+        for (final e
+            in (json['pericias'] as Map<String, dynamic>? ?? const {}).entries)
+          int.parse(e.key): e.value as int,
+      },
     );
   }
 }

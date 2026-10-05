@@ -34,7 +34,8 @@ void main() {
   /// one thing that matters: what survives being written to disk.
   CollectedPage roundTrip(CollectedPage page) {
     final names = itemNamesOf([page]);
-    final json = jsonDecode(jsonEncode(page.toJson())) as Map<String, dynamic>;
+    final json =
+        jsonDecode(jsonEncode(page.toJson('pw187'))) as Map<String, dynamic>;
     return CollectedPage.fromJson(json, names);
   }
 
@@ -76,10 +77,10 @@ void main() {
   test('an entry written by an older collector is refused, not adapted', () {
     // It is missing the very fields the re-collection is for. Keeping it would
     // leave most of the market without them and nothing on screen saying why.
-    final old = {...page.toJson()}..remove('v');
+    final old = {...page.toJson('pw187')}..remove('v');
 
-    expect(CollectedPage.isCurrent(old), isFalse);
-    expect(CollectedPage.isCurrent(page.toJson()), isTrue);
+    expect(CollectedPage.isCurrent(old, 'pw187'), isFalse);
+    expect(CollectedPage.isCurrent(page.toJson('pw187'), 'pw187'), isTrue);
   });
 
   test('a page whose site has no anecdote panel is still current', () {
@@ -90,9 +91,9 @@ void main() {
       cards: const [],
       sex: '',
       inventory: const [],
-    ).toJson();
+    ).toJson('pw187');
 
-    expect(CollectedPage.isCurrent(json), isTrue);
+    expect(CollectedPage.isCurrent(json, 'pw187'), isTrue);
     expect(CollectedPage.fromJson(json, const {}).anecdotes, isNull);
   });
 
@@ -138,16 +139,47 @@ void main() {
       cards: const [],
       sex: '',
       titles: null,
-    ).toJson();
+    ).toJson('pw187');
 
     expect(json.containsKey('titles'), isFalse);
     expect(CollectedPage.fromJson(json, const {}).titles, isNull);
+  });
+
+  test(
+    'the stamp is per marketplace, so one version pays for its own field',
+    () {
+      // Measured on 2026-10-04: the 1.2.6 asked for its slot counts, its pets
+      // and its crafting skills, and none of the three exists on a 1.8.7 page.
+      // With one shared number, bumping it would have spent eighty-four minutes
+      // of their server's traffic re-reading 1.8.7 pages that could not gain a
+      // thing. The cost of a field falls on the version that gains it.
+      final pagina = CollectedPage(items: const [], cards: const [], sex: '');
+
+      expect(CollectedPage.isCurrent(pagina.toJson('pw126'), 'pw126'), isTrue);
+      // The same bytes, read as the other marketplace, are stale — which is
+      // exactly how a 1.2.6-only bump leaves the 1.8.7 state alone.
+      expect(CollectedPage.isCurrent(pagina.toJson('pw126'), 'pw187'), isFalse);
+      expect(
+        CollectedPage.versaoDe('pw126'),
+        isNot(CollectedPage.versaoDe('pw187')),
+      );
+    },
+  );
+
+  test('an unknown marketplace is stale, never silently current', () {
+    // A typo in a server key must re-fetch rather than accept whatever the
+    // state happens to hold: a wrong profile reading a stale entry is how a
+    // collection ends up publishing another version's data.
+    final pagina = CollectedPage(items: const [], cards: const [], sex: '');
+
+    expect(CollectedPage.versaoDe('pw144'), 0);
+    expect(CollectedPage.isCurrent(pagina.toJson('pw187'), 'pw144'), isFalse);
   });
 
   test('the stamp moved, so every older entry is fetched again', () {
     // Realm, path and runes are in no state written before them, and the
     // titles panel is in none written before 2026-10-02 — which is what makes
     // each re-collection happen by itself rather than needing a flag.
-    expect(CollectedPage.version, greaterThan(3));
+    expect(CollectedPage.versaoDe('pw187'), greaterThan(3));
   });
 }

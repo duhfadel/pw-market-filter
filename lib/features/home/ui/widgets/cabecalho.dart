@@ -102,13 +102,14 @@ class Cabecalho extends StatelessWidget {
       _Marca(key: const Key('cabecalho-marca'), versao: versao),
       const Spacer(),
       if (wide) ...[
-        for (final secao in secoesDaHome) ...[
-          _SectionPill(secao: secao),
-          const SizedBox(width: 8),
-        ],
+        for (final secao in secoesDaHome)
+          if (toolsDe(secao, versao: versao).isNotEmpty) ...[
+            _SectionPill(secao: secao, versao: versao),
+            const SizedBox(width: 8),
+          ],
         _NovidadesPill(memoria: memoriaDeNovidades),
       ] else
-        const _OverflowMenu(),
+        _OverflowMenu(versao: versao),
     ],
   );
 }
@@ -290,13 +291,19 @@ class _Pill extends StatelessWidget {
 /// Empty on purpose when a section has nothing at all: a pill that opens to
 /// an empty drawer is worse than no pill.
 class _SectionPill extends StatelessWidget {
-  const _SectionPill({required this.secao});
+  const _SectionPill({required this.secao, this.versao});
 
   final String secao;
 
+  /// A versão em que o visitante está, ou `null` no seletor. Uma secção sem
+  /// nada para esta versão não desenha pílula nenhuma — o mesmo motivo de
+  /// uma secção vazia não a desenhar: uma pílula que abre uma gaveta vazia é
+  /// pior do que nenhuma pílula.
+  final String? versao;
+
   @override
   Widget build(BuildContext context) {
-    final itens = toolsDe(secao);
+    final itens = toolsDe(secao, versao: versao);
     if (itens.isEmpty) return const SizedBox.shrink();
 
     // Counts only what is ready: a pill promising three and a drawer
@@ -538,7 +545,13 @@ class GavetaItem extends StatelessWidget {
 /// same information the wide row offers, in the one panel this site allows
 /// itself on a phone.
 class _OverflowMenu extends StatelessWidget {
-  const _OverflowMenu();
+  const _OverflowMenu({this.versao});
+
+  /// A mesma versão que as pílulas usam no largo. O menu estreito é a mesma
+  /// navegação noutro invólucro, e uma das duas a mostrar ferramentas de
+  /// outro mercado seria a barra a discordar de si própria consoante a
+  /// largura da janela.
+  final String? versao;
 
   @override
   Widget build(BuildContext context) => PopupMenuButton<Tool?>(
@@ -548,26 +561,27 @@ class _OverflowMenu extends StatelessWidget {
       if (tool != null) abrirTool(context, tool);
     },
     itemBuilder: (context) => [
-      for (final secao in secoesDaHome) ...[
-        PopupMenuItem<Tool?>(
-          enabled: false,
-          child: Text(
-            secao.toUpperCase(),
-            style: const TextStyle(
-              color: PWColors.textMuted,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.2,
+      for (final secao in secoesDaHome)
+        if (toolsDe(secao, versao: versao).isNotEmpty) ...[
+          PopupMenuItem<Tool?>(
+            enabled: false,
+            child: Text(
+              secao.toUpperCase(),
+              style: const TextStyle(
+                color: PWColors.textMuted,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.2,
+              ),
             ),
           ),
-        ),
-        for (final tool in toolsDe(secao))
-          PopupMenuItem<Tool?>(
-            value: tool,
-            enabled: tool.isReady,
-            child: GavetaItem(tool: tool),
-          ),
-      ],
+          for (final tool in toolsDe(secao, versao: versao))
+            PopupMenuItem<Tool?>(
+              value: tool,
+              enabled: tool.isReady,
+              child: GavetaItem(tool: tool),
+            ),
+        ],
       PopupMenuItem<Tool?>(
         onTap: () => _abrirNovidades(context),
         child: const Text(

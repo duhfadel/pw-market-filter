@@ -26,6 +26,7 @@ class GuerrasView extends StatelessWidget {
   Widget build(BuildContext context) => TelaDeVideos(
     secao: 'guerras',
     versao: versao,
+    dicaDeBusca: 'Buscar por guilda, personagem ou título',
     carregar: carregar,
     cabecalho: _Cabecalho(versao: versao),
   );

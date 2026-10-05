@@ -1036,6 +1036,25 @@ Each of these already cost something — measured on the live site, not guessed.
   minutos para corridas de 20 a 45. Agora é **um por versão por hora**, `:07`
   e `:37`.
 
+- **O artefato existe e a API diz que não, e a janela é de menos de meio
+  segundo.** Duas vezes em 05/10/2026 o `upload-pages-artifact` terminou com
+  sucesso — ID e tamanho impressos — e o `deploy-pages` perguntou pelo mesmo
+  artefato logo a seguir e recebeu **`Found 0 artifact(s)`**: 387 ms de
+  intervalo às 15:18, 464 ms às 19:10. Cada uma custou a execução inteira,
+  coleta de quarenta minutos incluída.
+
+  **A mensagem do próprio action engana por omissão.** Ela manda olhar o
+  `githubstatus.com` e tentar mais tarde — o que acerta em de quem é o
+  problema e erra no remédio: o que resolve é esperar que a API admita o que
+  acabou de aceitar. Há agora um passo entre os dois que faz exactamente
+  isso, por no máximo um minuto, e que **não falha** se o tempo acabar — deixa
+  o `deploy-pages` falhar com a mensagem dele, porque aí o problema é outro.
+
+  O que distingue este caso do 503 da nota abaixo é onde se olha: ali o
+  deploy nunca arranca e o `githubstatus` confirma; aqui o log do passo
+  anterior diz `successfully finalized` com um ID, e é a diferença de
+  milissegundos entre as duas linhas que conta a história.
+
 - **A failed deploy is usually GitHub, and `gh run rerun --failed` makes it
   worse.** On 2026-08-17 the collect, analyze, test and build steps all passed
   and `actions/deploy-pages` answered **503 — "No server is currently available"**;

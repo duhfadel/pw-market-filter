@@ -11,6 +11,7 @@ import 'features/home/ui/visit_counter_view_model.dart';
 import 'features/novidades/ui/novidades_view.dart';
 import 'features/portas/ui/portas_view.dart';
 import 'features/registros/ui/registros_view.dart';
+import 'features/guias/ui/guerras_view.dart';
 import 'features/runas/ui/runas_view.dart';
 import 'features/search/ui/search_view.dart';
 import 'features/search/ui/search_view_model.dart';
@@ -84,6 +85,7 @@ class PortalPWApp extends StatelessWidget {
           ),
           RotaTela(tela: Tela.registros) => const RegistrosView(),
           RotaTela(tela: Tela.runas) => const RunasView(),
+          RotaTela(tela: Tela.guerras) => const GuerrasView(),
           RotaTela(tela: Tela.novidades) => const NovidadesView(),
           // The choice screen now exists on its own — `/` no longer opens
           // the 1.8.7 home directly.

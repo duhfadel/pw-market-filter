@@ -215,7 +215,26 @@ final tools = <Tool>[
     href: '/guias/inicio-rapido',
     versoes: const {'1.8.7'},
   ),
+  // **E esta é a volta da entrada que saiu em 29/09/2026**, agora com algo
+  // atrás dela. Saiu porque era um *em breve* sem data, e um *em breve* que
+  // fica meses na primeira dobra ensina o visitante a não acreditar no
+  // próximo. Volta com `route` e não com `href` porque agora é uma tela do
+  // site e não uma página estática em `web/guerras/`.
+  Tool(
+    name: 'Guerras Territoriais',
+    tagline:
+        'Vídeos de guerra gravados pela comunidade, por classe — e todos '
+        'com permissão de quem gravou.',
+    icon: Icons.videocam_outlined,
+    secao: 'Guias',
+    novoAte: _ateNovembro,
+    route: '/1.8.7/guerras',
+    versoes: const {'1.8.7'},
+  ),
 ];
+
+/// Quando o selo de *novo* das Guerras vence.
+final _ateNovembro = DateTime.utc(2026, 11, 5);
 
 /// Quando o selo de *novo* dos Títulos vence.
 final _ateOutubro = DateTime.utc(2026, 10, 20);

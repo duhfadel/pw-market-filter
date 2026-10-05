@@ -9,6 +9,8 @@ import 'package:pw_market_filter/features/home/data/browser_memory.dart';
 import 'package:pw_market_filter/features/home/data/visit_repository.dart';
 import 'package:pw_market_filter/features/home/ui/novidades_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/visit_counter_view_model.dart';
+import 'package:pw_market_filter/features/search/ui/search_view_model.dart';
+import 'package:pw_market_filter/market/index_repository.dart';
 
 /// Wraps [child] with a `NovidadesViewModel` — the one `main.dart` provides
 /// above every real route, through its `MultiBlocProvider`.
@@ -60,5 +62,26 @@ Widget comVisitas(Widget child, {String chave = 'portal_pw_teste_visitas'}) =>
           memory: BrowserMemory.platform(chave),
         ),
       ),
+      child: child,
+    );
+
+/// Envolve [child] com um `SearchViewModel` — o terceiro que o `main.dart`
+/// monta acima de todas as rotas.
+///
+/// **Preciso para qualquer tela que leia o índice do mercado**, o que desde
+/// 05/10/2026 inclui a das guerras territoriais: os chips de classe tiram dele
+/// o número que nomeia a arte, em vez de uma tabela de nomes escrita à mão que
+/// divergiria no dia em que o jogo acrescentasse uma classe.
+///
+/// O índice chega vazio, que é o estado em que a tela desenha os chips só com
+/// o nome — exactamente o que acontece enquanto o índice de verdade ainda
+/// carrega.
+Widget comBusca(Widget child, {Object corpo = const {}}) =>
+    BlocProvider<SearchViewModel>(
+      create: (_) => SearchViewModel(
+        IndexRepository(
+          MockClient((_) async => http.Response(jsonEncode(corpo), 200)),
+        ),
+      )..load(),
       child: child,
     );

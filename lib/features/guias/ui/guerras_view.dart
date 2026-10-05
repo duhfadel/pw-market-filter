@@ -23,7 +23,12 @@ import '../domain/video.dart';
 /// fim da grelha, e não apenas quando não há nada. Escondê-lo depois de entrar
 /// o primeiro vídeo seria fechar a porta por onde a página se enche.
 class GuerrasView extends StatefulWidget {
-  const GuerrasView({this.carregar, super.key});
+  const GuerrasView({this.versao = rotas.pw187, this.carregar, super.key});
+
+  /// Qual mercado. **As guerras existem nos dois**, e a versão é o que decide
+  /// quais vídeos pedir e o que a barra mostra — um vídeo de guerra do 1.8.7
+  /// debaixo do 1.2.6 seria o site a dizer que aquilo é de lá.
+  final String versao;
 
   /// Por onde os vídeos chegam. Injetável só para o teste; a produção usa o
   /// repositório de verdade, e **a tela monta-o ela própria** em vez de
@@ -48,7 +53,8 @@ class _GuerrasViewState extends State<GuerrasView> {
 
   Future<void> _buscar() async {
     final carregar =
-        widget.carregar ?? () => VideoRepository().daSecao('guerras');
+        widget.carregar ??
+        () => VideoRepository().daSecao('guerras', versao: widget.versao);
     final videos = await carregar();
     if (mounted) setState(() => _videos = videos);
   }
@@ -66,7 +72,7 @@ class _GuerrasViewState extends State<GuerrasView> {
         automaticallyImplyLeading: false,
         title: Cabecalho(
           wide: largura >= Cabecalho.larguraMinima,
-          versao: rotas.pw187,
+          versao: widget.versao,
         ),
       ),
       body: _videos == null
@@ -79,6 +85,7 @@ class _GuerrasViewState extends State<GuerrasView> {
               aoEscolher: (c) => setState(() => _classe = c),
               busca: _busca,
               aoBuscar: (t) => setState(() => _busca = t),
+              versao: widget.versao,
             ),
     );
   }
@@ -91,6 +98,7 @@ class _Conteudo extends StatelessWidget {
     required this.aoEscolher,
     required this.busca,
     required this.aoBuscar,
+    required this.versao,
   });
 
   final List<Video> videos;
@@ -98,6 +106,7 @@ class _Conteudo extends StatelessWidget {
   final ValueChanged<String?> aoEscolher;
   final String busca;
   final ValueChanged<String> aoBuscar;
+  final String versao;
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +125,7 @@ class _Conteudo extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const _Cabecalho(),
+                _Cabecalho(versao: versao),
                 const SizedBox(height: 20),
                 _CampoDeBusca(valor: busca, aoMudar: aoBuscar),
                 if (classes.isNotEmpty) ...[
@@ -178,15 +187,17 @@ class _CampoDeBusca extends StatelessWidget {
 }
 
 class _Cabecalho extends StatelessWidget {
-  const _Cabecalho();
+  const _Cabecalho({required this.versao});
+
+  final String versao;
 
   @override
-  Widget build(BuildContext context) => const Column(
+  Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       // Sem algarismos, portanto a face de display é segura aqui: Marcellus
       // desenha figuras romanas e o seu `1` não tem bandeira.
-      Text(
+      const Text(
         'Guerras Territoriais',
         style: TextStyle(
           fontFamily: PWTheme.display,
@@ -197,9 +208,13 @@ class _Cabecalho extends StatelessWidget {
       ),
       SizedBox(height: 10),
       Text(
-        'Vídeos de guerra territorial do 1.8.7 — para rever como foi a '
+        'Vídeos de guerra territorial do $versao — para rever como foi a '
         'guerra, analisar a gameplay ou comparar com a sua.',
-        style: TextStyle(color: PWColors.textMuted, fontSize: 14, height: 1.55),
+        style: const TextStyle(
+          color: PWColors.textMuted,
+          fontSize: 14,
+          height: 1.55,
+        ),
       ),
       SizedBox(height: 8),
       Text(

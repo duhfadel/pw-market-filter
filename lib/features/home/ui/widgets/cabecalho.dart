@@ -98,17 +98,40 @@ class Cabecalho extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
       _Marca(key: const Key('cabecalho-marca'), versao: versao),
-      const Spacer(),
-      if (wide) ...[
-        for (final secao in secoesDaHome)
-          if (toolsDe(secao, versao: versao).isNotEmpty) ...[
-            _SectionPill(secao: secao, versao: versao),
-            const SizedBox(width: 8),
-          ],
-        _NovidadesPill(memoria: memoriaDeNovidades),
-      ] else
+      if (wide)
+        // **A fila rola em vez de transbordar, e a quarta pílula foi quem
+        // mostrou que isto faltava.** `wide` liga aos 772 px de *janela*,
+        // mas a home prende o conteúdo a 780 px entre 680 e 1279 e ainda
+        // lhe tira margens — a barra recebe menos do que o limiar que a
+        // acendeu, e três pílulas cabiam nessa diferença por sorte. Uma
+        // secção nova não pode voltar a partir a barra.
+        //
+        // O `Spacer` que empurrava as pílulas para a direita saiu junto, e
+        // era metade do defeito: sendo `Expanded`, exigia todo o espaço
+        // livre, portanto a fila nunca chegava a encolher. `spaceBetween`
+        // afasta os dois extremos sem reclamar espaço de ninguém.
+        Flexible(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            // Encostada ao fim: o que tem de ficar visível quando falta
+            // espaço é o lado direito, onde a barra sempre viveu.
+            reverse: true,
+            child: Row(
+              children: [
+                for (final secao in secoesDaHome)
+                  if (toolsDe(secao, versao: versao).isNotEmpty) ...[
+                    _SectionPill(secao: secao, versao: versao),
+                    const SizedBox(width: 8),
+                  ],
+                _NovidadesPill(memoria: memoriaDeNovidades),
+              ],
+            ),
+          ),
+        )
+      else
         _OverflowMenu(versao: versao),
     ],
   );
@@ -310,10 +333,29 @@ class _SectionPill extends StatelessWidget {
     // delivering two is the pill lying about its own number.
     final prontos = itens.where((t) => t.isReady).length;
 
+    // **Uma gaveta de um item é um clique gasto a nada.** Com uma entrada só,
+    // a pílula leva direto ao destino — é o que a *Novidades* já faz e pela
+    // mesma razão, e é o que o dono pediu em 05/10/2026 para as Guerras
+    // Territoriais, que não são um guia e passaram a ter secção própria.
+    //
+    // A regra é geral e não um caso à parte: os *Guias* voltam a abrir gaveta
+    // no dia em que forem dois, sem ninguém ter de se lembrar de a religar.
+    if (itens.length == 1 && itens.single.isReady) {
+      final unico = itens.single;
+      return Tooltip(
+        message: unico.tagline,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(999),
+          onTap: () => abrirTool(context, unico, versao: versao),
+          child: _Pill(label: secao),
+        ),
+      );
+    }
+
     return PopupMenuButton<Tool?>(
       tooltip: secao,
       onSelected: (tool) {
-        if (tool != null) abrirTool(context, tool);
+        if (tool != null) abrirTool(context, tool, versao: versao);
       },
       itemBuilder: (context) => [
         for (final tool in itens)

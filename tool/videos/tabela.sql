@@ -14,6 +14,12 @@ create table if not exists public.videos (
   -- pode custar uma migração, que é a razão de esta tabela existir assim.
   secao       text not null,
 
+  -- Qual mercado: `1.8.7` ou `1.2.6`. **As guerras territoriais existem nos
+  -- dois**, e um vídeo de guerra do 1.8.7 mostrado dentro do 1.2.6 seria o
+  -- site a dizer que aquilo é de lá. Nulo nas seções que só existem numa
+  -- versão, e aí a tela pede a seção inteira.
+  versao      text,
+
   -- O id do YouTube, não o endereço inteiro. A miniatura, o link e o
   -- incrustável derivam todos dele, e guardar o endereço convidaria as três
   -- formas de `youtube.com/watch`, `youtu.be` e `/embed` a conviverem na
@@ -56,7 +62,8 @@ create table if not exists public.videos (
   publicado_em timestamptz not null default now()
 );
 
-create index if not exists videos_secao_idx on public.videos (secao, ordem);
+create index if not exists videos_secao_idx
+  on public.videos (secao, versao, ordem);
 
 -- **Aberta para ler, fechada para escrever** — o mesmo arranjo do mapa de
 -- guerras e pelo mesmo motivo: as linhas *são* o conteúdo da página, então o

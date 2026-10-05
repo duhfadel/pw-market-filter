@@ -27,7 +27,11 @@ void main() {
     detalhes: detalhes,
   );
 
-  Future<void> montar(WidgetTester tester, List<Video> videos) async {
+  Future<void> montar(
+    WidgetTester tester,
+    List<Video> videos, {
+    String versao = '1.8.7',
+  }) async {
     tester.view.physicalSize = const Size(1200, 2200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -36,7 +40,11 @@ void main() {
       MaterialApp(
         theme: PWTheme.build(),
         home: comBusca(
-          comVisitas(comNovidades(GuerrasView(carregar: () async => videos))),
+          comVisitas(
+            comNovidades(
+              GuerrasView(versao: versao, carregar: () async => videos),
+            ),
+          ),
         ),
       ),
     );
@@ -169,6 +177,15 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('Ainda não há vídeos'), findsNothing);
+  });
+
+  testWidgets('a tela diz de que mercado são os vídeos', (tester) async {
+    // As guerras existem nos dois, e um vídeo do 1.8.7 anunciado dentro do
+    // 1.2.6 seria o site a dizer que aquilo é de lá.
+    await montar(tester, [video('a')], versao: '1.2.6');
+
+    expect(find.textContaining('do 1.2.6'), findsOneWidget);
+    expect(find.textContaining('do 1.8.7'), findsNothing);
   });
 
   testWidgets('uma seção sem classe nenhuma não desenha filtro', (

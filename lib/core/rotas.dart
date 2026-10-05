@@ -20,6 +20,7 @@
 /// /1.8.7/registros     Títulos
 /// /1.8.7/runas         Runas
 /// /1.8.7/guerras       Guerras Territoriais
+/// /1.2.6/guerras       Guerras Territoriais do 1.2.6
 /// /1.2.6               a home do 1.2.6
 /// /1.2.6/filtro        o filtro do 1.2.6
 /// /novidades           uma só, serve as duas
@@ -77,6 +78,11 @@ enum Tela {
   /// uma rota sem versão aqui seria a terceira porta a precisar de
   /// redirecionamento quando o 1.2.6 tiver a sua.
   guerras,
+
+  /// As mesmas guerras, do outro mercado. Duas telas e não uma com um
+  /// parâmetro porque a rota é o que diz a versão — e é dela que a tela tira
+  /// quais vídeos pedir.
+  guerras126,
   novidades,
 }
 
@@ -171,6 +177,7 @@ RotaResolvida resolverRota(String? name) {
     if (segments[1] == 'filtro') {
       return RotaTela(Tela.filtro126, query: uri.queryParametersAll);
     }
+    if (segments[1] == 'guerras') return const RotaTela(Tela.guerras126);
     return const RotaTela(Tela.home126);
   }
 

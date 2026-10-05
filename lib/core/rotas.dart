@@ -19,6 +19,7 @@
 /// /filtro?...          redireciona      (links já partilhados, para sempre)
 /// /1.8.7/registros     Títulos
 /// /1.8.7/runas         Runas
+/// /1.8.7/guerras       Guerras Territoriais
 /// /1.2.6               a home do 1.2.6
 /// /1.2.6/filtro        o filtro do 1.2.6
 /// /novidades           uma só, serve as duas
@@ -70,6 +71,12 @@ enum Tela {
   filtro126,
   registros,
   runas,
+
+  /// Os vídeos de guerra territorial que a comunidade autorizou —
+  /// `GuerrasView`. Só existe sob o 1.8.7: os vídeos são daquele mercado, e
+  /// uma rota sem versão aqui seria a terceira porta a precisar de
+  /// redirecionamento quando o 1.2.6 tiver a sua.
+  guerras,
   novidades,
 }
 
@@ -155,6 +162,7 @@ RotaResolvida resolverRota(String? name) {
     }
     if (segments[1] == 'registros') return const RotaTela(Tela.registros);
     if (segments[1] == 'runas') return const RotaTela(Tela.runas);
+    if (segments[1] == 'guerras') return const RotaTela(Tela.guerras);
     return const RotaTela(Tela.home187);
   }
 

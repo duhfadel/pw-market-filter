@@ -22,6 +22,15 @@ import 'package:flutter/services.dart';
 Future<void> loadAppFonts() async {
   await _loadAsset('Marcellus', 'assets/fonts/Marcellus-Regular.ttf');
 
+  // **Inter é a face do corpo do site, e faltava aqui.** Sem ela todo texto
+  // que não seja Marcellus continuava a medir-se nos quadrados do harness —
+  // e isso já custou um teste de largura que media 226 px num rótulo de 115,
+  // e um falso transbordo de 7 px no cartão de vídeo. Cada chamador que
+  // precisava dela registava-a à mão; agora está onde devia.
+  for (final peso in ['Regular', 'SemiBold', 'Bold']) {
+    await _loadAsset('Inter', 'assets/fonts/Inter-$peso.ttf');
+  }
+
   final robotoPath = _materialFontsDir().resolve('Roboto-Regular.ttf');
   final bytes = await File.fromUri(robotoPath).readAsBytes();
   await _register('Roboto', bytes);

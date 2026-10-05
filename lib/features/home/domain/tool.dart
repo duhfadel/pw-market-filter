@@ -20,6 +20,7 @@ class Tool {
     required this.tagline,
     required this.icon,
     this.secao = 'Ferramentas',
+    this.versoes = const {},
     this.emblem,
     this.novoAte,
     this.beta = false,
@@ -43,6 +44,23 @@ class Tool {
   /// "here are four things" where it should say "here is what the site does,
   /// and here is what it explains".
   final String secao;
+
+  /// Which marketplaces this entry belongs to, by the version's display
+  /// name — `1.8.7`, `1.2.6`. **Vazio quer dizer todas**, que é o caso de
+  /// qualquer coisa que não dependa de um mercado.
+  ///
+  /// Existe porque a barra é a mesma em todas as telas e, até 05/10/2026,
+  /// listava as ferramentas do 1.8.7 dentro do 1.2.6 — um menu a oferecer
+  /// quatro portas das quais nenhuma servia a versão onde o visitante estava.
+  /// Nenhuma delas erraria em silêncio: o filtro tem `/1.8.7/filtro` cravado
+  /// na rota e teria trocado a versão debaixo dos pés de quem clicasse.
+  final Set<String> versoes;
+
+  /// Se esta entrada pertence à versão [versao]. `null` — o seletor, que
+  /// ainda não escolheu mercado — vê tudo: ali a barra é o catálogo do site,
+  /// e escondê-la toda deixaria a página de entrada sem menu.
+  bool serveA(String? versao) =>
+      versao == null || versoes.isEmpty || versoes.contains(versao);
 
   /// Until when the card wears a *novo* badge, or `null` for no badge.
   ///
@@ -125,6 +143,7 @@ final tools = <Tool>[
     // carry the version from the start — see `AddressBar`'s own note on the
     // same asymmetry.
     route: '/1.8.7/filtro',
+    versoes: const {'1.8.7'},
   ),
   Tool(
     name: 'Títulos',
@@ -141,6 +160,7 @@ final tools = <Tool>[
     // A própria Página de Registro: Assimilação, que é a moeda da mecânica.
     emblem: 83070,
     route: '/registros',
+    versoes: const {'1.8.7'},
     // Sem arte de personagem, de propósito. Era um sacerdote emprestado, que
     // não tem relação nenhuma com títulos — enchia o card e não dizia nada.
     // O emblema é a própria Página de Registro, ampliada e esmaecida atrás:
@@ -161,6 +181,7 @@ final tools = <Tool>[
     // próprio assunto da ferramenta.
     emblem: 52224,
     route: '/runas',
+    versoes: const {'1.8.7'},
     // Sem arte de personagem: as quatro do repositório já estão em uso e
     // repetir uma faria dois cards disputarem a mesma imagem. O emblema é uma
     // runa de verdade, que diz mais sobre a ferramenta que um retrato diria.
@@ -192,8 +213,28 @@ final tools = <Tool>[
     // Pedra de Hiper EXP, which is what the guide is about: levelling fast.
     emblem: 27424,
     href: '/guias/inicio-rapido',
+    versoes: const {'1.8.7'},
+  ),
+  // **E esta é a volta da entrada que saiu em 29/09/2026**, agora com algo
+  // atrás dela. Saiu porque era um *em breve* sem data, e um *em breve* que
+  // fica meses na primeira dobra ensina o visitante a não acreditar no
+  // próximo. Volta com `route` e não com `href` porque agora é uma tela do
+  // site e não uma página estática em `web/guerras/`.
+  Tool(
+    name: 'Guerras Territoriais',
+    tagline:
+        'Vídeos de guerra gravados pela comunidade, por classe — e todos '
+        'com permissão de quem gravou.',
+    icon: Icons.videocam_outlined,
+    secao: 'Guias',
+    novoAte: _ateNovembro,
+    route: '/1.8.7/guerras',
+    versoes: const {'1.8.7'},
   ),
 ];
+
+/// Quando o selo de *novo* das Guerras vence.
+final _ateNovembro = DateTime.utc(2026, 11, 5);
 
 /// Quando o selo de *novo* dos Títulos vence.
 final _ateOutubro = DateTime.utc(2026, 10, 20);
@@ -211,8 +252,8 @@ List<String> get secoesDaHome {
   ];
 }
 
-/// Os cards de uma seção, na ordem da lista.
-List<Tool> toolsDe(String secao) => [
+/// Os cards de uma seção, na ordem da lista, para a versão em que se está.
+List<Tool> toolsDe(String secao, {String? versao}) => [
   for (final tool in tools)
-    if (tool.secao == secao) tool,
+    if (tool.secao == secao && tool.serveA(versao)) tool,
 ];

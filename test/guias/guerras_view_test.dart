@@ -220,4 +220,15 @@ void main() {
     expect(find.text('Fluxo x Kaizen'), findsOneWidget);
     expect(find.textContaining('Retalhador'), findsWidgets);
   });
+
+  testWidgets('as guerras mantêm a busca, com as palavras delas', (
+    tester,
+  ) async {
+    // O contrário do guia, e é o par que torna a regra visível: aqui a
+    // pergunta por guilda é a razão de o campo existir.
+    await montar(tester, [video('a')]);
+
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.textContaining('guilda'), findsOneWidget);
+  });
 }

@@ -82,4 +82,22 @@ void main() {
       isA<RotaTela>().having((r) => r.tela, 'tela', Tela.home126),
     );
   });
+
+  testWidgets('um guia não tem barra de busca', (tester) async {
+    // **As palavras eram o sinal.** O campo perguntava por *guilda,
+    // personagem ou título* — vocabulário das Guerras — por cima de um vídeo
+    // só, porque veio junto ao reaproveitar a tela. Num guia não há guilda
+    // nenhuma a procurar, e um controlo que não controla nada ensina a
+    // ignorar os que controlam.
+    await montar(tester, [
+      const Video(secao: 'multicontas', youtube: 'a', titulo: 'Um'),
+      const Video(secao: 'multicontas', youtube: 'b', titulo: 'Dois'),
+    ]);
+
+    expect(find.byType(TextField), findsNothing);
+    expect(find.textContaining('guilda'), findsNothing);
+    // E os vídeos continuam lá: tirou-se a busca, não a grelha.
+    expect(find.text('Um'), findsOneWidget);
+    expect(find.text('Dois'), findsOneWidget);
+  });
 }

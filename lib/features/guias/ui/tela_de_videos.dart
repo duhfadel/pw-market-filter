@@ -33,6 +33,7 @@ class TelaDeVideos extends StatefulWidget {
     required this.cabecalho,
     this.versao = rotas.pw187,
     this.filtrarPorVersao = true,
+    this.dicaDeBusca,
     this.carregar,
     super.key,
   });
@@ -52,6 +53,20 @@ class TelaDeVideos extends StatefulWidget {
   /// Um guia escrito uma vez não existe duas, e pedi-lo por versão esconderia
   /// as linhas de quem deixou a coluna em branco.
   final bool filtrarPorVersao;
+
+  /// O que o campo de busca diz, **e se ele existe**: nulo tira-o da tela.
+  ///
+  /// Um parâmetro só para os dois factos, de propósito. A busca das Guerras
+  /// pergunta por *guilda, personagem ou título*, que é vocabulário daquela
+  /// página e não quer dizer nada num guia — e foi assim que ela apareceu no
+  /// Multi contas, com as palavras erradas por cima de um vídeo só. Separar
+  /// "mostrar busca" de "o que ela diz" deixaria alguém ligar uma sem a
+  /// outra, que é exactamente o estado que se corrigiu aqui.
+  ///
+  /// O filtro por classe não precisa do mesmo: ele lê as classes dos vídeos
+  /// e desaparece sozinho onde ninguém preenche a coluna. A busca não tem
+  /// como se adivinhar, porque o que falta não é um dado — são as palavras.
+  final String? dicaDeBusca;
 
   /// Por onde os vídeos chegam. Injetável só para o teste; a produção usa o
   /// repositório de verdade, e **a tela monta-o ela própria** em vez de
@@ -112,6 +127,7 @@ class _TelaDeVideosState extends State<TelaDeVideos> {
               busca: _busca,
               aoBuscar: (t) => setState(() => _busca = t),
               cabecalho: widget.cabecalho,
+              dicaDeBusca: widget.dicaDeBusca,
             ),
     );
   }
@@ -125,6 +141,7 @@ class _Conteudo extends StatelessWidget {
     required this.busca,
     required this.aoBuscar,
     required this.cabecalho,
+    required this.dicaDeBusca,
   });
 
   final List<Video> videos;
@@ -137,6 +154,9 @@ class _Conteudo extends StatelessWidget {
   /// distingue uma seção da outra, e por isso chega de fora em vez de a
   /// tela guardar um `switch` sobre nomes de seção.
   final Widget cabecalho;
+
+  /// Nulo onde não há busca — ver `TelaDeVideos.dicaDeBusca`.
+  final String? dicaDeBusca;
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +177,8 @@ class _Conteudo extends StatelessWidget {
               children: [
                 cabecalho,
                 const SizedBox(height: 20),
-                _CampoDeBusca(valor: busca, aoMudar: aoBuscar),
+                if (dicaDeBusca case final dica?)
+                  _CampoDeBusca(valor: busca, aoMudar: aoBuscar, dica: dica),
                 if (classes.isNotEmpty) ...[
                   const SizedBox(height: 14),
                   _FiltroDeClasse(
@@ -195,7 +216,15 @@ class _Conteudo extends StatelessWidget {
 /// procurar não custa um pedido. Mandar cada tecla ao PostgREST custaria um
 /// pedido por letra para filtrar uma lista que já está aqui.
 class _CampoDeBusca extends StatelessWidget {
-  const _CampoDeBusca({required this.valor, required this.aoMudar});
+  const _CampoDeBusca({
+    required this.valor,
+    required this.aoMudar,
+    required this.dica,
+  });
+
+  /// O que o campo pergunta. Vem de fora porque as palavras são da seção:
+  /// *guilda* é uma pergunta das Guerras e não quer dizer nada num guia.
+  final String dica;
 
   final String valor;
   final ValueChanged<String> aoMudar;
@@ -206,11 +235,15 @@ class _CampoDeBusca extends StatelessWidget {
     child: TextField(
       onChanged: aoMudar,
       style: const TextStyle(color: PWColors.text, fontSize: 14),
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         isDense: true,
-        prefixIcon: Icon(Icons.search, size: 19, color: PWColors.textMuted),
-        hintText: 'Buscar por guilda, personagem ou título',
-        hintStyle: TextStyle(color: PWColors.textMuted, fontSize: 13),
+        prefixIcon: const Icon(
+          Icons.search,
+          size: 19,
+          color: PWColors.textMuted,
+        ),
+        hintText: dica,
+        hintStyle: const TextStyle(color: PWColors.textMuted, fontSize: 13),
       ),
     ),
   );

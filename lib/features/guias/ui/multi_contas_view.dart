@@ -54,8 +54,9 @@ class _Cabecalho extends StatelessWidget {
           children: [
             TextSpan(
               text:
-                  'No The Classic, usar mais de uma conta é permitido — e a '
-                  'ferramenta para isso vem dentro do próprio launcher: o ',
+                  'Nos servidores de Perfect World da TC, usar mais de uma '
+                  'conta é permitido — e a ferramenta para isso vem dentro do '
+                  'próprio launcher: o ',
             ),
             TextSpan(
               text: 'TC Helper',

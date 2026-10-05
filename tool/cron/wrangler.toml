@@ -74,8 +74,8 @@ workers_dev = false
 # que os streamers saírem da página.
 [triggers]
 crons = [
-  "7 * * * *",
-  "37 * * * *",
+  "7,37 * * * *",
+  "22,52 * * * *",
   "13 4 * * *",
   "*/5 * * * *",
 ]

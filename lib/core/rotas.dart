@@ -21,6 +21,7 @@
 /// /1.8.7/runas         Runas
 /// /1.8.7/guerras       Guerras Territoriais
 /// /1.2.6/guerras       Guerras Territoriais do 1.2.6
+/// /1.8.7/multicontas   Guia de multi contas
 /// /1.2.6               a home do 1.2.6
 /// /1.2.6/filtro        o filtro do 1.2.6
 /// /novidades           uma só, serve as duas
@@ -83,6 +84,12 @@ enum Tela {
   /// parâmetro porque a rota é o que diz a versão — e é dela que a tela tira
   /// quais vídeos pedir.
   guerras126,
+
+  /// O guia de multi contas — `MultiContasView`. **Sem gémea do 1.2.6**, ao
+  /// contrário das guerras: um guia escrito uma vez não existe duas, e o que
+  /// obrigou as guerras a terem duas rotas foi os vídeos serem de um mercado
+  /// ou do outro, não a tela.
+  multiContas,
   novidades,
 }
 
@@ -169,6 +176,7 @@ RotaResolvida resolverRota(String? name) {
     if (segments[1] == 'registros') return const RotaTela(Tela.registros);
     if (segments[1] == 'runas') return const RotaTela(Tela.runas);
     if (segments[1] == 'guerras') return const RotaTela(Tela.guerras);
+    if (segments[1] == 'multicontas') return const RotaTela(Tela.multiContas);
     return const RotaTela(Tela.home187);
   }
 

@@ -221,6 +221,22 @@ final tools = <Tool>[
   // próximo. Volta com `route` e não com `href` porque agora é uma tela do
   // site e não uma página estática em `web/guerras/`.
   Tool(
+    name: 'Multi contas',
+    // Um mês de badge, e a data vence sozinha: um "novo" que ninguém se
+    // lembra de tirar deixa de ser verdade muito antes de alguém reparar.
+    novoAte: _ateNovembro,
+    tagline:
+        'Jogar com mais de um cliente aberto: para que serve um segundo '
+        'personagem e o que é preciso para o aguentar.',
+    icon: Icons.devices_other_outlined,
+    secao: 'Guias',
+    // A Pedra do Teletransporte: o item de quem anda com dois personagens
+    // em dois sítios ao mesmo tempo.
+    emblem: 23040,
+    route: '/1.8.7/multicontas',
+    versoes: const {'1.8.7'},
+  ),
+  Tool(
     name: 'Guerras Territoriais',
     tagline:
         'Vídeos de guerra gravados pela comunidade, por classe — e todos '

@@ -30,8 +30,16 @@ const WORKFLOW = 'publish.yml';
 // coleta nunca disparar, caindo calado no keep-alive do Supabase — o
 // `wrangler.toml` avisa disso e agora há quatro formas de acontecer em vez
 // de uma.
-const CRON_DA_COLETA_187 = ['7 * * * *'];
-const CRON_DA_COLETA_126 = ['37 * * * *'];
+// **Meia em meia hora, e as duas versões intercaladas de propósito.** O 187
+// aos :07 e :37, o 126 aos :22 e :52 — quinze minutos entre qualquer par,
+// portanto duas coletas nunca disputam a fila do Pages, que guarda **uma**
+// pendente só e mata a anterior.
+//
+// Listas dentro do mesmo cron (`7,37`) em vez de quatro gatilhos separados:
+// o número de entradas em `wrangler.toml` fica igual, e a comparação string
+// a string abaixo continua a ser com a linha inteira.
+const CRON_DA_COLETA_187 = ['7,37 * * * *'];
+const CRON_DA_COLETA_126 = ['22,52 * * * *'];
 
 // Qual versão cada horário dispara. Uma tabela construída das duas listas
 // acima, em vez de um `if/else if` por horário — um terceiro horário, ou um
@@ -157,16 +165,39 @@ export default {
 // sempre há uma corrida boa do 187. `per_page=10` em vez de 5 é para sobrar
 // histórico suficiente de cada versão depois de filtrar pela mesma.
 //
-// Não há risco de disparar duas vezes pela mesma falha: assim que a nova
-// rodada nasce, a mais recente deixa de ser a que quebrou.
+// **O comentário que estava aqui dizia o contrário do que o código fazia, e
+// a forma é a de sempre: descrevia a intenção em vez da consulta.** Ele
+// garantia que "assim que a nova rodada nasce, a mais recente deixa de ser a
+// que quebrou" — e isso é falso enquanto a consulta pedir
+// `status=completed`, porque uma rodada recém-disparada está `queued` e
+// portanto **não aparece nesta lista**. A mais recente *completada* continua
+// a ser a que falhou até a nova terminar.
+//
+// Com batida de cinco minutos e uma coleta de 65 minutos, isso são treze
+// disparos pela mesma falha. E com `cancel-in-progress: false` o GitHub
+// guarda **uma** pendente só, portanto cada disparo novo mata a que espera:
+// é exactamente a forma do bloqueio de 01/10, trinta e duas corridas
+// canceladas e dez horas sem deploy.
+//
+// Não mordeu em 05/10 por sorte de calendário: a corrida de recuperação
+// demorou 4 min 05 s e acabou às 16:44:31, antes da batida das 16:45. O
+// freio verdadeiro é perguntar se já existe uma rodada daquela versão **por
+// terminar**, e é isso que `jaVemOutra` faz.
 async function ressuscitarColeta(env) {
+  // Sem `status=completed`: as rodadas por terminar são metade da pergunta.
+  // `per_page=20` porque agora a lista mistura as duas versões *e* os dois
+  // estados, e ainda tem de sobrar histórico de cada versão depois de
+  // filtrar.
   const resposta = await github(
     env,
-    `/repos/${REPO}/actions/workflows/${WORKFLOW}/runs?per_page=10&status=completed`,
+    `/repos/${REPO}/actions/workflows/${WORKFLOW}/runs?per_page=20`,
   );
   if (!resposta.ok) return;
 
-  const { workflow_runs: rodadas = [] } = await resposta.json();
+  const { workflow_runs: todas = [] } = await resposta.json();
+  if (!todas.length) return;
+
+  const rodadas = todas.filter((rodada) => rodada.status === 'completed');
   if (!rodadas.length) return;
 
   const [ultima] = rodadas;
@@ -181,6 +212,17 @@ async function ressuscitarColeta(env) {
   // qualquer rodada da outra versão no meio. Sem isto o freio compararia
   // `ultima` contra uma rodada que pode ser do outro mercado, e a garantia
   // "duas falhas seguidas não são soluço" deixaria de valer por versão.
+  // **Já vem outra a caminho**, e aí não há nada a ressuscitar. É o freio
+  // que o comentário antigo julgava ter de graça.
+  const jaVemOutra = todas.some(
+    (rodada) =>
+      rodada.status !== 'completed' && servidorDaRodada(rodada) === servidor,
+  );
+  if (jaVemOutra) {
+    console.log(`${servidor} já tem rodada a caminho; nada a ressuscitar.`);
+    return;
+  }
+
   const anteriorMesmaVersao = rodadas
     .slice(1)
     .find((rodada) => servidorDaRodada(rodada) === servidor);

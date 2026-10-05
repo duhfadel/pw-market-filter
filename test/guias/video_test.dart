@@ -53,7 +53,76 @@ void main() {
     // inteira — o mesmo motivo de o repositório devolver lista vazia.
     final v = Video.fromJson(const {});
     expect(v.youtube, '');
-    expect(v.titulo, '');
+    // Nulo e não string vazia: ausente é o que o card tem de poder ler para
+    // não abrir com uma manchete em branco.
+    expect(v.titulo, isNull);
     expect(v.classe, isNull);
+  });
+
+  group('o título é opcional', () {
+    // Posto o primeiro vídeo de guerra a sério, o título do YouTube —
+    // `Fluxo x Kaizen 20/09/2026 - Mozaum` — repetia os três campos que o
+    // card já imprime por baixo. Nas Guerras os campos são o título.
+    test('sem título, a manchete passa a ser a guerra', () {
+      const semTitulo = Video(
+        secao: 'guerras',
+        youtube: 'wrEvjz8hEU0',
+        personagem: 'Mozaum',
+        detalhes: 'Fluxo x Kaizen',
+      );
+
+      expect(semTitulo.manchete, 'Fluxo x Kaizen');
+      // E não por baixo também: promovido é gasto.
+      expect(semTitulo.detalhesPorBaixo, isNull);
+    });
+
+    test('com título, os detalhes continuam na sua linha', () {
+      const comTitulo = Video(
+        secao: 'guerras',
+        youtube: 'x',
+        titulo: 'Como ler o mapa durante a TW',
+        detalhes: 'Fluxo x Kaizen',
+      );
+
+      expect(comTitulo.manchete, 'Como ler o mapa durante a TW');
+      expect(comTitulo.detalhesPorBaixo, 'Fluxo x Kaizen');
+    });
+
+    test('sem título e sem detalhes não há manchete para inventar', () {
+      const nu = Video(secao: 'astrolabio', youtube: 'x');
+
+      expect(nu.manchete, isNull);
+      expect(nu.detalhesPorBaixo, isNull);
+    });
+
+    test('um título em branco no painel vale como ausente', () {
+      // Branco é "não se aplica" e tem de virar nulo, ou o card abre com uma
+      // manchete vazia à altura de duas linhas.
+      final branco = Video.fromJson(const {
+        'secao': 'guerras',
+        'youtube': 'x',
+        'titulo': '   ',
+        'detalhes': 'Fluxo x Kaizen',
+      });
+
+      expect(branco.titulo, isNull);
+      expect(branco.manchete, 'Fluxo x Kaizen');
+    });
+
+    test('a busca sem título continua a achar pela guilda e pelo nick', () {
+      // É o que o dono quer que se procure, e é onde a guilda está escrita.
+      const v = Video(
+        secao: 'guerras',
+        youtube: 'x',
+        personagem: 'Mozaum',
+        classe: 'Retalhador',
+        detalhes: 'Fluxo x Kaizen',
+      );
+
+      expect(v.contem('kaizen'), isTrue);
+      expect(v.contem('mozaum'), isTrue);
+      expect(v.contem('retalhador'), isTrue);
+      expect(v.contem('nuema'), isFalse);
+    });
   });
 }

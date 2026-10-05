@@ -26,7 +26,17 @@ create table if not exists public.videos (
   -- mesma coluna.
   youtube     text not null,
 
-  titulo      text not null,
+  -- O nome do vídeo, e **opcional de propósito**. Nas Guerras os outros
+  -- campos *são* o título: o primeiro vídeo a sério chegou chamado
+  -- `Fluxo x Kaizen 20/09/2026 - Mozaum`, que é exactamente o que o card já
+  -- imprime nas duas linhas por baixo — o card dizia tudo duas vezes. Nas
+  -- outras quatro seções, sem classe nem personagem nem guerra, é a única
+  -- coisa que o card tem para dizer.
+  --
+  -- Opcional em vez de uma regra por seção escondida na tela: quem escreve a
+  -- linha decide, aqui, onde o trabalho acontece. Em branco, o card põe os
+  -- `detalhes` em manchete.
+  titulo      text,
 
   -- A classe de quem grava, e só as Guerras Territoriais a usam. Vazia nas
   -- outras seções, onde o filtro por classe simplesmente não desenha.

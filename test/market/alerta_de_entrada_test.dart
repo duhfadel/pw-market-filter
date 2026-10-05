@@ -116,12 +116,24 @@ void main() {
     expect(vigiaDeItens.keys.any((n) => n.contains('Ovo')), isFalse);
   });
 
-  test('nothing common enough to drown the channel is watched', () {
-    // The `Cupom Perfeito de Prata` was on this list and came off: 1518 of
-    // the 1648 characters carry one, and even at a floor of 100 it fired on
-    // 361 — about fifty messages a day against five for the whole rest of
-    // the list. A watch that fires on a fifth of the market is not a watch.
+  test('o cupom de prata fica de fora, e o número diz porquê', () {
+    // São itens diferentes e é o de prata que não serve — decisão do dono.
+    // O número condenava-o de qualquer modo: 1.518 dos 1.648 carregam um,
+    // p99 207, e mesmo com piso em 100 disparava em 361 pessoas.
     expect(vigiaDeItens, isNot(contains('Cupom Perfeito de Prata')));
+    expect(vigiaDeItens, contains('Cupom Perfeito'));
+
+    final saida = entradasParaAvisar(
+      anuncios: [anuncio(1), anuncio(2)],
+      inventarios: {
+        1: const {'Cupom Perfeito de Prata': 298},
+        2: const {'Cupom Perfeito': 1},
+      },
+      memoria: {1: visto(agora), 2: visto(agora)},
+      agora: agora,
+    );
+
+    expect(saida.map((e) => e.roleId), [2]);
   });
 
   test('the count on the list is a floor, not a flag', () {

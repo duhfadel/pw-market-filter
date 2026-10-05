@@ -84,6 +84,7 @@ flutter:
     - assets/images/classes-verticais/
     - assets/icons/classes/
     - assets/icons/items/
+    - assets/icons/lojas/
 
   # One face, one weight, for headings only. Bundled rather than fetched:
   # `google_fonts` would add a dependency and go to a CDN at runtime, which is

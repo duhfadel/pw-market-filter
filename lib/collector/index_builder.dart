@@ -3,6 +3,7 @@ import '../market/market_index.dart';
 import '../market/price_history.dart';
 import '../market/romanos.dart';
 import 'detail_parser.dart';
+import 'detail_parser_126.dart' as colhido;
 import 'listing_parser.dart';
 
 /// How an attribute listed more than once on the same item becomes one number.
@@ -78,6 +79,8 @@ class IndexBuilder {
     String path = '',
     List<ParsedRune> runes = const [],
     ParsedTitles? titles,
+    Map<String, colhido.EspacoDeItens> espacos = const {},
+    List<colhido.MascoteDoPersonagem> mascotes = const [],
     PriceHistory? history,
   }) {
     _characters.add(
@@ -99,6 +102,16 @@ class IndexBuilder {
         path: path,
         runes: _runesOf(runes),
         founderTier: _founderTierOf(titles),
+        espacos: {
+          for (final e in espacos.entries)
+            e.key: EspacoDeItens(
+              usados: e.value.usados,
+              capacidade: e.value.capacidade,
+            ),
+        },
+        // Só o nome: o nível e a lealdade ficam no estado, onde não custam
+        // ao navegador. O que a tela precisa é tem ou não tem.
+        mascotes: [for (final m in mascotes) m.nome],
         history: history,
         equipped: items.map(_convert).toList(growable: false),
         cards: cards

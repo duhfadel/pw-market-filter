@@ -86,6 +86,17 @@ abstract final class PWColors {
   static const danger = Color(0xFFFF6B6B);
   static const ok = Color(0xFF5FBAB9);
 
+  /// Uma loja de itens que ainda tem espaço, nos cartões do 1.2.6.
+  ///
+  /// **Fica a ΔE 26 de [male], e isso é o mais longe que um segundo azul
+  /// chega.** O glifo de sexo já veste um azul no mesmo cartão, e a menor
+  /// separação que este site aceita noutro lado é 38 — portanto as duas
+  /// coisas são parecidas e só a forma as separa: um símbolo minúsculo ao
+  /// lado do nome contra um par ícone-e-número mais abaixo. Foi decisão do
+  /// dono pedir azul; a alternativa que não colide é não pintar nada quando
+  /// a loja não está cheia, deixando o verde ser o único sinal.
+  static const espacoLivre = Color(0xFF7C93FF);
+
   /// The dot that says somebody is streaming *now*.
   ///
   /// A green of its own rather than [ok], which is a teal and reads as

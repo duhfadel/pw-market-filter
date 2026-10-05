@@ -178,6 +178,14 @@ bool _matchesInventory(
   }
 
   for (final pet in query.pets) {
+    // Duas origens para a mesma pergunta, porque as duas versões publicam o
+    // mascote de maneiras diferentes: o 1.8.7 por id de item no inventário, o
+    // 1.2.6 pelo nome da espécie na jaula. Um `ou` e não dois controlos —
+    // quem pergunta quer saber se o personagem tem o bicho.
+    final porNome = mascotes126[pet];
+    final naJaula = porNome != null && character.mascotes.contains(porNome);
+    if (naJaula) continue;
+
     // Same rule as a counted name the collection never met: nobody has it, so
     // nobody passes. Skipping it would widen the search under the visitor's
     // own filter.

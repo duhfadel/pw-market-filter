@@ -40,10 +40,19 @@ class _PetSectionState extends State<PetSection> {
   /// One the market has none of gets no row: it could only ever return
   /// nothing, which reads as "the market has none of these" when it means
   /// "this collection never saw one".
-  List<MapEntry<String, int>> get _pets => [
+  /// O rótulo e, quando há, o id de item cuja arte representa o grupo.
+  ///
+  /// As duas versões entram pela mesma lista porque fazem a mesma pergunta.
+  /// O 1.2.6 não traz id nenhum — a jaula dele publica o nome da espécie —
+  /// por isso o emblema fica nulo ali e o cabeçalho usa um glifo, que é o
+  /// mesmo recuo silencioso que `ItemIcon` já faz com um ícone em falta.
+  List<MapEntry<String, int?>> get _pets => [
     for (final name in countedItemIds.keys)
       if (state.index.countedItems[name]?.isNotEmpty ?? false)
         MapEntry(name, state.index.countedItems[name]!.first),
+    for (final entrada in mascotes126.entries)
+      if (state.index.characters.any((c) => c.mascotes.contains(entrada.value)))
+        MapEntry(entrada.key, null),
   ];
 
   @override
@@ -63,13 +72,16 @@ class _PetSectionState extends State<PetSection> {
     );
   }
 
-  Widget _header(List<MapEntry<String, int>> pets) => InkWell(
+  Widget _header(List<MapEntry<String, int?>> pets) => InkWell(
     onTap: () => setState(() => _open = !_open),
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: SectionHeader(
         title: 'Mascotes',
         emblem: pets.first.value,
+        // Sem emblema há sempre um glifo: um cabeçalho sem marca nenhuma lê
+        // como linha de texto solta no meio de secções que todas a têm.
+        glyph: pets.first.value == null ? Icons.pets_outlined : null,
         // Every tick here narrows the market, so all of them count.
         badge: state.query.pets.length,
         expanded: _open,

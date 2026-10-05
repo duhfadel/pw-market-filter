@@ -130,6 +130,21 @@ const countedItemsInTest = <String>{'Essência Dracônica'};
 /// `counted_items_test.dart` fails if they stop resolving.
 const countedItemIds = <String, int>{'Hércules': 37905, 'Harpia': 38587};
 
+/// Os mascotes do 1.2.6, do rótulo para o nome que a página escreve.
+///
+/// **Por nome, e não por id como no 1.8.7 — a diferença é das duas versões e
+/// não uma escolha.** Ali o dono baptiza o ovo e só o id sobrevive: `38587`
+/// imprime `Ovo de Harpia` em três pessoas e `GabirÚ` numa quarta. Aqui a
+/// página escreve a espécie, `Ovo de Hércules`, e é esse nome que o estado
+/// guarda. Copiar uma regra para a outra versão perde o mascote em silêncio
+/// nas duas direções.
+///
+/// Um só por agora, a pedido do dono em 04/10/2026 — *"por hora só o
+/// hercules, mas mapeia todos caso a gente use no futuro"*. A coleta guarda
+/// todos os mascotes e montarias de cada personagem; esta tabela é só quem
+/// ganha um controlo na tela, e acrescentar outro é uma linha.
+const mascotes126 = <String, String>{'Hércules': 'Ovo de Hércules'};
+
 /// The three that add up to one number. The `Chave da Sorte` is deliberately
 /// not among them.
 ///

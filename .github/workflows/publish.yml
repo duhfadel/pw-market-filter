@@ -268,6 +268,36 @@ jobs:
           # por outra porta seria fechar a porta e deixar a janela aberta.
           retention-days: 1
 
+      # **A API de artefatos não é consistente consigo própria, e a janela é de
+      # menos de meio segundo.** Duas vezes em 05/10/2026 o upload terminou
+      # com sucesso — ID e tamanho impressos — e o `deploy-pages` perguntou
+      # pelo mesmo artefato logo a seguir e recebeu `Found 0 artifact(s)`:
+      # 387 ms de intervalo às 15:18, 464 ms às 19:10. Em ambos os casos a
+      # execução inteira — coleta de quarenta minutos incluída — foi perdida
+      # por causa disso.
+      #
+      # A mensagem do próprio `deploy-pages` manda olhar o `githubstatus.com`
+      # e tentar mais tarde, o que confirma de quem é o problema; o que ela
+      # não diz é que esperar meio segundo resolve.
+      #
+      # Espera até a API admitir o que acabou de aceitar, no máximo um minuto.
+      # Não falha se o tempo acabar: deixa o `deploy-pages` falhar com a
+      # mensagem dele, que é mais informativa do que um `exit 1` daqui — e
+      # nesse caso o problema é outro, não esta corrida.
+      - name: Esperar o artefato aparecer na API
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for tentativa in $(seq 1 20); do
+            if gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
+                 --jq '.artifacts[].name' | grep -qx 'github-pages'; then
+              echo "artefato visível na tentativa $tentativa"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "::warning::a API ainda não lista o artefato depois de 60 s"
+
       - id: deployment
         uses: actions/deploy-pages@v4
 

@@ -36,7 +36,13 @@ void main() {
     await montar(tester, const []);
 
     expect(find.text('Multi contas'), findsOneWidget);
-    expect(find.textContaining('mais de um cliente'), findsOneWidget);
+    // **A ferramenta tem nome, e o nome é o que se procura.** Quem chega
+    // aqui quer saber como, e `TC Helper` é a palavra que resolve a busca —
+    // um guia que a omitisse mandava a pessoa procurar noutro sítio.
+    expect(find.textContaining('TC Helper'), findsOneWidget);
+    // E que é permitido: é a primeira coisa que alguém quer confirmar antes
+    // de abrir a segunda janela.
+    expect(find.textContaining('é permitido'), findsOneWidget);
   });
 
   testWidgets('vazia, convida em vez de ser um beco', (tester) async {

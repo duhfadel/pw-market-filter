@@ -429,17 +429,22 @@ class _Cartao extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  video.titulo,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: PWColors.text,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    height: 1.3,
+                // A manchete é o título, ou os detalhes quando não há
+                // título — ver `Video.manchete`. Um card sem nenhum dos dois
+                // abre pela linha de quem-e-quando em vez de por um espaço
+                // vazio com a altura de duas linhas.
+                if (video.manchete case final manchete?)
+                  Text(
+                    manchete,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: PWColors.text,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
+                    ),
                   ),
-                ),
                 // Duas linhas por baixo do título, cada uma a responder a uma
                 // pergunta diferente: *quem gravou e quando*, depois *qual foi
                 // a guerra*. Juntas numa só, a segunda metade seria sempre a
@@ -456,10 +461,10 @@ class _Cartao extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (video.detalhes != null) ...[
+                if (video.detalhesPorBaixo case final detalhes?) ...[
                   const SizedBox(height: 2),
                   Text(
-                    video.detalhes!,
+                    detalhes,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(

@@ -8,7 +8,7 @@ class Video {
   const Video({
     required this.secao,
     required this.youtube,
-    required this.titulo,
+    this.titulo,
     this.classe,
     this.personagem,
     this.data,
@@ -22,7 +22,32 @@ class Video {
   final String secao;
 
   final String youtube;
-  final String titulo;
+
+  /// O nome do vídeo, ou nulo quando ele não acrescenta nada.
+  ///
+  /// **Opcional por medição e não por gosto.** Posto o primeiro vídeo de
+  /// guerra, o título que o YouTube dá — `Fluxo x Kaizen 20/09/2026 -
+  /// Mozaum` — repetia exactamente os três campos que o card já imprime por
+  /// baixo dele, e o card dizia as mesmas coisas duas vezes. Nas Guerras os
+  /// campos *são* o título; nas outras quatro seções, que não têm classe nem
+  /// personagem nem guerra, o título é a única coisa que o card tem para
+  /// dizer.
+  ///
+  /// Daí ser opcional em vez de uma regra por seção escondida no widget:
+  /// quem escreve a linha decide, no painel, onde o trabalho acontece.
+  final String? titulo;
+
+  /// O que o card põe em manchete: o título, ou os detalhes quando não há
+  /// título. Nulo quando não há nem um nem outro.
+  ///
+  /// A promoção é o que impede o card sem título de abrir com a linha
+  /// esmaecida de quem-e-quando: `Fluxo x Kaizen` é a manchete certa de um
+  /// vídeo de guerra, e é o que sobra para a dar.
+  String? get manchete => titulo ?? detalhes;
+
+  /// Os detalhes, quando não foram já gastos na manchete — para o card não
+  /// os imprimir duas vezes.
+  String? get detalhesPorBaixo => titulo == null ? null : detalhes;
 
   /// A classe de quem grava, e só as Guerras Territoriais a usam. Nula nas
   /// outras seções, onde o filtro por classe não desenha.
@@ -72,7 +97,7 @@ class Video {
     final alvo = procura.trim().toLowerCase();
     if (alvo.isEmpty) return true;
     return [
-      titulo,
+      ?titulo,
       ?personagem,
       ?detalhes,
       ?classe,
@@ -82,7 +107,7 @@ class Video {
   factory Video.fromJson(Map<String, dynamic> json) => Video(
     secao: json['secao'] as String? ?? '',
     youtube: json['youtube'] as String? ?? '',
-    titulo: json['titulo'] as String? ?? '',
+    titulo: _texto(json['titulo']),
     classe: _texto(json['classe']),
     personagem: _texto(json['personagem']),
     data: DateTime.tryParse(json['data'] as String? ?? ''),

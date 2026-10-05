@@ -17,10 +17,11 @@ void main() {
     String? personagem,
     DateTime? data,
     String? detalhes,
+    bool semTitulo = false,
   }) => Video(
     secao: 'guerras',
     youtube: youtube,
-    titulo: 'Guerra $youtube',
+    titulo: semTitulo ? null : 'Guerra $youtube',
     classe: classe,
     personagem: personagem,
     data: data,
@@ -196,5 +197,27 @@ void main() {
 
     expect(find.text('Todos'), findsNothing);
     expect(find.text('Guerra a'), findsOneWidget);
+  });
+
+  testWidgets('sem título, o card abre pela guerra e não a repete', (
+    tester,
+  ) async {
+    // O título que o YouTube dá a um vídeo de guerra repete os campos que o
+    // card já imprime — foi o que se viu com o primeiro vídeo a sério. Sem
+    // título, a guerra sobe para a manchete em vez de o card abrir pela
+    // linha esmaecida de quem-e-quando.
+    await montar(tester, [
+      video(
+        'a',
+        semTitulo: true,
+        classe: 'Retalhador',
+        personagem: 'Mozaum',
+        detalhes: 'Fluxo x Kaizen',
+      ),
+    ]);
+
+    // Uma vez só: promovida a manchete, não se imprime outra vez por baixo.
+    expect(find.text('Fluxo x Kaizen'), findsOneWidget);
+    expect(find.textContaining('Retalhador'), findsWidgets);
   });
 }

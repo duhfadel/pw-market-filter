@@ -16,7 +16,18 @@ import '../../domain/tool.dart';
 /// left since the front page's own tool cards and guide line were retired on
 /// 01/10/2026; a duplicated branch is a duplicated bug the day one copy is
 /// fixed and the others are not.
-void abrirTool(BuildContext context, Tool tool) {
+/// **`{versao}` numa rota é substituído pela versão em que se está.** Existe
+/// porque uma ferramenta pode servir os dois mercados e levar a telas
+/// diferentes — as Guerras Territoriais são a primeira — e a alternativa era
+/// duas entradas com o mesmo nome e a mesma descrição, que divergiriam na
+/// primeira vez que alguém editasse só uma.
+///
+/// Sem versão, cai no 1.8.7: o menu do seletor é um catálogo, e ali a única
+/// resposta honesta para "qual mercado" é o que já tem conteúdo.
+String rotaDaTool(Tool tool, String? versao) =>
+    tool.route!.replaceAll('{versao}', versao ?? '1.8.7');
+
+void abrirTool(BuildContext context, Tool tool, {String? versao}) {
   final href = tool.href;
   if (href != null) {
     unawaited(launchUrl(Uri.parse(href), webOnlyWindowName: '_self'));
@@ -28,7 +39,7 @@ void abrirTool(BuildContext context, Tool tool) {
   // on top of it, and the back button's first press would appear to do
   // nothing. Compared by path, not by the whole route name — `/filtro` can
   // carry a query string this `route` never will.
-  final route = tool.route!;
+  final route = rotaDaTool(tool, versao);
   final atual = ModalRoute.of(context)?.settings.name;
   if (atual != null && Uri.parse(atual).path == route) return;
 

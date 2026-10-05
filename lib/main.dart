@@ -86,6 +86,7 @@ class PortalPWApp extends StatelessWidget {
           RotaTela(tela: Tela.registros) => const RegistrosView(),
           RotaTela(tela: Tela.runas) => const RunasView(),
           RotaTela(tela: Tela.guerras) => const GuerrasView(),
+          RotaTela(tela: Tela.guerras126) => const GuerrasView(versao: pw126),
           RotaTela(tela: Tela.novidades) => const NovidadesView(),
           // The choice screen now exists on its own — `/` no longer opens
           // the 1.8.7 home directly.

@@ -23,12 +23,16 @@ class VideoRepository {
   static const _url = 'https://yadfbwsolmkcaylbxviw.supabase.co/rest/v1/videos';
   static const _key = 'sb_publishable_D2hgezeh5BbZVpt_QLeXwg_FowKweu2';
 
-  Future<List<Video>> daSecao(String secao) async {
+  /// [versao] filtra por mercado quando a seção existe nos dois — as guerras
+  /// territoriais são a primeira. Nulo pede a seção inteira, que é o que as
+  /// seções de uma versão só querem.
+  Future<List<Video>> daSecao(String secao, {String? versao}) async {
     try {
       final resposta = await _client.get(
         Uri.parse(
           '$_url?select=*&visivel=is.true'
           '&secao=eq.${Uri.encodeComponent(secao)}'
+          '${versao == null ? '' : '&versao=eq.${Uri.encodeComponent(versao)}'}'
           '&order=ordem.asc,publicado_em.desc',
         ),
         headers: const {

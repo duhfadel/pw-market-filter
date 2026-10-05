@@ -1720,6 +1720,23 @@ Each of these already cost something — measured on the live site, not guessed.
   would have caught it, since every gesture a test normally makes lands in the
   middle.
 
+- **A largura que acende um breakpoint não é a largura que o widget recebe, e
+  a barra do topo partiu-se nessa diferença.** `Cabecalho.larguraMinima` é 772
+  px de **janela**, mas entre 680 e 1279 a home prende o conteúdo a 780 px e
+  ainda lhe tira as margens — portanto a barra passa a desenhar-se "larga" com
+  bastante menos de 772 px disponíveis. Três pílulas cabiam nessa folga por
+  sorte; a quarta, *Guerras*, transbordou 62 px, e o `Spacer` que as empurrava
+  para a direita era metade da causa, por ser um `Expanded` que reclama todo o
+  espaço livre e nunca deixa a fila encolher. É `spaceBetween` mais um
+  `Flexible` com rolagem horizontal agora, para que nenhuma secção futura possa
+  voltar a partir a barra.
+
+  **O primeiro teste que escrevi para isto deu verde e não valia nada**, e a
+  forma é a de sempre: media a *janela*, montando o `Cabecalho` sozinho num
+  `AppBar` a 772 px, portanto media o único número que não é o que a barra
+  recebe. Um teste de largura tem de varrer a largura **disponível** — e ir
+  abaixo do limiar, não parar nele.
+
 - **Judge layout on the published site, not on `localhost`.** On this machine
   every page served from `localhost` renders shifted right, with a band of
   empty space on the left. The same build on GitHub Pages, in the same Chrome,

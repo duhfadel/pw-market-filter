@@ -226,10 +226,21 @@ final tools = <Tool>[
         'Vídeos de guerra gravados pela comunidade, por classe — e todos '
         'com permissão de quem gravou.',
     icon: Icons.videocam_outlined,
-    secao: 'Guias',
+    // **Secção própria, não os Guias** — decisão do dono em 05/10/2026, e tem
+    // razão: um vídeo de guerra não explica nada, mostra. Com uma entrada só,
+    // a pílula leva direto à tela em vez de abrir uma gaveta de um item.
+    // **A pílula diz `Guerras` e a tela diz `Guerras Territoriais`**, e isso
+    // é medido e não preferência: com o nome inteiro a barra transbordava
+    // 70 px ao lado de *Ferramentas*, *Guias* e *Novidades*, com as fontes
+    // reais. Uma pílula é um rótulo, não um título — o nome completo está no
+    // cabeçalho da tela e na dica da própria pílula.
+    secao: 'Guerras',
     novoAte: _ateNovembro,
-    route: '/1.8.7/guerras',
-    versoes: const {'1.8.7'},
+    // `{versao}` é substituído pela versão em que o visitante está — as
+    // guerras existem nos dois mercados, e duas entradas com o mesmo nome
+    // divergiriam na primeira vez que alguém editasse só uma.
+    route: '/{versao}/guerras',
+    versoes: const {'1.8.7', '1.2.6'},
   ),
 ];
 

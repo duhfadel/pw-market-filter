@@ -30,36 +30,16 @@ const WORKFLOW = 'publish.yml';
 // coleta nunca disparar, caindo calado no keep-alive do Supabase — o
 // `wrangler.toml` avisa disso e agora há quatro formas de acontecer em vez
 // de uma.
-// **Uma por versão por hora, e a tentativa de meia em meia hora durou um
-// dia.** Em 05/10 passou-se a quatro corridas por hora — 187 aos :07 e :37,
-// 126 aos :22 e :52 — a pedido do dono, com o argumento de que o `timeout`
-// que causara o bloqueio de 01/10 já estava corrigido. O argumento estava
-// certo e a conclusão estava errada, por uma razão que só a medição deu:
-// quatro corridas por hora são **uma de quinze em quinze minutos**, e uma
-// coleta normal demora 3 a 5 minutos mas pode demorar 18 — medido no pw126
-// em 06/10, das 19:22 às 19:40.
+// **Um horário, e uma corrida colhe todas as versões.** Até 06/10/2026 havia
+// um horário por mercado, porque cada corrida colhia um — e isso trouxe dois
+// problemas que `publish.yml` conta por extenso: a corrida de dados do
+// `--carry-forward`, e o facto de três ou mais corridas por hora darem
+// intervalos que não cabem a coleta mais lenta medida, 18 minutos.
 //
-// Quando uma passa dos quinze, a seguinte fica em fila e a terceira mata-a,
-// porque o Pages guarda **uma** pendente só. Em 06/10 isso deu três
-// cancelamentos seguidos, dois deles com zero jobs — nunca arrancaram — e o
-// índice do 1.8.7 ficou **hora e meia** sem actualizar. Ou seja: a cadência
-// mais densa produziu mais atraso do que a mais esparsa, que é o contrário
-// do que se pediu dela.
-//
-// Trinta minutos entre corridas é a folga que deixa a mais lenta medida
-// caber com o dobro de margem. Qualquer esquema com três ou mais corridas
-// por hora tem, por aritmética, um intervalo de vinte minutos ou menos.
-const CRON_DA_COLETA_187 = ['7 * * * *'];
-const CRON_DA_COLETA_126 = ['37 * * * *'];
+// Com a matriz do workflow, disparar é disparar: não há versão a escolher,
+// nem a adivinhar depois pelo título da corrida.
+const CRON_DA_COLETA = '7 * * * *';
 
-// Qual versão cada horário dispara. Uma tabela construída das duas listas
-// acima, em vez de um `if/else if` por horário — um terceiro horário, ou um
-// terceiro mercado, vira uma entrada nas listas em vez de mais um lugar para
-// comparar string a string.
-const SERVIDOR_POR_CRON = Object.fromEntries([
-  ...CRON_DA_COLETA_187.map((cron) => [cron, 'pw187']),
-  ...CRON_DA_COLETA_126.map((cron) => [cron, 'pw126']),
-]);
 
 // O banco que guarda o contador de visitas e os donos dos territórios.
 //
@@ -123,10 +103,8 @@ export default {
       return;
     }
 
-    // Nem o cron do 187 nem o do 126: sobra para o keep-alive diário do
-    // Supabase, que é qualquer horário que não seja um dos de coleta.
-    const servidor = SERVIDOR_POR_CRON[event.cron];
-    if (!servidor) {
+    // Nem o da Twitch nem o da coleta: sobra o keep-alive diário do Supabase.
+    if (event.cron !== CRON_DA_COLETA) {
       await manterOBancoAcordado();
       return;
     }
@@ -137,7 +115,7 @@ export default {
       env,
       `/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`,
       'POST',
-      { ref: 'main', inputs: { server: servidor } },
+      { ref: 'main' },
     );
 
     // 204 é o sucesso aqui: o GitHub aceita o pedido e não devolve corpo.
@@ -214,32 +192,12 @@ async function ressuscitarColeta(env) {
   const [ultima] = rodadas;
   if (ultima.conclusion !== 'failure') return;
 
-  // Redisparar a versão errada perderia a corrida boa que acabou de rodar e
-  // repetiria a que quebrou — então o redisparo tem de saber qual falhou, e
-  // não assumir `pw187` por hábito.
-  const servidor = servidorDaRodada(ultima);
-
-  // A rodada completada anterior **da mesma versão** — pulando `ultima` e
-  // qualquer rodada da outra versão no meio. Sem isto o freio compararia
-  // `ultima` contra uma rodada que pode ser do outro mercado, e a garantia
-  // "duas falhas seguidas não são soluço" deixaria de valer por versão.
-  // **Já vem outra a caminho**, e aí não há nada a ressuscitar. É o freio
-  // que o comentário antigo julgava ter de graça.
-  const jaVemOutra = todas.some(
-    (rodada) =>
-      rodada.status !== 'completed' && servidorDaRodada(rodada) === servidor,
-  );
-  if (jaVemOutra) {
-    console.log(`${servidor} já tem rodada a caminho; nada a ressuscitar.`);
-    return;
-  }
-
-  const anteriorMesmaVersao = rodadas
-    .slice(1)
-    .find((rodada) => servidorDaRodada(rodada) === servidor);
-
-  if (anteriorMesmaVersao?.conclusion === 'failure') {
-    console.log(`duas falhas seguidas de ${servidor}: deixando o relógio assumir.`);
+  // A rodada completada anterior. **Já não há "da mesma versão"**: uma
+  // corrida colhe todas, portanto duas falhas seguidas são simplesmente as
+  // duas últimas — e duas seguidas não são soluço, é o relógio que assume.
+  const anterior = rodadas[1];
+  if (anterior?.conclusion === 'failure') {
+    console.log('duas falhas seguidas: deixando o relógio assumir.');
     return;
   }
 
@@ -247,23 +205,9 @@ async function ressuscitarColeta(env) {
     env,
     `/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`,
     'POST',
-    { ref: 'main', inputs: { server: servidor } },
+    { ref: 'main' },
   );
-  console.log(
-    `rodada ${ultima.id} (${servidor}) falhou; redisparo ${disparo.status}`,
-  );
-}
-
-// Lê a versão de volta do título da rodada, em vez de assumir uma.
-//
-// `publish.yml` tem `run-name: Coletar e publicar — ${{ inputs.server ||
-// 'pw187' }}`, e a API devolve esse texto computado em `display_title` — é o
-// único lugar em que os `inputs` de um `workflow_dispatch` já disparado
-// ficam legíveis de volta. Sem isto, não haveria como distinguir "a rodada
-// do 187 falhou" de "a rodada do 126 falhou" depois do fato.
-function servidorDaRodada(rodada) {
-  const titulo = rodada.display_title || '';
-  return titulo.includes('pw126') ? 'pw126' : 'pw187';
+  console.log(`rodada ${ultima.id} falhou; redisparo ${disparo.status}`);
 }
 
 // Cancela rodada que ficou presa na fila, antes de pedir a próxima.

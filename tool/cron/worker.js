@@ -30,16 +30,27 @@ const WORKFLOW = 'publish.yml';
 // coleta nunca disparar, caindo calado no keep-alive do Supabase — o
 // `wrangler.toml` avisa disso e agora há quatro formas de acontecer em vez
 // de uma.
-// **Meia em meia hora, e as duas versões intercaladas de propósito.** O 187
-// aos :07 e :37, o 126 aos :22 e :52 — quinze minutos entre qualquer par,
-// portanto duas coletas nunca disputam a fila do Pages, que guarda **uma**
-// pendente só e mata a anterior.
+// **Uma por versão por hora, e a tentativa de meia em meia hora durou um
+// dia.** Em 05/10 passou-se a quatro corridas por hora — 187 aos :07 e :37,
+// 126 aos :22 e :52 — a pedido do dono, com o argumento de que o `timeout`
+// que causara o bloqueio de 01/10 já estava corrigido. O argumento estava
+// certo e a conclusão estava errada, por uma razão que só a medição deu:
+// quatro corridas por hora são **uma de quinze em quinze minutos**, e uma
+// coleta normal demora 3 a 5 minutos mas pode demorar 18 — medido no pw126
+// em 06/10, das 19:22 às 19:40.
 //
-// Listas dentro do mesmo cron (`7,37`) em vez de quatro gatilhos separados:
-// o número de entradas em `wrangler.toml` fica igual, e a comparação string
-// a string abaixo continua a ser com a linha inteira.
-const CRON_DA_COLETA_187 = ['7,37 * * * *'];
-const CRON_DA_COLETA_126 = ['22,52 * * * *'];
+// Quando uma passa dos quinze, a seguinte fica em fila e a terceira mata-a,
+// porque o Pages guarda **uma** pendente só. Em 06/10 isso deu três
+// cancelamentos seguidos, dois deles com zero jobs — nunca arrancaram — e o
+// índice do 1.8.7 ficou **hora e meia** sem actualizar. Ou seja: a cadência
+// mais densa produziu mais atraso do que a mais esparsa, que é o contrário
+// do que se pediu dela.
+//
+// Trinta minutos entre corridas é a folga que deixa a mais lenta medida
+// caber com o dobro de margem. Qualquer esquema com três ou mais corridas
+// por hora tem, por aritmética, um intervalo de vinte minutos ou menos.
+const CRON_DA_COLETA_187 = ['7 * * * *'];
+const CRON_DA_COLETA_126 = ['37 * * * *'];
 
 // Qual versão cada horário dispara. Uma tabela construída das duas listas
 // acima, em vez de um `if/else if` por horário — um terceiro horário, ou um

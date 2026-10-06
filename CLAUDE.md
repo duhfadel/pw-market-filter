@@ -1036,6 +1036,29 @@ Each of these already cost something — measured on the live site, not guessed.
   minutos para corridas de 20 a 45. Agora é **um por versão por hora**, `:07`
   e `:37`.
 
+- **Mais corridas por hora deram mais atraso, não menos — e a aritmética é a
+  explicação inteira.** A 05/10/2026 a cadência passou de uma por versão por
+  hora para duas, a pedido do dono, com o argumento de que o `timeout` que
+  causara o bloqueio de 01/10 já estava corrigido. O argumento estava certo;
+  a conclusão não.
+
+  **Duas por versão são quatro corridas por hora, ou seja uma de quinze em
+  quinze minutos.** Uma coleta normal demora 3 a 5 minutos, mas pode demorar
+  **18** — medido no pw126 a 06/10, das 19:22 às 19:40. Quando uma passa dos
+  quinze, a seguinte fica em fila e a terceira mata-a, porque o Pages guarda
+  **uma** pendente só. Nesse dia foram três cancelamentos seguidos, dois com
+  **zero jobs**, e o índice do 1.8.7 ficou **hora e meia** sem actualizar —
+  pior do que a hora que a cadência esparsa garante.
+
+  Quem perde é sempre a versão cujo horário vem **logo a seguir** ao da
+  outra, e isso não é azar: é quem herda o atraso.
+
+  A regra que fica: **o espaçamento entre corridas tem de caber a mais lenta
+  já medida, com margem.** Trinta minutos cabem 18 com folga; quinze não. E
+  qualquer esquema com três ou mais corridas por hora tem, por aritmética, um
+  intervalo de vinte minutos ou menos — portanto a pergunta "de quanto em
+  quanto tempo?" é, na verdade, "quantas por hora?".
+
 - **O artefato existe e a API diz que não, e a janela é de menos de meio
   segundo.** Duas vezes em 05/10/2026 o `upload-pages-artifact` terminou com
   sucesso — ID e tamanho impressos — e o `deploy-pages` perguntou pelo mesmo

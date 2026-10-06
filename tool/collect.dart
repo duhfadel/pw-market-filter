@@ -650,6 +650,7 @@ List<EntradaNova> _writeIndex(
         titles: collected.titles,
         espacos: collected.espacos,
         mascotes: collected.mascotes,
+        pericias: collected.pericias,
         history: memoria[card.roleId],
       );
     }

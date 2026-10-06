@@ -17,6 +17,7 @@ import 'criterion_row.dart';
 import 'founder_section.dart';
 import 'name_field.dart';
 import 'number_field.dart';
+import 'forja_section.dart';
 import 'pet_section.dart';
 import 'realm_section.dart';
 import 'rune_section.dart';
@@ -83,6 +84,7 @@ class FilterPanel extends StatelessWidget {
         // sat over empty space between `ACESSÓRIOS` and `AVANÇADO`.
         if (_hasInventario(state.index)) _grupo('Inventário'),
         PetSection(state: state, viewModel: viewModel),
+        ForjaSection(state: state, viewModel: viewModel),
         CountedItemsSection(state: state, viewModel: viewModel),
         _grupo('Avançado'),
         const SizedBox(height: 12),

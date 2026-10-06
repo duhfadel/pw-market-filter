@@ -282,6 +282,10 @@ class CharacterCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 _EspacosDoPersonagem(espacos: character.espacos),
               ],
+              if (character.forja.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                _Forja(niveis: character.forja),
+              ],
               if (character.realm.isNotEmpty)
                 Text(
                   character.realm,
@@ -859,6 +863,57 @@ class _EspacosDoPersonagem extends StatelessWidget {
       fit: BoxFit.scaleDown,
       alignment: Alignment.centerLeft,
       child: Row(mainAxisSize: MainAxisSize.min, children: linha),
+    );
+  }
+}
+
+/// Os quatro ofícios de artesanato, do maior para o menor.
+///
+/// **Sem rótulo por ofício, e isso é a honestidade da linha.** A página do
+/// personagem publica as perícias por id e nunca por nome; o dono diz que são
+/// *forja de arma, armadura, acessórios e boticário*, mas nada confirma a
+/// correspondência. Rotular por palpite mandaria quem procura o ferreiro
+/// escolher o boticário, e ele nunca saberia — o mesmo motivo por que um
+/// atributo que o site não sabe nomear é impresso como `#3818`.
+///
+/// Ordenados do maior para o menor porque, sem nomes, a ordem dos ids não diz
+/// nada a ninguém e a dos valores deixa dois personagens comparáveis de
+/// relance. No dia em que os nomes chegarem, o índice ainda os tem pela ordem
+/// dos ids e esta linha é que muda.
+class _Forja extends StatelessWidget {
+  const _Forja({required this.niveis});
+
+  final List<int> niveis;
+
+  @override
+  Widget build(BuildContext context) {
+    final ordenados = [...niveis]..sort((a, b) => b.compareTo(a));
+    return Row(
+      children: [
+        const Icon(
+          Icons.hardware_outlined,
+          size: 14,
+          color: PWColors.textMuted,
+        ),
+        const SizedBox(width: 5),
+        Text(
+          'Forja',
+          style: const TextStyle(color: PWColors.textMuted, fontSize: 12),
+        ),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            ordenados.join(' · '),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: PWColors.text,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

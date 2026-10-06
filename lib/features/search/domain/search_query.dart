@@ -23,6 +23,9 @@ enum FacetDimension {
   path,
   runes,
   founder,
+
+  /// Os ofícios de artesanato, só no 1.2.6.
+  forja,
 }
 
 /// How the results are ordered.
@@ -147,6 +150,7 @@ class SearchQuery {
     this.pets = const {},
     this.minRealm,
     this.minFounderTier,
+    this.forjaMinima,
     this.path,
     this.runes,
     this.order = ResultOrder.cheapest,
@@ -217,6 +221,18 @@ class SearchQuery {
   ///
   /// A minimum of zero is not stored: it asks nothing.
   final Map<String, int> minimumOwned;
+
+  /// O nível mínimo do **melhor** dos quatro ofícios de artesanato, ou nulo.
+  ///
+  /// **Do melhor e não de todos**, e a razão é não haver nomes: a página
+  /// publica as quatro perícias por id, portanto ninguém pode pedir *o
+  /// ferreiro em 8* — só *algum ofício em 8*. Exigir os quatro responderia
+  /// outra pergunta, a de quem quer um artesão completo, e seria a pergunta
+  /// errada para quem procura um ofício concreto.
+  ///
+  /// Quem não tem nenhum dos quatro nunca passa: a lista vazia é ausência da
+  /// perícia, não nível zero.
+  final int? forjaMinima;
 
   /// Counted items whose number the card should print.
   ///
@@ -304,6 +320,7 @@ class SearchQuery {
       minimumOwned.isEmpty &&
       minRealm == null &&
       minFounderTier == null &&
+      forjaMinima == null &&
       path == null &&
       runes == null;
 
@@ -337,6 +354,7 @@ class SearchQuery {
     FacetDimension.realm => copyWith(minRealm: () => null),
     FacetDimension.founder => copyWith(minFounderTier: () => null),
     FacetDimension.path => copyWith(path: () => null),
+    FacetDimension.forja => copyWith(forjaMinima: () => null),
     FacetDimension.runes => copyWith(runes: () => null),
     FacetDimension.owned => copyWith(
       shownOwned: const {},
@@ -365,6 +383,7 @@ class SearchQuery {
     Set<String>? pets,
     int? Function()? minRealm,
     int? Function()? minFounderTier,
+    int? Function()? forjaMinima,
     String? Function()? path,
     RuneCriterion? Function()? runes,
     ResultOrder? order,
@@ -389,6 +408,7 @@ class SearchQuery {
     anecdotesOnCard: anecdotesOnCard ?? this.anecdotesOnCard,
     pets: pets ?? this.pets,
     minRealm: minRealm == null ? this.minRealm : minRealm(),
+    forjaMinima: forjaMinima == null ? this.forjaMinima : forjaMinima(),
     minFounderTier: minFounderTier == null
         ? this.minFounderTier
         : minFounderTier(),

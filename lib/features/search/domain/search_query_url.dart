@@ -63,6 +63,7 @@ const _petParam = 'mascote';
 const _realmParam = 'ceu';
 const _founderParam = 'fundador';
 const _pathParam = 'caminho';
+const _forjaParam = 'forja';
 const _runeParam = 'runa';
 const _orderParam = 'ordem';
 
@@ -149,6 +150,12 @@ String encodeQuery(SearchQuery query, [MarketIndex? index]) {
   // prints on the title, and a link has to outlive our arithmetic.
   final minFounder = query.minFounderTier;
   if (minFounder != null) put(_founderParam, romanoDe(minFounder));
+
+  // Um número simples, porque é um nível e não uma posição que esta app
+  // calcule — ao contrário do grau de fundador, não há nada aqui que um
+  // índice novo possa renumerar.
+  final forja = query.forjaMinima;
+  if (forja != null) put(_forjaParam, '$forja');
 
   final runes = query.runes;
   if (runes != null) {
@@ -242,6 +249,7 @@ SearchQuery decodeQuery(
   // back to *qualquer*: a link that silently widens is worse than one that
   // does nothing, because the count on screen looks like an answer.
   final minFounderTier = grauDoRomano(first(_founderParam)?.trim() ?? '');
+  final forjaMinima = int.tryParse(first(_forjaParam)?.trim() ?? '');
 
   RuneCriterion? runes;
   final runeRaw = first(_runeParam);
@@ -288,6 +296,7 @@ SearchQuery decodeQuery(
     minAnecdotes: int.tryParse(first(_anecdoteParam) ?? ''),
     shownOwned: shownOwned,
     minimumOwned: minimumOwned,
+    forjaMinima: forjaMinima,
     anecdotesOnCard: anecdotesOnCard,
     pets: pets,
     minRealm: minRealm,

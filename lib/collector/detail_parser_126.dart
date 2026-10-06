@@ -295,6 +295,25 @@ List<MascoteDoPersonagem> parseMascotes126(String html) {
   return mascotes;
 }
 
+/// Os quatro ofícios de artesanato, pelos ids com que a página os publica.
+///
+/// **Em ordem de id e nunca de nome.** O dono diz que se chamam *forja de
+/// arma, armadura, acessórios e boticário*, e a tentação é atribuí-los por
+/// essa ordem — mas nada na página o confirma, e um rótulo errado é pior do
+/// que número nenhum: quem procurasse o ferreiro escolheria o boticário e
+/// nunca saberia. A tela mostra os quatro valores sem dizer qual é qual, do
+/// mesmo modo que um atributo sem nome é impresso como `#3818`.
+///
+/// Os ids saíram do cruzamento das perícias de quatro personagens de quatro
+/// classes: cinco ids sobrevivem a essa interseção, quatro deles
+/// consecutivos e todos entre 7 e 8 num nível 102. O quinto, 167, é 1 em
+/// toda a gente.
+///
+/// **O máximo é pelo menos 8**, medido em `detail_pw126_62224.html`, que dá
+/// `[7, 7, 7, 8]` — contra os 7 que se supunham. E não é toda a gente que os
+/// tem: duas das três fixtures não trazem nenhum dos quatro.
+const idsDaForja = [158, 159, 160, 161];
+
 /// Every skill the page lists, as id to level.
 ///
 /// **No names anywhere on the page**, which is the whole difficulty: the four

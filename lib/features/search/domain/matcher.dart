@@ -170,6 +170,18 @@ bool _matchesInventory(
     return false;
   }
 
+  // O melhor dos quatro ofícios, e nunca a soma: somar artesanatos faz um
+  // número que não é quantidade de nada, o mesmo erro que saiu do painel dos
+  // Registros. Lista vazia é ausência da perícia e não nível zero, portanto
+  // quem não a tem nunca passa num mínimo.
+  final forjaMinima = query.forjaMinima;
+  if (forjaMinima != null) {
+    if (character.forja.isEmpty) return false;
+    if (character.forja.reduce((a, b) => a > b ? a : b) < forjaMinima) {
+      return false;
+    }
+  }
+
   for (final wanted in query.minimumOwned.entries) {
     // A name this collection never met belongs to nobody, so nobody passes —
     // the same call the pets and the counted names make.

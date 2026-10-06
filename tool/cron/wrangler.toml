@@ -7,75 +7,37 @@ compatibility_date = "2026-08-29"
 # para quem soubesse a URL, e cada coleta são ~1000 requisições ao marketplace.
 workers_dev = false
 
-# Cinco gatilhos, e a separação é o ponto.
+# Três gatilhos, e a separação é o ponto.
 #
-# **`7`, `22`, `37` e `52` são a coleta — duas batidas por versão, alternadas
-# de meia em meia hora.** `7` e `37` disparam o 1.8.7; `22` e `52`, o 1.2.6.
-# `publish.yml` ganhou `inputs.server` — uma corrida colhe uma versão e
-# arrasta a outra do que já está publicado (`tool/collect.dart
-# --carry-forward`) —, então cada mercado atualiza a cada 30 minutos sem
-# nenhum deles perder a cadência que o 187 já tinha sozinho. `worker.js` tem
-# de bater **string a string** com estas quatro entradas —
-# `CRON_DA_COLETA_187` e `CRON_DA_COLETA_126` —, e os dois nomes separados,
-# não um prefixo comum, são o que faz o log dizer qual versão disparou em
-# cada uma das quatro: com um horário só isso era óbvio pelo relógio, com
-# quatro o log é o único lugar que diz qual das duas realmente saiu.
+# **`7` é a coleta, e é uma só para todos os mercados.** Até 06/10/2026 havia
+# um horário por versão — `7` e `37` para o 1.8.7, `22` e `52` para o 1.2.6 —
+# porque cada corrida colhia uma versão e arrastava a outra do que já estava
+# publicado. Esse desenho caiu por dois motivos, e `publish.yml` conta ambos:
+# o arrasto era um ler-modificar-escrever sobre estado partilhado, e quatro
+# corridas por hora dão intervalos de quinze minutos que não cabem a coleta
+# mais lenta medida, dezoito.
 #
-# **Decisão do dono, registrada aqui.** O `CLAUDE.md` já registra que ele
-# levou o 187 sozinho de 30 para 15 minutos contra a recomendação — "custa o
-# dobro das corridas em todo dia que nada falha, e compra metade do pior
-# caso". Uma segunda versão não cabe nos mesmos quatro horários sem esse
-# número mudar — dividir `7,22,37,52` ao meio dá 30 minutos por mercado, não
-# 15; manter 15 por mercado pediria oito horários, dobrando o orçamento total
-# de disparos. O dono decidiu: **30 minutos por versão**, quatro disparos de
-# coleta por hora no total — o mesmo orçamento de antes de existir uma
-# segunda versão — em vez de dobrar esse orçamento ou devolver o 187 à hora
-# cheia, que foi o que uma versão anterior deste arquivo chegou a fazer sem
-# dizer que estava revertendo a escolha dele.
+# Agora uma corrida colhe **todas** as versões, em jobs paralelos. Portanto
+# não há versão a escolher no disparo, e uma versão nova não precisa de um
+# horário novo — entra na matriz do workflow. `worker.js` tem de bater
+# **string a string** com esta entrada (`CRON_DA_COLETA`); deixá-las divergir
+# faz o ramo da coleta nunca disparar, caindo calado no keep-alive.
 #
-# **A conta que torna isso seguro, e por que os 30 minutos não são "metade da
-# promessa":** os 40 minutos do `timeout-minutes: 75` em `publish.yml` são só
-# a primeira coleta de cada versão. Depois dela, `--resume` busca a listagem
-# — um pedido — e só os detalhes de roleids nunca vistos; em regime a
-# corrida leva segundos. Uma segunda versão no mesmo ritmo não dobra a carga
-# sobre o marketplace deles do jeito que parece: são os mesmos personagens
-# buscados mais cedo, não mais vezes — a mesma conta que já justificava os
-# 15 minutos do 187 sozinho.
+# **O que isto custa, e é de propósito:** cada mercado passa de duas
+# actualizações por hora a uma. Em 06/10 a cadência densa deu o contrário do
+# que prometia — três cancelamentos seguidos e o índice do 1.8.7 hora e meia
+# parado, pior do que a hora que a esparsa garante. A frescura volta a
+# discutir-se quando houver medição que a suporte, e o `CLAUDE.md` tem os
+# números.
 #
-# **O redisparo depois de uma falha isolada não mora neste número, e a
-# alternância não o enfraquece.** Esse redisparo é `ressuscitarColeta`,
-# acionado pela batida de cinco minutos da Twitch e agora por versão (ver
-# `worker.js`) — ele dispara de novo assim que vê a falha, sem esperar o
-# próximo horário de coleta, e isso vale igual para as duas versões. O que
-# este arquivo decide é outra coisa, mais rara: o pior caso quando **nada
-# falhou** e o relógio simplesmente ainda não bateu, e o pior caso depois de
-# **duas falhas seguidas da mesma versão**, quando o freio de
-# `ressuscitarColeta` deixa de insistir e devolve a bola para este relógio.
-# Só nesses dois casos o pior caso de cada versão passa de 15 para 30
-# minutos — e é exatamente aí, no raro, que o dono aceitou a troca pela conta
-# do parágrafo acima.
+# **A conta que torna uma hora suficiente:** os 83 minutos do
+# `timeout-minutes` em `publish.yml` são só a primeira coleta de cada versão.
+# Depois dela, `--resume` busca a listagem — um pedido — e só os detalhes de
+# roleids nunca vistos; em regime a corrida leva segundos.
 #
-# **São estas quatro linhas que vão a `[]` quando o site fecha** — foi o que
-# se fez entre 14 e 18/09, quando só existia uma versão e um horário.
-#
-# `13 4` é o Supabase, e existe por causa do que aquele fechamento provou: com
-# o site fora do ar ninguém visita, ninguém chama o banco, e o projeto do plano
-# gratuito é pausado depois de 7 dias parado. O aviso chegou no quarto dia. Se
-# o ping morasse dentro da coleta, ele teria morrido junto com ela, justo
-# quando é mais necessário — o mapa e o contador precisam estar lá quando o
-# site voltar. Então ele tem gatilho próprio e **não se mexe nele ao fechar**.
-#
-# Uma vez por dia contra um limite de sete é folga de sobra; o que importa é
-# que a última chamada bem-sucedida nunca fique a mais de uma semana.
-#
-# `*/5` é a Twitch: quem da comunidade está ao vivo. Ele escreve no Supabase a
-# cada cinco minutos, o que de quebra torna o ping diário redundante enquanto
-# existir — o ping fica mesmo assim, porque é ele que segura o banco no dia em
-# que os streamers saírem da página.
 [triggers]
 crons = [
   "7 * * * *",
-  "37 * * * *",
   "13 4 * * *",
   "*/5 * * * *",
 ]

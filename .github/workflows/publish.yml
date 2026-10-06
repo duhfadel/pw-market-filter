@@ -1,9 +1,10 @@
 name: Coletar e publicar
 
-# One version and then its name, so a failed run can be told apart from the
-# air: `display_title` is what `tool/cron/worker.js` reads to know which
-# market to redispatch after an isolated failure (see `ressuscitarColeta`).
-run-name: Coletar e publicar — ${{ inputs.server || 'pw187' }}
+# **Sem nome de versão desde 06/10/2026: uma corrida colhe todas.** O título
+# costumava trazer o mercado porque cada corrida colhia um, e `worker.js` lia
+# daqui qual redisparar. Com a matriz abaixo isso deixou de fazer sentido — e
+# `ressuscitarColeta` deixou de precisar de o saber.
+run-name: Coletar e publicar
 
 # Every thirty minutes, at :07 and :37 — and the odd minutes are the point.
 #
@@ -23,18 +24,10 @@ run-name: Coletar e publicar — ${{ inputs.server || 'pw187' }}
 # The collection date is on screen for exactly this reason, and it is what
 # tells a visitor the market went stale.
 #
-# **This fallback always names `pw187`.** `schedule` and `push` carry no
-# `inputs`, so `${{ inputs.server || 'pw187' }}` below falls back to the
-# version that has existed the longest and already has a public tool pointed
-# at it. The Worker now alternates four cron triggers, two per version —
-# `tool/cron/wrangler.toml` has the full arithmetic — and this fallback only
-# ever fires `pw187`, so it agrees with the Worker's own `pw187` slots, `:07`
-# and `:37`, rather than also firing at `:22` and `:52`, which are the
-# Worker's `pw126` slots: a `pw187` dispatch at those minutes would not be
-# wrong, but it would not agree with what the reliable clock is doing at the
-# same instant either, and this is meant to be read beside it. This trigger
-# is the slow, unreliable backstop for the version that matters most if the
-# Worker goes quiet.
+# **Este horário é o recurso lento, e já não nomeia versão nenhuma**: a
+# corrida colhe todas de uma vez, portanto um disparo do `schedule` faz
+# exactamente o mesmo que um do Worker. Era preciso escolher uma versão
+# enquanto cada corrida colhia uma só.
 on:
   schedule:
     - cron: '7 * * * *'
@@ -42,14 +35,6 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-      server:
-        description: 'Qual mercado colher'
-        required: false
-        default: pw187
-        type: choice
-        options:
-          - pw187
-          - pw126
       # O levantamento único de um item que acabou de entrar na vigia. Só
       # existe em disparo manual e nunca no horário, de propósito: lista quem
       # **já** carrega, e o horário repeti-lo-ia de meia em meia hora para
@@ -66,47 +51,65 @@ permissions:
   pages: write
   id-token: write
 
-# Never two collections at once against the same site, and never a half-written
-# deploy. A run already in flight wins; the next schedule picks up its state.
+# Uma corrida de cada vez, e nunca um deploy escrito a meio.
 #
-# This still has to hold with two versions alternating: both pw187 and pw126
-# runs join the SAME group, on purpose — two concurrent `upload-pages-artifact`
-# calls collide on the Pages artifact (`Multiple artifacts named "github-pages"
-# were unexpectedly found`, recorded in CLAUDE.md), and a deploy that races
-# another deploy can publish half of each. One job, alternating, is the whole
-# point: see CLAUDE.md on why this is not two workflows.
+# **A razão antiga era que as versões se alternavam entre corridas; agora
+# elas correm dentro da mesma.** O que continua a exigir o grupo é o GitHub
+# Pages: há um deployment e um artefato `github-pages` por repositório, e
+# dois deploys em paralelo publicam metade de cada um.
+#
+# Com uma corrida por hora a colher tudo, isto deixou de ser o freio que
+# decide a frescura do site e passou a ser só a rede de segurança para um
+# `push` que caia em cima do horário. Ver CLAUDE.md sobre 06/10/2026: quatro
+# corridas por hora davam intervalos de quinze minutos, e a coleta mais lenta
+# medida leva dezoito.
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  publish:
+  # **Um job por versão, em paralelo — e a razão é o pior caso, não o comum.**
+  #
+  # Em regime normal uma coleta leva 3 a 5 minutos e tanto faz; o que decide é
+  # a recolha completa, que acontece quando o carimbo de `CollectedPage` muda.
+  # Em sequência, duas somam 83 + 65 = 148 minutos contra um tecto de 120 —
+  # não cabe. Em paralelo são `max(83, 65)` = 83, e com uma quarta versão a
+  # soma deixa de caber em tecto nenhum enquanto o máximo continua a caber.
+  #
+  # **E isto mata o `--carry-forward` como caminho normal.** Enquanto cada
+  # corrida colhia um mercado, ela tinha de ir buscar o outro ao site e
+  # republicá-lo: ler, modificar, escrever, sobre estado partilhado. Duas
+  # corridas ao mesmo tempo perdiam dados sem nada falhar. Colhidas todas na
+  # mesma corrida, o arrasto sobra só para a versão cuja coleta falhou.
+  #
+  # Uma versão nova é um bloco aqui e uma entrada em `lib/collector/
+  # servidor.dart`. Se alguém esquecer este bloco, o job de publicação avisa
+  # que o índice não chegou — falha alto em vez de calado.
+  colher:
     runs-on: ubuntu-latest
-    # A first run crawls every page at one request every 1.5 s. The rest
-    # finish in under a minute.
-    #
-    # Seventy-five and not fifty because of 2026-08-19: the anecdotes and the
-    # inventory are not in any state written before them, so every entry was
-    # stale and the whole market was fetched again — about forty minutes of
-    # crawling, plus analyze, test, build and deploy. If the job times out the
-    # cache is never written and the next run starts from zero, so the ceiling
-    # has to clear a full crawl with room to spare.
-    #
-    # Not raised for pw126 specifically: its listing is smaller than pw187's
-    # (measured 01/10/2026, see the spec), so pw187's own first-run arithmetic
-    # already covers it. If a first pw126 crawl ever needs more, raise this
-    # then, with the measurement that showed it — not in advance of one.
-    # 83 minutos é o que uma coleta completa do pw187 custa (1.666 × 3 s), e
-    # o timeout era 75 — ou seja, uma coleta do zero **nunca** podia terminar,
-    # e sem terminar nunca gravava a cache que a tornaria desnecessária. 120
-    # dá folga para o pior caso mais o build.
+    # 83 minutos é o que uma coleta completa do pw187 custa (1.666 × 3 s), e o
+    # tecto era 75 — ou seja, uma coleta do zero **nunca** podia terminar, e
+    # sem terminar nunca gravava a cache que a tornaria desnecessária. Agora
+    # que cada versão tem o seu job, este tecto é por versão e não pela soma.
     timeout-minutes: 120
 
-    env:
-      # `inputs.server` only exists on a `workflow_dispatch`; `schedule` and
-      # `push` have no `inputs` at all, so this falls back to `pw187` for
-      # both — the version that already has a public tool pointed at it.
-      SERVIDOR: ${{ inputs.server || 'pw187' }}
+    strategy:
+      # Uma versão que falha não pode levar as outras: o site prefere um
+      # mercado velho a dois.
+      fail-fast: false
+      matrix:
+        include:
+          - servidor: pw187
+            estado: tool/.collect_state.json
+            # **O prefixo da chave é de 2026-08 e não pode mudar.** Uma chave
+            # nova não encontra as caches que existem, e sem cache o
+            # `--resume` faz coleta completa — foi assim que 01/10 começou.
+            cache: collect-state-
+            indice: web/market_index.json
+          - servidor: pw126
+            estado: tool/.collect_state_126.json
+            cache: collect-state-126-
+            indice: web/market_index_126.json
 
     steps:
       - uses: actions/checkout@v4
@@ -119,48 +122,24 @@ jobs:
 
       - run: flutter pub get
 
-      # What the collector already read. Without it every run would be a fresh
-      # 28-minute crawl, which is both slow and rude to the site.
+      # O que o coletor já leu. Sem isto cada corrida seria um rastreio
+      # completo, que é lento e indelicado com o site deles.
       #
-      # Both state files are listed, not just the one `$SERVIDOR` names this
-      # run. `actions/cache` restores whatever is in the archive regardless of
-      # which one this run touches, so listing only `pw187`'s file here would
-      # silently never cache `tool/.collect_state_126.json` — every pw126 run
-      # would then redo its full crawl, forever, with nothing on screen saying
-      # why `--resume` stopped resuming.
+      # **Um caminho por job, e isto não é arrumação.** `actions/cache` deriva
+      # a identidade de uma cache da **lista de caminhos**; em 01/10
+      # acrescentar um segundo ficheiro ao mesmo passo tornou inalcançáveis as
+      # 841 caches que existiam — chave a casar, conteúdo lá, invisíveis. Com
+      # um job por versão cada lista fica estável para sempre, por construção.
       #
-      # The key rotates so the cache is rewritten rather than appended to
-      # (GitHub caches are immutable once written); restore-keys picks the most
-      # recent previous one.
-      # **Dois passos, um caminho cada, e isto não é arrumação.**
-      #
-      # `actions/cache` deriva a identidade de uma cache da **lista de
-      # caminhos**. Em 01/10 acrescentei o segundo arquivo a este passo e isso
-      # tornou inalcançáveis as 841 caches que existiam — chave a casar,
-      # conteúdo lá, e invisíveis.
-      #
-      # O que se seguiu foi um laço fechado: sem cache o `--resume` não tem
-      # estado e faz coleta completa; a coleta completa de 1.666 personagens a
-      # 3 s cada precisa de **83 minutos** e o `timeout-minutes` cortava aos
-      # 75; uma corrida que falha **não grava cache**. Nove horas sem deploy e
-      # 32 cancelamentos, e nada disso sairia sozinho.
-      #
-      # Separados, cada cache mantém a sua lista de caminhos estável para
-      # sempre, e acrescentar uma terceira versão nunca mais invalida as
-      # outras duas.
-      - name: Restaurar o estado do pw187
+      # A chave roda para a cache ser reescrita em vez de acrescentada (uma
+      # cache do GitHub é imutável depois de escrita); `restore-keys` apanha a
+      # mais recente anterior.
+      - name: Restaurar o estado do ${{ matrix.servidor }}
         uses: actions/cache@v4
         with:
-          path: tool/.collect_state.json
-          key: collect-state-${{ github.run_id }}
-          restore-keys: collect-state-
-
-      - name: Restaurar o estado do pw126
-        uses: actions/cache@v4
-        with:
-          path: tool/.collect_state_126.json
-          key: collect-state-126-${{ github.run_id }}
-          restore-keys: collect-state-126-
+          path: ${{ matrix.estado }}
+          key: ${{ matrix.cache }}${{ github.run_id }}
+          restore-keys: ${{ matrix.cache }}
 
       # Uma segunda tentativa, e ela é barata: o coletor salva o estado a cada
       # personagem, então `--resume` continua de onde parou em vez de recomeçar.
@@ -185,27 +164,106 @@ jobs:
           DISCORD_ALERTAS: ${{ secrets.DISCORD_ALERTAS }}
           ALERTAS_CATCHUP: ${{ inputs.catchup }}
         run: |
-          dart run tool/collect.dart --server "$SERVIDOR" --resume && exit 0
+          dart run tool/collect.dart --server ${{ matrix.servidor }} --resume && exit 0
           echo "::warning::A coleta caiu; segunda tentativa. Se isto virar rotina, deixou de ser azar."
           sleep 20
-          dart run tool/collect.dart --server "$SERVIDOR" --resume
+          dart run tool/collect.dart --server ${{ matrix.servidor }} --resume
 
-      # Um deploy publica o site inteiro, e esta corrida só colheu uma das
-      # duas versões — a outra tem de vir do que já está no ar, ou este deploy
-      # apagaria aquele mercado (os índices são gitignorados). Reaproveita
-      # `_fetchPublishedIndex`, a mesma função que a memória de preço já usa
-      # para ler o índice publicado; ver `tool/collect.dart` para o `--carry-
-      # forward` e para a mesma decisão de abortar sem publicar que `main()`
-      # já toma quando o seu PRÓPRIO índice publicado não vem.
+      # O índice viaja para o job de publicação como artefato.
       #
-      # Vem logo depois da coleta, antes dos ícones e dos testes: numa corrida
-      # do pw126, `web/market_index.json` só existe a partir deste passo, e
-      # `presets_test` lê esse arquivo — o mercado real do 1.8.7.
-      - name: Arrastar a versão que esta corrida não colheu
+      # **Um dia, como o do Pages, e pela mesma razão.** Carrega o mercado
+      # deles inteiro, e num repositório público qualquer pessoa descarrega um
+      # artefato sem sessão iniciada. Se o site fechar de novo, estes têm de
+      # ser apagados na hora junto com o outro.
+      #
+      # `if-no-files-found: error` de propósito: um índice que não existe tem
+      # de parar aqui, onde se sabe porquê, e não no job seguinte a arrastar
+      # silenciosamente o do site.
+      - name: Guardar o índice do ${{ matrix.servidor }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: indice-${{ matrix.servidor }}
+          path: ${{ matrix.indice }}
+          retention-days: 1
+          if-no-files-found: error
+
+  publicar:
+    needs: colher
+    # **Mesmo com uma coleta falhada**, e é essa a razão de o arrasto existir:
+    # o site continua de pé com o mercado que sobreviveu, e o que falhou vem
+    # do que já está no ar. Sem isto, uma falha de uma versão tirava o site
+    # inteiro do ar durante uma hora.
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Trazer os índices colhidos
+        uses: actions/download-artifact@v4
+        with:
+          pattern: indice-*
+          merge-multiple: true
+          path: web
+
+      # **Duas ausências diferentes, e só uma delas é aceitável.**
+      #
+      # "Esta versão não foi colhida nesta corrida" é um facto normal — a
+      # coleta dela falhou, as outras seguiram, e o arrasto resolve. "Foi
+      # colhida e o ficheiro perdeu-se entre os jobs" é um defeito nosso, e
+      # arrastar nesse caso publicaria dados velhos com a corrida verde: o
+      # pior resultado possível, porque ninguém fica a saber.
+      #
+      # `needs.colher.result` é o que as separa: se **todas** as coletas
+      # passaram, um índice em falta só pode ser ficheiro perdido.
+      #
+      # A lista das versões vem do próprio coletor, nunca escrita aqui — ver
+      # `Servidor.todos`. Uma versão nova que entre lá e não aqui na matriz
+      # cai neste aviso em vez de desaparecer calada.
+      - name: Conferir o que chegou
         run: |
-          OUTRA=pw126
-          if [ "$SERVIDOR" = "pw126" ]; then OUTRA=pw187; fi
-          dart run tool/collect.dart --server "$OUTRA" --carry-forward
+          falhou=0
+          while IFS=$'\t' read -r chave indice _; do
+            # `if` e não `[ -f ... ] && continue`, e por legibilidade e não
+            # por perigo: medido, a forma `&&` não aborta sob `bash -e`,
+            # porque o teste é o primeiro comando da lista e a sua falha é
+            # ignorada. O `if` diz em voz alta qual é o caso interessante.
+            if [ -f "$indice" ]; then
+              continue
+            fi
+            if [ "${{ needs.colher.result }}" = "success" ]; then
+              echo "::error::$indice não chegou, mas todas as coletas passaram — o artefato perdeu-se entre os jobs."
+              falhou=1
+            else
+              echo "::warning::$chave não foi colhido nesta corrida; vai ser arrastado do site."
+            fi
+          done < <(dart run tool/collect.dart --listar)
+          exit $falhou
+
+      # Um deploy publica o site inteiro, portanto uma versão que não foi
+      # colhida tem de vir do que já está no ar, ou este deploy apagaria
+      # aquele mercado (os índices são gitignorados). Reaproveita
+      # `_fetchPublishedIndex`, a mesma função que a memória de preço usa; ver
+      # `tool/collect.dart` para o `--carry-forward` e para a decisão de
+      # abortar sem publicar quando o índice publicado não vem.
+      #
+      # **Deixou de correr em todas as corridas.** Enquanto cada corrida
+      # colhia um mercado, isto acontecia sempre e era o que tornava duas
+      # corridas simultâneas perigosas. Agora é excepção.
+      - name: Arrastar as versões que não foram colhidas
+        run: |
+          while IFS=$'\t' read -r chave indice _; do
+            [ -f "$indice" ] || dart run tool/collect.dart --server "$chave" --carry-forward
+          done < <(dart run tool/collect.dart --listar)
 
       # Skips everything already committed, so this costs nothing unless an
       # item appeared that nobody had worn before.

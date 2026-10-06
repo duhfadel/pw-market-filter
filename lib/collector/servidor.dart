@@ -132,6 +132,16 @@ class Servidor {
     ),
   };
 
+  /// Every version this collector knows, in the order they were added.
+  ///
+  /// **Existe para o CI não repetir a lista.** O workflow precisa de saber
+  /// quais índices têm de existir antes de publicar, e escrever essa lista
+  /// num ficheiro YAML seria a mesma verdade em dois sítios — exactamente a
+  /// forma que já custou caro aqui com o nome de ficheiro de uma guilda e com
+  /// o `CRON_DA_COLETA` do Worker. Uma versão nova entra em [_conhecidos] e o
+  /// CI fica a saber.
+  static Iterable<Servidor> get todos => _conhecidos.values;
+
   /// Looks up a version by its key. Throws [ArgumentError] for anything not
   /// in [_conhecidos] — refusing loudly beats guessing a shape that would
   /// quietly collect nothing.

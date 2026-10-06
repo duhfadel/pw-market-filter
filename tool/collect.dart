@@ -127,6 +127,23 @@ Future<void> main(List<String> arguments) async {
 
   // Refused loudly rather than guessed: a typo here would collect against a
   // 404 for forty minutes and write an empty index over a good one.
+  // Uma linha por versão: `chave<TAB>índice<TAB>estado`. O CI lê isto para
+  // saber quais índices têm de existir antes de publicar, em vez de guardar a
+  // mesma lista num YAML — duas cópias da mesma verdade divergem no dia em
+  // que uma versão nova entra só numa delas.
+  //
+  // Antes da escolha de servidor, de propósito: listar não é colher, e exigir
+  // um `--server` para perguntar quais existem seria pedir a resposta.
+  if (arguments.contains('--listar')) {
+    for (final servidor in Servidor.todos) {
+      stdout.writeln(
+        '${servidor.chave}\t${servidor.arquivoDoIndice}\t'
+        '${servidor.arquivoDoEstado}',
+      );
+    }
+    return;
+  }
+
   try {
     _servidor = Servidor.de(_serverArg(arguments));
   } on ArgumentError catch (e) {

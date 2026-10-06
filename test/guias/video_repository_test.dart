@@ -33,10 +33,13 @@ void main() {
     expect(pedida.query, isNot(contains('versao=')));
   });
 
-  test('só os visíveis, e na ordem do painel', () async {
+  test('só os visíveis, e o mais recente primeiro', () async {
+    // Quem abre uma página de guerras quer ver a última. `ordem` fica como
+    // desempate, e `nullslast` é o que mantém as seções de guia — onde
+    // ninguém preenche a data — na ordem que alguém lhes deu.
     await comResposta(const []).daSecao('guerras');
     expect(pedida.query, contains('visivel=is.true'));
-    expect(pedida.query, contains('order=ordem.asc'));
+    expect(pedida.query, contains('order=data.desc.nullslast,ordem.asc'));
   });
 
   test('uma falha devolve lista vazia, nunca uma exceção', () async {

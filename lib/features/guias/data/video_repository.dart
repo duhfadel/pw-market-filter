@@ -33,7 +33,14 @@ class VideoRepository {
           '$_url?select=*&visivel=is.true'
           '&secao=eq.${Uri.encodeComponent(secao)}'
           '${versao == null ? '' : '&versao=eq.${Uri.encodeComponent(versao)}'}'
-          '&order=ordem.asc,publicado_em.desc',
+          // **A data manda, e `ordem` passa a ser só o desempate.** A
+          // primeira grelha com dois vídeos mostrou o 20/09 antes do 04/10,
+          // porque a ordem era a de inserção — e quem abre uma página de
+          // guerras quer ver a última. `nullslast` é o que mantém as seções
+          // de guia a funcionar: lá ninguém preenche a data, e sem isso elas
+          // iriam todas para o topo ou para o fundo conforme o humor do
+          // Postgres, em vez de ficarem na ordem que alguém lhes deu.
+          '&order=data.desc.nullslast,ordem.asc,publicado_em.desc',
         ),
         headers: const {
           'apikey': _key,

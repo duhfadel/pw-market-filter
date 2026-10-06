@@ -100,6 +100,7 @@ export default {
       // De carona nesta batida: uma coleta que quebrou esperava a próxima
       // hora daquela versão, e aqui a espera cai para cinco minutos.
       await ressuscitarColeta(env);
+      await vigiarOSite(env);
       return;
     }
 
@@ -172,6 +173,97 @@ export default {
 // demorou 4 min 05 s e acabou às 16:44:31, antes da batida das 16:45. O
 // freio verdadeiro é perguntar se já existe uma rodada daquela versão **por
 // terminar**, e é isso que `jaVemOutra` faz.
+// O endereço que um visitante abre, e o ficheiro de que ele depende.
+const VERSOES_PUBLICADAS = 'https://portalpw.net/versoes.json';
+
+// Duas coletas falhadas. O relógio é de hora em hora, portanto nada de
+// saudável chega aqui — e um limite mais apertado dispararia em cima de uma
+// corrida que simplesmente demorou.
+const VELHO_DEMAIS_MS = 2 * 60 * 60 * 1000;
+
+/// Avisa quando o site está parado **ou** quando as portas não abrem.
+///
+/// **Existe por causa de 06/10/2026, em que nada falhou e o site estava
+/// inutilizável.** A matriz de jobs deixou de escrever `versoes.json`, o ecrã
+/// de escolha passou a desenhar as duas portas como *em breve* e não deixava
+/// entrar em mercado nenhum. As coletas corriam, os índices estavam frescos,
+/// as corridas estavam verdes — e o único sinal era um 404 na consola do
+/// browser. Quem deu por isso foi o dono.
+///
+/// Daí serem **duas** perguntas e não uma. "Os índices estão frescos?" não
+/// teria apanhado aquele dia; "o ficheiro que abre as portas responde?"
+/// teria. Um alerta que só vigia o que já correu mal uma vez é um alerta que
+/// aprende devagar demais.
+///
+/// **No máximo um aviso por hora**, e sem guardar estado em lado nenhum: só
+/// dispara na batida em que o minuto é menor que cinco. O Worker não tem KV e
+/// não vale uma tabela para isto; a mensagem diz há quanto tempo o problema
+/// dura, portanto repetir de hora a hora informa em vez de incomodar.
+async function vigiarOSite(env) {
+  if (new Date().getUTCMinutes() >= 5) return;
+
+  const problemas = [];
+
+  let versoes = null;
+  try {
+    const resposta = await fetch(VERSOES_PUBLICADAS, { cache: 'no-store' });
+    if (!resposta.ok) {
+      problemas.push(
+        `\`versoes.json\` responde **${resposta.status}** — o ecrã de ` +
+          'escolha mostra as duas portas como *em breve* e ninguém entra.',
+      );
+    } else {
+      versoes = await resposta.json();
+      if (!versoes || Object.keys(versoes).length === 0) {
+        problemas.push(
+          '`versoes.json` veio vazio — as portas fecham do mesmo jeito.',
+        );
+      }
+    }
+  } catch (erro) {
+    problemas.push(`não consegui ler \`versoes.json\`: ${erro}`);
+  }
+
+  for (const [chave, versao] of Object.entries(versoes || {})) {
+    const colhido = Date.parse(versao?.coletadoEm ?? '');
+    if (Number.isNaN(colhido)) {
+      problemas.push(`**${chave}** não diz quando foi colhido.`);
+      continue;
+    }
+    const parado = Date.now() - colhido;
+    if (parado > VELHO_DEMAIS_MS) {
+      const horas = Math.floor(parado / 3600000);
+      const minutos = Math.round((parado % 3600000) / 60000);
+      problemas.push(
+        `**${chave}** está parado há ${horas}h${String(minutos).padStart(2, '0')}.`,
+      );
+    }
+  }
+
+  if (problemas.length === 0) return;
+
+  const texto = ['⚠️ **O portalpw.net precisa de atenção**', ...problemas].join(
+    '\n',
+  );
+  console.error(texto);
+
+  // Sem webhook, o aviso fica no log do Worker e nada se perde em silêncio —
+  // o mesmo recuo que o coletor faz quando lhe falta o segredo dos alertas.
+  if (!env.DISCORD_ALERTAS) {
+    console.error('sem DISCORD_ALERTAS: aviso ficou só no log.');
+    return;
+  }
+
+  const enviado = await fetch(env.DISCORD_ALERTAS, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ content: texto.slice(0, 1900) }),
+  });
+  if (!enviado.ok) {
+    console.error(`Discord recusou o aviso: ${enviado.status}`);
+  }
+}
+
 async function ressuscitarColeta(env) {
   // Sem `status=completed`: as rodadas por terminar são metade da pergunta.
   // `per_page=20` porque agora a lista mistura as duas versões *e* os dois

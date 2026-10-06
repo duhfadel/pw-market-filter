@@ -134,6 +134,60 @@ Future<void> main(List<String> arguments) async {
   //
   // Antes da escolha de servidor, de propósito: listar não é colher, e exigir
   // um `--server` para perguntar quais existem seria pedir a resposta.
+  // Reescreve `web/versoes.json` a partir dos índices que estão em disco.
+  //
+  // **Existe porque a matriz do CI partiu o pressuposto da função abaixo.**
+  // `escreverVersoes` funde uma linha de cada vez, e isso bastava enquanto
+  // uma corrida colhia uma versão e arrastava a outra: as duas chamadas
+  // aconteciam no mesmo job, sobre o mesmo ficheiro. Com um job por versão,
+  // cada runner escreve um ficheiro de uma linha que morre com ele, e o job
+  // de publicação ficava sem nenhum — o ecrã de escolha abria as duas portas
+  // a dizer *em breve*, que foi o que aconteceu a 06/10/2026.
+  //
+  // Fundir não serve aqui: os ficheiros têm todos o mesmo nome, portanto
+  // viajar como artefactos faria o último sobrepor-se ao primeiro. Escrever
+  // o ficheiro inteiro de uma vez, a partir dos índices, não tem esse
+  // problema — e é a única forma que não depende da ordem.
+  //
+  // Uma versão cujo índice não está em disco é omitida, não inventada: a
+  // porta dela fica *em breve*, que é verdade, em vez de prometer um mercado
+  // que não foi publicado.
+  if (arguments.contains('--escrever-versoes')) {
+    final versoes = <String, VersaoResumo>{};
+    for (final servidor in Servidor.todos) {
+      final file = File(servidor.arquivoDoIndice);
+      if (!file.existsSync()) {
+        stdout.writeln('  ${servidor.chave}: sem índice em disco, omitido.');
+        continue;
+      }
+      final index = MarketIndex.fromJson(
+        jsonDecode(file.readAsStringSync()) as Map<String, dynamic>,
+      );
+      versoes[servidor.chave] = VersaoResumo(
+        chave: servidor.chave,
+        nome: _nomesLegiveis[servidor.chave] ?? servidor.chave,
+        personagens: index.characters.length,
+        coletadoEm: index.collectedAt,
+      );
+      stdout.writeln(
+        '  ${servidor.chave}: ${index.characters.length} personagens, '
+        '${index.collectedAt.toIso8601String()}',
+      );
+    }
+    if (versoes.isEmpty) {
+      stderr.writeln(
+        'Nenhum índice em disco: não vou escrever um $_arquivoVersoes vazio, '
+        'que fecharia as duas portas do site.',
+      );
+      exit(1);
+    }
+    File(_arquivoVersoes).writeAsStringSync(jsonEncode(versoesToJson(versoes)));
+    stdout.writeln(
+      '$_arquivoVersoes escrito com ${versoes.length} versão(ões).',
+    );
+    return;
+  }
+
   if (arguments.contains('--listar')) {
     for (final servidor in Servidor.todos) {
       stdout.writeln(

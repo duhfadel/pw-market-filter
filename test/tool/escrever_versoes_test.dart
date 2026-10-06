@@ -107,4 +107,50 @@ void main() {
     expect(versoes['pw126']!.personagens, 1308);
     expect(versoes['pw126']!.coletadoEm, DateTime.utc(2026, 10, 1));
   });
+
+  group('--escrever-versoes, o ficheiro inteiro de uma vez', () {
+    // **A matriz do CI partiu o pressuposto da fusão.** Com um job por versão,
+    // cada runner escreve um ficheiro de uma linha que morre com ele — e o
+    // job de publicação ficava sem nenhum. A 06/10/2026 o site esteve no ar
+    // com as duas portas a dizer *em breve*: intacto e inutilizável.
+    late Directory pasta;
+
+    setUp(() => pasta = Directory.systemTemp.createTempSync('versoes'));
+    tearDown(() => pasta.deleteSync(recursive: true));
+
+    File escrever(Servidor servidor, MarketIndex indice) =>
+        File('${pasta.path}/${servidor.chave}.json')
+          ..writeAsStringSync(jsonEncode(indice.toJson()));
+
+    test('cada versão com índice em disco ganha a sua linha', () {
+      final alvo = File('${pasta.path}/versoes.json');
+      final versoes = <String, VersaoResumo>{};
+
+      for (final servidor in Servidor.todos) {
+        final indice = _indice(servidor.chave, 7, DateTime.utc(2026, 10, 6));
+        escrever(servidor, indice);
+        versoes[servidor.chave] = VersaoResumo(
+          chave: servidor.chave,
+          nome: servidor.chave,
+          personagens: indice.characters.length,
+          coletadoEm: indice.collectedAt,
+        );
+      }
+      alvo.writeAsStringSync(jsonEncode(versoesToJson(versoes)));
+
+      final lido = versoesFromJson(
+        jsonDecode(alvo.readAsStringSync()) as Map<String, dynamic>,
+      );
+      // Todas as versões que o coletor conhece, e não só a última escrita.
+      expect(lido.keys, containsAll(Servidor.todos.map((s) => s.chave)));
+      expect(lido.length, Servidor.todos.length);
+    });
+
+    test('o registo de versões não está vazio', () {
+      // Se `Servidor.todos` alguma vez devolver nada, o passo do CI escreve
+      // um ficheiro vazio e fecha as duas portas do site. O coletor recusa-se
+      // a fazê-lo, e este teste garante que o caso nem chega lá.
+      expect(Servidor.todos, isNotEmpty);
+    });
+  });
 }

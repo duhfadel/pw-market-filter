@@ -265,6 +265,24 @@ jobs:
             [ -f "$indice" ] || dart run tool/collect.dart --server "$chave" --carry-forward
           done < <(dart run tool/collect.dart --listar)
 
+      # **O ficheiro que o ecrã de escolha lê, e que a matriz quase deixou
+      # para trás.** `escreverVersoes` funde uma linha de cada vez, o que
+      # bastava enquanto uma corrida colhia uma versão e arrastava a outra —
+      # as duas chamadas no mesmo job, sobre o mesmo ficheiro. Com um job por
+      # versão, cada runner escreve um ficheiro de uma linha que morre com
+      # ele; fundi-los como artefactos é impossível, porque têm todos o mesmo
+      # nome e o último sobrepor-se-ia ao primeiro.
+      #
+      # Escrito aqui, de uma vez, a partir dos índices que já estão em disco.
+      # Vem depois do arrasto, de propósito: uma versão arrastada do site é
+      # uma versão publicada, e a porta dela tem de abrir.
+      #
+      # Isto esteve três minutos no ar a 06/10/2026 sem o ficheiro, e o site
+      # ficou com as duas portas a dizer *em breve* — ou seja, intacto e
+      # inutilizável.
+      - name: Escrever as versões para o ecrã de escolha
+        run: dart run tool/collect.dart --escrever-versoes
+
       # Skips everything already committed, so this costs nothing unless an
       # item appeared that nobody had worn before.
       - name: Baixar ícones novos

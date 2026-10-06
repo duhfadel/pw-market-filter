@@ -1036,6 +1036,48 @@ Each of these already cost something — measured on the live site, not guessed.
   minutos para corridas de 20 a 45. Agora é **um por versão por hora**, `:07`
   e `:37`.
 
+- **Mais corridas por hora deram mais atraso, não menos — e a aritmética é a
+  explicação inteira.** A 05/10/2026 a cadência passou de uma por versão por
+  hora para duas, a pedido do dono, com o argumento de que o `timeout` que
+  causara o bloqueio de 01/10 já estava corrigido. O argumento estava certo;
+  a conclusão não.
+
+  **Duas por versão são quatro corridas por hora, ou seja uma de quinze em
+  quinze minutos.** Uma coleta normal demora 3 a 5 minutos, mas pode demorar
+  **18** — medido no pw126 a 06/10, das 19:22 às 19:40. Quando uma passa dos
+  quinze, a seguinte fica em fila e a terceira mata-a, porque o Pages guarda
+  **uma** pendente só. Nesse dia foram três cancelamentos seguidos, dois com
+  **zero jobs**, e o índice do 1.8.7 ficou **hora e meia** sem actualizar —
+  pior do que a hora que a cadência esparsa garante.
+
+  Quem perde é sempre a versão cujo horário vem **logo a seguir** ao da
+  outra, e isso não é azar: é quem herda o atraso.
+
+  A regra que fica: **o espaçamento entre corridas tem de caber a mais lenta
+  já medida, com margem.** Trinta minutos cabem 18 com folga; quinze não. E
+  qualquer esquema com três ou mais corridas por hora tem, por aritmética, um
+  intervalo de vinte minutos ou menos — portanto a pergunta "de quanto em
+  quanto tempo?" é, na verdade, "quantas por hora?".
+
+- **O artefato existe e a API diz que não, e a janela é de menos de meio
+  segundo.** Duas vezes em 05/10/2026 o `upload-pages-artifact` terminou com
+  sucesso — ID e tamanho impressos — e o `deploy-pages` perguntou pelo mesmo
+  artefato logo a seguir e recebeu **`Found 0 artifact(s)`**: 387 ms de
+  intervalo às 15:18, 464 ms às 19:10. Cada uma custou a execução inteira,
+  coleta de quarenta minutos incluída.
+
+  **A mensagem do próprio action engana por omissão.** Ela manda olhar o
+  `githubstatus.com` e tentar mais tarde — o que acerta em de quem é o
+  problema e erra no remédio: o que resolve é esperar que a API admita o que
+  acabou de aceitar. Há agora um passo entre os dois que faz exactamente
+  isso, por no máximo um minuto, e que **não falha** se o tempo acabar — deixa
+  o `deploy-pages` falhar com a mensagem dele, porque aí o problema é outro.
+
+  O que distingue este caso do 503 da nota abaixo é onde se olha: ali o
+  deploy nunca arranca e o `githubstatus` confirma; aqui o log do passo
+  anterior diz `successfully finalized` com um ID, e é a diferença de
+  milissegundos entre as duas linhas que conta a história.
+
 - **A failed deploy is usually GitHub, and `gh run rerun --failed` makes it
   worse.** On 2026-08-17 the collect, analyze, test and build steps all passed
   and `actions/deploy-pages` answered **503 — "No server is currently available"**;

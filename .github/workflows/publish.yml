@@ -37,7 +37,7 @@ run-name: Coletar e publicar — ${{ inputs.server || 'pw187' }}
 # Worker goes quiet.
 on:
   schedule:
-    - cron: '7,37 * * * *'
+    - cron: '7 * * * *'
   push:
     branches: [main]
   workflow_dispatch:

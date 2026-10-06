@@ -705,7 +705,20 @@ class _Grid extends StatelessWidget {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: narrow ? double.infinity : 300,
+        // **340 e não 300, e o número vem de medir o apelido.** Com 300, uma
+        // janela de 1000 px dá três colunas de 212 px, e um card de 212 tem
+        // 24 de margem, 62 de retrato e o preço à direita — sobram ~63 px
+        // para o nome, que sai `xXT…`. O apelido é como se encontra a pessoa
+        // no marketplace depois; ilegível, a grelha deixa de servir para o
+        // que existe.
+        //
+        // 340 força duas colunas de 324 px nessa janela e **não mexe em
+        // 1200 nem em 1400**, onde a divisão cai no mesmo número de colunas
+        // de antes. Acima disso troca uma coluna por ~60 px de card — a
+        // 1600, quatro de 311 em vez de cinco de 248 —, e é uma troca boa:
+        // a 259 px ainda cortava nomes como `Tomasturbo`, medido no mercado
+        // real a 06/10/2026.
+        maxCrossAxisExtent: narrow ? double.infinity : 340,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
         // The grid needs one height for every tile, and the card cannot ask

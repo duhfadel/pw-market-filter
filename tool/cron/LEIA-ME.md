@@ -237,3 +237,32 @@ para aquela versão, a próxima vez que um dos seus dois horários voltar — er
 quinze minutos quando havia um horário só para as quatro batidas por hora de
 uma única versão — e a próxima tentativa resolve; repetir na hora só arrisca
 dois runs concorrentes pelo mesmo grupo de concorrência.
+
+## O aviso de site parado
+
+O Worker olha para o site de hora a hora — na batida de cinco minutos em que
+o minuto é menor que cinco — e faz **duas** perguntas:
+
+1. `https://portalpw.net/versoes.json` responde, e não vem vazio?
+2. Cada versão lá dentro foi colhida há menos de duas horas?
+
+A primeira existe por causa de 06/10/2026: a matriz de jobs deixou de
+escrever esse ficheiro, o ecrã de escolha passou a mostrar as duas portas
+como *em breve*, e **nada falhou** — as coletas corriam, os índices estavam
+frescos, as corridas verdes. O único sinal era um 404 na consola do browser,
+e quem deu por ele foi o dono. Um alerta que só vigiasse a frescura não teria
+apanhado aquele dia.
+
+Para o aviso sair do log e chegar ao Discord falta um segredo:
+
+```sh
+cd tool/cron
+npx wrangler secret put DISCORD_ALERTAS
+```
+
+e cola o mesmo webhook que está no segredo `DISCORD_ALERTAS` do GitHub. **Não
+o escrevas num ficheiro nem o colares numa conversa** — o `secret put` lê-o da
+entrada e não o guarda em lado nenhum.
+
+Sem esse segredo nada se perde em silêncio: o aviso fica em `wrangler tail`,
+o mesmo recuo que o coletor faz quando lhe falta o dele.

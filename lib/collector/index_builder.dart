@@ -81,6 +81,7 @@ class IndexBuilder {
     ParsedTitles? titles,
     Map<String, colhido.EspacoDeItens> espacos = const {},
     List<colhido.MascoteDoPersonagem> mascotes = const [],
+    Map<int, int> pericias = const {},
     PriceHistory? history,
   }) {
     _characters.add(
@@ -112,6 +113,13 @@ class IndexBuilder {
         // Só o nome: o nível e a lealdade ficam no estado, onde não custam
         // ao navegador. O que a tela precisa é tem ou não tem.
         mascotes: [for (final m in mascotes) m.nome],
+        // **Os quatro ou nenhum.** Quem não tem artesanato nenhum não carrega
+        // uma lista de zeros — zero seria "tem a perícia e está no nível
+        // zero", e a maioria simplesmente não a tem. A lista vazia é o que a
+        // tela lê como *não mostra linha*.
+        forja: colhido.idsDaForja.any(pericias.containsKey)
+            ? [for (final id in colhido.idsDaForja) pericias[id] ?? 0]
+            : const [],
         history: history,
         equipped: items.map(_convert).toList(growable: false),
         cards: cards

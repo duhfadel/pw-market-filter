@@ -175,7 +175,18 @@ class _Conteudo extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                cabecalho,
+                // **O texto para numa coluna estreita; a grelha não.** Uma
+                // linha de prosa a 1040 px passa das cem personagens e
+                // obriga o olho a procurar o início da linha seguinte — as
+                // guias estáticas do site já usam ~760 por esse motivo. A
+                // grelha de vídeos quer o oposto: quanto mais larga, mais
+                // cards por linha. São duas respostas diferentes à mesma
+                // largura, e por isso a restrição vive aqui e não no `Column`
+                // de fora.
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 760),
+                  child: cabecalho,
+                ),
                 const SizedBox(height: 20),
                 if (dicaDeBusca case final dica?)
                   _CampoDeBusca(valor: busca, aoMudar: aoBuscar, dica: dica),

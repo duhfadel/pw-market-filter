@@ -167,6 +167,9 @@ class SearchViewModel extends Cubit<SearchState> {
   void setMinFounderTier(int? tier) =>
       _apply(_query!.copyWith(minFounderTier: () => tier));
 
+  void setForjaMinima(int? nivel) =>
+      _apply(_query!.copyWith(forjaMinima: () => nivel));
+
   void setPath(String? path) => _apply(_query!.copyWith(path: () => path));
 
   /// `null` puts the rune question away entirely; anything else replaces it.

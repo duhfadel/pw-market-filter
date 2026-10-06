@@ -202,6 +202,7 @@ class MarketCharacter {
     this.founderTier,
     this.espacos = const {},
     this.mascotes = const [],
+    this.forja = const [],
     this.history,
   });
 
@@ -277,6 +278,17 @@ class MarketCharacter {
   /// 1.8.7, where the owner renames the egg and only the item id survives.
   final List<String> mascotes;
 
+  /// Os níveis dos quatro ofícios de artesanato, **na ordem dos ids** —
+  /// `idsDaForja`, em `collector/detail_parser_126.dart`. Vazia no 1.8.7, que
+  /// não publica perícias, e vazia também em quem não tem nenhum dos quatro,
+  /// que é o caso comum.
+  ///
+  /// Guardados na ordem dos ids e não ordenados por valor, porque essa ordem
+  /// é a única coisa estável que há: no dia em que alguém ler no jogo qual é
+  /// o ferreiro e qual o boticário, os rótulos entram sem recolher nada. A
+  /// tela é que ordena para mostrar.
+  final List<int> forja;
+
   /// What the market remembers about this character between collections, or
   /// `null` where no collection has recorded it yet.
   final PriceHistory? history;
@@ -310,6 +322,7 @@ class MarketCharacter {
           e.key: [e.value.usados, e.value.capacidade],
       },
     if (mascotes.isNotEmpty) 'mascotes': mascotes,
+    if (forja.isNotEmpty) 'forja': forja,
     if (history != null) 'history': history!.toJson(),
   };
 
@@ -351,6 +364,10 @@ class MarketCharacter {
               capacidade: (e.value as List<dynamic>)[1] as int,
             ),
         },
+        forja: [
+          for (final v in json['forja'] as List<dynamic>? ?? const [])
+            (v as num).toInt(),
+        ],
         mascotes: (json['mascotes'] as List<dynamic>? ?? const [])
             .cast<String>(),
         history: json['history'] == null

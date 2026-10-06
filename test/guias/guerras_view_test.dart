@@ -231,4 +231,27 @@ void main() {
     expect(find.byType(TextField), findsOneWidget);
     expect(find.textContaining('guilda'), findsOneWidget);
   });
+
+  testWidgets('a prosa para numa coluna estreita, a grelha não', (
+    tester,
+  ) async {
+    // Uma linha de texto a 1040 px passa das cem personagens e obriga o olho
+    // a procurar o início da seguinte. A grelha quer o oposto da mesma
+    // largura: quanto mais larga, mais cards por linha.
+    await montar(tester, [video('a'), video('b'), video('c')]);
+
+    final prosa = tester.getSize(
+      find
+          .ancestor(
+            of: find.textContaining('para rever como foi a guerra'),
+            matching: find.byType(ConstrainedBox),
+          )
+          .first,
+    );
+    expect(prosa.width, lessThanOrEqualTo(760));
+
+    // E a grelha continua larga: três cards cabem lado a lado.
+    final cards = tester.widgetList(find.byType(AspectRatio)).length;
+    expect(cards, greaterThanOrEqualTo(3));
+  });
 }

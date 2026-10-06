@@ -51,6 +51,12 @@ List<ActiveFilter> activeFilters(MarketIndex index, SearchQuery query) {
   if (query.path != null) {
     add(query.path!, (q) => q.copyWith(path: () => null));
   }
+  final forja = query.forjaMinima;
+  if (forja != null) {
+    // Diz o que a pergunta é, e não só o número: um chip a dizer `8+` ao lado
+    // de `Guerreiro` e `Leal` não diz de quê.
+    add('forja $forja+', (q) => q.copyWith(forjaMinima: () => null));
+  }
   if (query.cultivation != null) {
     add(query.cultivation!, (q) => q.copyWith(cultivation: () => null));
   }

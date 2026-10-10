@@ -1036,6 +1036,26 @@ Each of these already cost something — measured on the live site, not guessed.
   minutos para corridas de 20 a 45. Agora é **um por versão por hora**, `:07`
   e `:37`.
 
+- **Um teste que mede o mercado não pode travar o deploy, e `presets_test`
+  travou-o duas vezes seguidas.** A regra era que cada chip cortasse o mercado
+  **pelo menos a metade**, e nasceu de um caso real: dois chips devolviam 72%
+  e ensinavam nada. O que ninguém pesou é que `Arma de 70 ou mais` vive em
+  **49,7%** — cinco anúncios abaixo da linha — e o mercado move-se sozinho de
+  vinte em vinte minutos. A 10/10/2026 duas corridas seguidas falharam com
+  `974` contra `lessThan(974)`, **sem uma linha de código ter mudado**, e o
+  site ficou sem publicar.
+
+  O limiar duro passou a 60%, que continua a apanhar os 72% para que o teste
+  nasceu, e a fatia de cada chip passou a ser **impressa sem reprovar**. A
+  escolha é a que `confirmedCountedItems` já tinha feito: um defeito nosso põe
+  a suíte vermelha, um facto sobre um mercado que muda sozinho não congela o
+  site.
+
+  A forma a reconhecer: **um teste cuja entrada é o mundo e cuja saída é um
+  gate de publicação.** Ou a entrada deixa de ser o mundo, ou o gate deixa de
+  ser duro — e qual dos dois depende de o número medir uma decisão nossa ou o
+  estado deles.
+
 - **Mais corridas por hora deram mais atraso, não menos — e a aritmética é a
   explicação inteira.** A 05/10/2026 a cadência passou de uma por versão por
   hora para duas, a pedido do dono, com o argumento de que o `timeout` que

@@ -23,12 +23,16 @@ workers_dev = false
 # **string a string** com esta entrada (`CRON_DA_COLETA`); deixá-las divergir
 # faz o ramo da coleta nunca disparar, caindo calado no keep-alive.
 #
-# **O que isto custa, e é de propósito:** cada mercado passa de duas
-# actualizações por hora a uma. Em 06/10 a cadência densa deu o contrário do
-# que prometia — três cancelamentos seguidos e o índice do 1.8.7 hora e meia
-# parado, pior do que a hora que a esparsa garante. A frescura volta a
-# discutir-se quando houver medição que a suporte, e o `CLAUDE.md` tem os
-# números.
+# **Meia em meia hora desde 11/10/2026, e o que mudou foi a aritmética.** A
+# tentativa de 05/10 deu o contrário do que prometia — três cancelamentos
+# seguidos e o 1.8.7 hora e meia parado — mas a causa era serem *quatro*
+# corridas por hora, uma de quinze em quinze minutos, com duas coletas a
+# disputar a fila do Pages, que guarda uma pendente só. Com a matriz há duas
+# corridas por hora, 30 minutos entre elas, e a corrida inteira leva 3 a 4
+# minutos: a coleta mais lenta já medida, 18 minutos, cabe com folga.
+#
+# A regra que fica, e está no `CLAUDE.md`: **o espaçamento tem de caber a
+# corrida mais lenta já medida, com margem.**
 #
 # **A conta que torna uma hora suficiente:** os 83 minutos do
 # `timeout-minutes` em `publish.yml` são só a primeira coleta de cada versão.
@@ -37,7 +41,7 @@ workers_dev = false
 #
 [triggers]
 crons = [
-  "7 * * * *",
+  "7,37 * * * *",
   "13 4 * * *",
   "*/5 * * * *",
 ]

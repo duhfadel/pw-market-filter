@@ -36,9 +36,18 @@ const WORKFLOW = 'publish.yml';
 // `--carry-forward`, e o facto de três ou mais corridas por hora darem
 // intervalos que não cabem a coleta mais lenta medida, 18 minutos.
 //
-// Com a matriz do workflow, disparar é disparar: não há versão a escolher,
-// nem a adivinhar depois pelo título da corrida.
-const CRON_DA_COLETA = '7 * * * *';
+// Agora uma corrida colhe **todas** as versões, em jobs paralelos. Portanto
+// não há versão a escolher no disparo, e uma versão nova não precisa de um
+// horário novo — entra na matriz do workflow.
+//
+// **De meia em meia hora desde 11/10/2026, e a aritmética é outra agora.** A
+// tentativa de 05/10 falhou por serem *quatro* corridas por hora — uma de
+// quinze em quinze minutos, com duas coletas a disputar a fila do Pages, que
+// guarda uma pendente só. Com a matriz há **duas** corridas por hora e 30
+// minutos entre elas, e a corrida inteira leva 3 a 4 minutos: a coleta mais
+// lenta já medida, 18 minutos, cabe com folga. O que mudou não foi a
+// vontade, foi o número de corridas a competir.
+const CRON_DA_COLETA = '7,37 * * * *';
 
 
 // O banco que guarda o contador de visitas e os donos dos territórios.

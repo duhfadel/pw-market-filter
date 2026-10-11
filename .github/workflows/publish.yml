@@ -30,7 +30,7 @@ run-name: Coletar e publicar
 # enquanto cada corrida colhia uma só.
 on:
   schedule:
-    - cron: '7 * * * *'
+    - cron: '7,37 * * * *'
   push:
     branches: [main]
   workflow_dispatch:

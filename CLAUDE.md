@@ -1079,6 +1079,15 @@ Each of these already cost something — measured on the live site, not guessed.
   intervalo de vinte minutos ou menos — portanto a pergunta "de quanto em
   quanto tempo?" é, na verdade, "quantas por hora?".
 
+  **Repôs-se a meia hora a 11/10/2026, e a diferença é a matriz.** O número
+  de corridas por hora caiu de quatro para duas quando uma corrida passou a
+  colher todas as versões: 30 minutos de espaçamento em vez de 15, e a
+  corrida inteira leva 3 a 4 minutos. A coleta mais lenta medida, 18 minutos,
+  cabe com folga. **O que impedia os 30 minutos não era a frequência, era
+  haver duas coletas a competir pela mesma fila** — e é essa a distinção que
+  vale guardar: a pergunta não é "de quanto em quanto tempo?", é "quantas
+  corridas se cruzam?".
+
 - **O artefato existe e a API diz que não, e a janela é de menos de meio
   segundo.** Duas vezes em 05/10/2026 o `upload-pages-artifact` terminou com
   sucesso — ID e tamanho impressos — e o `deploy-pages` perguntou pelo mesmo

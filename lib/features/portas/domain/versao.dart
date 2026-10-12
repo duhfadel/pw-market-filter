@@ -26,18 +26,39 @@ class Porta {
   final String nome;
 
   /// Where tapping the door goes — the version's own home, from
-  /// `core/rotas.dart`.
-  final String rota;
+  /// `core/rotas.dart` —, ou **nulo numa versão que o site ainda não serve**.
+  ///
+  /// Nulo e não uma rota inventada: `/1.4.4` cairia no ecrã de escolha, e uma
+  /// porta que se abre para o sítio onde já se está é pior do que uma porta
+  /// fechada. É a mesma armadilha do `tem_ficha` do mapa de guerras, onde um
+  /// território clicável abria uma ficha vazia.
+  final String? rota;
 
   /// What the last collection for this version found, or `null` before the
   /// first one has ever run — the state that draws this door dimmed.
   final VersaoResumo? resumo;
 
-  bool get pronta => resumo != null;
+  /// **As duas metades, e não só a coleta.** Uma porta só abre quando há um
+  /// mercado colhido *e* uma rota para o servir. Com `pronta` a olhar só o
+  /// resumo, bastaria alguém acrescentar uma linha a `versoes.json` para a
+  /// porta do 1.4.4 ficar clicável e levar a lado nenhum — e a lição do
+  /// `tem_ficha` é precisamente que a condição de mostrar tem de ser a mesma
+  /// que a de renderizar.
+  bool get pronta => resumo != null && rota != null;
 }
 
-/// Every door the site shows, in the order it shows them — 1.8.7 first,
-/// since it is the version that was already live before this screen existed.
+/// Every door the site shows, in the order it shows them — **por ordem de
+/// versão, do 1.2.6 ao 1.8.7**, escolha do dono em 12/10/2026.
+///
+/// Era o 1.8.7 primeiro, por ser o que já existia antes deste ecrã. A ordem
+/// cronológica explica-se sozinha e põe o 1.4.4, que ainda não lançou, entre
+/// os vizinhos em vez de pendurado no fim.
+///
+/// **O custo é no telemóvel e foi medido**: ali as portas empilham-se, uma
+/// por ecrã, portanto quem usa o 1.8.7 — 60% do mercado, 1.982 personagens
+/// contra 1.317 — desliza dois cards para lá chegar. Encurtá-los não serve:
+/// três num ecrã de 844 px dariam 233 px de altura cada, que é a faixa larga
+/// já rejeitada, e a arte das classes tem a cara a um quinto do topo.
 ///
 /// A version [versoes] has no row for — missing from the file entirely, or
 /// the file itself never written yet — still gets a door here, with
@@ -46,15 +67,37 @@ class Porta {
 /// fact from a single door's point of view, and both draw the same way.
 List<Porta> portasDe(Map<String, VersaoResumo> versoes) => [
   Porta(
-    chave: IndexRepository.pw187,
-    nome: rotas.pw187,
-    rota: '/${rotas.pw187}',
-    resumo: versoes[IndexRepository.pw187],
-  ),
-  Porta(
     chave: IndexRepository.pw126,
     nome: rotas.pw126,
     rota: '/${rotas.pw126}',
     resumo: versoes[IndexRepository.pw126],
   ),
+  // **Sem rota e sem índice: a porta existe para dizer que vem aí.** A chave
+  // não está em `IndexRepository` de propósito — aquela classe mapeia chave
+  // para ficheiro e recusa o que não conhece, portanto pô-la lá prometeria um
+  // `market_index_144.json` que não existe. No dia em que existir, a chave
+  // muda de sítio, a rota nasce, e esta porta acende sozinha.
+  Porta(
+    chave: chavePw144,
+    nome: '1.4.4',
+    rota: null,
+    // Lê o resumo na mesma, e isso não é zelo inútil: a porta fica a saber o
+    // que foi colhido e recusa abrir **por falta de rota**, que é a verdade.
+    // Ignorar a linha faria `pronta` ser falsa por acidente em vez de por
+    // razão, e no dia em que o 1.4.4 lançar alguém teria de se lembrar de
+    // ligar duas coisas em vez de uma.
+    resumo: versoes[chavePw144],
+  ),
+  Porta(
+    chave: IndexRepository.pw187,
+    nome: rotas.pw187,
+    rota: '/${rotas.pw187}',
+    resumo: versoes[IndexRepository.pw187],
+  ),
 ];
+
+/// O 1.4.4, que ainda não lançou.
+///
+/// Declarada aqui e não em `IndexRepository` porque não há ficheiro nenhum
+/// para ler — ver a porta acima.
+const chavePw144 = 'pw144';

@@ -209,13 +209,34 @@ class _Portas extends StatelessWidget {
   /// designed.
   static const _proporcao = 2 / 3;
 
+  /// A mesma porta num telemóvel, achatada para **as três caberem num ecrã**.
+  ///
+  /// Empilhadas a 2/3, cada uma mede ~510 px de altura e só se vê uma e
+  /// meia: com três versões, quem usa a última desliza dois cards por visita.
+  /// A conta, a 390 px de largura: o card mede 342 e a altura é
+  /// `342 / proporção`. A 4/3 dá 256 px cada, e três mais as folgas passam
+  /// dos 844 por uma linha de texto — a última porta ficava com a data
+  /// cortada. A 3/2 dá 228, e `228 × 3 + 40 de espaço + 48 de margem + 56 de
+  /// barra = 828`, que entra.
+  ///
+  /// **O corte é de propósito e cai no sítio certo por sorte nenhuma**: a
+  /// arte já se alinha em `Alignment(0, -0.76)`, encostada ao topo, porque é
+  /// aí que estas ilustrações têm a cara. Encurtar o card corta pelos pés,
+  /// não pela cabeça — que era a objecção a fazer isto, e ela não se aplica
+  /// com este alinhamento.
+  ///
+  /// Duas formas de card para o mesmo papel é o que esta classe diz acima
+  /// que evita, e continua a valer entre telas: o que muda aqui é o
+  /// dispositivo, não o papel.
+  static const _proporcaoEstreita = 3 / 2;
+
   @override
   Widget build(BuildContext context) {
     final largura = MediaQuery.sizeOf(context).width;
     final ladoALado = largura >= _lado;
 
     Widget porta(int i) => AspectRatio(
-      aspectRatio: _proporcao,
+      aspectRatio: ladoALado ? _proporcao : _proporcaoEstreita,
       child: _Porta(porta: portas[i]),
     );
 
@@ -294,9 +315,14 @@ class _Portas extends StatelessWidget {
 /// tmzin's Tormentador pays 130 for). The two also read apart at a glance —
 /// warm red and orange against cool purple and teal — so the pair never
 /// looks like one picture split in half.
+/// Uma classe por porta, escolhida pelo dono em 12/10/2026 — e uma por
+/// porta, nunca a mesma duas vezes: a arte **é** o card aqui, e dois
+/// retratos iguais lado a lado leem como um erro de carregamento, a mesma
+/// razão por que os Destaques não repetem classe.
 const _classeDaPorta = {
+  IndexRepository.pw187: 'Andarilho',
   IndexRepository.pw126: 'Guerreiro',
-  IndexRepository.pw187: 'Espiritualista',
+  chavePw144: 'Mercenário',
 };
 
 /// One door: a tall card whose background is the class's own art, read
@@ -335,7 +361,7 @@ class _Porta extends StatelessWidget {
           // null `onTap` as disabled, which is the only thing that keeps an
           // unready door from drawing its own ripple over nothing.
           onTap: pronta
-              ? () => Navigator.of(context).pushNamed(porta.rota)
+              ? () => Navigator.of(context).pushNamed(porta.rota!)
               : null,
           child: DecoratedBox(
             decoration: BoxDecoration(

@@ -154,7 +154,10 @@ void main() {
       // only pins the label — the exact day depends on where this suite runs.
       expect(_contendoNaPorta('pw187', 'coletado em'), findsOneWidget);
       expect(_contendoNaPorta('pw126', 'coletado em'), findsOneWidget);
-      expect(find.textContaining('em breve'), findsNothing);
+      // Uma só: o 1.4.4 não lançou e a porta dele diz isso sempre, haja
+      // coleta dos outros ou não.
+      expect(find.textContaining('em breve'), findsOneWidget);
+      expect(_textoNaPorta('pw144', '1.4.4'), findsOneWidget);
     });
 
     testWidgets(

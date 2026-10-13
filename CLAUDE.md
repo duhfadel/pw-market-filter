@@ -1107,6 +1107,24 @@ Each of these already cost something — measured on the live site, not guessed.
   anterior diz `successfully finalized` com um ID, e é a diferença de
   milissegundos entre as duas linhas que conta a história.
 
+  **E esperar não chega, o que só se soube a 13/10/2026.** O passo de espera
+  viu o artefato às `12:41:59.74`, à primeira tentativa — e meio segundo
+  depois o `deploy-pages` recebeu **`Found 2 artifact(s)`**, os dois índices
+  das coletas e nenhum `github-pages`. Ou seja: **a API responde de réplicas
+  diferentes, e ver uma vez prova apenas que uma réplica já tem.**
+
+  Duas mudanças saíram daí, e nenhuma é um conserto — a consistência não é
+  nossa para garantir. A espera passou a exigir **três leituras seguidas**,
+  reiniciando a contagem a cada ausência, porque o que se quer é estabilidade
+  e não um acerto isolado. E o `deploy-pages` ganhou **uma segunda tentativa
+  trinta segundos depois**, que é o que apanha o caso que escapar.
+
+  Repetir o deploy **dentro da mesma corrida** não tem nada a ver com o
+  `gh run rerun --failed` que esta nota proíbe mais abaixo: aquele reexecuta
+  o job e carrega um **segundo** artefato com o mesmo nome, que é o que
+  produz `Multiple artifacts named "github-pages"`. Aqui não se carrega nada
+  de novo — pede-se outra vez o mesmo.
+
 - **A failed deploy is usually GitHub, and `gh run rerun --failed` makes it
   worse.** On 2026-08-17 the collect, analyze, test and build steps all passed
   and `actions/deploy-pages` answered **503 — "No server is currently available"**;

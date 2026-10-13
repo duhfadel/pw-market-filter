@@ -364,19 +364,65 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # **Três leituras seguidas, e não uma.** A primeira versão deste
+          # passo dava-se por satisfeita com uma; a 13/10/2026 isso não
+          # chegou — ela viu o artefato às 12:41:59.74 e o `deploy-pages`,
+          # meio segundo depois, recebeu `Found 2 artifact(s)` sem o
+          # `github-pages` entre eles. A API responde de réplicas diferentes,
+          # portanto o que uma leitura prova é que **uma** réplica já tem.
+          #
+          # Três leituras espaçadas não garantem nada — nada aqui pode — mas
+          # reduzem a janela, e o passo seguinte tem a sua própria segunda
+          # tentativa para o caso que escapar.
+          seguidas=0
           for tentativa in $(seq 1 20); do
             if gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
                  --jq '.artifacts[].name' | grep -qx 'github-pages'; then
-              echo "artefato visível na tentativa $tentativa"
-              exit 0
+              seguidas=$((seguidas + 1))
+              if [ "$seguidas" -ge 3 ]; then
+                echo "artefato visível três vezes seguidas (tentativa $tentativa)"
+                exit 0
+              fi
+            else
+              # Uma ausência no meio reinicia a contagem: o que se quer é
+              # estabilidade, não um acerto isolado.
+              seguidas=0
             fi
             sleep 3
           done
-          echo "::warning::a API ainda não lista o artefato depois de 60 s"
+          echo "::warning::a API não listou o artefato três vezes seguidas em 60 s"
 
+      # **Uma segunda tentativa, porque a primeira pode ler uma réplica
+      # atrasada.** Três vezes desde 05/10/2026 o `deploy-pages` pediu o
+      # artefato que o passo anterior acabara de carregar e recebeu uma lista
+      # sem ele. Não é o nosso artefato que falta — ele existe, com id e
+      # tamanho impressos no log — é a leitura que vem de onde ainda não
+      # chegou.
+      #
+      # Repetir **dentro da mesma corrida** é seguro e não tem nada a ver com
+      # o `gh run rerun --failed` que o CLAUDE.md proíbe: aquele reexecuta o
+      # job e carrega um **segundo** artefato com o mesmo nome, que é o que
+      # produz `Multiple artifacts named "github-pages"`. Aqui não se carrega
+      # nada de novo; pede-se outra vez o mesmo.
       - id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - name: Esperar antes de repetir o deploy
+        if: steps.deployment.outcome == 'failure'
+        run: |
+          echo "::warning::o deploy falhou à primeira; repetindo em 30 s."
+          sleep 30
+
+      # Sem `continue-on-error`: se esta também falhar, a corrida falha, e
+      # duas falhas seguidas não são atraso de réplica — é outra coisa, e o
+      # e-mail tem de chegar.
+      - id: deployment_retry
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4
 
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      # A que tiver corrido: na primeira tentativa a segunda nem existe, e no
+      # caminho da repetição a primeira não deixou endereço nenhum.
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url }}

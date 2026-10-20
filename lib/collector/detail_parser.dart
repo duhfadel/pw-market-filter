@@ -30,6 +30,7 @@ class ParsedItem {
     required this.attributes,
     this.requireLevel = 0,
     this.weaponLevel = 0,
+    this.nivel = 0,
   });
 
   ParsedItem withLevels({required int require, required int weapon}) =>
@@ -43,6 +44,7 @@ class ParsedItem {
         attributes: attributes,
         requireLevel: require,
         weaponLevel: weapon,
+        nivel: nivel,
       );
 
   final int slot;
@@ -51,6 +53,15 @@ class ParsedItem {
   final String name;
   final int refine;
   final List<int> stones;
+
+  /// O nível do astrolábio ou do conduíte; zero em tudo o resto.
+  ///
+  /// **Contexto, nunca medida.** Três personagens medidos a 20/10/2026, todos
+  /// com o conduíte no nível 100, deram `Nv. de Ataque` +32, +32 e +26 — o
+  /// nível é o tecto que o jogador pode subir, e os atributos são o que ele
+  /// subiu. Quem ler este campo como força publica um número errado com cara
+  /// de certo.
+  final int nivel;
   final Map<String, List<int>> attributes;
 
   /// The level the piece demands — 60, 80, 100 or 105. Zero when unknown.
@@ -111,6 +122,52 @@ final _stonePattern = RegExp(
 // the value anchored to the end of the text node stops a `+` inside a name
 // from being read as the value.
 final _attributePattern = RegExp(r'➜\s*([^<]*?)\s*([+-]\d+)\s*(?=<|$)');
+
+/// O bónus de um astrolábio, de um conduíte ou de um livro divino: uma linha
+/// inteira dentro de um `<span>`, **sem seta nenhuma**.
+///
+/// **Três slots que o parser via vazios, e era por isto.** Medido a
+/// 20/10/2026 sobre o 1.8.7: 2.193 astrolábios, 1.998 conduítes e 1.726
+/// livros divinos no índice, todos com zero atributos, contra 2.193 de 2.193
+/// na armadura. Os dados estavam na página desde sempre; só não usam `➜`.
+///
+/// A cor é parte da gramática e não decoração — ver [_corGanha].
+final _spanBonusPattern = RegExp(
+  r'<span[^>]*?color:\s*([^;"]+)[^>]*>([^<]*?)\s*([+-][\d.]+)\s*%?\s*</span>',
+);
+
+/// O prefixo de ramo do astrolábio: `Destino · Atq Físico +497`.
+///
+/// **Tirado do nome, e isso é decisão e não descuido.** `Destino` e `Guia`
+/// são os dois ramos de onde o bónus vem, não dois atributos diferentes — um
+/// personagem com `Destino · Espírito +155` e `Guia · Espírito +83` tem 238
+/// de espírito, e guardar dois nomes diferentes dividiria em duas colunas uma
+/// coisa que o jogador soma. A regra `total` de `attributeRules` faz o resto.
+final _ramoPattern = RegExp(r'^(?:Destino|Guia)\s*·\s*');
+
+/// A escada de refino do livro divino: `(+3) : Atq Físico +50`.
+///
+/// O livro imprime **todos** os patamares, inclusive os que o personagem
+/// ainda não alcançou, e só a cor os separa. O número entre parênteses é o
+/// refino que o patamar exige.
+final _escadaPattern = RegExp(r'^\(\+(\d+)\)\s*:\s*');
+
+/// O nível do item, quando ele tem um: `Nível 49` num astrolábio, `Nível do
+/// Conduíte 60` num conduíte.
+///
+/// **Não é a medida da força, e confundir as duas coisas seria publicar um
+/// número errado com cara de certo** — correcção do dono em 20/10/2026, que a
+/// página confirma. Cada nível dá atributos para o jogador subir um a um, e o
+/// nível de ataque sobe 1, 2, 4 … até 32. Três personagens medidos **todos no
+/// nível 100** deram +32/+32, +32/+32 e +26/+6. O nível é tecto; os
+/// atributos são o que o personagem tem.
+final _nivelPattern = RegExp(r'Nível(?: do Conduíte)? (\d+)<');
+
+/// O site a dizer que não sabe: `Atributos do Conduíte não resolvidos.`
+///
+/// Terceiro estado, distinto de "não tem bónus nenhum". Visto num conduíte de
+/// nível 2; sem isto o índice afirmaria um zero que ninguém verificou.
+final _naoResolvido = RegExp(r'não resolvid');
 
 /// Reads the items a character is wearing, out of a detail page.
 ///
@@ -467,6 +524,7 @@ ParsedItem? _readItem(Element element) {
         .map((m) => int.parse(m.group(1)!))
         .toList(growable: false),
     attributes: _readAttributes(tooltip),
+    nivel: _lerNivel(tooltip),
   );
 }
 
@@ -485,7 +543,65 @@ Map<String, List<int>> _readAttributes(String tooltip) {
     (attributes[name] ??= <int>[]).add(value);
   }
 
+  _lerBonusDeSpan(tooltip, attributes);
   return attributes;
+}
+
+/// As três cores que marcam um bónus que o personagem **já tem**.
+///
+/// **A cor é a gramática, e ignorá-la daria a um livro +12 os bónus de um
+/// +15.** A escada de refino imprime todos os patamares; o que foi ganho vem
+/// a verde (`#6cff6c`), o que falta vem a cinzento (`#a7a7a7`). As outras
+/// duas são os bónus normais do astrolábio e do conduíte, que só existem na
+/// lista quando existem de facto — vermelho para o ramo `Destino`, azul para
+/// `Guia` e para as linhas do conduíte.
+///
+/// Uma cor desconhecida **conta**, de propósito: um patamar por ganhar é o
+/// único caso provado de linha que não vale, e apanha-se pelo cinzento. Se o
+/// site inventar uma quarta cor para um bónus real, incluí-la erra para o
+/// lado de mostrar a mais, que é recuperável; excluí-la apagaria em silêncio
+/// um atributo que o personagem tem.
+const _cinzentoDoNaoGanho = 'a7a7a7';
+
+/// Os bónus que vêm em `<span>` em vez de em linha com seta.
+///
+/// Três itens escrevem assim, e cada um com a sua torção — ver
+/// [_spanBonusPattern], [_ramoPattern] e [_escadaPattern].
+void _lerBonusDeSpan(String tooltip, Map<String, List<int>> attributes) {
+  // O site a dizer que não sabe resolver os atributos. Ler o resto daria
+  // zero, e zero aqui seria uma afirmação que ninguém verificou.
+  if (_naoResolvido.hasMatch(tooltip)) return;
+
+  for (final match in _spanBonusPattern.allMatches(tooltip)) {
+    final cor = match.group(1)!.trim().toLowerCase();
+    if (cor.contains(_cinzentoDoNaoGanho)) continue;
+
+    var nome = match.group(2)!.trim();
+    if (nome.isEmpty) continue;
+
+    // `Destino · Atq Físico` e `Guia · Atq Físico` são o mesmo atributo de
+    // dois ramos; `(+3) : Atq Físico` é o mesmo atributo num patamar.
+    nome = nome.replaceFirst(_ramoPattern, '').replaceFirst(_escadaPattern, '');
+    if (nome.isEmpty) continue;
+
+    // **Decimais arredondados, e o estado guarda a ocorrência.** O conduíte
+    // escreve `HP +69.60` e `Atq Físico +2.20`; o índice inteiro é de
+    // inteiros, e mudá-lo para decimal tocaria no formato, nos filtros e na
+    // tela por causa de três casas. Arredondar perde meio ponto num número
+    // que ninguém compara ao decímetro.
+    final valor = double.tryParse(match.group(3)!);
+    if (valor == null) continue;
+    (attributes[nome] ??= <int>[]).add(valor.round());
+  }
+}
+
+/// O nível do astrolábio ou do conduíte, ou zero quando o item não tem.
+///
+/// Guardado como contexto e **nunca como medida da força** — ver
+/// [_nivelPattern].
+int _lerNivel(String tooltip) {
+  final match = _nivelPattern.firstMatch(tooltip);
+  return match == null ? 0 : int.tryParse(match.group(1)!) ?? 0;
 }
 
 int _firstNumber(RegExp pattern, String? source) {

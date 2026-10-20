@@ -188,3 +188,43 @@ class SlotGroup {
   /// Item id whose picture stands for the group in the filter's header.
   final int emblem;
 }
+
+/// Como as peças se arrumam na fita do card: uma linha por ideia.
+///
+/// **A ordem é a do jogador, não a do site.** O site numera os slots e a
+/// numeração não quer dizer nada a ninguém — slot 7 antes de slot 8 não
+/// ensina que as braçadeiras e o elmo são do mesmo conjunto. Estas três
+/// linhas são a arrumação que o dono pediu em 20/10/2026, e são a mesma em
+/// todos os cards: quem olha a grelha aprende as posições uma vez e depois lê
+/// de relance que falta uma bota ou que o astrolábio está lá.
+///
+/// **A arma não está aqui, e é a única ausência de propósito.** Ela é o que
+/// separa um personagem de 40 TCC de um de 1000 — e por isso tem o bloco
+/// inteiro logo acima da fita, com o nome, o refino e o nível de ataque. Um
+/// ícone de 30 px a repeti-la não acrescenta nada e tira o lugar de uma peça
+/// que ninguém mais mostra. A fita responde ao que sobra da pergunta: *o que
+/// é que ele usa além da arma?*
+///
+/// **Sem rótulos por cima das linhas.** Três palavras em cada card, vezes
+/// quarenta cards, seriam a coisa mais barulhenta da parte mais calma — foi
+/// exactamente por isso que a fita de runas perdeu o título dela. As posições
+/// dizem-no sozinhas, e quem quiser o nome passa o rato.
+///
+/// Por versão, porque a numeração não é a mesma: o 1.2.6 põe os anéis em 0 e
+/// 1, e não tem astrolábio, conduíte nem livro divino.
+const linhasDaFita = <List<int>>[
+  [8, 2, 7, 3, 4],
+  [6, 9, 5, 18, 19],
+  [17, 16, 11],
+];
+
+/// O mesmo para o 1.2.6: os anéis mudam de número e a terceira linha não
+/// existe — aquele mercado não tem astrolábio, conduíte nem livro divino.
+const linhasDaFita126 = <List<int>>[
+  [8, 2, 7, 3, 4],
+  [6, 9, 5, 0, 1],
+];
+
+/// As linhas da fita para o mercado de [index].
+List<List<int>> linhasDaFitaDe(MarketIndex index) =>
+    isPw126(index) ? linhasDaFita126 : linhasDaFita;

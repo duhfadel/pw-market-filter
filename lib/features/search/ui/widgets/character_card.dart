@@ -11,6 +11,7 @@ import '../../../../market/market_index.dart';
 import '../../../../market/price_history.dart';
 import '../../../../market/romanos.dart';
 import '../../../../market/slot_names.dart';
+import 'fita_do_set.dart';
 import '../../domain/index_facets.dart';
 import '../../domain/matcher.dart';
 import '../../domain/search_query.dart';
@@ -303,6 +304,15 @@ class CharacterCard extends StatelessWidget {
                 ..._facts.map(_factLine),
               ],
               if (character.runes.isNotEmpty) ..._runeStrip,
+              // **No fim, e depois das peças que responderam ao filtro.** As
+              // linhas acima dizem *porque é que este apareceu*; a fita diz
+              // *o que ele está a usar*, que é a pergunta de quem varre a
+              // grelha em vez de ler um card. A ordem põe a resposta antes do
+              // retrato, que é como a página inteira já está arrumada.
+              if (character.equipped.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                FitaDoSet(character: character, index: index),
+              ],
             ],
           ),
         ),

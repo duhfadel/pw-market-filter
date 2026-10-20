@@ -902,6 +902,77 @@ tecnologia, tem dados mais ricos que os nossos e implementou `firstSeen`, que
 é a lacuna que este arquivo registra há semanas. Ideia não se protege por
 licença; execução se responde executando.
 
+## O astrolábio, o conduíte e o livro divino são um buraco medido
+
+**O índice tem os três itens e zero atributos deles.** Medido a 20/10/2026
+sobre o 1.8.7: 2.193 pessoas trazem astrolábio, 1.998 trazem conduíte, 1.726
+trazem livro divino — e nenhum dos 5.917 itens tem um único atributo no
+índice, contra 2.193 de 2.193 na armadura. A página publica tudo; o parser é
+que não vê.
+
+**E o que não se vê é enorme.** O conduíte do Mulexta, de 20.000 TCC, dá
+`Nv. de Ataque +32` e `Nv. de Defesa +32`, mais `Atq Físico +2008`, `Def
++2194`, `DefM +2372` e `HP +2986`. Este site inteiro gira à volta de uma arma
+com nível de ataque 70; aquele conduíte acrescenta quase metade disso outra
+vez, e a tela não o mostra. O astrolábio dele, no nível 57, traz **nove**
+linhas que somam milhares de pontos — contra duas linhas num astrolábio de
+nível 1.
+
+**O nível é o tecto e nunca a medida, e isso é a correcção do dono em
+20/10/2026 — que a página confirma.** Cada nível dá ao jogador atributos para
+subir, um a um, e o nível de ataque sobe 1, 2, 4 … até 32, que é o máximo. Um
+conduíte no nível 100 pode portanto valer qualquer coisa. Medido em três
+personagens **todos no nível 100**:
+
+| personagem | preço | Nv. Ataque | Nv. Defesa | Atq |
+|---|---|---|---|---|
+| Mulexta | 20.000 TCC | +32 | +32 | Físico +2008 |
+| 3232-8DRA | 600 TCC | +32 | +32 | Físico +672 |
+| Meganfox | 130 TCC | **+26** | **+6** | Mágico +198 |
+
+Mesmo nível, dez vezes de diferença no ataque e +6 contra +32 na defesa. Daí
+a consequência de desenho: **guardar o nível e inferir a força seria
+publicar um número errado com cara de certo** — são os atributos que têm de
+ser lidos, e o nível vale só como contexto. Era o erro que esta nota tinha na
+primeira versão.
+
+**Três formatos diferentes, e nenhum é o que o parser procura.**
+`_attributePattern` exige `➜ Nome +Valor`; nenhum dos três usa seta.
+
+| | como vem |
+|---|---|
+| Astrolábio | `Nível 57` e linhas `Destino · Atq Físico +890` / `Guia · Def Terra +2088` |
+| Conduíte | `Nível do Conduíte 100` e linhas `Nv. de Ataque +32`, sem prefixo |
+| Livro divino | `Cosmos +12` e uma escada `(+3) : Atq Físico +50` … `(+15) : Maior Nível +15` |
+
+**Quatro armadilhas, as quatro medidas na página real e não supostas:**
+
+**O nível é o número que importa, e é uma linha à parte.** `Nível 57` no
+astrolábio, `Nível do Conduíte 100`. Não é atributo e não está em linha de
+atributo nenhuma — e é ele que separa um astrolábio que dá nove bónus de um
+que dá dois.
+
+**Os valores são decimais.** `HP +69.60`, `Atq Físico +2.20`, `Intervalo de
+Ataque -0.05s`. O padrão actual só aceita inteiros, portanto mesmo corrigindo
+a seta leria errado. E há percentagens e negativos: `Canalização -5%`,
+`Defesa Física +10%`.
+
+**O livro lista o que o personagem ainda não tem, e só a cor os separa.** A
+escada de refino imprime todos os patamares; os ganhos estão a verde
+(`#6cff6c`) e os que faltam a cinzento (`#a7a7a7`). Ler a escada toda daria a
+um livro +12 os bónus de um +15 — o mesmo erro de somar um principal com uma
+rolagem menor que o `attributeRules` existe para evitar, numa porta nova.
+
+**E o site às vezes desiste.** Num conduíte de nível 2 o tooltip diz
+literalmente *"Atributos do Conduíte não resolvidos."* — não é a nossa
+leitura que falha, é a deles. Isso tem de ser um terceiro estado, distinto de
+"não tem atributos", ou o índice afirma um zero que ninguém verificou.
+
+**Custa uma recolha completa**, porque mexe no parser e logo no carimbo de
+`CollectedPage`: 1.666 páginas, 83 minutos, automáticos. É o preço certo
+desta vez — ao contrário dos 79 nomes de pedra, aqui o que falta é um facto
+sobre **cada personagem**, que só a página dele tem.
+
 ## Gotchas
 
 Each of these already cost something — measured on the live site, not guessed.

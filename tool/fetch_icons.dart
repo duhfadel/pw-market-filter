@@ -96,6 +96,14 @@ Future<void> main(List<String> arguments) async {
       ...index.runes.keys,
       for (final character in index.characters)
         for (final card in character.cards) card.cardId,
+      // **As pedras de encaixe são a quarta porta, e cair nela é o padrão.**
+      // Elas vivem dentro de `equipped[].stones` e nunca em `items`, portanto
+      // a lista acima não as via — a mesma forma exacta que já deixou as
+      // cartas em branco com um 404 cada. São 79 no mercado inteiro, medido
+      // em 20/10/2026, e o card desenha-as a 18 px ao passar o rato: sem
+      // ficheiro, o detalhe que o visitante foi lá ver não existe.
+      for (final character in index.characters)
+        for (final item in character.equipped) ...item.stones,
     };
 
     await _fetchAll(

@@ -624,6 +624,20 @@ class _Grid extends StatelessWidget {
   /// of those is recoverable.
   static const _realmLineHeight = 16.0;
 
+  /// A fita do set: três filas de 30 px mais o espaço entre elas e acima.
+  ///
+  /// `3 × 30 + 3 × 4 de folga + 10 acima = 112`. As filas são as de
+  /// `linhasDaFita`, e se alguma vez forem quatro este número tem de subir
+  /// com elas — um card mais alto que o tile é cortado, e só a direcção
+  /// contrária é recuperável.
+  ///
+  /// **Reservada para todo o tile, como a runa e o céu**, e pela mesma razão:
+  /// a altura do tile é um número só para a grelha inteira, portanto o que
+  /// qualquer personagem possa desenhar tem de caber em todos. Catorze é o
+  /// que 1.647 dos 2.196 vestem; quem veste menos deixa ar, que é o lado
+  /// seguro — o outro corta.
+  static const _fitaDoSetHeight = 112.0;
+
   /// The strip alone: no heading now, and the level rides the icon.
   static const _runeStripHeight = 36.0;
 
@@ -677,6 +691,9 @@ class _Grid extends StatelessWidget {
         ? _realmLineHeight
         : 0.0;
     final runes = index.runes.isEmpty ? 0.0 : _runeStripHeight;
+    final fita = index.characters.any((c) => c.equipped.isNotEmpty)
+        ? _fitaDoSetHeight
+        : 0.0;
     final queda =
         index.characters.any((c) {
           final antes = c.history?.previousPrice;
@@ -688,6 +705,7 @@ class _Grid extends StatelessWidget {
     return _headerHeight +
         realm +
         runes +
+        fita +
         queda +
         _dividerHeight +
         blocks * _matchLineHeight;

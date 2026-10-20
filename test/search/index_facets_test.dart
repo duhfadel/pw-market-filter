@@ -6,7 +6,7 @@ const attackLevel = 0;
 const guardLevel = 1;
 const hp = 2;
 
-EquippedItem _item(int slot, int itemId, Map<int, int> attributes) =>
+EquippedItem _item(int slot, int itemId, Map<int, double> attributes) =>
     EquippedItem(
       slot: slot,
       itemId: itemId,

@@ -12,13 +12,14 @@ const raivoso = 50206; // ★★★, rank 4, 70 attack level
 const geada = 50143; // ★★, rank 3, no attack level
 const simples = 1; // no stars, rank 1
 
-EquippedItem _weapon(int itemId, {int refine = 0, int? attack}) => EquippedItem(
-  slot: weaponSlot,
-  itemId: itemId,
-  refine: refine,
-  stones: const [],
-  attributes: attack == null ? const {} : {attackLevel: attack},
-);
+EquippedItem _weapon(int itemId, {int refine = 0, double? attack}) =>
+    EquippedItem(
+      slot: weaponSlot,
+      itemId: itemId,
+      refine: refine,
+      stones: const [],
+      attributes: attack == null ? const {} : {attackLevel: attack},
+    );
 
 MarketCharacter _character(String name, List<EquippedItem> equipped) =>
     MarketCharacter(

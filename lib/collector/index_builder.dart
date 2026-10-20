@@ -30,9 +30,9 @@ const attributeRules = <String, AttributeRule>{
   'Nível de Guarda': AttributeRule.principal,
 };
 
-int reduceAttribute(String name, List<int> occurrences) =>
+double reduceAttribute(String name, List<double> occurrences) =>
     switch (attributeRules[name] ?? AttributeRule.total) {
-      AttributeRule.total => occurrences.fold(0, (a, b) => a + b),
+      AttributeRule.total => occurrences.fold(0.0, (a, b) => a + b),
       AttributeRule.principal => occurrences.reduce((a, b) => a > b ? a : b),
     };
 

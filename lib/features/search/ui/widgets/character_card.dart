@@ -10,6 +10,7 @@ import '../../../../market/endereco_do_mercado.dart';
 import '../../../../market/market_index.dart';
 import '../../../../market/price_history.dart';
 import '../../../../market/romanos.dart';
+import '../../../../market/numero_de_atributo.dart';
 import '../../../../market/slot_names.dart';
 import 'fita_do_set.dart';
 import '../../domain/index_facets.dart';
@@ -140,12 +141,14 @@ Color? weaponTierColor(MarketIndex index, MarketCharacter character) {
   var defesa = 0;
   for (final item in character.equipped) {
     if (item.slot != weaponSlot) continue;
+    // Arredondado de propósito: isto escolhe um degrau da escada de raridade
+    // da moldura, e meio ponto não move degrau nenhum.
     if (idAtaque >= 0) {
-      final v = item.attributes[idAtaque] ?? 0;
+      final v = (item.attributes[idAtaque] ?? 0).round();
       if (v > ataque) ataque = v;
     }
     if (idDefesa >= 0) {
-      final v = item.attributes[idDefesa] ?? 0;
+      final v = (item.attributes[idDefesa] ?? 0).round();
       if (v > defesa) defesa = v;
     }
   }
@@ -520,7 +523,7 @@ class CharacterCard extends StatelessWidget {
             ? _attackLevelNote(item)
             : _Note(
                 '${slotLabel(item.slot, index)} · ${index.attributes[attributeId]}',
-                '${item.attributes[attributeId]}',
+                numeroDeAtributo(item.attributes[attributeId]!),
               ),
       );
     }

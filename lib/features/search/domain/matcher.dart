@@ -279,7 +279,7 @@ EquippedItem? bestMatchFor(
     if (!_satisfies(index, item, criterion)) continue;
     final value = criterion.attributeId == null
         ? 0
-        : item.attributes[criterion.attributeId] ?? 0;
+        : (item.attributes[criterion.attributeId] ?? 0).round();
     if (best == null || value > bestValue) {
       best = item;
       bestValue = value;

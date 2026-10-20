@@ -46,7 +46,21 @@ class CollectedPage {
   /// three exists on a 1.8.7 page — so bumping one number would have spent
   /// eighty-four minutes of their server's traffic to learn nothing. The cost
   /// of a field should fall on the version that gains it.
-  static const versoes = <String, int>{'pw187': 4, 'pw126': 5};
+  /// **Dois mercados nunca podem partilhar um número, e isto não é estética.**
+  /// [isCurrent] compara `json['v']` com o carimbo do servidor pedido e mais
+  /// nada — portanto, se o 187 e o 126 tivessem ambos `5`, uma página colhida
+  /// de um passaria por actual no outro, e a corrida leria a página errada
+  /// como boa. Foi o que quase aconteceu a 20/10/2026, quando o 187 subia de
+  /// 4 para 5 e o 126 já estava em 5; daí o salto para 6.
+  ///
+  /// `collected_page_test` crava isto, e o teste que o cravava afirmava a
+  /// desigualdade como se fosse acaso — era o mecanismo.
+  ///
+  /// O 187 vai em 6 desde 20/10/2026: o astrolábio, o conduíte e o livro
+  /// divino passaram a ter atributos, e nenhum estado escrito antes disso os
+  /// tem. O 126 fica onde está — não tem nenhum dos três, e os decimais que
+  /// o parser passou a guardar não mudam um único valor lá.
+  static const versoes = <String, int>{'pw187': 6, 'pw126': 5};
 
   /// The stamp a page collected from [servidor] carries.
   static int versaoDe(String servidor) => versoes[servidor] ?? 0;
@@ -233,8 +247,13 @@ ParsedItem _itemFromJson(Map<String, dynamic> json) => ParsedItem(
   name: json['name'] as String,
   refine: json['refine'] as int,
   stones: (json['stones'] as List<dynamic>).cast<int>(),
+  // `num` e não `int`: o estado guarda decimais desde 20/10/2026 — o
+  // conduíte escreve `HP +69.60` —, e um estado escrito antes disso tem
+  // inteiros, que `toDouble` aceita sem queixa.
   attributes: (json['attributes'] as Map<String, dynamic>).map(
-    (key, value) => MapEntry(key, (value as List<dynamic>).cast<int>()),
+    (key, value) => MapEntry(key, [
+      for (final v in value as List<dynamic>) (v as num).toDouble(),
+    ]),
   ),
   requireLevel: json['requireLevel'] as int? ?? 0,
   weaponLevel: json['weaponLevel'] as int? ?? 0,

@@ -12,7 +12,7 @@ import 'package:pw_market_filter/market/market_index.dart';
 const attackLevel = 0;
 const weaponSlot = 10;
 
-EquippedItem _weapon(int itemId, int attack) => EquippedItem(
+EquippedItem _weapon(int itemId, double attack) => EquippedItem(
   slot: weaponSlot,
   itemId: itemId,
   refine: 0,

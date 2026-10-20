@@ -496,7 +496,13 @@ class EquippedItem {
 
   /// Index into [MarketIndex.attributes] to the value this item gives. An
   /// attribute the item carries twice was already summed by the collector.
-  final Map<int, int> attributes;
+  ///
+  /// **Decimal desde 20/10/2026, e não por capricho.** O conduíte escreve
+  /// `HP +69.60` e o livro divino `Intervalo de Ataque -0.05s`; arredondar o
+  /// segundo dá `0`, que na tela diz *não muda* quando muda. Quase tudo o que
+  /// o jogo publica continua a ser inteiro, e [toJson] escreve-o como
+  /// inteiro — ver lá porquê.
+  final Map<int, double> attributes;
 
   /// The level the piece demands: 60, 80, 100 or 105. Zero when the index
   /// predates the field.
@@ -509,9 +515,15 @@ class EquippedItem {
     if (requireLevel > 0) 'requireLevel': requireLevel,
     if (stones.isNotEmpty) 'stones': stones,
     if (attributes.isNotEmpty)
+      // **Inteiro quando o valor é inteiro, e isto conta em bytes.** São
+      // ~30.000 itens com uns oito atributos cada; escrever `70.0` onde cabe
+      // `70` acrescentaria perto de meio megabyte a um ficheiro de quatro que
+      // toda a gente descarrega. O decimal fica para quem precisa dele.
       'attributes': {
         for (final entry in attributes.entries)
-          entry.key.toString(): entry.value,
+          entry.key.toString(): entry.value == entry.value.roundToDouble()
+              ? entry.value.toInt()
+              : entry.value,
       },
   };
 
@@ -524,7 +536,7 @@ class EquippedItem {
     attributes: {
       for (final entry
           in (json['attributes'] as Map<String, dynamic>? ?? const {}).entries)
-        int.parse(entry.key): entry.value as int,
+        int.parse(entry.key): (entry.value as num).toDouble(),
     },
   );
 }

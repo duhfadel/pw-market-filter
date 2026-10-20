@@ -61,11 +61,25 @@ void main() {
     expect(seal.stones, isEmpty);
   });
 
-  test('reads an item with no attributes at all', () {
-    final astrolabe = parseEquippedItems(html).singleWhere((i) => i.slot == 17);
+  test('an item whose tooltip has no bonus line at all reads as empty', () {
+    // **Este teste cravava o defeito, e foi por isso que ele durou.** Ele
+    // dizia que o astrolábio não tinha atributos nenhuns — e a página do
+    // Leandrim dá-lhe seis, que o parser não via por não usarem `➜`. O
+    // astrolábio era o exemplo mais à mão de "item vazio" e a ausência ficou
+    // registada como se fosse a verdade do jogo em vez de um limite da nossa
+    // leitura. Ver `bonus_de_span_test` para o que ele dá de facto.
+    //
+    // O caso que este teste queria continua a valer, e agora tem um exemplo
+    // que é mesmo vazio: as pedras são imagens e nenhuma delas é um bónus.
+    final semBonus = parseEquippedItems(
+      '<ul class="character-equip--list"><li data-item-type="slot-5" '
+      'data-item-grade="grade-2"><img src="/1.png" alt="Cinto" '
+      'data-pw187-tooltip="<strong>Cinto</strong><br>Nível requerido: 100">'
+      '</li></ul>',
+    ).single;
 
-    expect(astrolabe.name, 'Astrolábio: Guerreiro');
-    expect(astrolabe.attributes, isEmpty);
+    expect(semBonus.attributes, isEmpty);
+    expect(semBonus.nivel, 0);
   });
 
   test('reads every slot the paper doll shows, each exactly once', () {

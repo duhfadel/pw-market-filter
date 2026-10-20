@@ -19,7 +19,7 @@ import '../support/novidades_test_support.dart';
 /// icon with no label. Everything here is about that screen admitting it can
 /// be narrowed.
 
-MarketCharacter _character(int roleId, String name, int price, int attack) =>
+MarketCharacter _character(int roleId, String name, int price, double attack) =>
     MarketCharacter(
       roleId: roleId,
       name: name,

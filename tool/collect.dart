@@ -926,6 +926,23 @@ void _reportSummary(
   if (blockedPauses > 0) {
     stdout.writeln('  pausas por bloqueio: $blockedPauses');
   }
+
+  // **Quantos conduítes o site deles não resolve.** Não é defeito nosso e não
+  // há onde ir buscar: a página é a única fonte e é ela que diz que não sabe.
+  // Contado aqui porque o número é sobre o mercado deles e muda sozinho — e
+  // porque uma amostra de três páginas não distingue raro de comum, que foi
+  // exactamente o erro que custou o piso do `Cupom Perfeito`.
+  final naoResolvidos = collected
+      .where(
+        (c) => state.itemsFor(c.roleId)!.items.any((i) => i.bonusNaoResolvidos),
+      )
+      .length;
+  if (naoResolvidos > 0) {
+    stdout.writeln(
+      '  conduítes que o site não resolve: $naoResolvidos '
+      '(${(naoResolvidos * 100 / collected.length).round()}%)',
+    );
+  }
   // A character on sale wearing nothing is rare; hundreds of them means the
   // paper doll's markup moved and the parser is reading an empty page.
   if (bare > collected.length / 4) {

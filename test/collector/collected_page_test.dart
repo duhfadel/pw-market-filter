@@ -159,10 +159,12 @@ void main() {
       // The same bytes, read as the other marketplace, are stale — which is
       // exactly how a 1.2.6-only bump leaves the 1.8.7 state alone.
       expect(CollectedPage.isCurrent(pagina.toJson('pw126'), 'pw187'), isFalse);
-      expect(
-        CollectedPage.versaoDe('pw126'),
-        isNot(CollectedPage.versaoDe('pw187')),
-      );
+      // **A desigualdade é o mecanismo, não um acaso.** `isCurrent` compara
+      // só o número, portanto dois mercados com o mesmo carimbo leriam as
+      // páginas um do outro como actuais. A 20/10/2026 isto quase aconteceu:
+      // o 187 ia subir de 4 para 5 e o 126 já estava em 5.
+      final numeros = CollectedPage.versoes.values.toList();
+      expect(numeros.toSet(), hasLength(numeros.length));
     },
   );
 
@@ -180,6 +182,8 @@ void main() {
     // Realm, path and runes are in no state written before them, and the
     // titles panel is in none written before 2026-10-02 — which is what makes
     // each re-collection happen by itself rather than needing a flag.
-    expect(CollectedPage.versaoDe('pw187'), greaterThan(3));
+    // 6 desde 20/10/2026: o astrolábio, o conduíte e o livro divino passaram
+    // a ter atributos, e nenhum estado escrito antes disso os tem.
+    expect(CollectedPage.versaoDe('pw187'), greaterThan(5));
   });
 }

@@ -25,7 +25,7 @@ MarketIndex _indiceVazio() => MarketIndex(
   characters: const [],
 );
 
-EquippedItem _arma(int nivelAtaque) => EquippedItem(
+EquippedItem _arma(double nivelAtaque) => EquippedItem(
   slot: weaponSlot,
   itemId: 50206,
   refine: 0,
@@ -37,7 +37,7 @@ MarketCharacter _personagem(
   String nome,
   int preco,
   String classe, {
-  int nivelAtaque = 0,
+  double nivelAtaque = 0,
 }) => MarketCharacter(
   roleId: nome.hashCode,
   name: nome,
@@ -52,7 +52,7 @@ MarketCharacter _personagem(
 
 /// A market where nobody's weapon reaches 80 — the UP5 tier simply never
 /// happened on this collection.
-MarketIndex _indiceOnde({required int ataqueMaximo}) => MarketIndex(
+MarketIndex _indiceOnde({required double ataqueMaximo}) => MarketIndex(
   server: 'pw187',
   collectedAt: DateTime.utc(2026, 10, 1),
   attributes: const ['Nível de Ataque'],
@@ -335,7 +335,11 @@ void main() {
     final arma = cartao.personagem.equipped.firstWhere(
       (item) => item.slot == weaponSlot,
     );
-    final nivelReal = arma.attributes[id] ?? 0;
+    // Arredondado como o selo arredonda: o nível de ataque é um degrau da
+    // escada do jogo e nunca teve decimais, mas o campo passou a poder
+    // tê-los — e `'$nivelReal'` sobre um `double` imprimiria `70.0`, que é
+    // exactamente o que o selo não pode dizer.
+    final nivelReal = (arma.attributes[id] ?? 0).round();
 
     expect(cartao.selo, 'ARMA $nivelReal');
     expect(cartao.rotulo, contains('Arma de $nivelReal'));

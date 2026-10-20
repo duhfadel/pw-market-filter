@@ -19,7 +19,7 @@ ListingCard _card(int roleId) => ListingCard(
   cultivation: 'Leal',
 );
 
-ParsedItem _item(Map<String, List<int>> attributes) => ParsedItem(
+ParsedItem _item(Map<String, List<double>> attributes) => ParsedItem(
   slot: 10,
   itemId: 50206,
   grade: 6,

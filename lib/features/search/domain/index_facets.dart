@@ -251,7 +251,7 @@ class IndexFacets {
         // An instance without the attribute counts as zero towards the floor.
         // Dropping it would hide the sharpest case there is: the same weapon
         // giving 70 to one wearer and nothing to another.
-        final value = item.attributes[_attackLevelId] ?? 0;
+        final value = (item.attributes[_attackLevelId] ?? 0).round();
         final best = highest[item.itemId];
         if (best == null || value > best) highest[item.itemId] = value;
         final worst = lowest[item.itemId];
@@ -319,8 +319,11 @@ class IndexFacets {
             characterCount[entry.key] = (characterCount[entry.key] ?? 0) + 1;
           }
           final best = highest[entry.key];
-          if (best == null || entry.value > best) {
-            highest[entry.key] = entry.value;
+          // Arredondado: o tecto de um selector é um degrau, e meio ponto
+          // num máximo não muda nenhuma escolha que alguém faça com ele.
+          final valor = entry.value.round();
+          if (best == null || valor > best) {
+            highest[entry.key] = valor;
           }
         }
       }

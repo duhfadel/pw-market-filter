@@ -968,10 +968,53 @@ literalmente *"Atributos do Conduíte não resolvidos."* — não é a nossa
 leitura que falha, é a deles. Isso tem de ser um terceiro estado, distinto de
 "não tem atributos", ou o índice afirma um zero que ninguém verificou.
 
-**Custa uma recolha completa**, porque mexe no parser e logo no carimbo de
-`CollectedPage`: 1.666 páginas, 83 minutos, automáticos. É o preço certo
-desta vez — ao contrário dos 79 nomes de pedra, aqui o que falta é um facto
-sobre **cada personagem**, que só a página dele tem.
+**Custou uma recolha completa**, feita a 20/10/2026 — 1.666 páginas, 83
+minutos, automáticos, disparados pelo carimbo do `CollectedPage` a subir de
+4 para 6. É o preço certo desta vez — ao contrário dos 79 nomes de pedra,
+aqui o que falta é um facto sobre **cada personagem**, que só a página dele
+tem.
+
+**Quatro decisões, e todas do dono contra a primeira versão minha:**
+
+**O ramo do astrolábio sai do nome.** Decidido duas vezes: eu juntei
+`Destino ·` e `Guia ·`, ele mandou separar, viu os nove nomes compridos que
+isso dava num astrolábio de nível 57 e mandou juntar outra vez. Quem tem
+`Destino · Espírito +155` e `Guia · Espírito +83` tem 238 de espírito.
+
+**A escada do livro é guardada inteira**, com os degraus por alcançar
+marcados — é a diferença entre dizer *este livro dá isto* e *este livro dá
+isto e ainda pode dar aquilo*. Os ganhos entram em `attributes`, que é o que
+se filtra; os que faltam vivem só na escada, que é o que se mostra.
+
+**O bloco de ouro entra**, com a unidade no nome: `Canalização %`,
+`Intervalo de Ataque s`. Eu tinha-o deixado de fora por ser igual em todo
+`Cosmos` e por trazer unidades que o modelo não dizia; a unidade resolveu-se
+indo para o nome, que é o que já se faz com tudo o que o site não sabe
+nomear.
+
+**E nada é arredondado.** `HP +69.60` fica `69,6` e `Intervalo de Ataque
+-0.05s` fica `-0,05`. Arredondar custava meio ponto no primeiro e o facto
+inteiro no segundo — `-0.05` vira `0`, que na tela diz *não muda*. Tentei
+contornar guardando centésimos com a escala no nome e foi recusado, com
+razão: um número que precisa de um nome a explicar a escala já não é o
+número que a página mostra. `EquippedItem.attributes` é `Map<int, double>`
+desde então, e `toJson` escreve inteiro quando o valor é inteiro — `70.0`
+onde cabe `70` custaria meio megabyte num ficheiro de quatro.
+
+**Dois defeitos meus saíram daqui, e os dois pela mesma porta.** Os padrões
+novos reliam os `<span>` que o leitor antigo já tinha lido, e a arma do
+Leandrim saiu com `HP [500, 150, 150, 500, 150, 150]` e o `➜` colado ao
+nome. **Nenhum teste apanhou** — eles olhavam para os três itens novos, e a
+arma era o controlo que ninguém reimprimia. Apanhou-o uma sonda que imprimiu
+tudo. E um teste antigo, `reads an item with no attributes at all`, usava o
+astrolábio como exemplo de item vazio: a nossa cegueira registada como
+verdade do jogo, e foi por isso que durou meses.
+
+**O carimbo tem uma armadilha, e ela quase mordeu.** `isCurrent` compara só
+o número — portanto dois mercados com o mesmo carimbo leriam as páginas um
+do outro como actuais. O 187 ia subir de 4 para 5 e o 126 já estava em 5;
+daí o salto para 6. O teste que guardava isto afirmava a desigualdade como
+se fosse acaso, e era o mecanismo.
 
 ## Gotchas
 

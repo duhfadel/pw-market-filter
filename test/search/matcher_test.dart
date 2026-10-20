@@ -17,7 +17,7 @@ EquippedItem _item(
   int slot, {
   int itemId = 1,
   int refine = 0,
-  Map<int, int> attributes = const {},
+  Map<int, double> attributes = const {},
 }) => EquippedItem(
   slot: slot,
   itemId: itemId,

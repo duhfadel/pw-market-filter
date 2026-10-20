@@ -29,10 +29,11 @@ void main() {
       itens.singleWhere((i) => i.slot == n);
 
   group('astrolábio', () {
-    test('os ramos somam-se em vez de se dividirem em dois atributos', () {
-      // `Destino · Espírito +155` e `Guia · Espírito +83` são o mesmo espírito
-      // vindo dos dois ramos. Guardar `Destino · Espírito` e `Guia · Espírito`
-      // separados partiria em duas colunas uma coisa que o jogador soma.
+    test('o ramo sai do nome: é o mesmo atributo de duas fontes', () {
+      // **Decidido duas vezes.** Eu juntei, o dono mandou separar, viu os
+      // nove nomes compridos que isso dava num astrolábio de nível 57 e
+      // mandou juntar outra vez. Quem tem `Destino · Espírito +155` e
+      // `Guia · Espírito +83` tem 238 de espírito.
       final astro = slot(leandrim, 17);
 
       expect(astro.attributes['Espírito'], [155, 83]);
@@ -60,15 +61,17 @@ void main() {
   });
 
   group('conduíte', () {
-    test('os decimais são arredondados, não descartados', () {
-      // A página escreve `HP +69.60` e `Atq Físico +2.20`. O padrão antigo só
-      // aceitava inteiros, portanto não via nenhum dos dois.
+    test('os decimais ficam como a página os escreve', () {
+      // **Decisão do dono em 20/10/2026, depois de ver o arredondamento.** A
+      // página escreve `HP +69.60` e `Atq Físico +2.20`; o padrão antigo só
+      // aceitava inteiros e não via nenhum dos dois. Eu passei a arredondar,
+      // o que em `-0.05s` dá zero — e zero na tela diz *não muda*.
       final cond = slot(leandrim, 16);
 
-      expect(cond.attributes['HP'], [70]);
-      expect(cond.attributes['Def'], [621]);
-      expect(cond.attributes['Atq Físico'], [2]);
-      expect(cond.attributes['DefM'], [38]);
+      expect(cond.attributes['HP'], [69.6]);
+      expect(cond.attributes['Def'], [621.4]);
+      expect(cond.attributes['Atq Físico'], [2.2]);
+      expect(cond.attributes['DefM'], [37.6]);
       expect(cond.nivel, 60);
     });
 
@@ -86,16 +89,47 @@ void main() {
   });
 
   group('livro divino', () {
-    test('só os patamares já ganhos contam, e a cor é quem os separa', () {
-      // O livro imprime a escada inteira. O `Cosmos +12` tem `(+3)`, `(+6)`,
-      // `(+9)` e `(+12)` a verde e `(+15) : Maior Nível +15` a cinzento. Ler
-      // a escada toda daria a um +12 os bónus de um +15.
+    test('só os ganhos entram nos atributos, que é o que se filtra', () {
+      // Um filtro que pergunte por `Nv. de Ataque +15` não pode devolver quem
+      // ainda não lá chegou. Os degraus por alcançar vivem na escada, não
+      // aqui.
       final livro = slot(mulexta, 11);
 
       expect(livro.refine, 12);
       expect(livro.attributes['Nv. de Ataque'], [5, 15]);
       expect(livro.attributes['Atq Físico'], contains(50));
-      expect(livro.attributes.containsKey('Maior Nível'), isFalse);
+      // `Maior Nível` existe duas vezes na página: `(+15)` a cinzento, que
+      // não conta, e `+5` no bloco de base, que conta. Portanto está cá — e
+      // o que **não** está é o 15 do patamar por alcançar.
+      expect(livro.attributes['Maior Nível'], [5]);
+      expect(livro.attributes['Maior Nível'], isNot(contains(15)));
+    });
+
+    test('a escada vem inteira, com os degraus que faltam marcados', () {
+      // Decisão do dono: mostrar o que o jogo mostra. É a diferença entre
+      // dizer *este livro dá isto* e *este livro dá isto e ainda pode dar
+      // aquilo*, e a segunda é a que ajuda quem está a comprar.
+      final escada = slot(mulexta, 11).escada;
+
+      expect(escada, isNotEmpty);
+      final porAlcancar = escada.where((d) => !d.ganho).toList();
+      expect(porAlcancar, hasLength(1));
+      expect(porAlcancar.single.refino, 15);
+      expect(porAlcancar.single.atributo, 'Maior Nível');
+      expect(porAlcancar.single.valor, 15);
+
+      // E os ganhos trazem o degrau que os exigiu, que é o que o jogo mostra.
+      final ganhos = escada.where((d) => d.ganho).toList();
+      expect(ganhos.map((d) => d.refino), containsAll([3, 6, 9, 12]));
+      expect(
+        ganhos.any((d) => d.refino == 12 && d.atributo == 'Nv. de Ataque'),
+        isTrue,
+      );
+    });
+
+    test('um item que não é livro não tem escada nenhuma', () {
+      expect(slot(mulexta, 16).escada, isEmpty);
+      expect(slot(leandrim, 10).escada, isEmpty);
     });
 
     test('o patamar sai do nome: `(+3) : Atq Físico` é Atq Físico', () {
@@ -134,6 +168,8 @@ void main() {
 
       expect(item.attributes['Atq Físico'], [50]);
       expect(item.attributes.containsKey('Maior Nível'), isFalse);
+      // E o degrau cinzento está na escada, marcado.
+      expect(item.escada.where((d) => !d.ganho).single.atributo, 'Maior Nível');
     });
 
     test(
@@ -150,33 +186,70 @@ void main() {
       },
     );
 
-    test('o site a dizer que não sabe cala a leitura inteira', () {
+    test('o site a dizer que não sabe cala a leitura e fica marcado', () {
       // Visto num conduíte de nível 2. Ler o resto daria zero atributos, e um
       // zero aqui seria uma afirmação que ninguém verificou.
+      //
+      // **A marca é o que separa dois factos diferentes**: "este conduíte não
+      // dá bónus nenhum" é sobre o personagem; "a página deles não resolve os
+      // bónus" é sobre o site. Sem ela os dois saem iguais do parser, e a
+      // tela não tem como dizer *não sabemos* em vez de *não tem*.
       final item = comTooltip(
         '<span style="color:#6ea2ff;">Atributos do Conduíte não resolvidos.</span>'
         '<br><span style="color:#6ea2ff;">HP +500</span>',
       ).single;
 
       expect(item.attributes, isEmpty);
+      expect(item.bonusNaoResolvidos, isTrue);
+    });
+
+    test('um item sem bónus nenhum não é o mesmo que um por resolver', () {
+      final vazio = comTooltip('<strong>Cinto</strong>').single;
+
+      expect(vazio.attributes, isEmpty);
+      expect(vazio.bonusNaoResolvidos, isFalse);
     });
   });
 
-  test('o bloco de ouro do livro fica de fora, e é decisão e não descuido', () {
-    // `Força +50`, `Canalização -5%`, `Intervalo de Ataque -0.05s`: nove
-    // bónus dentro de **um** `<span>`, separados por `<br />`.
-    //
-    // Ficam fora por duas razões. São intrínsecos ao item — todo `Cosmos` tem
-    // os mesmos —, portanto não distinguem um personagem de outro, que é a
-    // única coisa que este índice serve para fazer. E trazem unidades que o
-    // modelo não sabe dizer: guardar `Canalização = -5` quando a página diz
-    // `-5%` seria afirmar pontos onde há percentagem.
-    //
-    // Se um dia forem precisos, o sítio é `MarketIndex.items` — uma vez por
-    // item — e não a lista de cada personagem.
-    final livro = slot(mulexta, 11);
+  group('o bloco de ouro do livro', () {
+    // Nove bónus dentro de **um** `<span>`, separados por `<br />`. Eu tinha
+    // deixado o bloco de fora — por serem iguais em todo `Cosmos`, logo sem
+    // poder de distinguir, e por trazerem unidades que o modelo não dizia. O
+    // dono mandou pô-lo dentro, e a unidade resolveu-se indo para o nome.
+    test('entra, com a unidade no nome', () {
+      final livro = slot(mulexta, 11);
 
-    expect(livro.attributes.containsKey('Força'), isFalse);
-    expect(livro.attributes.containsKey('Canalização'), isFalse);
+      expect(livro.attributes['Força'], [50]);
+      expect(livro.attributes['Destreza'], [50]);
+      // `-5` sem o `%` diria pontos onde há percentagem — o mesmo erro do
+      // `Movimento m/seg. +1036831949` já registado neste repositório.
+      expect(livro.attributes['Canalização %'], [-5]);
+      expect(livro.attributes['Defesa Física %'], [10]);
+      expect(livro.attributes.containsKey('Canalização'), isFalse);
+    });
+
+    test('o valor que arredondaria para zero fica inteiro', () {
+      // `Intervalo de Ataque -0.05s`. Arredondado dá `0`, que na tela diz
+      // *não muda* quando muda — foi o que fez o dono recusar o
+      // arredondamento. Tentei antes guardar centésimos com a escala no nome
+      // e ele recusou também, com razão: um número que precisa de um nome a
+      // explicar a escala já não é o número que a página mostra.
+      final livro = slot(mulexta, 11);
+
+      expect(livro.attributes['Intervalo de Ataque s'], [-0.05]);
+    });
+
+    test('um bloco não relê o que o `<span>` de uma linha já deu', () {
+      // **A sonda apanhou isto antes de ir para lado nenhum.** Sem exigir um
+      // `<br>` dentro, o padrão do bloco casava também com os `<span>` de uma
+      // linha e tudo saía a dobrar: a arma do Leandrim veio com
+      // `HP [500, 150, 150, 500, 150, 150]` e com o `➜` colado ao nome.
+      final arma = slot(leandrim, 10);
+
+      expect(arma.attributes['HP'], [500, 150, 150]);
+      expect(arma.attributes.keys.any((k) => k.startsWith('➜')), isFalse);
+      // E o conduíte, que tem seis `<span>` de uma linha cada.
+      expect(slot(mulexta, 16).attributes['Nv. de Ataque'], [32]);
+    });
   });
 }

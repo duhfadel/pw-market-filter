@@ -31,6 +31,8 @@ class ParsedItem {
     this.requireLevel = 0,
     this.weaponLevel = 0,
     this.nivel = 0,
+    this.escada = const [],
+    this.bonusNaoResolvidos = false,
   });
 
   ParsedItem withLevels({required int require, required int weapon}) =>
@@ -45,6 +47,8 @@ class ParsedItem {
         requireLevel: require,
         weaponLevel: weapon,
         nivel: nivel,
+        escada: escada,
+        bonusNaoResolvidos: bonusNaoResolvidos,
       );
 
   final int slot;
@@ -62,7 +66,26 @@ class ParsedItem {
   /// subiu. Quem ler este campo como força publica um número errado com cara
   /// de certo.
   final int nivel;
-  final Map<String, List<int>> attributes;
+
+  /// A escada de refino do livro divino, com os degraus por alcançar.
+  /// Vazia em tudo o resto. Ver [PatamarDoLivro].
+  final List<PatamarDoLivro> escada;
+
+  /// O site a dizer que não sabe: *"Atributos do Conduíte não resolvidos."*
+  ///
+  /// **Terceiro estado, e é por isso que existe um campo em vez de uma lista
+  /// vazia.** Um conduíte sem bónus e um conduíte cujos bónus a página não
+  /// resolve dão os dois `attributes` vazio, e são factos diferentes: o
+  /// primeiro é sobre o personagem, o segundo é sobre o site deles. Sem esta
+  /// marca o índice afirmaria um zero que ninguém verificou, e a tela não
+  /// teria como dizer *"não sabemos"* em vez de *"não tem"*.
+  ///
+  /// Quantos são, não se sabe ainda: visto num conduíte de nível 2, e três
+  /// páginas não dizem se é raro — foi esse o erro que custou o piso do
+  /// `Cupom Perfeito`. A recolha conta-os.
+  final bool bonusNaoResolvidos;
+
+  final Map<String, List<double>> attributes;
 
   /// The level the piece demands — 60, 80, 100 or 105. Zero when unknown.
   ///
@@ -138,11 +161,11 @@ final _spanBonusPattern = RegExp(
 
 /// O prefixo de ramo do astrolábio: `Destino · Atq Físico +497`.
 ///
-/// **Tirado do nome, e isso é decisão e não descuido.** `Destino` e `Guia`
-/// são os dois ramos de onde o bónus vem, não dois atributos diferentes — um
-/// personagem com `Destino · Espírito +155` e `Guia · Espírito +83` tem 238
-/// de espírito, e guardar dois nomes diferentes dividiria em duas colunas uma
-/// coisa que o jogador soma. A regra `total` de `attributeRules` faz o resto.
+/// Sai do nome: os dois ramos são fontes do mesmo atributo, não atributos
+/// diferentes — quem tem `Destino · Espírito +155` e `Guia · Espírito +83`
+/// tem 238 de espírito, e dois nomes dividiriam em duas colunas uma coisa
+/// que o jogador soma. Ver a nota em `_lerBonusDeSpan` para a volta que esta
+/// decisão deu.
 final _ramoPattern = RegExp(r'^(?:Destino|Guia)\s*·\s*');
 
 /// A escada de refino do livro divino: `(+3) : Atq Físico +50`.
@@ -525,25 +548,66 @@ ParsedItem? _readItem(Element element) {
         .toList(growable: false),
     attributes: _readAttributes(tooltip),
     nivel: _lerNivel(tooltip),
+    escada: _lerEscada(tooltip),
+    bonusNaoResolvidos: _naoResolvido.hasMatch(tooltip),
   );
+}
+
+/// Um degrau da escada de refino do livro divino.
+///
+/// **Guardada inteira, com os que faltam, por decisão do dono em
+/// 20/10/2026.** Eu tinha deitado fora os patamares por alcançar; ele quer o
+/// que o jogo mostra — a escada toda, com o que falta a cinzento. É a
+/// diferença entre dizer *"este livro dá isto"* e dizer *"este livro dá isto
+/// e ainda pode dar aquilo"*, e a segunda é a que ajuda quem está a comprar.
+///
+/// Os ganhos continuam a entrar em [ParsedItem.attributes], e os por ganhar
+/// **não**: um filtro que pergunte por `Nv. de Ataque +15` não pode devolver
+/// quem ainda não lá chegou. A escada é para mostrar; os atributos são para
+/// filtrar.
+class PatamarDoLivro {
+  const PatamarDoLivro({
+    required this.refino,
+    required this.atributo,
+    required this.valor,
+    required this.ganho,
+  });
+
+  /// O refino que este degrau exige: 3, 6, 9, 12, 15.
+  final int refino;
+
+  final String atributo;
+  final int valor;
+
+  /// Se o personagem já lá chegou. Verde na página, cinzento quando não.
+  final bool ganho;
 }
 
 /// A single item can carry the same bonus more than once — the weapon in the
 /// fixture lists `HP +500`, `HP +150`, `HP +150`. Every occurrence is kept, in
 /// order; overwriting on collision would report 150 where the item gives 800,
 /// and summing here would report 71 for a weapon whose principal is 70.
-Map<String, List<int>> _readAttributes(String tooltip) {
-  final attributes = <String, List<int>>{};
+///
+/// **Decimal, e não inteiro, desde 20/10/2026.** O conduíte escreve `HP
+/// +69.60` e o livro divino `Intervalo de Ataque -0.05s`. Arredondar custava
+/// meio ponto no primeiro e **o facto inteiro** no segundo: `-0.05` vira `0`,
+/// que lido na tela diz *não muda* quando muda. Tentei contornar guardando
+/// centésimos com a unidade no nome — `Intervalo de Ataque (0,01 s)` — e o
+/// dono recusou, com razão: um número que precisa de um nome a explicar a
+/// escala já não é o número que a página mostra.
+Map<String, List<double>> _readAttributes(String tooltip) {
+  final attributes = <String, List<double>>{};
 
   for (final match in _attributePattern.allMatches(tooltip)) {
     final name = match.group(1)!.trim();
     if (name.isEmpty) continue;
-    final value = int.tryParse(match.group(2)!);
+    final value = double.tryParse(match.group(2)!);
     if (value == null) continue;
-    (attributes[name] ??= <int>[]).add(value);
+    (attributes[name] ??= <double>[]).add(value);
   }
 
   _lerBonusDeSpan(tooltip, attributes);
+  _lerBlocos(tooltip, attributes);
   return attributes;
 }
 
@@ -567,7 +631,7 @@ const _cinzentoDoNaoGanho = 'a7a7a7';
 ///
 /// Três itens escrevem assim, e cada um com a sua torção — ver
 /// [_spanBonusPattern], [_ramoPattern] e [_escadaPattern].
-void _lerBonusDeSpan(String tooltip, Map<String, List<int>> attributes) {
+void _lerBonusDeSpan(String tooltip, Map<String, List<double>> attributes) {
   // O site a dizer que não sabe resolver os atributos. Ler o resto daria
   // zero, e zero aqui seria uma afirmação que ninguém verificou.
   if (_naoResolvido.hasMatch(tooltip)) return;
@@ -579,19 +643,129 @@ void _lerBonusDeSpan(String tooltip, Map<String, List<int>> attributes) {
     var nome = match.group(2)!.trim();
     if (nome.isEmpty) continue;
 
-    // `Destino · Atq Físico` e `Guia · Atq Físico` são o mesmo atributo de
-    // dois ramos; `(+3) : Atq Físico` é o mesmo atributo num patamar.
-    nome = nome.replaceFirst(_ramoPattern, '').replaceFirst(_escadaPattern, '');
+    // **Uma linha de seta já tem o seu leitor.** A arma do Leandrim escreve
+    // cada bónus dentro do seu `<span>` *com* o `➜` lá dentro, portanto este
+    // padrão apanha-os todos outra vez — e com a seta colada ao nome, o que
+    // duplicava cada atributo da arma em duas entradas. Apanhado por uma
+    // sonda sobre a fixture, nunca por um teste: os testes olhavam para os
+    // três itens novos e a arma era o controlo que ninguém reimprimia.
+    if (nome.startsWith('➜')) continue;
+
+    // Duas coisas saem do nome, e por motivos diferentes.
+    //
+    // O patamar — `(+3) : Atq Físico` é Atq Físico num degrau da escada, e o
+    // degrau inteiro vai para [ParsedItem.escada].
+    //
+    // E o ramo do astrolábio: `Destino · Atq Físico` e `Guia · Atq Físico`
+    // são o mesmo atributo de duas fontes. **Decidido duas vezes**: tirei-o,
+    // o dono mandou mantê-lo, viu os nove nomes compridos que isso dava num
+    // astrolábio de nível 57 e mandou tirá-lo outra vez. A segunda decisão é
+    // a que vale, e a primeira ficou registada porque explica porque é que a
+    // forma `Destino ·` aparece no padrão em vez de o nome vir limpo.
+    //
+    // É recuperável nos dois sentidos: mudar de ideias custa `--rebuild` e
+    // nunca outra recolha, porque o estado guarda a ocorrência e não a soma.
+    nome = nome.replaceFirst(_escadaPattern, '').replaceFirst(_ramoPattern, '');
     if (nome.isEmpty) continue;
 
-    // **Decimais arredondados, e o estado guarda a ocorrência.** O conduíte
-    // escreve `HP +69.60` e `Atq Físico +2.20`; o índice inteiro é de
-    // inteiros, e mudá-lo para decimal tocaria no formato, nos filtros e na
-    // tela por causa de três casas. Arredondar perde meio ponto num número
-    // que ninguém compara ao decímetro.
     final valor = double.tryParse(match.group(3)!);
     if (valor == null) continue;
-    (attributes[nome] ??= <int>[]).add(valor.round());
+    (attributes[nome] ??= <double>[]).add(valor);
+  }
+}
+
+/// A escada de refino do livro divino, inteira — os degraus ganhos e os que
+/// faltam, cada um com a marca.
+///
+/// Um livro `Cosmos +12` imprime `(+3)`, `(+6)`, `(+9)` e `(+12)` a verde e
+/// `(+15)` a cinzento. Em tudo o que não é livro a lista sai vazia, porque
+/// nenhum outro item escreve degraus.
+List<PatamarDoLivro> _lerEscada(String tooltip) {
+  if (_naoResolvido.hasMatch(tooltip)) return const [];
+
+  final degraus = <PatamarDoLivro>[];
+  for (final match in _spanBonusPattern.allMatches(tooltip)) {
+    final texto = match.group(2)!.trim();
+    final degrau = _escadaPattern.firstMatch(texto);
+    if (degrau == null) continue;
+
+    final valor = double.tryParse(match.group(3)!);
+    if (valor == null) continue;
+
+    degraus.add(
+      PatamarDoLivro(
+        refino: int.parse(degrau.group(1)!),
+        atributo: texto.replaceFirst(_escadaPattern, '').trim(),
+        valor: valor.round(),
+        ganho: !match.group(1)!.toLowerCase().contains(_cinzentoDoNaoGanho),
+      ),
+    );
+  }
+  return degraus;
+}
+
+/// Um bloco de vários bónus dentro de **um** `<span>`, separados por `<br>`.
+///
+/// É assim que o livro divino escreve os bónus que tem por ser o que é —
+/// `Força +50`, `Canalização -5%`, `Intervalo de Ataque -0.05s` — ao
+/// contrário da escada de refino, que varia com o personagem. Um `<span>` por
+/// bónus nunca apanharia estes, porque o padrão pára no primeiro `<`.
+/// **Exige pelo menos um `<br>` lá dentro, e isso não é detalhe.** Sem essa
+/// exigência o padrão casa também com os `<span>` de uma linha que
+/// [_lerBonusDeSpan] já leu, e tudo sai a dobrar — medido na arma do
+/// Leandrim, que veio com `HP [500, 150, 150, 500, 150, 150]` e com o `➜`
+/// colado ao nome. Um bloco é, por definição, mais do que uma linha.
+final _blocoPattern = RegExp(
+  r'<span[^>]*?color:\s*([^;"]+)[^>]*>((?:[^<]*<br\s*/?>)+[^<]*)</span>',
+);
+
+/// Uma linha dentro de um bloco: `Canalização -5%`, `Maior Nível +5`.
+final _linhaDoBloco = RegExp(r'^\s*(.+?)\s*([+-][\d.]+)\s*(%|s)?\s*$');
+
+/// Lê os bónus que vêm agrupados num `<span>` só.
+///
+/// **A unidade entra no nome, porque o valor não a sabe carregar.** O índice
+/// guarda inteiros; `Canalização -5%` como `-5` diria pontos onde há
+/// percentagem, que é o mesmo erro do `Movimento m/seg. +1036831949` já
+/// registado neste repositório. `Canalização %` resolve-o sem inventar nada.
+///
+/// **E um valor que arredondasse para zero é escalado em vez de perdido.**
+/// `Intervalo de Ataque -0.05s` arredondado dá `0`, que lido na tela diz *não
+/// muda* — e muda. Nesses casos o número vai em centésimos e o nome di-lo:
+/// `Intervalo de Ataque (0,01 s)` com valor `-5`. A regra dispara só onde é
+/// precisa; `HP +69.60` continua a ser `70`, porque arredondar ali custa meio
+/// ponto e não a informação toda.
+void _lerBlocos(String tooltip, Map<String, List<double>> attributes) {
+  for (final bloco in _blocoPattern.allMatches(tooltip)) {
+    if (bloco.group(1)!.toLowerCase().contains(_cinzentoDoNaoGanho)) continue;
+
+    for (final linha in bloco.group(2)!.split(RegExp(r'<br\s*/?>'))) {
+      final match = _linhaDoBloco.firstMatch(linha.replaceAll('\n', ' '));
+      if (match == null) continue;
+
+      var nome = match.group(1)!.trim();
+      final bruto = double.tryParse(match.group(2)!);
+      if (nome.isEmpty || bruto == null) continue;
+
+      // **Uma linha de seta já tem leitor, e relê-la conta a dobrar.** A arma
+      // do Leandrim escreve os nove bónus dela dentro de um `<span>` só, com
+      // `<br>` entre eles e um `➜` à frente de cada um — exactamente a forma
+      // que este bloco apanha. Sem esta linha ela saía com
+      // `HP [500, 150, 150, 500, 150, 150]` e com o `➜` colado ao nome.
+      if (nome.startsWith('➜')) continue;
+
+      // Uma linha com degrau já foi lida como degrau; lê-la aqui outra vez
+      // contá-la-ia duas vezes.
+      if (_escadaPattern.hasMatch(nome)) continue;
+
+      // A unidade entra no nome: o valor não a sabe carregar, e `-5` sem o
+      // `%` diria pontos onde há percentagem — o mesmo erro do
+      // `Movimento m/seg. +1036831949` já registado aqui.
+      final unidade = match.group(3);
+      if (unidade != null) nome = '$nome $unidade';
+
+      (attributes[nome] ??= <double>[]).add(bruto);
+    }
   }
 }
 

@@ -139,12 +139,12 @@ ParsedItem _withStats(ParsedItem worn, Map<String, dynamic> decoded) =>
 /// grants it. A zero in these columns means the same thing an absent tooltip
 /// line means in 1.8.7 — the item does not touch that attribute — so it is
 /// skipped rather than printed as a false `+0`.
-Map<String, List<int>> _translateAttributes(Map<String, dynamic> decoded) {
-  final attributes = <String, List<int>>{};
+Map<String, List<double>> _translateAttributes(Map<String, dynamic> decoded) {
+  final attributes = <String, List<double>>{};
   for (final entry in atributos126.entries) {
     final value = decoded[entry.key];
     if (value is num && value != 0) {
-      attributes[entry.value] = [value.round()];
+      attributes[entry.value] = [value.toDouble()];
     }
   }
   return attributes;

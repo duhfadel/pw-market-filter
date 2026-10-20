@@ -25,8 +25,8 @@ MarketIndex _index() => MarketIndex(
 /// A character wearing one weapon giving [attributes], plus — when asked — a
 /// second piece that is not a weapon.
 MarketCharacter _wearing(
-  Map<int, int> attributes, {
-  Map<int, int>? noAmuleto,
+  Map<int, double> attributes, {
+  Map<int, double>? noAmuleto,
 }) => MarketCharacter(
   roleId: 1,
   name: 'Alvo',
@@ -118,7 +118,7 @@ void main() {
     // `Nível de Defesa` on a weapon runs 1 to 30 and then jumps straight to
     // 80. Reading the low end as a tier would paint a quarter of the market
     // for a roll nobody buys on.
-    for (final roll in [1, 5, 20, 30]) {
+    for (final roll in <double>[1, 5, 20, 30]) {
       expect(
         weaponTierColor(index, _wearing({_defesa: roll})),
         isNull,

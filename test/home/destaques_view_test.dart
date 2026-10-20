@@ -28,7 +28,7 @@ Future<void> _carregarFontesReais() async {
   ]);
 }
 
-EquippedItem _arma({int ataque = 0, int defesa = 0}) => EquippedItem(
+EquippedItem _arma({double ataque = 0, double defesa = 0}) => EquippedItem(
   slot: weaponSlot,
   itemId: 50206,
   refine: 0,
@@ -40,8 +40,8 @@ MarketCharacter _personagem(
   String nome,
   int preco,
   String classe, {
-  int ataque = 0,
-  int defesa = 0,
+  double ataque = 0,
+  double defesa = 0,
 }) => MarketCharacter(
   roleId: nome.hashCode,
   name: nome,

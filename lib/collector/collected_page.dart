@@ -60,7 +60,14 @@ class CollectedPage {
   /// divino passaram a ter atributos, e nenhum estado escrito antes disso os
   /// tem. O 126 fica onde está — não tem nenhum dos três, e os decimais que
   /// o parser passou a guardar não mudam um único valor lá.
-  static const versoes = <String, int>{'pw187': 6, 'pw126': 5};
+  /// O 126 vai em 7 desde 21/10/2026: o apóstrofo no nick do criador cortava
+  /// o `data-item` a meio e **854 itens ficaram no estado sem pedras e sem
+  /// atributos** — ver `_fecharDataItem`. Um `--rebuild` não os salva, porque
+  /// o que está gravado já está vazio; só relendo as páginas.
+  ///
+  /// Sete e não seis: seis é do 187, e dois mercados com o mesmo número leem
+  /// as páginas um do outro como actuais.
+  static const versoes = <String, int>{'pw187': 6, 'pw126': 7};
 
   /// The stamp a page collected from [servidor] carries.
   static int versaoDe(String servidor) => versoes[servidor] ?? 0;

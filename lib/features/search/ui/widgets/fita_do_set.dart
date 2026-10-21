@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/game_icon.dart';
 import '../../../../market/market_index.dart';
+import '../../../../market/numero_de_atributo.dart';
 import '../../../../market/pedras.dart';
 import '../../../../market/slot_names.dart';
 
@@ -156,15 +157,23 @@ class _Peca extends StatelessWidget {
     ),
   );
 
-  /// O nome da peça com o refino, e depois cada pedra com o seu.
+  /// O nome da peça, o que ela dá, e depois as pedras.
+  ///
+  /// **Os atributos faltavam, e foi o dono a dar por isso.** O tooltip
+  /// nasceu para as pedras e mostrava só o nome e o slot — o que bastava
+  /// numa armadura, cujo valor está na peça, e não bastava de todo no
+  /// astrolábio, no conduíte e no livro divino, que não têm pedras nenhumas
+  /// e cujo valor **é** a lista de bónus. Passar o rato sobre eles não dava
+  /// nada.
   ///
   /// Uma pedra que a tabela não conheça entra como o seu número — `pedra
-  /// 38404` — e não como um espaço em branco: o visitante fica a saber que há
+  /// 38404` — e não como espaço em branco: o visitante fica a saber que há
   /// ali uma pedra e que nós não sabemos qual, que é a verdade.
   TextSpan _legenda() {
     final item = index.items[peca.itemId];
     final titulo = item?.name ?? 'item ${peca.itemId}';
     final refino = peca.refine > 0 ? ' +${peca.refine}' : '';
+    final nivel = peca.nivel > 0 ? '  ·  nível ${peca.nivel}' : '';
 
     return TextSpan(
       style: const TextStyle(color: PWColors.text, fontSize: 12, height: 1.45),
@@ -174,9 +183,36 @@ class _Peca extends StatelessWidget {
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         TextSpan(
-          text: slotLabel(peca.slot, index),
+          text: '${slotLabel(peca.slot, index)}$nivel',
           style: const TextStyle(color: PWColors.textMuted, fontSize: 11),
         ),
+
+        // **O site deles a dizer que não sabe, dito em voz alta.** Um
+        // conduíte por resolver e um conduíte sem bónus dão os dois lista
+        // vazia, e são factos diferentes: o primeiro é sobre o personagem, o
+        // segundo é sobre a página. 535 conduítes — 24% — estão assim.
+        if (peca.bonusNaoResolvidos)
+          const TextSpan(
+            text: '\no marketplace não resolve os atributos desta peça',
+            style: TextStyle(color: PWColors.textMuted, fontSize: 11),
+          ),
+
+        for (final atributo in _atributos())
+          TextSpan(
+            text: '\n${atributo.$2}  ${atributo.$1}',
+            style: const TextStyle(fontSize: 11),
+          ),
+
+        for (final degrau in _degrausPorAlcancar())
+          TextSpan(
+            // O refino que falta vem à frente, porque é a condição e não o
+            // prémio: `+15` diz o que é preciso fazer para ter aquilo.
+            text:
+                '\n+${degrau.refino}  ${numeroDeAtributo(degrau.valor.toDouble())}'
+                '  ${degrau.atributo}',
+            style: const TextStyle(color: PWColors.textMuted, fontSize: 11),
+          ),
+
         for (final pedra in peca.stones)
           TextSpan(
             text: '\n· ${nomesDasPedras[pedra] ?? 'pedra $pedra'}',
@@ -185,6 +221,35 @@ class _Peca extends StatelessWidget {
       ],
     );
   }
+
+  /// O que a peça dá, por nome e valor já escrito.
+  ///
+  /// Ordenado pelo nome do atributo e não pela ordem do índice, que é a
+  /// ordem em que a recolha os encontrou e não diz nada a ninguém. Um
+  /// astrolábio traz nove linhas e um conduíte seis; sem ordem, as mesmas
+  /// nove saem baralhadas de peça para peça.
+  List<(String, String)> _atributos() {
+    final linhas = <(String, String)>[];
+    for (final e in peca.attributes.entries) {
+      if (e.key < 0 || e.key >= index.attributes.length) continue;
+      final valor = e.value;
+      linhas.add((
+        index.attributes[e.key],
+        '${valor >= 0 ? '+' : ''}${numeroDeAtributo(valor)}',
+      ));
+    }
+    linhas.sort((a, b) => a.$1.compareTo(b.$1));
+    return linhas;
+  }
+
+  /// Os degraus do livro que o personagem ainda não alcançou.
+  ///
+  /// Os alcançados não vêm daqui: já estão em [peca.attributes], e listá-los
+  /// nos dois sítios diria duas vezes a mesma coisa.
+  List<PatamarDoLivro> _degrausPorAlcancar() => [
+    for (final d in peca.escada)
+      if (!d.ganho) d,
+  ]..sort((a, b) => a.refino.compareTo(b.refino));
 }
 
 class _Selo extends StatelessWidget {

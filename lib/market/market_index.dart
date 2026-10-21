@@ -487,6 +487,9 @@ class EquippedItem {
     required this.stones,
     required this.attributes,
     this.requireLevel = 0,
+    this.nivel = 0,
+    this.escada = const [],
+    this.bonusNaoResolvidos = false,
   });
 
   final int slot;
@@ -508,11 +511,32 @@ class EquippedItem {
   /// predates the field.
   final int requireLevel;
 
+  /// O nível do astrolábio ou do conduíte; zero em tudo o resto.
+  ///
+  /// **Contexto, nunca medida.** Três personagens medidos com o conduíte no
+  /// nível 100 deram `Nv. de Ataque` +32, +32 e +26: o nível é o tecto que o
+  /// jogador pode subir, e os atributos são o que ele subiu.
+  final int nivel;
+
+  /// A escada de refino do livro divino, com os degraus por alcançar. Vazia
+  /// em tudo o resto. Ver [PatamarDoLivro].
+  final List<PatamarDoLivro> escada;
+
+  /// O site a dizer que não sabe: *"Atributos do Conduíte não resolvidos."*
+  ///
+  /// Distinto de não ter bónus — o primeiro é um facto sobre o personagem, o
+  /// segundo é sobre o site deles. Medido a 21/10/2026 sobre o mercado
+  /// inteiro: **535 conduítes, 24%**.
+  final bool bonusNaoResolvidos;
+
   Map<String, dynamic> toJson() => {
     'slot': slot,
     'item': itemId,
     'refine': refine,
     if (requireLevel > 0) 'requireLevel': requireLevel,
+    if (nivel > 0) 'nivel': nivel,
+    if (escada.isNotEmpty) 'escada': [for (final d in escada) d.toJson()],
+    if (bonusNaoResolvidos) 'naoResolvido': 1,
     if (stones.isNotEmpty) 'stones': stones,
     if (attributes.isNotEmpty)
       // **Inteiro quando o valor é inteiro, e isto conta em bytes.** São
@@ -532,6 +556,12 @@ class EquippedItem {
     itemId: _int(json, 'item'),
     refine: _int(json, 'refine'),
     requireLevel: json['requireLevel'] as int? ?? 0,
+    nivel: json['nivel'] as int? ?? 0,
+    escada: [
+      for (final d in json['escada'] as List<dynamic>? ?? const [])
+        PatamarDoLivro.fromJson(d as Map<String, dynamic>),
+    ],
+    bonusNaoResolvidos: json['naoResolvido'] == 1,
     stones: (json['stones'] as List<dynamic>? ?? const []).cast<int>(),
     attributes: {
       for (final entry
@@ -583,4 +613,47 @@ Map<String, dynamic> _map(Map<String, dynamic> json, String field) {
     throw IndexFormatException(field, 'esperava objeto, veio $value');
   }
   return value;
+}
+
+/// Um degrau da escada de refino do livro divino, como o índice o publica.
+///
+/// **Inclui os degraus por alcançar**, que é o pedido do dono: o jogo mostra
+/// a escada inteira, com o que falta a cinzento, e é a diferença entre dizer
+/// *este livro dá isto* e *este livro dá isto e ainda pode dar aquilo*.
+///
+/// Os ganhos estão **também** em [EquippedItem.attributes], que é o que se
+/// filtra; os que faltam vivem só aqui, que é o que se mostra. Um filtro a
+/// pedir `Nv. de Ataque +15` não pode devolver quem ainda não lá chegou.
+class PatamarDoLivro {
+  const PatamarDoLivro({
+    required this.refino,
+    required this.atributo,
+    required this.valor,
+    required this.ganho,
+  });
+
+  /// O refino que este degrau exige: 3, 6, 9, 12, 15.
+  final int refino;
+
+  final String atributo;
+  final int valor;
+
+  /// Se o personagem já lá chegou — verde na página, cinzento quando não.
+  final bool ganho;
+
+  /// Chaves de uma letra: são até sete degraus por livro, vezes 1.736
+  /// livros, e `refino` por extenso custaria mais bytes do que o número.
+  Map<String, dynamic> toJson() => {
+    'r': refino,
+    'a': atributo,
+    'v': valor,
+    if (ganho) 'g': 1,
+  };
+
+  factory PatamarDoLivro.fromJson(Map<String, dynamic> json) => PatamarDoLivro(
+    refino: json['r'] as int,
+    atributo: json['a'] as String,
+    valor: json['v'] as int,
+    ganho: json['g'] == 1,
+  );
 }

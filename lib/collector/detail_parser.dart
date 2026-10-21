@@ -3,6 +3,12 @@ import 'dart:convert';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html_parser;
 
+// `PatamarDoLivro` vive no índice e é usado aqui, nunca o contrário:
+// `market/` não depende de nada e `collector/` depende de `market/`.
+// Duas classes iguais seriam a mesma coisa escrita duas vezes, e
+// divergiriam no dia em que uma delas ganhasse um campo.
+import 'package:pw_market_filter/market/market_index.dart' show PatamarDoLivro;
+
 import 'data_item.dart';
 
 import '../market/romanos.dart';
@@ -558,36 +564,6 @@ ParsedItem? _readItem(Element element) {
     escada: _lerEscada(tooltip),
     bonusNaoResolvidos: _naoResolvido.hasMatch(tooltip),
   );
-}
-
-/// Um degrau da escada de refino do livro divino.
-///
-/// **Guardada inteira, com os que faltam, por decisão do dono em
-/// 20/10/2026.** Eu tinha deitado fora os patamares por alcançar; ele quer o
-/// que o jogo mostra — a escada toda, com o que falta a cinzento. É a
-/// diferença entre dizer *"este livro dá isto"* e dizer *"este livro dá isto
-/// e ainda pode dar aquilo"*, e a segunda é a que ajuda quem está a comprar.
-///
-/// Os ganhos continuam a entrar em [ParsedItem.attributes], e os por ganhar
-/// **não**: um filtro que pergunte por `Nv. de Ataque +15` não pode devolver
-/// quem ainda não lá chegou. A escada é para mostrar; os atributos são para
-/// filtrar.
-class PatamarDoLivro {
-  const PatamarDoLivro({
-    required this.refino,
-    required this.atributo,
-    required this.valor,
-    required this.ganho,
-  });
-
-  /// O refino que este degrau exige: 3, 6, 9, 12, 15.
-  final int refino;
-
-  final String atributo;
-  final int valor;
-
-  /// Se o personagem já lá chegou. Verde na página, cinzento quando não.
-  final bool ganho;
 }
 
 /// A single item can carry the same bonus more than once — the weapon in the

@@ -57,6 +57,10 @@ tool/.collect_state_126.json
 web/market_index.json
 web/market_index_126.json
 
+# A cópia que `build_fixture_index.dart` guarda antes de escrever a fixture por
+# cima do índice real. Mesmo conteúdo, mesma razão para não entrar no repo.
+web/market_index.real.json
+
 # The version-chooser's door list, same reason: a build artifact, not a
 # source file, regenerated fresh every CI run by `escreverVersoes`.
 web/versoes.json

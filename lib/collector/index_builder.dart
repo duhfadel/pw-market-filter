@@ -12,30 +12,6 @@ import 'listing_parser.dart';
 /// and not in the reader: with the occurrences kept in the collector's state
 /// file, changing a rule is a rebuild in seconds rather than a fresh crawl of
 /// all 771 pages.
-enum AttributeRule {
-  /// The bonuses stack. `HP +500`, `+150`, `+150` is an item giving 800 HP.
-  total,
-
-  /// The largest line is the real one and the rest are minor rolls beside it.
-  /// A weapon reading `Nível de Ataque +70` and then `+1` is a 70 — the extra
-  /// point does not make it a different, better weapon, and calling it 71 puts
-  /// it above every genuine 70 in the list.
-  principal,
-}
-
-/// Attributes that do not stack. Everything absent from this map totals.
-const attributeRules = <String, AttributeRule>{
-  'Nível de Ataque': AttributeRule.principal,
-  'Nível de Defesa': AttributeRule.principal,
-  'Nível de Guarda': AttributeRule.principal,
-};
-
-double reduceAttribute(String name, List<double> occurrences) =>
-    switch (attributeRules[name] ?? AttributeRule.total) {
-      AttributeRule.total => occurrences.fold(0.0, (a, b) => a + b),
-      AttributeRule.principal => occurrences.reduce((a, b) => a > b ? a : b),
-    };
-
 /// Turns what the parsers read into the index the app consumes.
 ///
 /// This is where attribute names stop being strings and become positions in a
@@ -232,10 +208,13 @@ class IndexBuilder {
       escada: item.escada,
       bonusNaoResolvidos: item.bonusNaoResolvidos,
       stones: item.stones,
+      // **Cada ocorrência, sem reduzir.** O construtor somava-as aqui, e por
+      // isso um astrolábio com dois `Atq Físico` saía com um número só. A
+      // redução vive agora em `reduzirAtributo`, chamada por quem precisa de
+      // um número — o filtro, a moldura, os selos.
       attributes: {
         for (final entry in item.attributes.entries)
-          if (entry.value.isNotEmpty)
-            _attributeId(entry.key): reduceAttribute(entry.key, entry.value),
+          if (entry.value.isNotEmpty) _attributeId(entry.key): entry.value,
       },
     );
   }

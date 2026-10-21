@@ -42,7 +42,9 @@ final _index = MarketIndex(
           itemId: 50206,
           refine: 0,
           stones: [],
-          attributes: {0: 70},
+          attributes: {
+            0: [70],
+          },
         ),
       ],
     ),

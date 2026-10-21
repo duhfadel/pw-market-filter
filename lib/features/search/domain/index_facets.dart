@@ -251,7 +251,7 @@ class IndexFacets {
         // An instance without the attribute counts as zero towards the floor.
         // Dropping it would hide the sharpest case there is: the same weapon
         // giving 70 to one wearer and nothing to another.
-        final value = (item.attributes[_attackLevelId] ?? 0).round();
+        final value = (item.atributo(_attackLevelId, index) ?? 0).round();
         final best = highest[item.itemId];
         if (best == null || value > best) highest[item.itemId] = value;
         final worst = lowest[item.itemId];
@@ -319,9 +319,11 @@ class IndexFacets {
             characterCount[entry.key] = (characterCount[entry.key] ?? 0) + 1;
           }
           final best = highest[entry.key];
-          // Arredondado: o tecto de um selector é um degrau, e meio ponto
-          // num máximo não muda nenhuma escolha que alguém faça com ele.
-          final valor = entry.value.round();
+          // **Reduzido, não o maior das ocorrências.** O tecto de um selector
+          // tem de ser o número que o filtro vai comparar, ou alguém arrasta
+          // até ao topo e não encontra ninguém. Arredondado porque um degrau
+          // é um degrau: meio ponto não muda escolha nenhuma.
+          final valor = (item.atributo(entry.key, index) ?? 0).round();
           if (best == null || valor > best) {
             highest[entry.key] = valor;
           }

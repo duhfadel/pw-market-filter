@@ -6,7 +6,7 @@ const attackLevel = 0;
 const guardLevel = 1;
 const hp = 2;
 
-EquippedItem _item(int slot, int itemId, Map<int, double> attributes) =>
+EquippedItem _item(int slot, int itemId, Map<int, List<double>> attributes) =>
     EquippedItem(
       slot: slot,
       itemId: itemId,
@@ -44,14 +44,23 @@ final _index = MarketIndex(
   },
   characters: [
     _character('Leandrim', 'Guerreiro', 1000, 105, [
-      _item(10, 50206, {attackLevel: 70, hp: 800}),
-      _item(8, 38256, {guardLevel: 350}),
+      _item(10, 50206, {
+        attackLevel: [70],
+        hp: [800],
+      }),
+      _item(8, 38256, {
+        guardLevel: [350],
+      }),
     ]),
     _character('Bruto', 'Guerreiro', 90, 104, [
-      _item(10, 50205, {attackLevel: 40}),
+      _item(10, 50205, {
+        attackLevel: [40],
+      }),
     ]),
     _character('Sabia', 'Arcano', 300, 101, [
-      _item(10, 50205, {attackLevel: 40}),
+      _item(10, 50205, {
+        attackLevel: [40],
+      }),
     ]),
   ],
 );
@@ -157,10 +166,14 @@ void main() {
         },
         characters: [
           _character('Leandrim', 'Guerreiro', 1000, 105, [
-            _item(10, 50206, {attackLevel: 70}),
+            _item(10, 50206, {
+              attackLevel: [70],
+            }),
           ]),
           _character('Fera', 'Bárbaro', 900, 105, [
-            _item(10, 50206, {attackLevel: 71}),
+            _item(10, 50206, {
+              attackLevel: [71],
+            }),
           ]),
         ],
       );
@@ -182,7 +195,9 @@ void main() {
         items: const {7: MarketItem(name: 'Arma Estranha', grade: 4)},
         characters: [
           _character('Com', 'Guerreiro', 100, 105, [
-            _item(10, 7, {attackLevel: 70}),
+            _item(10, 7, {
+              attackLevel: [70],
+            }),
           ]),
           _character('Sem', 'Guerreiro', 100, 105, [_item(10, 7, const {})]),
         ],

@@ -341,7 +341,7 @@ int _nivelDeAtaqueDoVencedor(MarketIndex index, MarketCharacter character) {
   if (id < 0) return 0;
   for (final item in character.equipped) {
     if (item.slot != weaponSlot) continue;
-    return (item.attributes[id] ?? 0).round();
+    return (item.atributo(id, index) ?? 0).round();
   }
   return 0;
 }

@@ -279,7 +279,7 @@ EquippedItem? bestMatchFor(
     if (!_satisfies(index, item, criterion)) continue;
     final value = criterion.attributeId == null
         ? 0
-        : (item.attributes[criterion.attributeId] ?? 0).round();
+        : (item.atributo(criterion.attributeId!, index) ?? 0).round();
     if (best == null || value > bestValue) {
       best = item;
       bestValue = value;
@@ -306,6 +306,10 @@ bool _satisfies(MarketIndex index, EquippedItem item, ItemCriterion criterion) {
   // question and used to be unsayable.
   if (criterion.attributeId == null) return true;
 
-  final value = item.attributes[criterion.attributeId];
+  // **Reduzido, e é a mesma redução que a tela mostra.** Um astrolábio com
+  // `Atq Físico` 658 e 890 passa um mínimo de 1000: são dois bónus que o
+  // personagem tem, e o que ele leva para o combate é a soma. Os três níveis
+  // continuam a tomar a maior ocorrência — ver `reduzirAtributo`.
+  final value = item.atributo(criterion.attributeId!, index);
   return value != null && value >= criterion.minimum;
 }

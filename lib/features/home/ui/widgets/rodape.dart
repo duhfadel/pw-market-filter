@@ -51,6 +51,8 @@ class Rodape extends StatelessWidget {
         textAlign: TextAlign.center,
         style: TextStyle(color: PWColors.textMuted, fontSize: 11, height: 1.5),
       ),
+      const SizedBox(height: 10),
+      const _LinkDePrivacidade(),
       const _VisitCount(),
       // The mark alone, in the corner. The invitation is spelled out in its
       // own section higher up the page; a second one here would be nagging.
@@ -74,6 +76,39 @@ class Rodape extends StatelessWidget {
         ),
       ),
     ],
+  );
+}
+
+/// A política de privacidade, e o rodapé é onde ela vive.
+///
+/// **Uma página e não um aviso que passa.** Uma política tem de estar no mesmo
+/// sítio em todas as telas, tem de poder ser encontrada por quem a procura
+/// meses depois, e tem de ter endereço próprio — um snackbar não faz nenhuma
+/// das três, e é o primeiro sítio onde um revisor de rede de anúncios olha.
+///
+/// Sai do app com `href` em vez de `route` porque é HTML de verdade em
+/// `web/privacidade/`: o Flutter pinta num canvas e não deixa uma única tag de
+/// texto no DOM, o que torna as telas do app ilegíveis para quem indexa e para
+/// quem lê com leitor de tela. Uma política que só existe dentro de um canvas
+/// é uma política que ninguém consegue citar.
+class _LinkDePrivacidade extends StatelessWidget {
+  const _LinkDePrivacidade();
+
+  @override
+  Widget build(BuildContext context) => TextButton(
+    onPressed: () => unawaited(
+      launchUrl(Uri.parse('/privacidade/'), webOnlyWindowName: '_self'),
+    ),
+    style: TextButton.styleFrom(
+      foregroundColor: PWColors.textMuted,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      minimumSize: Size.zero,
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    ),
+    child: const Text(
+      'Privacidade',
+      style: TextStyle(fontSize: 11, decoration: TextDecoration.underline),
+    ),
   );
 }
 

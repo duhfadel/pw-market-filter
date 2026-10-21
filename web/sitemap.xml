@@ -25,4 +25,12 @@
     <lastmod>2026-08-17</lastmod>
     <priority>0.8</priority>
   </url>
+  <!-- A política de privacidade entra aqui e fica indexável de propósito: uma
+       política que o Google não encontra é uma política que não existe para
+       quem avalia o site, e quem a procura meses depois procura-a no Google. -->
+  <url>
+    <loc>https://portalpw.net/privacidade/</loc>
+    <lastmod>2026-10-21</lastmod>
+    <priority>0.3</priority>
+  </url>
 </urlset>

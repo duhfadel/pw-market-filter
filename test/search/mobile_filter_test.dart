@@ -35,7 +35,9 @@ MarketCharacter _character(int roleId, String name, int price, double attack) =>
           itemId: 50206,
           refine: 12,
           stones: const [],
-          attributes: {0: attack},
+          attributes: {
+            0: [attack],
+          },
         ),
       ],
     );

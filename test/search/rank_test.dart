@@ -18,7 +18,11 @@ EquippedItem _weapon(int itemId, {int refine = 0, double? attack}) =>
       itemId: itemId,
       refine: refine,
       stones: const [],
-      attributes: attack == null ? const {} : {attackLevel: attack},
+      attributes: attack == null
+          ? const {}
+          : {
+              attackLevel: [attack],
+            },
     );
 
 MarketCharacter _character(String name, List<EquippedItem> equipped) =>
@@ -223,7 +227,7 @@ void main() {
       );
 
       expect(
-        bestMatchFor(_index, duas, criterion)?.attributes[attackLevel],
+        bestMatchFor(_index, duas, criterion)?.atributo(attackLevel, _index),
         70,
       );
     });

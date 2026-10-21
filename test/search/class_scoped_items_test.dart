@@ -14,7 +14,9 @@ EquippedItem _weapon(int itemId, double attack) => EquippedItem(
   itemId: itemId,
   refine: 0,
   stones: const [],
-  attributes: {attackLevel: attack},
+  attributes: {
+    attackLevel: [attack],
+  },
 );
 
 MarketCharacter _character(

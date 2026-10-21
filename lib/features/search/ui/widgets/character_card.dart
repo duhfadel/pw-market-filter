@@ -144,11 +144,11 @@ Color? weaponTierColor(MarketIndex index, MarketCharacter character) {
     // Arredondado de propósito: isto escolhe um degrau da escada de raridade
     // da moldura, e meio ponto não move degrau nenhum.
     if (idAtaque >= 0) {
-      final v = (item.attributes[idAtaque] ?? 0).round();
+      final v = (item.atributo(idAtaque, index) ?? 0).round();
       if (v > ataque) ataque = v;
     }
     if (idDefesa >= 0) {
-      final v = (item.attributes[idDefesa] ?? 0).round();
+      final v = (item.atributo(idDefesa, index) ?? 0).round();
       if (v > defesa) defesa = v;
     }
   }
@@ -523,7 +523,10 @@ class CharacterCard extends StatelessWidget {
             ? _attackLevelNote(item)
             : _Note(
                 '${slotLabel(item.slot, index)} · ${index.attributes[attributeId]}',
-                numeroDeAtributo(item.attributes[attributeId]!),
+                // Reduzido: a linha do card responde a um critério, e o
+                // critério compara um número só. As ocorrências separadas
+                // estão no tooltip da fita, que é onde se vai ver a peça.
+                numeroDeAtributo(item.atributo(attributeId, index) ?? 0),
               ),
       );
     }
@@ -597,11 +600,18 @@ class CharacterCard extends StatelessWidget {
   /// back the confusion the dropdown's label removed.
   _Note _attackLevelNote(EquippedItem item) {
     final id = index.attributes.indexOf(IndexFacets.attackLevelName);
-    final value = id < 0 ? null : item.attributes[id];
+    // **Reduzido, e `'$value'` sobre a lista imprimia `[80]`.** Apanhado na
+    // pré-visualização, não por um teste: as fixtures dos testes do card têm
+    // uma ocorrência por atributo, e `[80]` e `80` só se distinguem quando
+    // alguém olha para a tela.
+    final value = id < 0 ? null : item.atributo(id, index);
     final slot = slotLabel(item.slot, index);
     return value == null
         ? _Note(slot)
-        : _Note('$slot · ${IndexFacets.attackLevelName}', '$value');
+        : _Note(
+            '$slot · ${IndexFacets.attackLevelName}',
+            numeroDeAtributo(value),
+          );
   }
 
   Widget _highlightLine(_Highlight highlight) {

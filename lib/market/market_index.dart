@@ -497,15 +497,42 @@ class EquippedItem {
   final int refine;
   final List<int> stones;
 
-  /// Index into [MarketIndex.attributes] to the value this item gives. An
-  /// attribute the item carries twice was already summed by the collector.
+  /// Index into [MarketIndex.attributes] to **cada ocorrência** do valor que
+  /// este item dá.
   ///
-  /// **Decimal desde 20/10/2026, e não por capricho.** O conduíte escreve
-  /// `HP +69.60` e o livro divino `Intervalo de Ataque -0.05s`; arredondar o
-  /// segundo dá `0`, que na tela diz *não muda* quando muda. Quase tudo o que
-  /// o jogo publica continua a ser inteiro, e [toJson] escreve-o como
-  /// inteiro — ver lá porquê.
-  final Map<int, double> attributes;
+  /// **Lista e não número, por decisão do dono em 21/10/2026.** O coletor
+  /// somava as repetições antes de publicar, portanto um astrolábio com
+  /// `Destino · Atq Físico +658` e `+890` saía como `1548` e a tela não tinha
+  /// como mostrar os dois. Ele quer as duas linhas — são dois bónus, de dois
+  /// ramos, e vê-los separados diz onde o personagem investiu.
+  ///
+  /// **A redução não desapareceu, mudou de sítio.** Continua a existir para
+  /// quem precisa de um número só — o filtro, a moldura da arma, os selos dos
+  /// Destaques — e está em [reduzirAtributo], com as mesmas regras de sempre:
+  /// soma por omissão, maior ocorrência para os três níveis, porque uma arma
+  /// que lista `70` e depois `+1` é uma 70 e não uma 71.
+  ///
+  /// **Decimal desde 20/10/2026**: o conduíte escreve `HP +69.60` e o livro
+  /// `Intervalo de Ataque -0.05s`, e arredondar o segundo dá `0`, que na tela
+  /// diz *não muda*. Ver [toJson] para como isso é escrito sem inchar o
+  /// ficheiro.
+  final Map<int, List<double>> attributes;
+
+  /// Um número só, para quem não pode mostrar vários.
+  ///
+  /// A moldura da arma escolhe um degrau, o filtro compara com um mínimo, o
+  /// selo dos Destaques imprime uma figura — nenhum deles sabe o que fazer
+  /// com duas ocorrências, e todos têm de aplicar **a mesma** regra, ou dois
+  /// sítios do site dizem números diferentes sobre a mesma peça.
+  ///
+  /// `null` quando o item não tem o atributo, que não é zero: zero é *tem e
+  /// vale nada*.
+  double? atributo(int id, MarketIndex index) {
+    final ocorrencias = attributes[id];
+    if (ocorrencias == null || ocorrencias.isEmpty) return null;
+    if (id < 0 || id >= index.attributes.length) return null;
+    return reduzirAtributo(index.attributes[id], ocorrencias);
+  }
 
   /// The level the piece demands: 60, 80, 100 or 105. Zero when the index
   /// predates the field.
@@ -539,15 +566,16 @@ class EquippedItem {
     if (bonusNaoResolvidos) 'naoResolvido': 1,
     if (stones.isNotEmpty) 'stones': stones,
     if (attributes.isNotEmpty)
-      // **Inteiro quando o valor é inteiro, e isto conta em bytes.** São
-      // ~30.000 itens com uns oito atributos cada; escrever `70.0` onde cabe
-      // `70` acrescentaria perto de meio megabyte a um ficheiro de quatro que
-      // toda a gente descarrega. O decimal fica para quem precisa dele.
+      // **O mais curto que diga a verdade, e isto conta em bytes.** São
+      // 143.799 pares atributo-valor num ficheiro de 7 MB que toda a gente
+      // descarrega. Escrever `70.0` onde cabe `70` custaria meio megabyte, e
+      // `[70]` onde cabe `70` custaria 280 KB — por isso uma ocorrência sai
+      // como número e só várias saem como lista. `fromJson` aceita as duas.
       'attributes': {
         for (final entry in attributes.entries)
-          entry.key.toString(): entry.value == entry.value.roundToDouble()
-              ? entry.value.toInt()
-              : entry.value,
+          entry.key.toString(): entry.value.length == 1
+              ? _numero(entry.value.single)
+              : [for (final v in entry.value) _numero(v)],
       },
   };
 
@@ -566,7 +594,16 @@ class EquippedItem {
     attributes: {
       for (final entry
           in (json['attributes'] as Map<String, dynamic>? ?? const {}).entries)
-        int.parse(entry.key): (entry.value as num).toDouble(),
+        int.parse(entry.key): switch (entry.value) {
+          final List<dynamic> lista => [
+            for (final v in lista) (v as num).toDouble(),
+          ],
+          // Um índice escrito antes de 21/10/2026 traz um número só, que é a
+          // soma que o coletor fazia. Lê-se como uma ocorrência: perde-se a
+          // separação e não se perde o total.
+          final num unico => [unico.toDouble()],
+          _ => const <double>[],
+        },
     },
   );
 }
@@ -657,3 +694,30 @@ class PatamarDoLivro {
     ganho: json['g'] == 1,
   );
 }
+
+/// O mais curto que diga a verdade: inteiro quando o valor é inteiro.
+Object _numero(double v) => v == v.roundToDouble() ? v.toInt() : v;
+
+enum AttributeRule {
+  /// The bonuses stack. `HP +500`, `+150`, `+150` is an item giving 800 HP.
+  total,
+
+  /// The largest line is the real one and the rest are minor rolls beside it.
+  /// A weapon reading `Nível de Ataque +70` and then `+1` is a 70 — the extra
+  /// point does not make it a different, better weapon, and calling it 71 puts
+  /// it above every genuine 70 in the list.
+  principal,
+}
+
+/// Attributes that do not stack. Everything absent from this map totals.
+const attributeRules = <String, AttributeRule>{
+  'Nível de Ataque': AttributeRule.principal,
+  'Nível de Defesa': AttributeRule.principal,
+  'Nível de Guarda': AttributeRule.principal,
+};
+
+double reduzirAtributo(String name, List<double> occurrences) =>
+    switch (attributeRules[name] ?? AttributeRule.total) {
+      AttributeRule.total => occurrences.fold(0.0, (a, b) => a + b),
+      AttributeRule.principal => occurrences.reduce((a, b) => a > b ? a : b),
+    };

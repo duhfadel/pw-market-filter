@@ -34,33 +34,33 @@ void main() {
     test('a stacking bonus totals', () {
       // The fixture weapon lists HP +500, +150, +150. Those are one pool of
       // hit points; reporting 500 understates the item by 300.
-      expect(reduceAttribute('HP', [500, 150, 150]), 800);
+      expect(reduzirAtributo('HP', [500, 150, 150]), 800);
     });
 
     test('attack level takes the principal, not the sum', () {
       // Confirmed by the player against the site: ★★★Clareza Abençoada shows
       // Nível de Ataque +70 with a +2 beneath it. The weapon is a 70. Summing
       // calls it 72 and sorts it above every genuine 70 in the dropdown.
-      expect(reduceAttribute('Nível de Ataque', [70, 2]), 70);
-      expect(reduceAttribute('Nível de Ataque', [70, 1]), 70);
+      expect(reduzirAtributo('Nível de Ataque', [70, 2]), 70);
+      expect(reduzirAtributo('Nível de Ataque', [70, 1]), 70);
     });
 
     test('the principal is the largest, whatever order it came in', () {
-      expect(reduceAttribute('Nível de Ataque', [1, 70]), 70);
+      expect(reduzirAtributo('Nível de Ataque', [1, 70]), 70);
     });
 
     test('defence and guard level follow the same rule as attack level', () {
-      expect(reduceAttribute('Nível de Defesa', [7, 2]), 7);
-      expect(reduceAttribute('Nível de Guarda', [350, 5]), 350);
+      expect(reduzirAtributo('Nível de Defesa', [7, 2]), 7);
+      expect(reduzirAtributo('Nível de Guarda', [350, 5]), 350);
     });
 
     test('a single occurrence is itself under either rule', () {
-      expect(reduceAttribute('HP', [500]), 500);
-      expect(reduceAttribute('Nível de Ataque', [70]), 70);
+      expect(reduzirAtributo('HP', [500]), 500);
+      expect(reduzirAtributo('Nível de Ataque', [70]), 70);
     });
 
     test('an unknown attribute totals, which is the safe default', () {
-      expect(reduceAttribute('Atributo #3818', [13, 4]), 17);
+      expect(reduzirAtributo('Atributo #3818', [13, 4]), 17);
     });
   });
 
@@ -82,8 +82,17 @@ void main() {
       final attack = index.attributes.indexOf('Nível de Ataque');
       final hp = index.attributes.indexOf('HP');
 
-      expect(weapon.attributes[attack], 70);
-      expect(weapon.attributes[hp], 650);
+      // **O índice guarda cada ocorrência; a regra aplica-se ao ler.** Até
+      // 21/10/2026 a redução era feita aqui, na entrada, e por isso um
+      // astrolábio com dois `Atq Físico` saía com um número só e a tela não
+      // tinha como mostrar os dois. O que a regra decide não mudou: `Nível
+      // de Ataque` toma a maior, porque uma arma que lista 70 e depois +1 é
+      // uma 70; o `HP` soma, porque são três bónus de um mesmo poço.
+      expect(weapon.attributes[attack], [70, 1]);
+      expect(weapon.attributes[hp], [500, 150]);
+
+      expect(weapon.atributo(attack, index), 70);
+      expect(weapon.atributo(hp, index), 650);
     });
 
     test('an attribute with no occurrences is left out entirely', () {

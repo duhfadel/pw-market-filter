@@ -25,8 +25,8 @@ MarketIndex _index() => MarketIndex(
 /// A character wearing one weapon giving [attributes], plus — when asked — a
 /// second piece that is not a weapon.
 MarketCharacter _wearing(
-  Map<int, double> attributes, {
-  Map<int, double>? noAmuleto,
+  Map<int, List<double>> attributes, {
+  Map<int, List<double>>? noAmuleto,
 }) => MarketCharacter(
   roleId: 1,
   name: 'Alvo',
@@ -60,15 +60,30 @@ void main() {
 
   test('the attack ladder takes its four rungs', () {
     expect(
-      weaponTierColor(index, _wearing({_ataque: 80})),
+      weaponTierColor(
+        index,
+        _wearing({
+          _ataque: [80],
+        }),
+      ),
       PWColors.gradeColors[6],
     );
     expect(
-      weaponTierColor(index, _wearing({_ataque: 70})),
+      weaponTierColor(
+        index,
+        _wearing({
+          _ataque: [70],
+        }),
+      ),
       PWColors.gradeColors[4],
     );
     expect(
-      weaponTierColor(index, _wearing({_ataque: 40})),
+      weaponTierColor(
+        index,
+        _wearing({
+          _ataque: [40],
+        }),
+      ),
       PWColors.gradeColors[3],
     );
   });
@@ -78,11 +93,21 @@ void main() {
     // 2.200 to 20.000 TCC, and a frame that painted them red would say they
     // were something they are not.
     expect(
-      weaponTierColor(index, _wearing({_defesa: 80})),
+      weaponTierColor(
+        index,
+        _wearing({
+          _defesa: [80],
+        }),
+      ),
       PWColors.defenceTier,
     );
     expect(
-      weaponTierColor(index, _wearing({_defesa: 80})),
+      weaponTierColor(
+        index,
+        _wearing({
+          _defesa: [80],
+        }),
+      ),
       isNot(PWColors.gradeColors[6]),
     );
   });
@@ -91,7 +116,13 @@ void main() {
     // Disjoint in every collection so far, and the ordering must not depend on
     // that staying true.
     expect(
-      weaponTierColor(index, _wearing({_ataque: 80, _defesa: 80})),
+      weaponTierColor(
+        index,
+        _wearing({
+          _ataque: [80],
+          _defesa: [80],
+        }),
+      ),
       PWColors.defenceTier,
     );
   });
@@ -100,17 +131,46 @@ void main() {
     // 212 characters of 1519 sat on this rung and it was taken away on the
     // owner's call: the bottom of the market does not need a badge saying it
     // is the bottom.
-    expect(weaponTierColor(index, _wearing({_ataque: 30})), isNull);
-    expect(weaponTierColor(index, _wearing({_ataque: 39})), isNull);
     expect(
-      weaponTierColor(index, _wearing({_ataque: 40})),
+      weaponTierColor(
+        index,
+        _wearing({
+          _ataque: [30],
+        }),
+      ),
+      isNull,
+    );
+    expect(
+      weaponTierColor(
+        index,
+        _wearing({
+          _ataque: [39],
+        }),
+      ),
+      isNull,
+    );
+    expect(
+      weaponTierColor(
+        index,
+        _wearing({
+          _ataque: [40],
+        }),
+      ),
       isNotNull,
       reason: 'forty is still a rung',
     );
   });
 
   test('a weapon with neither level draws the plain border', () {
-    expect(weaponTierColor(index, _wearing({_hp: 5000})), isNull);
+    expect(
+      weaponTierColor(
+        index,
+        _wearing({
+          _hp: [5000],
+        }),
+      ),
+      isNull,
+    );
     expect(weaponTierColor(index, _wearing(const {})), isNull);
   });
 
@@ -120,7 +180,12 @@ void main() {
     // for a roll nobody buys on.
     for (final roll in <double>[1, 5, 20, 30]) {
       expect(
-        weaponTierColor(index, _wearing({_defesa: roll})),
+        weaponTierColor(
+          index,
+          _wearing({
+            _defesa: [roll],
+          }),
+        ),
         isNull,
         reason: 'defence $roll is noise',
       );
@@ -132,7 +197,15 @@ void main() {
     // weapon. An amulet's attack level vouching for it would be the same
     // fraud the matcher refuses when it reads every condition off one item.
     expect(
-      weaponTierColor(index, _wearing(const {}, noAmuleto: {_ataque: 80})),
+      weaponTierColor(
+        index,
+        _wearing(
+          const {},
+          noAmuleto: {
+            _ataque: [80],
+          },
+        ),
+      ),
       isNull,
     );
   });
@@ -147,6 +220,14 @@ void main() {
       characters: [],
     );
 
-    expect(weaponTierColor(semAtributos, _wearing({0: 80})), isNull);
+    expect(
+      weaponTierColor(
+        semAtributos,
+        _wearing({
+          0: [80],
+        }),
+      ),
+      isNull,
+    );
   });
 }

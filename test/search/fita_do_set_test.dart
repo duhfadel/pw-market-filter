@@ -138,4 +138,57 @@ void main() {
     expect(nomesDasPedras, isNotEmpty);
     expect(nomesDasPedras[51112], contains('Olho Vermelho'));
   });
+
+  group('duas ocorrências do mesmo atributo', () {
+    // **A queixa do dono em 21/10/2026.** O astrolábio do Mulexta dá
+    // `Atq Físico +658` por um ramo e `+890` pelo outro, e a tela mostrava
+    // `+1548`. Ele quer os dois: são dois bónus, de dois sítios, e vê-los
+    // separados diz onde o personagem investiu.
+    final index = MarketIndex(
+      server: 'pw187',
+      collectedAt: DateTime.utc(2026, 10, 21),
+      attributes: const ['Atq Físico', 'Nível de Ataque'],
+      items: const {1: MarketItem(name: 'Astrolábio: Arqueiro', grade: 6)},
+      characters: const [],
+    );
+
+    const astrolabio = EquippedItem(
+      slot: 17,
+      itemId: 1,
+      refine: 0,
+      stones: [],
+      attributes: {
+        0: [658, 890],
+      },
+    );
+
+    test('o índice guarda as duas, e não a soma', () {
+      expect(astrolabio.attributes[0], [658, 890]);
+      expect(astrolabio.attributes[0], isNot(contains(1548)));
+    });
+
+    test('mas quem precisa de um número só continua a ter a soma', () {
+      // O filtro compara com um mínimo e a moldura escolhe um degrau —
+      // nenhum deles sabe o que fazer com duas, e os dois têm de aplicar a
+      // **mesma** regra, ou dois sítios do site dizem números diferentes
+      // sobre a mesma peça.
+      expect(astrolabio.atributo(0, index), 1548);
+    });
+
+    test('os três níveis continuam a tomar a maior, não a soma', () {
+      // Uma arma que lista `70` e depois `+1` é uma 70. Somar punha-a acima
+      // de todas as 70 verdadeiras, com um número que nenhuma outra tem.
+      const arma = EquippedItem(
+        slot: 10,
+        itemId: 1,
+        refine: 12,
+        stones: [],
+        attributes: {
+          1: [70, 1],
+        },
+      );
+
+      expect(arma.atributo(1, index), 70);
+    });
+  });
 }

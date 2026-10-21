@@ -35,7 +35,9 @@ MarketCharacter _character(int roleId, String name, int price) =>
           itemId: 50206,
           refine: 12,
           stones: [],
-          attributes: {0: 70},
+          attributes: {
+            0: [70],
+          },
         ),
       ],
     );

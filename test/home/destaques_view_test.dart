@@ -33,7 +33,10 @@ EquippedItem _arma({double ataque = 0, double defesa = 0}) => EquippedItem(
   itemId: 50206,
   refine: 0,
   stones: const [],
-  attributes: {0: ataque, 1: defesa},
+  attributes: {
+    0: [ataque],
+    1: [defesa],
+  },
 );
 
 MarketCharacter _personagem(

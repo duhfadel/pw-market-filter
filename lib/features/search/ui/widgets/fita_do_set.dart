@@ -222,23 +222,34 @@ class _Peca extends StatelessWidget {
     );
   }
 
-  /// O que a peça dá, por nome e valor já escrito.
+  /// O que a peça dá: **uma linha por ocorrência**, não a soma.
   ///
-  /// Ordenado pelo nome do atributo e não pela ordem do índice, que é a
-  /// ordem em que a recolha os encontrou e não diz nada a ninguém. Um
-  /// astrolábio traz nove linhas e um conduíte seis; sem ordem, as mesmas
-  /// nove saem baralhadas de peça para peça.
+  /// **Decisão do dono em 21/10/2026.** Um astrolábio que dá `Atq Físico
+  /// +658` por um ramo e `+890` pelo outro mostrava `+1548`, e ele quer os
+  /// dois: são dois bónus, de dois sítios, e vê-los separados diz onde o
+  /// personagem investiu. A soma não desapareceu — é ela que o filtro
+  /// compara, em `EquippedItem.atributo` —, apenas deixou de ser o que a
+  /// tela imprime.
+  ///
+  /// Ordenado pelo nome e, dentro do mesmo nome, pelo valor: a ordem do
+  /// índice é a ordem em que a recolha os encontrou e não diz nada a
+  /// ninguém, e as mesmas nove linhas sairiam baralhadas de peça para peça.
   List<(String, String)> _atributos() {
     final linhas = <(String, String)>[];
     for (final e in peca.attributes.entries) {
       if (e.key < 0 || e.key >= index.attributes.length) continue;
-      final valor = e.value;
-      linhas.add((
-        index.attributes[e.key],
-        '${valor >= 0 ? '+' : ''}${numeroDeAtributo(valor)}',
-      ));
+      final nome = index.attributes[e.key];
+      for (final valor in e.value) {
+        linhas.add((
+          nome,
+          '${valor >= 0 ? '+' : ''}${numeroDeAtributo(valor)}',
+        ));
+      }
     }
-    linhas.sort((a, b) => a.$1.compareTo(b.$1));
+    linhas.sort((a, b) {
+      final porNome = a.$1.compareTo(b.$1);
+      return porNome != 0 ? porNome : a.$2.compareTo(b.$2);
+    });
     return linhas;
   }
 

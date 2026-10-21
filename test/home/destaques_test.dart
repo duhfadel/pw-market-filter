@@ -30,7 +30,9 @@ EquippedItem _arma(double nivelAtaque) => EquippedItem(
   itemId: 50206,
   refine: 0,
   stones: const [],
-  attributes: {0: nivelAtaque},
+  attributes: {
+    0: [nivelAtaque],
+  },
 );
 
 MarketCharacter _personagem(
@@ -339,7 +341,7 @@ void main() {
     // escada do jogo e nunca teve decimais, mas o campo passou a poder
     // tê-los — e `'$nivelReal'` sobre um `double` imprimiria `70.0`, que é
     // exactamente o que o selo não pode dizer.
-    final nivelReal = (arma.attributes[id] ?? 0).round();
+    final nivelReal = (arma.atributo(id, index) ?? 0).round();
 
     expect(cartao.selo, 'ARMA $nivelReal');
     expect(cartao.rotulo, contains('Arma de $nivelReal'));

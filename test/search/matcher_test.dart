@@ -17,7 +17,7 @@ EquippedItem _item(
   int slot, {
   int itemId = 1,
   int refine = 0,
-  Map<int, double> attributes = const {},
+  Map<int, List<double>> attributes = const {},
 }) => EquippedItem(
   slot: slot,
   itemId: itemId,
@@ -89,7 +89,12 @@ void main() {
       final character = _character(
         'Leandrim',
         equipped: [
-          _item(weaponSlot, attributes: {attackLevel: 70}),
+          _item(
+            weaponSlot,
+            attributes: {
+              attackLevel: [70],
+            },
+          ),
         ],
       );
 
@@ -115,7 +120,12 @@ void main() {
       final character = _character(
         'Bruto',
         equipped: [
-          _item(weaponSlot, attributes: {attackLevel: 69}),
+          _item(
+            weaponSlot,
+            attributes: {
+              attackLevel: [69],
+            },
+          ),
         ],
       );
 
@@ -143,8 +153,18 @@ void main() {
       final character = _character(
         'Xnokas',
         equipped: [
-          _item(weaponSlot, attributes: {attackLevel: 40}),
-          _item(helmSlot, attributes: {attackLevel: 70}),
+          _item(
+            weaponSlot,
+            attributes: {
+              attackLevel: [40],
+            },
+          ),
+          _item(
+            helmSlot,
+            attributes: {
+              attackLevel: [70],
+            },
+          ),
         ],
       );
 
@@ -170,8 +190,18 @@ void main() {
       final character = _character(
         'Xnokas',
         equipped: [
-          _item(weaponSlot, attributes: {attackLevel: 40}),
-          _item(helmSlot, attributes: {attackLevel: 70}),
+          _item(
+            weaponSlot,
+            attributes: {
+              attackLevel: [40],
+            },
+          ),
+          _item(
+            helmSlot,
+            attributes: {
+              attackLevel: [70],
+            },
+          ),
         ],
       );
 
@@ -191,7 +221,12 @@ void main() {
       final character = _character(
         'Poeira',
         equipped: [
-          _item(weaponSlot, attributes: {hp: 500}),
+          _item(
+            weaponSlot,
+            attributes: {
+              hp: [500],
+            },
+          ),
         ],
       );
 
@@ -232,8 +267,18 @@ void main() {
       final character = _character(
         'Leandrim',
         equipped: [
-          _item(weaponSlot, attributes: {attackLevel: 70}),
-          _item(helmSlot, attributes: {guardLevel: 350}),
+          _item(
+            weaponSlot,
+            attributes: {
+              attackLevel: [70],
+            },
+          ),
+          _item(
+            helmSlot,
+            attributes: {
+              guardLevel: [350],
+            },
+          ),
         ],
       );
 
@@ -266,7 +311,13 @@ void main() {
       final character = _character(
         'Leandrim',
         equipped: [
-          _item(weaponSlot, attributes: {attackLevel: 70, guardLevel: 350}),
+          _item(
+            weaponSlot,
+            attributes: {
+              attackLevel: [70],
+              guardLevel: [350],
+            },
+          ),
         ],
       );
 
@@ -297,7 +348,13 @@ void main() {
       final character = _character(
         'Leandrim',
         equipped: [
-          _item(weaponSlot, refine: 10, attributes: {attackLevel: 70}),
+          _item(
+            weaponSlot,
+            refine: 10,
+            attributes: {
+              attackLevel: [70],
+            },
+          ),
         ],
       );
 
@@ -342,7 +399,13 @@ void main() {
     final leandrim = _character(
       'Leandrim',
       equipped: [
-        _item(weaponSlot, itemId: 50206, attributes: {attackLevel: 70}),
+        _item(
+          weaponSlot,
+          itemId: 50206,
+          attributes: {
+            attackLevel: [70],
+          },
+        ),
         _item(helmSlot, itemId: 38256),
       ],
     );
@@ -506,7 +569,9 @@ void main() {
               weaponSlot,
               itemId: 50206,
               refine: 12,
-              attributes: {attackLevel: 70},
+              attributes: {
+                attackLevel: [70],
+              },
             ),
           ],
         ),
@@ -518,7 +583,9 @@ void main() {
               weaponSlot,
               itemId: 50205,
               refine: 11,
-              attributes: {attackLevel: 40},
+              attributes: {
+                attackLevel: [40],
+              },
             ),
           ],
         ),

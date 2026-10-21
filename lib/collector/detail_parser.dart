@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html_parser;
 
+import 'data_item.dart';
+
 import '../market/romanos.dart';
 
 /// One item the character is actually wearing.
@@ -206,7 +208,12 @@ final _naoResolvido = RegExp(r'não resolvid');
 /// bonus and the socket stones as addons (14 entries against the tooltip's 11)
 /// and the extras sit in the middle, not at the end.
 List<ParsedItem> parseEquippedItems(String html) {
-  final document = html_parser.parse(html);
+  // **Reparado aqui também, e por causa do inventário e não do equipamento.**
+  // As peças vestidas saem do tooltip, que usa aspas duplas e é imune ao
+  // apóstrofo; é `_inventoryJson` que lê `data-item`, e de lá vêm as
+  // relíquias, as chaves e as essências que os filtros contam. Ver
+  // `fecharDataItem`.
+  final document = html_parser.parse(fecharDataItem(html));
   final levels = _levelsById(document);
 
   return document
@@ -340,7 +347,7 @@ class ParsedStack {
 /// bank — so they are summed. The name is the first one seen, which is the
 /// same item's name every time.
 List<ParsedStack> parseInventory(String html) {
-  final document = html_parser.parse(html);
+  final document = html_parser.parse(fecharDataItem(html));
   final counts = <int, int>{};
   final names = <int, String>{};
 

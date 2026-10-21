@@ -1020,6 +1020,28 @@ se fosse acaso, e era o mecanismo.
 
 Each of these already cost something — measured on the live site, not guessed.
 
+- **Três campos nasceram no parser e nunca chegaram ao índice, e a recolha
+  de duas horas publicou-os a zero.** `nivel`, `escada` e
+  `bonusNaoResolvidos` entraram em `ParsedItem` a 20/10/2026 com o
+  astrolábio, o conduíte e o livro divino. O codec de `CollectedPage` não os
+  conhecia; `EquippedItem` também não. O coletor lia-os de cada página e
+  deitava-os fora na mesma corrida.
+
+  **Os testes passaram todos.** Eles exercitavam `parseEquippedItems`
+  directamente — chamada, resposta, asserção — e nunca a travessia
+  `parser → estado → índice → tela`. `collected_page_test` existe exactamente
+  para essa travessia e não os cobria.
+
+  É a terceira vez que esta forma custa alguma coisa aqui, depois do
+  `require_level`, que morreu assim, e do `sexo`, que foi colhido em Agosto e
+  só apareceu na tela em Outubro. A frase já estava escrita — **um codec sem
+  teste é onde um campo vai morrer** — e o que faltava era aplicá-la a campos
+  novos em vez de só aos antigos.
+
+  A regra prática: **um campo novo não está feito quando o parser o lê; está
+  feito quando um teste o vê do outro lado do disco.** `collected_page_test`
+  ganhou três que fazem o `jsonEncode`/`jsonDecode` e verificam o que sai.
+
 - **Um apóstrofo no nick de quem forjou a peça apagava as pedras dela, e
   apagava-as calado.** O `data-item` do 1.2.6 é delimitado por **aspas
   simples** e a página não escapa apóstrofos no conteúdo, portanto um criador

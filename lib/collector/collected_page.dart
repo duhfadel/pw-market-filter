@@ -1,3 +1,5 @@
+import 'package:pw_market_filter/market/market_index.dart' show PatamarDoLivro;
+
 import 'detail_parser.dart';
 import 'detail_parser_126.dart';
 
@@ -67,7 +69,15 @@ class CollectedPage {
   ///
   /// Sete e não seis: seis é do 187, e dois mercados com o mesmo número leem
   /// as páginas um do outro como actuais.
-  static const versoes = <String, int>{'pw187': 6, 'pw126': 7};
+  /// O 187 vai em 8 desde 21/10/2026, e a razão é um erro meu. O `nivel`, a
+  /// `escada` e o `bonusNaoResolvidos` nasceram no parser a 20/10 e **não
+  /// chegaram a este codec**: a recolha de duas horas leu-os e deitou-os fora
+  /// na mesma corrida. Os testes passavam porque exercitavam o parser e nunca
+  /// a travessia — a lição que o `require_level` já tinha ensinado, num
+  /// ficheiro que existe para a impedir.
+  ///
+  /// Oito e não sete: sete é do 126.
+  static const versoes = <String, int>{'pw187': 8, 'pw126': 7};
 
   /// The stamp a page collected from [servidor] carries.
   static int versaoDe(String servidor) => versoes[servidor] ?? 0;
@@ -245,6 +255,24 @@ Map<String, dynamic> _itemToJson(ParsedItem item) => {
   'attributes': item.attributes,
   'requireLevel': item.requireLevel,
   'weaponLevel': item.weaponLevel,
+  // Os três abaixo chegaram a 20/10/2026 com o astrolábio, o conduíte e o
+  // livro divino — e ficaram **um dia inteiro sem vir para aqui**. O parser
+  // lia-os e este codec deitava-os fora na mesma corrida; os testes passavam
+  // porque exercitavam o parser e nunca a travessia. É a lição que o
+  // `require_level` já tinha ensinado e que `collected_page_test` existe
+  // para impedir — e desta vez o teste existia e não os cobria.
+  if (item.nivel > 0) 'nivel': item.nivel,
+  if (item.escada.isNotEmpty)
+    'escada': [
+      for (final d in item.escada)
+        {
+          'refino': d.refino,
+          'atributo': d.atributo,
+          'valor': d.valor,
+          if (d.ganho) 'ganho': 1,
+        },
+    ],
+  if (item.bonusNaoResolvidos) 'naoResolvido': 1,
 };
 
 ParsedItem _itemFromJson(Map<String, dynamic> json) => ParsedItem(
@@ -264,6 +292,17 @@ ParsedItem _itemFromJson(Map<String, dynamic> json) => ParsedItem(
   ),
   requireLevel: json['requireLevel'] as int? ?? 0,
   weaponLevel: json['weaponLevel'] as int? ?? 0,
+  nivel: json['nivel'] as int? ?? 0,
+  escada: [
+    for (final d in json['escada'] as List<dynamic>? ?? const [])
+      PatamarDoLivro(
+        refino: (d as Map<String, dynamic>)['refino'] as int,
+        atributo: d['atributo'] as String,
+        valor: d['valor'] as int,
+        ganho: d['ganho'] == 1,
+      ),
+  ],
+  bonusNaoResolvidos: json['naoResolvido'] == 1,
 );
 
 Map<String, dynamic> _titlesToJson(ParsedTitles titles) => {

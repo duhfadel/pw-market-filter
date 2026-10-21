@@ -227,6 +227,10 @@ class IndexBuilder {
       itemId: item.itemId,
       refine: item.refine,
       requireLevel: item.requireLevel,
+      nivel: item.nivel,
+      // A mesma classe dos dois lados, portanto a lista passa inteira.
+      escada: item.escada,
+      bonusNaoResolvidos: item.bonusNaoResolvidos,
       stones: item.stones,
       attributes: {
         for (final entry in item.attributes.entries)

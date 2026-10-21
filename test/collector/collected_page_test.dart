@@ -186,4 +186,81 @@ void main() {
     // a ter atributos, e nenhum estado escrito antes disso os tem.
     expect(CollectedPage.versaoDe('pw187'), greaterThan(5));
   });
+
+  group(
+    'o que o astrolábio, o conduíte e o livro trazem sobrevive ao disco',
+    () {
+      // **Estes três campos ficaram um dia inteiro a ser lidos e deitados
+      // fora.** O parser aprendeu-os a 20/10/2026, o codec não, e a recolha
+      // completa de duas horas publicou um índice sem eles. Os testes passavam
+      // porque exercitavam `parseEquippedItems` directamente — e este ficheiro,
+      // que existe exactamente para isto, não os cobria.
+      //
+      // É a mesma lição do `require_level`, que já tinha morrido assim: um
+      // codec sem teste é onde um campo vai morrer.
+      late CollectedPage mulexta;
+
+      setUpAll(() {
+        final html = File('test/fixtures/detail_92624.html').readAsStringSync();
+        mulexta = CollectedPage(
+          items: parseEquippedItems(html),
+          cards: const [],
+          sex: '',
+        );
+      });
+
+      ParsedItem depoisDoDisco(int slot) {
+        final json =
+            jsonDecode(jsonEncode(mulexta.toJson('pw187')))
+                as Map<String, dynamic>;
+        return CollectedPage.fromJson(
+          json,
+          const {},
+        ).items.singleWhere((i) => i.slot == slot);
+      }
+
+      test('o nível do astrolábio e do conduíte volta inteiro', () {
+        expect(depoisDoDisco(17).nivel, 57);
+        expect(depoisDoDisco(16).nivel, 100);
+        // E a arma, que não tem nível nenhum, continua a não ter.
+        expect(depoisDoDisco(10).nivel, 0);
+      });
+
+      test('a escada do livro volta com os degraus por alcançar', () {
+        final escada = depoisDoDisco(11).escada;
+
+        expect(escada, isNotEmpty);
+        final porAlcancar = escada.where((d) => !d.ganho).single;
+        expect(porAlcancar.refino, 15);
+        expect(porAlcancar.atributo, 'Maior Nível');
+        expect(porAlcancar.valor, 15);
+        expect(
+          escada.where((d) => d.ganho).map((d) => d.refino),
+          containsAll([3, 6, 9, 12]),
+        );
+      });
+
+      test('os decimais do conduíte não se perdem no disco', () {
+        // `HP +69.60` é o caso que o arredondamento matava. O estado guarda
+        // `double`, e um estado escrito antes disso tem inteiros que `num`
+        // aceita na mesma.
+        final leandrim = CollectedPage(
+          items: parseEquippedItems(
+            File('test/fixtures/detail_64112.html').readAsStringSync(),
+          ),
+          cards: const [],
+          sex: '',
+        );
+        final json =
+            jsonDecode(jsonEncode(leandrim.toJson('pw187')))
+                as Map<String, dynamic>;
+        final cond = CollectedPage.fromJson(
+          json,
+          const {},
+        ).items.singleWhere((i) => i.slot == 16);
+
+        expect(cond.attributes['HP'], [69.6]);
+      });
+    },
+  );
 }

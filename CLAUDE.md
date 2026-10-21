@@ -1020,6 +1020,40 @@ se fosse acaso, e era o mecanismo.
 
 Each of these already cost something — measured on the live site, not guessed.
 
+- **Um apóstrofo no nick de quem forjou a peça apagava as pedras dela, e
+  apagava-as calado.** O `data-item` do 1.2.6 é delimitado por **aspas
+  simples** e a página não escapa apóstrofos no conteúdo, portanto um criador
+  chamado `Antonio'` fecha o atributo a meio do JSON:
+
+  ```
+  data-item='{… "creator":"king[D]oug'"}'><img …
+                                      ↑ o atributo acaba aqui
+  ```
+
+  O leitor de HTML faz o que deve — lê até ao delimitador — e entrega 999
+  caracteres de JSON cortado. O `jsonDecode` falha, o `catch` devolve nulo, e
+  a peça fica **sem atributos e sem pedras**, sem erro nenhum.
+
+  Medido a 21/10/2026: **854 itens em 337 dos 1.425 personagens**. Nem todos
+  por esta causa — há peças que de facto não dão nada — mas é o tecto, e um
+  em cada quatro personagens trazia pelo menos um. Relatado pelo dono sobre o
+  Baekchu, cujas calças e botas mostravam quatro `Pedra Amarela Nv.9 HP +62`
+  na página e nenhuma no site.
+
+  `_fecharDataItem` fecha o atributo **pela chave que fecha o JSON** em vez de
+  pelo apóstrofo. Um nick com `{` derrotaria a contagem, mas esse derrota a
+  página deles primeiro.
+
+  **É a terceira vez que um valor contendo o carácter que o delimita custa
+  alguma coisa aqui**, depois da cor de guilda que escapava para um `onload` e
+  do `~` que o `Uri` escapava num link. A forma a reconhecer: quem escreve um
+  contentor delimitado tem de escapar o delimitador, e quem lê não pode contar
+  com isso.
+
+  `test/fixtures/detail_pw126_359665.html` é a página do Baekchu, guardada
+  porque este caso não se encontra a rolar a grelha: precisa de alguém cujo
+  equipamento tenha sido forjado por um nick com apóstrofo.
+
 - **The site blocks, and the block outlives the run.** Fifteen detail pages
   fetched sequentially took 30 s and all succeeded. Ninety-one pages with four
   concurrent workers got 31 through, failed 60, and left the IP refused
@@ -1129,10 +1163,18 @@ Each of these already cost something — measured on the live site, not guessed.
   tudo. Trinta e duas corridas seguidas, dez horas sem deploy, e nada disso
   saía sozinho.
 
-  **A conta `páginas × 3 s` contra o `timeout` é obrigatória** sempre que a
-  coleta ou o mercado crescerem. Hoje: 1.666 → 83 min e 1.302 → 65 min, contra
-  um teto de 120. Se o mercado passar dos ~2.300 anúncios, o teto volta a ser
-  o limite.
+  **A conta contra o `timeout` é obrigatória** sempre que a coleta ou o
+  mercado crescerem — e o número a usar é **~3,2 s por página**, medido e não
+  estimado. A recolha completa de 21/10/2026 leu 2.226 páginas do pw187 em
+  **1h57**, enquanto o próprio coletor anunciou 93 minutos e eu tinha dito 42.
+  Os dois erros são o mesmo: contar só a pausa de 1,5 s entre pedidos e
+  esquecer o tempo de resposta de cada página, que é da mesma ordem.
+
+  Hoje: 2.226 → **119 min**, contra um tecto de 120. **Isto deixou de ter
+  folga.** O pw126, com 1.370, está em 73 min. Se o 1.8.7 passar dos ~2.250
+  anúncios, o tecto tem de subir antes da próxima mudança de carimbo — e uma
+  corrida que estoura o tecto **não grava cache**, portanto a seguinte repete
+  tudo, que é o laço de 01/10.
 
   **A cache é por versão, um caminho por passo**, para que cada lista fique
   estável para sempre — acrescentar uma terceira versão não pode invalidar as

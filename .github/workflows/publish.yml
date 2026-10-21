@@ -87,11 +87,21 @@ jobs:
   # que o índice não chegou — falha alto em vez de calado.
   colher:
     runs-on: ubuntu-latest
-    # 83 minutos é o que uma coleta completa do pw187 custa (1.666 × 3 s), e o
-    # tecto era 75 — ou seja, uma coleta do zero **nunca** podia terminar, e
-    # sem terminar nunca gravava a cache que a tornaria desnecessária. Agora
-    # que cada versão tem o seu job, este tecto é por versão e não pela soma.
-    timeout-minutes: 120
+    # **180, e o número vem de uma corrida que passou por três minutos.** A
+    # recolha completa de 21/10/2026 leu 2.226 páginas do pw187 em **1h57** —
+    # 117 dos 120 que o tecto dava. O coletor tinha anunciado 93 minutos e eu
+    # tinha dito 42, e os dois erros são o mesmo: contar só a pausa de 1,5 s
+    # entre pedidos e esquecer o tempo de resposta de cada página, que é da
+    # mesma ordem. O número medido é **3,2 s por página**.
+    #
+    # E uma corrida que estoura o tecto **não grava cache**, portanto a
+    # seguinte repete tudo — foi esse o laço de 01/10, dez horas sem deploy. O
+    # custo de um tecto alto é zero em todas as corridas normais, que levam
+    # três minutos; o custo de um tecto curto é o laço.
+    #
+    # A conta a refazer sempre que o mercado crescer: `páginas × 3,2 s`. Hoje
+    # 2.226 → 119 min e 1.370 → 73 min.
+    timeout-minutes: 180
 
     strategy:
       # Uma versão que falha não pode levar as outras: o site prefere um

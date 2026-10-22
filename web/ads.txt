@@ -1,0 +1,14 @@
+# ads.txt — quem está autorizado a vender o espaço publicitário deste domínio.
+#
+# É um ficheiro público, e tem de ser: o seu trabalho é deixar que qualquer
+# comprador de publicidade confirme, lendo portalpw.net/ads.txt, que quem lhe
+# oferece este inventário o pode mesmo oferecer. Sem ele, quem compra não tem
+# como distinguir o site verdadeiro de alguém a dizer que o representa — que é
+# a fraude que o IAB criou este padrão para matar.
+#
+# Formato: domínio do sistema, identificador do editor, relação, id do
+# certificador. DIRECT porque a conta é nossa e não há intermediário.
+# f08c47fec0942fa0 é o id da Google no TAG, igual para todos os editores.
+#
+# Tem de ficar na raiz — portalpw.net/ads.txt — e em lado nenhum mais.
+google.com, pub-7064703455080324, DIRECT, f08c47fec0942fa0

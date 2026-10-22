@@ -6,7 +6,7 @@
 
   <title>Privacidade — Portal PW</title>
   <meta name="description"
-        content="O que o Portal PW guarda, o que envia e quem mais vê o seu acesso. Sem conta, sem formulário e sem cookies.">
+        content="O que o Portal PW guarda, o que envia e quem mais vê o seu acesso. Sem conta e sem formulário; os cookies que existem são do Google, por causa dos anúncios.">
 
   <link rel="canonical" href="https://portalpw.net/privacidade/">
 
@@ -14,7 +14,7 @@
   <meta property="og:site_name" content="Portal PW">
   <meta property="og:locale" content="pt_BR">
   <meta property="og:title" content="Privacidade — Portal PW">
-  <meta property="og:description" content="O que o Portal PW guarda, o que envia e quem mais vê o seu acesso. Sem conta, sem formulário e sem cookies.">
+  <meta property="og:description" content="O que o Portal PW guarda, o que envia e quem mais vê o seu acesso. Sem conta e sem formulário; os cookies que existem são do Google, por causa dos anúncios.">
   <meta property="og:url" content="https://portalpw.net/privacidade/">
   <meta property="og:image" content="https://portalpw.net/og-v2.jpg">
   <meta property="og:image:type" content="image/jpeg">
@@ -36,6 +36,22 @@
       margin: 0 0 30px;
     }
   </style>
+  <!-- AdSense. O número de editor é público por desenho — ele vai no bundle de
+       toda a gente e também no `ads.txt` na raiz, que é o ficheiro que diz ao
+       mercado quem está autorizado a vender este espaço. Não é segredo e não
+       há onde o esconder.
+
+       Em **todas** as páginas, e não só nas que têm espaço de anúncio: a tag é
+       o que verifica a propriedade do site, e uma página sem ela é uma página
+       que o revisor não consegue associar à conta.
+
+       Quando os anúncios começarem a servir, `/privacidade/` tem de ser
+       conferida outra vez — ela já foi atualizada para dizer que o script está
+       cá, mas quem ligar os anúncios automáticos no painel muda o que a página
+       faz sem passar por aqui. -->
+  <script async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7064703455080324"
+          crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -64,11 +80,13 @@
   <h1>Privacidade</h1>
 
   <p class="resumo">
-    O Portal PW não tem conta, não tem formulário e <strong>não usa
-    cookies</strong>. Não pedimos nem guardamos nada que identifique você.
+    O Portal PW não tem conta e não tem formulário. <strong>Nós não pedimos
+    nem guardamos nada que identifique você.</strong> O que existe de
+    rastreamento nesta página vem do Google, por causa dos anúncios, e está
+    explicado abaixo.
   </p>
 
-  <p class="data-de-revisao">Última revisão: 21 de outubro de 2026.</p>
+  <p class="data-de-revisao">Última revisão: 22 de outubro de 2026.</p>
 
   <h2>O que o site guarda</h2>
 
@@ -98,22 +116,45 @@
     <li><strong>GitHub Pages</strong>, onde os ficheiros estão hospedados.</li>
     <li><strong>Supabase</strong> (São Paulo), de onde a página lê o mapa, os
       streamers, os vídeos, os avisos e o contador.</li>
-    <li><strong>Google</strong>, só nas miniaturas dos vídeos de guerra. Não há
-      player embutido: nenhum cookie do YouTube é criado aqui.</li>
+    <li><strong>Google</strong>, em duas frentes: as miniaturas dos vídeos de
+      guerra, que não criam cookie nenhum porque não há player embutido; e o
+      AdSense, que é a secção seguinte.</li>
   </ul>
 
-  <h2>Publicidade</h2>
+  <h2>Publicidade, e os cookies do Google</h2>
 
   <p>
-    O único anúncio hoje é do próprio site, e não usa cookie. Se um dia entrar
-    uma rede de anúncios, <strong>esta página é atualizada antes</strong>,
-    dizendo qual é e que cookies ela cria.
+    O site usa o <strong>Google AdSense</strong>. O script de anúncios do
+    Google é carregado em todas as páginas, e é o único código de terceiros
+    que corre aqui.
   </p>
 
-  <!-- Quando a rede entrar, o parágrafo acima é substituído: nomear a rede, os
-       cookies dela, o link das definições de anúncios do Google, e o CMP se
-       houver tráfego europeu. Escrever isto agora seria a página mentir para
-       poupar trabalho futuro. -->
+  <p>
+    <strong>A Google e os parceiros dela podem usar cookies</strong> para
+    escolher e medir os anúncios que você vê — incluindo, dependendo das suas
+    definições, anúncios baseados em visitas anteriores a este ou a outros
+    sites. Nada disso passa por nós: não recebemos, não guardamos e não temos
+    acesso a esses dados.
+  </p>
+
+  <p>
+    Você controla isso diretamente com a Google, e vale a pena saber que dá:
+    em <a href="https://myadcenter.google.com/">myadcenter.google.com</a>
+    desliga-se a personalização, e em
+    <a href="https://www.google.com/policies/technologies/ads/">
+    google.com/policies/technologies/ads</a> está como a Google usa os dados
+    de quem visita sites parceiros.
+  </p>
+
+  <!-- A tag entrou a 22/10/2026 com a candidatura ao AdSense, e esta secção
+       entrou no mesmo commit — a chamada da página dizia "não usa cookies" e
+       passaria a ser falsa no minuto em que o script subisse.
+
+       O que falta aqui é o CMP: se e quando houver tráfego europeu, a Google
+       exige uma plataforma de consentimento certificada, e a dela mesma
+       (*Privacidade e mensagens*, no painel do AdSense) gera o banner sem
+       escrever código. Fica por fazer de propósito — ligá-lo é uma decisão do
+       dono no painel, não uma linha neste ficheiro. -->
 
   <h2>Os dados dos personagens</h2>
 

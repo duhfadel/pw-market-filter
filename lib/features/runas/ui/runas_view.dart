@@ -532,10 +532,20 @@ class _Nota extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Text(
+    // **O dono respondeu a pergunta que esta frase tinha em aberto**, a
+    // 22/10/2026: numa falha o combustível também se perde. A frase antiga
+    // dizia só que a runa do centro desce um nível, o que fazia a aposta
+    // parecer arriscada quando ela é cara — perdem-se as duas coisas.
+    //
+    // O que não mudou é a recusa a calcular o risco. Saber o custo de falhar
+    // não é saber a probabilidade, e as percentagens de combustível abaixo do
+    // nível do centro não estão guardadas: diferem por centro e não têm
+    // padrão. A tela diz o que custa e não finge saber as chances.
     'A conta é do caminho garantido: em cada fusão, a runa do centro mais '
     'combustível suficiente para 100%. As cores não importam — a runa do '
-    'centro é a que sobe. Ainda não calculamos o risco de tentar abaixo de '
-    '100%, porque falhar faz a runa do centro descer um nível.',
+    'centro é a que sobe. Tentar abaixo de 100% é aposta e fica fora da '
+    'conta: falhar faz a runa do centro descer um nível e consome o '
+    'combustível na mesma.',
     style: TextStyle(color: PWColors.textMuted, fontSize: 12, height: 1.5),
   );
 }

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Quanto custa, de verdade, uma runa nível 10 — Portal PW</title>
+  <meta name="description"
+        content="Uma runa nível 10 são 648.000 runas nível 1, ou 125 runas nível 7 na consignação. A escada de fusão é irregular e dois degraus custam o dobro dos vizinhos — a janela do jogo não diz nenhuma das duas coisas.">
+
+  <link rel="canonical" href="https://portalpw.net/guias/runas">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Portal PW">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Quanto custa, de verdade, uma runa nível 10">
+  <meta property="og:description" content="São 648.000 runas nível 1, ou 125 runas nível 7 na consignação. A escada é irregular e dois degraus custam o dobro dos vizinhos — a janela do jogo não diz nenhuma das duas coisas.">
+  <meta property="og:url" content="https://portalpw.net/guias/runas">
+  <meta property="og:image" content="https://portalpw.net/og-v2.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2">
+  <link rel="stylesheet" href="estilo.css">
+
+  <style>
+    /* A escada é o artigo inteiro numa imagem, por isso é a única coisa aqui
+       que ganha estilo próprio. Rola sozinha no telemóvel: nove linhas de
+       números não cabem em 390 px e encolher a fonte torná-la-ia ilegível
+       justamente onde ela tem de ser lida. */
+    .escada-caixa { overflow-x: auto; margin: 24px 0 8px; }
+    table.escada {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 420px;
+      font-size: 0.95rem;
+      font-variant-numeric: tabular-nums;
+    }
+    table.escada th {
+      text-align: left;
+      font-size: 0.72rem;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 700;
+      padding: 0 14px 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    table.escada td {
+      padding: 9px 14px 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    table.escada td.n { text-align: right; }
+    table.escada tr.caro td { color: var(--accent); font-weight: 700; }
+    table.escada tr.topo td { color: #fff; font-weight: 700; }
+    .nota-da-tabela { color: var(--text-muted); font-size: 0.85rem; margin: 0 0 32px; }
+  </style>
+</head>
+<body>
+
+<header class="topo">
+  <div class="topo-interno">
+    <a href="/" title="Portal PW">
+      <img class="marca-larga" src="/assets/assets/images/portal-pw-logo-v2.webp" alt="Portal PW">
+      <img class="marca-curta" src="/assets/assets/images/pw-mark.webp" alt="Portal PW">
+    </a>
+    <span class="secao">Runas</span>
+  </div>
+</header>
+
+<main>
+
+  <h1>Quanto custa, de verdade, uma runa nível <span class="algarismos">10</span></h1>
+
+  <p class="resumo">
+    A janela de fusão mostra uma porcentagem e mais nada. Ela nunca diz que a
+    runa no centro é a vigésima quinta runa nível 7 que você vai alimentar,
+    nem que dois dos nove degraus custam o dobro dos vizinhos. Uma runa nível
+    10 são <strong>648.000 runas nível 1</strong> — ou
+    <strong>125 runas nível 7</strong> compradas na consignação, que é como
+    ela realmente se faz.
+  </p>
+
+  <h2>A escada inteira</h2>
+
+  <p>
+    Cada fusão consome a runa do centro mais o combustível, tudo do mesmo
+    nível. Então cada degrau multiplica o anterior por
+    <em>combustível + 1</em> — e é aí que o número cresce.
+  </p>
+
+  <div class="escada-caixa">
+    <table class="escada">
+      <thead>
+        <tr>
+          <th>Para chegar ao</th>
+          <th>Combustível</th>
+          <th>Multiplica por</th>
+          <th>Custa, em nível 1</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>nível 2</td><td class="n">2</td><td class="n">×3</td><td class="n">3</td></tr>
+        <tr><td>nível 3</td><td class="n">2</td><td class="n">×3</td><td class="n">9</td></tr>
+        <tr class="caro"><td>nível 4</td><td class="n">5</td><td class="n">×6</td><td class="n">54</td></tr>
+        <tr><td>nível 5</td><td class="n">3</td><td class="n">×4</td><td class="n">216</td></tr>
+        <tr><td>nível 6</td><td class="n">3</td><td class="n">×4</td><td class="n">864</td></tr>
+        <tr class="caro"><td>nível 7</td><td class="n">5</td><td class="n">×6</td><td class="n">5.184</td></tr>
+        <tr><td>nível 8</td><td class="n">4</td><td class="n">×5</td><td class="n">25.920</td></tr>
+        <tr><td>nível 9</td><td class="n">4</td><td class="n">×5</td><td class="n">129.600</td></tr>
+        <tr class="topo"><td>nível 10</td><td class="n">4</td><td class="n">×5</td><td class="n">648.000</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="nota-da-tabela">
+    O combustível é sempre do mesmo nível da runa do centro. Para subir um
+    nível 6 a 7, por exemplo, são cinco runas nível 6 alimentando uma sexta.
+  </p>
+
+  <h2>Os dois degraus caros, e porque ninguém os vê chegar</h2>
+
+  <p>
+    Repare na coluna do combustível: <strong>2, 2, 5 · 3, 3, 5 · 4, 4, 4</strong>.
+    Os degraus para o <strong>nível 4</strong> e para o <strong>nível 7</strong>
+    pedem cinco runas onde os vizinhos pedem duas, três ou quatro. Custam o
+    dobro, e nada no degrau anterior anuncia isso.
+  </p>
+
+  <p>
+    Na prática: se você está num nível 3 ou num nível 6 e calculou o próximo
+    passo pelo ritmo do anterior, vai ficar a meio. É o erro mais caro que a
+    escada permite, e é inteiramente invisível na janela do jogo — ela mostra
+    a porcentagem que cada runa acrescenta, nunca quantas faltam.
+  </p>
+
+  <div class="aviso">
+    <p>
+      <strong>E não há fórmula.</strong> Os dois primeiros trios terminam num
+      degrau caro, o terceiro não. Quem supuser o padrão e prever um degrau
+      caro no nível 10 chega a 777.600 — o valor real é 648.000. Nós fizemos
+      exatamente essa conta errada antes de conferir com o jogo.
+    </p>
+  </div>
+
+  <h2>A cor não importa</h2>
+
+  <p>
+    Fusão ignora a família da runa por completo: uma runa azul alimenta uma
+    verde sem nenhuma perda. O que sobe é o nível, e a arte fica mais
+    elaborada a cada degrau independentemente da cor.
+  </p>
+
+  <p>
+    Vale dizer porque isso se esquece: quem está a juntar combustível tende a
+    separar por cor, achando que precisa de cinco da mesma família. Não
+    precisa. <strong>Cinco runas nível 6 de cinco cores diferentes sobem o
+    nível 6 exatamente igual.</strong>
+  </p>
+
+  <h2>De onde vêm as runas</h2>
+
+  <p>
+    As nível 1 vêm das <strong>quests diárias</strong>, nos baús de
+    recompensa. É a torneira constante, e é por ela que 648.000 deixa de ser
+    um número e passa a ser um prazo.
+  </p>
+
+  <p>
+    Mas não é o único caminho, e é importante que não seja: <strong>mini TW e
+    o soldo da guilda dão runas de níveis variados</strong>. Uma runa nível 6
+    recebida de um evento vale 864 diárias que você não precisou fazer — e é
+    por isso que participar vale muito mais do que a recompensa parece, quando
+    se olha só para o ícone.
+  </p>
+
+  <h2>O atalho: comprar nível <span class="algarismos">7</span> na consignação</h2>
+
+  <p>
+    Juntar 648.000 runas nível 1 fazendo diárias não é como as pessoas chegam
+    ao nível 10. O caminho real é <strong>comprar runas nível 7 na
+    consignação</strong> e fundir a partir dali — e aí a conta deixa de ser um
+    prazo e passa a ser um preço.
+  </p>
+
+  <p>
+    De nível 7 para cima cada degrau multiplica por cinco, então o número de
+    runas nível 7 que cada alvo pede é fixo:
+  </p>
+
+  <div class="escada-caixa">
+    <table class="escada">
+      <thead>
+        <tr>
+          <th>Para fazer um</th>
+          <th>Runas nível 7</th>
+          <th>A 30 milhões cada</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>nível 8</td><td class="n">5</td><td class="n">150.000.000</td></tr>
+        <tr><td>nível 9</td><td class="n">25</td><td class="n">750.000.000</td></tr>
+        <tr class="topo"><td>nível 10</td><td class="n">125</td><td class="n">3.750.000.000</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="nota-da-tabela">
+    <strong>5, 25 e 125 não mudam</strong> — saem da escada do jogo. O preço
+    muda: 30 milhões é o que uma runa nível 7 custava na consignação em
+    <strong>22 de outubro de 2026</strong>. Para refazer a conta com o preço
+    de hoje, multiplique por 125.
+  </p>
+
+  <p>
+    Três bilhões e setecentos e cinquenta milhões de moedas de ouro, por uma
+    runa. É o número que a janela de fusão esconde atrás de uma porcentagem, e
+    é a razão pela qual quase ninguém no servidor tem uma.
+  </p>
+
+  <h2>Falhar custa duas coisas, não uma</h2>
+
+  <p>
+    Você pode alimentar com runas abaixo do nível do centro. Elas dão uma
+    porcentagem menor, e fundir abaixo de 100% é uma aposta.
+  </p>
+
+  <p>
+    Quando a aposta falha, <strong>a runa do centro desce um nível e o
+    combustível é consumido na mesma</strong>. São as duas perdas juntas, e é
+    isso que torna a aposta cara em vez de apenas arriscada.
+  </p>
+
+  <div class="aviso">
+    <p>
+      <strong>Nos níveis altos, não tente.</strong> Um nível 8 que desce para
+      7 custa 25.920 runas nível 1 para refazer — mais o combustível que se
+      perdeu na tentativa. Nos níveis baixos o prejuízo é pequeno e a aposta
+      é defensável; de 7 para cima, o único caminho que compensa é o dos 100%.
+    </p>
+  </div>
+
+  <h2>A conta com o que você já tem</h2>
+
+  <p>
+    A escada acima responde quanto custa do zero. A pergunta mais útil costuma
+    ser outra: <em>com a gaveta que eu tenho, quanto falta?</em> — e a resposta
+    não é dividir por 648.000, porque o que sobra se paga na maior moeda que
+    couber.
+  </p>
+
+  <p>
+    A <a href="/#/1.8.7/runas">calculadora de runas</a> faz as duas contas:
+    quanto falta para o nível que você quer, e qual a maior runa que o seu
+    estoque já dá para forjar. O resultado vem em uma linha por nível — quatro
+    runas nível 8 mais três nível 7, nunca quinze mil nível 1, que é o mesmo
+    número escrito como um recado em vez de como uma tarefa.
+  </p>
+
+  <hr>
+
+  <p class="nota-da-tabela">
+    Os números desta página foram lidos na janela de fusão do jogo e conferidos
+    contra as listas de custo que ela própria imprime para um nível 9 e um
+    nível 10. Se algum degrau mudar numa atualização, avise pelo
+    <a href="https://discord.gg/n5v3WdSJyg">Discord</a>.
+  </p>
+
+</main>
+
+<div class="publicidade">
+  <span class="rotulo">PUBLICIDADE</span>
+  <a class="casa" href="mailto:duhspain@gmail.com">Quer anunciar neste espaço? <strong>Clique aqui</strong></a>
+</div>
+
+<footer>
+  <p>
+    Projeto de fã, sem vínculo com o The Classic Games.<br>
+    <a href="/privacidade/">Privacidade</a> &middot; <a href="/">Voltar ao Portal</a>
+  </p>
+</footer>
+
+</body>
+</html>

@@ -581,8 +581,24 @@ drawing ten runes of one colour would quietly suggest colour matters.
 
 **Fuel may never be above the centre's level**, and up to five may be fed.
 Failing drops the centre a level — which is why the tool only calculates the
-guaranteed path. Whether the fuel is also consumed on a failure is unknown, and
-until it is, no advice about gambling below 100% can be honest.
+guaranteed path.
+
+**Falhar custa as duas coisas, e isso soube-se a 22/10/2026.** Esta nota dizia
+que era desconhecido se o combustível também se perde numa falha, e que até se
+saber nenhum conselho sobre apostar abaixo de 100% podia ser honesto. O dono
+respondeu: **perde-se**. A runa do centro desce um nível *e* o combustível é
+consumido na mesma — o que torna a aposta cara e não apenas arriscada, e é a
+diferença entre as duas palavras que o conselho precisava.
+
+Daí a regra que a tela e o guia agora dão: **abaixo do nível 7 a aposta
+defende-se, de 7 para cima não.** Um nível 8 que desce para 7 custa 25.920
+runas nível 1 para refazer, mais o combustível gasto a falhar.
+
+**O que continua recusado é calcular o risco**, e a distinção importa: saber o
+custo de falhar não é saber a probabilidade de falhar. As percentagens de
+combustível abaixo do nível do centro continuam por guardar — diferem por
+centro e não têm padrão — por isso a tela diz o que se perde e não finge saber
+as chances.
 
 **The result is one line per level, and the remainder cascades.** A line is
 the whole debt written in one currency — they are alternatives, not a list to
@@ -1914,7 +1930,23 @@ Each of these already cost something — measured on the live site, not guessed.
   flag and its `0` is barely an `O`: `150 TCC` reads `I5O TCC`. The display face
   is for the headline and tool names only, and `PWTheme.display` says so. Every
   price, count and attribute stays on Roboto — they are numbers somebody is
-  deciding money on. Accented capitals were checked against the file before
+  deciding money on.
+
+  **A regra valia no app e não nos guias, e o primeiro título com um algarismo
+  pagou por isso.** `web/guias/estilo.css` põe Marcellus em `h1`, `h2` e `h3`,
+  portanto *Quanto custa uma runa nível 10* saiu **nível IO** — apanhado a
+  olhar para a página renderizada, nunca por teste. A folha tem agora
+  `.algarismos`, que devolve o número à pilha do sistema dentro de qualquer
+  título. Nenhum título anterior tinha tido um dígito, que é porque a falta
+  nunca se notou.
+
+  E o diagnóstico custou mais do que a correcção: a folha corrigida já estava
+  servida e o browser continuava a aplicar a antiga, porque um cache-buster no
+  endereço da *página* não toca no `estilo.css`. O que separou os dois casos
+  foi ler o CSSOM — `document.styleSheets` não tinha a regra enquanto um
+  `fetch` do mesmo ficheiro já a trazia.
+
+  Accented capitals were checked against the file before
   adopting it (Á À Â Ã É Ê Í Ó Ô Õ Ú Ü Ç all draw).
 
 - **Icons come from two hosts, neither of which is the marketplace.** Class art

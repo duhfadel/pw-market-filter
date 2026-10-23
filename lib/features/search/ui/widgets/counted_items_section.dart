@@ -29,11 +29,23 @@ class CountedItemsSection extends StatefulWidget {
   const CountedItemsSection({
     required this.state,
     required this.viewModel,
+    this.emTeste = countedItemsInTest,
     super.key,
   });
 
   final SearchReady state;
   final SearchViewModel viewModel;
+
+  /// Quais nomes contados ainda não foram lidos contra a página de um
+  /// personagem, e por isso levam o selo.
+  ///
+  /// **Injectável só para o teste poder exercitar o selo quando a lista real
+  /// está vazia**, que é o caso desde 23/10/2026. Sem isto o teste que guarda
+  /// o selo passaria a afirmar apenas que ninguém o tem — deixaria de testar a
+  /// regra e passaria a testar o estado, e no dia em que um nome novo entrasse
+  /// em dúvida ninguém saberia se o selo ainda desenha. É a forma que já custou
+  /// caro aqui: o caso que falha nunca ser exercido.
+  final Set<String> emTeste;
 
   @override
   State<CountedItemsSection> createState() => _CountedItemsSectionState();
@@ -159,7 +171,7 @@ class _CountedItemsSectionState extends State<CountedItemsSection> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (countedItemsInTest.contains(name)) ...[
+              if (widget.emTeste.contains(name)) ...[
                 const SizedBox(width: 7),
                 const _BetaBadge(),
               ],

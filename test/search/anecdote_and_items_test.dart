@@ -8,6 +8,7 @@ import 'package:http/testing.dart';
 import 'package:pw_market_filter/features/search/domain/search_query.dart';
 import 'package:pw_market_filter/features/search/ui/search_state.dart';
 import 'package:pw_market_filter/features/search/ui/search_view_model.dart';
+import 'package:pw_market_filter/features/search/ui/widgets/counted_items_section.dart';
 import 'package:pw_market_filter/features/search/ui/widgets/filter_panel.dart';
 import 'package:pw_market_filter/market/counted_items.dart';
 import 'package:pw_market_filter/market/index_repository.dart';
@@ -135,23 +136,62 @@ void main() {
     expect(find.text(_relic), findsOneWidget);
   });
 
-  testWidgets('a line still being checked says so, and the rest do not', (
+  // **O selo é exercitado com um conjunto próprio, e não com o real.**
+  //
+  // Ele é a permissão inteira para publicar uma contagem antes de alguém ter
+  // lido os números na página de um personagem: perdê-lo em silêncio deixaria
+  // uma contagem por verificar com o aspecto exacto de uma verificada.
+  //
+  // A versão anterior deste teste montava o painel inteiro e cravava a
+  // *Essência Dracônica*. A 23/10/2026 ela saiu de `countedItemsInTest`,
+  // porque os números foram finalmente lidos — e o teste ficou vermelho sem
+  // nada estar partido. Pior: com a lista real vazia, mantê-lo assim só
+  // poderia afirmar que **ninguém** tem o selo, que é testar o estado em vez
+  // da regra. No dia em que um nome novo entrasse em dúvida, ninguém saberia
+  // se o selo ainda desenha.
+  //
+  // Por isso monta-se a secção directamente, como `GavetaItem` já faz, e
+  // pergunta-se a regra nos dois sentidos.
+  testWidgets('o selo desenha para quem está na lista, e só para esse', (
     tester,
   ) async {
-    // The badge is the whole permission to ship this before anybody has read
-    // the numbers off a character's own page. Losing it silently would leave
-    // an unverified count looking exactly like a verified one.
-    await _pump(tester, collected: true, emTeste: true);
-    await tester.tap(find.text('ITENS DA MOCHILA'));
-    await tester.pumpAndSettle();
+    final viewModel = await _pump(tester, collected: true, emTeste: true);
+    final estado = viewModel.state as SearchReady;
 
+    Future<void> montar(Set<String> emTeste) async {
+      await tester.pumpWidget(
+        BlocProvider.value(
+          value: viewModel,
+          child: MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: CountedItemsSection(
+                  state: estado,
+                  viewModel: viewModel,
+                  emTeste: emTeste,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      if (find.text('Essência Dracônica').evaluate().isEmpty) {
+        await tester.tap(find.text('ITENS DA MOCHILA'));
+        await tester.pumpAndSettle();
+      }
+    }
+
+    await montar(const {'Essência Dracônica'});
     expect(find.text('Essência Dracônica'), findsOneWidget);
     expect(find.text('BETA TEST'), findsOneWidget);
-
-    // And exactly one: the relic has been read against a real page since
-    // August, so badging it too would make the mark mean nothing.
+    // E só esse: a relíquia foi lida contra uma página real desde Agosto, e
+    // selá-la também faria a marca não querer dizer nada.
     expect(find.text(_relic), findsOneWidget);
-    expect(countedItemsInTest.contains(_relic), isFalse);
+
+    await montar(const {});
+    expect(find.text('Essência Dracônica'), findsOneWidget);
+    expect(find.text('BETA TEST'), findsNothing);
   });
 
   testWidgets('the section says what ticking a box will do', (tester) async {

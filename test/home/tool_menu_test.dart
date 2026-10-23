@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/features/home/domain/tool.dart';
 
@@ -11,11 +12,33 @@ void main() {
     expect(secoesDaHome, contains('Ferramentas'));
   });
 
+  // **O mecanismo, montado aqui, e não uma ferramenta nomeada.** A versão
+  // anterior cravava o *Títulos* como exemplo, e ficou vermelha no dia em que
+  // os selos foram rodados — 23/10/2026 — sem nada estar partido. Qual entrada
+  // carrega o selo é decisão de produto e muda de mês a mês; o que tem de
+  // continuar verdade é que a data o apaga sozinha.
   test('o badge de novo vence sozinho', () {
-    final titulos = tools.firstWhere((t) => t.name == 'Títulos');
+    final marcada = Tool(
+      name: 'qualquer',
+      tagline: 'x',
+      icon: Icons.star,
+      secao: 'Ferramentas',
+      novoAte: DateTime.utc(2026, 10, 20),
+    );
 
-    expect(titulos.novoEm(DateTime.utc(2026, 9, 21)), isTrue);
-    expect(titulos.novoEm(DateTime.utc(2026, 11, 1)), isFalse);
+    expect(marcada.novoEm(DateTime.utc(2026, 10, 19)), isTrue);
+    expect(marcada.novoEm(DateTime.utc(2026, 10, 21)), isFalse);
+  });
+
+  // E a lista a sério continua a ser varrida: qualquer selo que lá esteja tem
+  // de ter data, porque um *novo* sem prazo é o que esta regra existe para
+  // impedir. Não diz quantos são, que é o que muda.
+  test('nenhum selo de novo na lista real fica sem prazo', () {
+    for (final t in tools) {
+      if (t.novoEm(DateTime.utc(2026, 1, 1))) {
+        expect(t.novoAte, isNotNull, reason: '${t.name} mostra novo sem data');
+      }
+    }
   });
 
   test('o que não tem data nunca mostra badge', () {

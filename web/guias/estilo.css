@@ -221,6 +221,19 @@ figcaption {
 .guia.em-breve { opacity: 0.55; cursor: default; }
 .guia.em-breve:hover { border-color: var(--border); }
 
+/* O selo de *novo* num guia recém-publicado.
+ *
+ * **Escrito à mão e não por data, ao contrário do lado do app.** Em
+ * `tool.dart` o selo carrega um `DateTime` que o apaga sozinho, porque lá ele
+ * vive no menu de toda a gente e um *novo* esquecido envenena o próximo. Aqui
+ * é HTML estático: não há relógio para o apagar, por isso **tirar o selo é
+ * parte de publicar o guia seguinte** — se dois guias velhos aparecerem com
+ * ele, é porque alguém se esqueceu, e é este comentário que o lembra. */
+.guia .selo.novo {
+  background: var(--accent);
+  color: #1a1206;
+}
+
 .guia .selo {
   float: right;
   background: var(--surface-raised);

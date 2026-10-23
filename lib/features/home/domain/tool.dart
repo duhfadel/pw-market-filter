@@ -149,7 +149,6 @@ final tools = <Tool>[
     name: 'Títulos',
     // Um mês de badge. A data vence sozinha, então ninguém precisa lembrar
     // de tirar — e "novo" para de ser verdade muito antes de alguém reparar.
-    novoAte: _ateOutubro,
     // O nome que a comunidade usa. "Registros de Assimilação" é como o item
     // se chama; o que o jogador quer são os títulos que ele destrava, e o
     // card tem que dizer a coisa pelo nome que ele procura.
@@ -168,7 +167,6 @@ final tools = <Tool>[
   ),
   Tool(
     name: 'Calculadora de runas',
-    beta: true,
     // O número é a manchete. A janela de fusão mostra uma porcentagem e nada
     // mais: nunca diz que a runa no centro é a vigésima quinta que alguém vai
     // alimentar, nem que dois dos nove degraus custam seis runas onde os
@@ -229,6 +227,10 @@ final tools = <Tool>[
   // menu sem ninguém se lembrar de nada.
   Tool(
     name: 'Todos os guias',
+    // Um mês, e a data vence sozinha — um *novo* que ninguém se lembra de
+    // tirar deixa de ser verdade muito antes de alguém reparar, e um selo que
+    // mentiu uma vez é um selo em que ninguém volta a acreditar.
+    novoAte: _ateNovembro,
     tagline:
         'A lista inteira: runas, cartas Nuema, começar no jogo e o que vier.',
     icon: Icons.menu_book_outlined,
@@ -247,7 +249,6 @@ final tools = <Tool>[
     name: 'Multi contas',
     // Um mês de badge, e a data vence sozinha: um "novo" que ninguém se
     // lembra de tirar deixa de ser verdade muito antes de alguém reparar.
-    novoAte: _ateNovembro,
     tagline:
         'Jogar com mais de um cliente aberto: para que serve um segundo '
         'personagem e o que é preciso para o aguentar.',
@@ -274,7 +275,6 @@ final tools = <Tool>[
     // reais. Uma pílula é um rótulo, não um título — o nome completo está no
     // cabeçalho da tela e na dica da própria pílula.
     secao: 'Guerras',
-    novoAte: _ateNovembro,
     // `{versao}` é substituído pela versão em que o visitante está — as
     // guerras existem nos dois mercados, e duas entradas com o mesmo nome
     // divergiriam na primeira vez que alguém editasse só uma.
@@ -283,11 +283,14 @@ final tools = <Tool>[
   ),
 ];
 
-/// Quando o selo de *novo* das Guerras vence.
+/// Quando vence o selo de *novo* que estiver em uso.
+///
+/// **Um só, e os selos antigos saíram todos a 23/10/2026**, a pedido do dono:
+/// o BETA da calculadora de runas, que está no ar desde Setembro e é exacta,
+/// e os *novo* das Multi contas e das Guerras, que já não eram notícia. O dos
+/// Títulos tinha-se apagado sozinho a 20/10 — que é precisamente o que a data
+/// existe para fazer.
 final _ateNovembro = DateTime.utc(2026, 11, 5);
-
-/// Quando o selo de *novo* dos Títulos vence.
-final _ateOutubro = DateTime.utc(2026, 10, 20);
 
 /// As seções na ordem em que a home as mostra, cada uma uma vez.
 ///

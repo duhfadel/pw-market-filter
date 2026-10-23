@@ -118,8 +118,22 @@ void main() {
   testWidgets('the pill counts only the tools that are ready', (tester) async {
     await _montarCabecalho(tester);
 
+    // **Procurado dentro da própria pílula, e não no ecrã todo.** A versão
+    // anterior fazia `find.text('$prontas')` solto e passava por coincidência:
+    // Ferramentas tinha 3 e Guias tinha 2, por isso o número era único. No dia
+    // em que *Todos os guias* entrou — 23/10/2026 — as duas passaram a mostrar
+    // 3 e o teste ficou vermelho sem nada estar partido. Duas pílulas podem
+    // legitimamente ter a mesma contagem; o que o teste quer dizer é que *esta*
+    // mostra *aquele* número.
     final prontas = ferramentas.where((t) => t.isReady).length;
-    expect(find.text('$prontas'), findsOneWidget);
+    final pilula = find.ancestor(
+      of: find.text('Ferramentas'),
+      matching: find.byType(Row),
+    );
+    expect(
+      find.descendant(of: pilula.first, matching: find.text('$prontas')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('tapping opens the drawer, tapping away closes it', (

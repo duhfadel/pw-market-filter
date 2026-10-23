@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Cartas Nuema: as seis — Portal PW</title>
+  <meta name="description"
+        content="O conjunto Portal de Nuema são seis cartas S que dobram os atributos das suas cartas. Quem o tem pede seis vezes mais no marketplace — e o site deles não diz a que conjunto cada carta pertence.">
+
+  <link rel="canonical" href="https://portalpw.net/guias/cartas-nuema">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Portal PW">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Cartas Nuema — As seis">
+  <meta property="og:description" content="Seis cartas S que dobram os atributos das suas cartas. Quem tem o conjunto pede seis vezes mais no marketplace — e o site deles não diz a que conjunto cada carta pertence.">
+  <meta property="og:url" content="https://portalpw.net/guias/cartas-nuema">
+  <meta property="og:image" content="https://portalpw.net/og-v2.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2">
+  <link rel="stylesheet" href="estilo.css">
+
+  <style>
+    /* As mesmas tabelas do guia das runas. Quando houver um terceiro artigo
+       com tabela, isto sai dos dois e vai para `estilo.css` — duas cópias
+       ainda se corrigem juntas, três já divergem. */
+    .tabela-caixa { overflow-x: auto; margin: 24px 0 8px; }
+    table.dados {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 420px;
+      font-size: 0.95rem;
+      font-variant-numeric: tabular-nums;
+    }
+    table.dados th {
+      text-align: left;
+      font-size: 0.72rem;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 700;
+      padding: 0 14px 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    table.dados td {
+      padding: 9px 14px 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    table.dados td.n { text-align: right; }
+    table.dados tr.destaque td { color: var(--accent); font-weight: 700; }
+    .nota-da-tabela { color: var(--text-muted); font-size: 0.85rem; margin: 0 0 32px; }
+
+    /* As seis cartas, todas à vista ao mesmo tempo.
+     *
+     * **Grade e não carrossel, e é argumento e não gosto.** O guia diz que
+     * faltando uma não há conjunto; um carrossel mostra uma de cada vez, o que
+     * afirma o contrário do texto que está dois parágrafos acima. Seis juntas
+     * dizem com a imagem o que a frase diz com palavras — e é assim que alguém
+     * confere as suas contra a tela.
+     *
+     * Três colunas, nunca quatro: 6 em 4+2 deixa uma fila coxa, e a 760 px de
+     * coluna cada carta fica nos ~240 px para que a arte foi gerada. Duas no
+     * telemóvel, nunca uma — a 390 px duas ainda mostram a personagem inteira,
+     * e uma coluna só seriam seis ecrãs de rolagem. */
+    .cartas {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin: 26px 0 10px;
+    }
+    .carta { text-align: center; }
+    .carta img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 6px;
+      transition: transform 0.18s ease, filter 0.18s ease;
+    }
+    /* O movimento que o dono quis, sem esconder nada: a carta levanta como se
+       fosse pegada. Só onde há rato de verdade — num ecrã tátil o :hover fica
+       preso depois do toque, e aí a carta ficaria levantada para sempre. */
+    @media (hover: hover) {
+      .carta:hover img { transform: translateY(-5px); filter: brightness(1.12); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .carta img { transition: none; }
+      .carta:hover img { transform: none; }
+    }
+    .carta .nome { font-weight: 700; font-size: 0.95rem; margin-top: 10px; }
+    .carta .tipo { color: var(--text-muted); font-size: 0.82rem; }
+
+    @media (max-width: 520px) {
+      .cartas { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="topo">
+  <div class="topo-interno">
+    <a href="/" title="Portal PW">
+      <img class="marca-larga" src="/assets/assets/images/portal-pw-logo-v2.webp" alt="Portal PW">
+      <img class="marca-curta" src="/assets/assets/images/pw-mark.webp" alt="Portal PW">
+    </a>
+    <span class="secao">Cartas Nuema</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- "Cartas Nuema" é o que alguém escreve na busca, e o título bate com
+       isso de propósito — a versão com "e por que elas dobram" colado atrás
+       foi recusada pelo dono, com razão: o porquê é trabalho da descrição,
+       que aparece logo por baixo no resultado. -->
+  <h1>Cartas Nuema — As seis</h1>
+
+  <p class="resumo">
+    São seis cartas S, uma de cada tipo, e juntas formam o conjunto
+    <strong>Portal de Nuema</strong>. É o melhor conjunto do jogo porque
+    <strong>dobra os atributos das suas cartas</strong> — e o mercado
+    concorda: quem o tem pede <strong>seis vezes mais</strong> por um
+    personagem.
+  </p>
+
+  <h2>Uma de cada tipo</h2>
+
+  <p>
+    Os seis espaços de carta aceitam um de cada tipo, e o conjunto ocupa
+    exatamente todos eles. Faltando uma, não há conjunto.
+  </p>
+
+  <div class="cartas">
+    <figure class="carta">
+      <img src="cartas/althea.webp" width="440" height="543" loading="lazy"
+           alt="A carta Althea 瓦, de tipo Destruidor, do conjunto Portal de Nuema">
+      <figcaption>
+        <div class="nome">Althea 瓦</div>
+        <div class="tipo">Destruidor</div>
+      </figcaption>
+    </figure>
+    <figure class="carta">
+      <img src="cartas/kestra.webp" width="440" height="543" loading="lazy"
+           alt="A carta Kestra 丝, de tipo Batalha, do conjunto Portal de Nuema">
+      <figcaption>
+        <div class="nome">Kestra 丝</div>
+        <div class="tipo">Batalha</div>
+      </figcaption>
+    </figure>
+    <figure class="carta">
+      <img src="cartas/astrid.webp" width="440" height="543" loading="lazy"
+           alt="A carta Astrid, de tipo Durabilidade, do conjunto Portal de Nuema">
+      <figcaption>
+        <div class="nome">Astrid</div>
+        <div class="tipo">Durabilidade</div>
+      </figcaption>
+    </figure>
+    <figure class="carta">
+      <img src="cartas/lorelei.webp" width="440" height="543" loading="lazy"
+           alt="A carta Lorelei, de tipo Alma Primordial, do conjunto Portal de Nuema">
+      <figcaption>
+        <div class="nome">Lorelei</div>
+        <div class="tipo">Alma Primordial</div>
+      </figcaption>
+    </figure>
+    <figure class="carta">
+      <img src="cartas/saki.webp" width="440" height="543" loading="lazy"
+           alt="A carta Saki 沁, de tipo Vida Primordial, do conjunto Portal de Nuema">
+      <figcaption>
+        <div class="nome">Saki 沁</div>
+        <div class="tipo">Vida Primordial</div>
+      </figcaption>
+    </figure>
+    <figure class="carta">
+      <img src="cartas/tensa.webp" width="440" height="543" loading="lazy"
+           alt="A carta Tensa, de tipo Longevidade, do conjunto Portal de Nuema">
+      <figcaption>
+        <div class="nome">Tensa</div>
+        <div class="tipo">Longevidade</div>
+      </figcaption>
+    </figure>
+  </div>
+
+  <p class="nota-da-tabela">
+    Os nomes são os que o jogo imprime, acrescento chinês incluído — é por eles
+    que você confere as suas.
+  </p>
+
+  <!-- O bónus veio do dono a 23/10/2026, com as artes. Não se mede daqui: o
+       índice do mercado guarda **que** cartas cada pessoa usa e nunca o que
+       elas dão, por isso esta secção só podia ser perguntada. -->
+
+  <h2>O bónus: ele dobra</h2>
+
+  <p>
+    É aqui que o Portal de Nuema se separa de tudo o resto. Ter o conjunto
+    completo dá <strong>100% de bónus sobre os atributos das cartas</strong> —
+    ou seja, <strong>o dobro</strong> do que elas dariam soltas.
+  </p>
+
+  <p>
+    O exemplo que torna isso concreto: uma <strong>Tensa com dois reborns</strong>
+    dá <strong>470 de espírito</strong>. Com as seis do conjunto equipadas, a
+    mesma carta passa a dar <strong>940</strong>.
+  </p>
+
+  <div class="aviso">
+    <p>
+      <strong>E é por isso que a sexta carta vale mais do que parece.</strong>
+      O bónus só existe com o conjunto inteiro. Com cinco, você tem os
+      atributos de cinco cartas e mais nada; a sexta não acrescenta só o que
+      ela própria dá — <strong>liga o dobro em todas as outras ao mesmo
+      tempo</strong>. É o salto que faz guardar o baú Nuema para o fim.
+    </p>
+  </div>
+
+  <h2>O que o mercado diz</h2>
+
+  <p>
+    Que é o melhor conjunto não é opinião aqui — dá para contar. Lendo os
+    anúncios do marketplace em <strong>23 de outubro de 2026</strong>, 2.486
+    personagens à venda:
+  </p>
+
+  <div class="tabela-caixa">
+    <table class="dados">
+      <thead>
+        <tr><th>Conjunto</th><th>Quantos têm</th><th>Preço mediano</th></tr>
+      </thead>
+      <tbody>
+        <tr class="destaque"><td>Portal de Nuema</td><td class="n">614</td><td class="n">600 TCC</td></tr>
+        <tr><td>Seis Soberanos da Chama da Vela</td><td class="n">891</td><td class="n">100 TCC</td></tr>
+        <tr><td>nenhum conjunto completo</td><td class="n">981</td><td class="n">50 TCC</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Seis vezes o preço do conjunto mais comum, doze vezes o de quem não tem
+    conjunto nenhum.
+  </p>
+
+  <div class="aviso">
+    <p>
+      <strong>E não é só porque quem é rico tem tudo.</strong> Isolando as
+      1.107 pessoas que carregam exatamente a mesma arma — nível de ataque 70,
+      o patamar mais comum do topo — quem tem Nuema pede
+      <strong>500 TCC</strong> e quem não tem pede <strong>132</strong>. Com o
+      equipamento igualado, a diferença continua lá, quase quatro vezes.
+    </p>
+  </div>
+
+  <p>
+    Mais um número que diz o mesmo de outro jeito: <strong>592 dos 614</strong>
+    que têm o conjunto têm as seis cartas no nível máximo. Quem monta Nuema,
+    termina.
+  </p>
+
+  <h2>As três maneiras de conseguir</h2>
+
+  <h3>Baús de cartas</h3>
+
+  <p>
+    Saem cartas de qualquer qualidade, de C a S. É aleatório, é a fonte
+    constante, e é por aqui que praticamente todo mundo começa — tirando as S
+    que precisa no meio de muitas que não precisa.
+  </p>
+
+  <h3>Baú Nuema</h3>
+
+  <p>
+    Aqui <strong>você escolhe a carta</strong>. Por isso quase ninguém o abre
+    cedo: guarda-se para o fim, quando já há cinco das seis e falta uma
+    específica que o acaso não deu.
+  </p>
+
+  <div class="aviso">
+    <p>
+      <strong>Isso tem rosto no mercado.</strong> Neste momento há
+      <strong>15 personagens à venda com exatamente cinco das seis</strong>, e
+      a que mais falta é a <strong>Kestra 丝</strong>, de Batalha — a cinco
+      deles. É literalmente o baú Nuema por usar.
+    </p>
+  </div>
+
+  <h3>Vale da Fênix, nível 105</h3>
+
+  <p>
+    A terceira fonte, para quem já está no nível 105.
+  </p>
+
+  <h2>O marketplace não diz a que conjunto uma carta pertence</h2>
+
+  <p>
+    Esta é a armadilha, e ela apanha quem compra personagem olhando a página
+    de detalhes: <strong>toda carta S imprime a mesma linha</strong> —
+    <em>Seis Soberanos da Chama da Vela (6)</em> — incluindo as seis do Nuema.
+    O <code>(6)</code> não é o tamanho do conjunto daquela carta; faz parte de
+    um texto fixo.
+  </p>
+
+  <p>
+    Nós verificámos isso até ao fim: a mesma linha aparece 1.142 vezes ao longo
+    de catorze páginas de personagens, em cartas S, A e B, e num personagem que
+    usa trinta e quatro cartas S diferentes — um conjunto de seis não cabe
+    trinta e quatro. A linha não identifica nada.
+  </p>
+
+  <p>
+    Então, pela página deles, <strong>a única forma de saber é conferir as seis
+    pelo nome</strong>, uma a uma, contra a tabela lá em cima.
+  </p>
+
+  <div class="aviso">
+    <p>
+      Ou deixar isso para quem já o fez: o
+      <a href="/#/1.8.7/filtro?carta=Portal%20de%20Nuema">filtro do Portal PW</a>
+      mostra só quem tem o conjunto completo, porque a tabela dos conjuntos foi
+      montada à mão aqui — o jogo não a publica em lado nenhum.
+    </p>
+  </div>
+
+  <hr>
+
+  <p class="nota-da-tabela">
+    Os números de mercado desta página são de 23 de outubro de 2026 e mudam
+    sozinhos — o mercado é recolhido de meia em meia hora, e o
+    <a href="/#/1.8.7/filtro?carta=Portal%20de%20Nuema">filtro</a> mostra
+    sempre os de agora. O que não muda são as seis cartas e os seus tipos.
+  </p>
+
+</main>
+
+<div class="publicidade">
+  <span class="rotulo">PUBLICIDADE</span>
+  <a class="casa" href="mailto:duhspain@gmail.com">Quer anunciar neste espaço? <strong>Clique aqui</strong></a>
+</div>
+
+<footer>
+  <p>
+    Projeto de fã, sem vínculo com o The Classic Games.<br>
+    <a href="/privacidade/">Privacidade</a> &middot; <a href="/">Voltar ao Portal</a>
+  </p>
+</footer>
+
+</body>
+</html>

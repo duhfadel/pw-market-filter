@@ -107,7 +107,16 @@ const countedItemIcons = <String, int>{'Essência Dracônica': 50264};
 /// **Take a name out of here the day its numbers have been read against a
 /// character's own page.** A badge that outlives its doubt teaches visitors to
 /// ignore badges, which is the same failure the *novo* date exists to avoid.
-const countedItemsInTest = <String>{'Essência Dracônica'};
+// **Vazio a 23/10/2026, e o mecanismo fica.** A *Essência Dracônica* saiu
+// daqui porque a condição que a regra acima escreve foi cumprida: os
+// números foram lidos contra páginas reais, os três ids estão no índice e
+// 1.922 pessoas carregam-na. Um selo que sobrevive à própria dúvida ensina
+// o visitante a ignorar selos.
+//
+// O conjunto continua aqui vazio em vez de o mecanismo ser apagado: a
+// pergunta repete-se a cada nome contado novo, e é mais barato pôr um nome
+// nesta linha do que reconstruir o selo da próxima vez.
+const countedItemsInTest = <String>{};
 
 /// The pets worth filtering on, by **id** — the exact reverse of the rule
 /// above, and for a reason that only shows up on a real page.

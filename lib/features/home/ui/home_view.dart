@@ -15,6 +15,7 @@ import 'widgets/ao_vivo_strip.dart';
 import 'widgets/cabecalho.dart';
 import 'widgets/cartaz.dart';
 import 'widgets/destaques_view.dart';
+import 'widgets/ajuda_strip.dart';
 import 'widgets/discord_strip.dart';
 import 'widgets/rodape.dart';
 
@@ -279,6 +280,25 @@ class HomeView extends StatelessWidget {
                               children: [
                                 const _Secao(nome: 'Comunidade'),
                                 SizedBox(height: wide ? 12 : 10),
+                                // **O pedido de ajuda vem primeiro, por
+                                // decisão do dono em 23/10/2026.** Esteve no
+                                // rodapé antes disso, que foi onde ele o
+                                // pediu — e ao ver a página achou pouco
+                                // visível, que é a lição do card dos
+                                // streamers escrita outra vez.
+                                //
+                                // As duas linhas são formas de apoiar o site
+                                // e lidas juntas dizem isso melhor do que
+                                // separadas; qual delas lidera é dele, e é
+                                // esta, que é a que custa alguma coisa a quem
+                                // atende.
+                                //
+                                // Só no 1.8.7, porque é lá que o personagem
+                                // que recebe existe.
+                                if (!pw126) ...[
+                                  AjudaStrip(wide: wide),
+                                  SizedBox(height: wide ? 6 : 4),
+                                ],
                                 DiscordStrip(wide: wide),
                               ],
                             ),

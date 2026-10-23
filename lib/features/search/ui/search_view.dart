@@ -7,6 +7,7 @@ import '../../../core/rotas.dart' as rotas;
 import '../../../core/theme/pw_colors.dart';
 import '../../../market/slot_names.dart';
 import '../../ads/ad_slot.dart';
+import '../../home/ui/widgets/ajuda_strip.dart';
 import '../../home/ui/widgets/cabecalho.dart';
 import '../data/address_bar.dart';
 import '../domain/search_query.dart';
@@ -227,6 +228,31 @@ class _Results extends StatelessWidget {
                       ),
                       const Divider(height: 1),
                       Expanded(child: _Grid(state: state)),
+                      // **O pedido de ajuda também aqui, e esta é a tela onde
+                      // ele faz sentido.** A home é a porta; o filtro é onde
+                      // alguém passa dez minutos, e é a única tela onde o
+                      // site já entregou o que prometeu antes de pedir
+                      // alguma coisa. Pedir depois de entregar é diferente de
+                      // pedir à entrada.
+                      //
+                      // Fica **acima** do `AdSlot` e nunca dentro dele: a
+                      // caixa de publicidade tem rótulo próprio e treina o
+                      // leitor a saltá-la, que é exactamente o que não se
+                      // quer para a única linha da página em que o dono fala
+                      // por si.
+                      //
+                      // `pw187` lido do índice e não da rota, porque é o
+                      // índice que diz de que mercado são estes resultados.
+                      if (state.index.server == 'pw187') ...[
+                        // O mesmo filete que já separa os chips da grelha, e
+                        // pela mesma razão: sem ele a faixa fica a flutuar
+                        // sobre o card que o scroll corta mesmo ali.
+                        const Divider(height: 1),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 5, 12, 1),
+                          child: AjudaStrip(wide: panelsWide),
+                        ),
+                      ],
                       const AdSlot(compact: true),
                     ],
                   ),

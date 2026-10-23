@@ -215,6 +215,29 @@ final tools = <Tool>[
     href: '/guias/inicio-rapido',
     versoes: const {'1.8.7'},
   ),
+  // **A porta para a lista, e ela existe porque havia duas listas de guias que
+  // não sabiam uma da outra.** Os artigos vivem em `web/guias/index.html`, que
+  // se mantém sozinho; o menu vive aqui. O guia das runas foi publicado a
+  // 22/10/2026, entrou no índice HTML, não entrou nesta lista — e ficou **sem
+  // nenhum caminho a partir do site**, porque nada ligava para `/guias/`
+  // tampouco. Estava no sitemap, portanto o Google chegava lá e um visitante
+  // não.
+  //
+  // A correcção deliberadamente **não** é dar um `Tool` a cada artigo: isso
+  // repara o terceiro e deixa o quarto cair no mesmo buraco. É uma entrada
+  // para a lista que já se mantém, e a partir daqui um guia novo aparece no
+  // menu sem ninguém se lembrar de nada.
+  Tool(
+    name: 'Todos os guias',
+    tagline:
+        'A lista inteira: runas, cartas Nuema, começar no jogo e o que vier.',
+    icon: Icons.menu_book_outlined,
+    secao: 'Guias',
+    // Página de Registro, o item que é literalmente um índice de coisas.
+    emblem: 27424,
+    href: '/guias/',
+    versoes: const {'1.8.7'},
+  ),
   // **E esta é a volta da entrada que saiu em 29/09/2026**, agora com algo
   // atrás dela. Saiu porque era um *em breve* sem data, e um *em breve* que
   // fica meses na primeira dobra ensina o visitante a não acreditar no

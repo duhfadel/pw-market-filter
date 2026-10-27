@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FontLoader, rootBundle;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pw_market_filter/features/home/domain/tool.dart';
 import 'package:pw_market_filter/core/result/result.dart';
 import 'package:pw_market_filter/core/theme/pw_theme.dart';
 import 'package:pw_market_filter/features/home/data/browser_memory.dart';
@@ -199,5 +200,27 @@ void main() {
 
       expect(memoria.read(), isNull);
     });
+  });
+
+  // **Esta tela não sabe de que mercado é quem a está a ler.**
+  //
+  // As pílulas de ferramentas e guias levam a rotas com versão, e sem versão
+  // `rotaDaTool` cai no 1.8.7 — portanto clicar nelas aqui mandava para um
+  // mercado que ninguém escolheu. Era o mesmo defeito do seletor, de que o
+  // dono se queixou a 27/10/2026, em menor grau.
+  //
+  // Montado no ecrã real e não com um `Cabecalho` solto, pela razão que a
+  // primeira tentativa do guard do seletor ensinou no mesmo dia: injectar a
+  // flag prova que o widget obedece e nada diz sobre quem a passa.
+  testWidgets('não oferece porta nenhuma de mercado', (tester) async {
+    await _montar(tester, novidades: [_nova(titulo: 'Qualquer')]);
+
+    for (final secao in secoesDaHome) {
+      expect(
+        find.text(secao),
+        findsNothing,
+        reason: '$secao leva a uma rota com versão, e aqui não há versão',
+      );
+    }
   });
 }

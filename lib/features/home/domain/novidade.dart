@@ -13,6 +13,7 @@ class Novidade {
     required this.corpo,
     required this.autor,
     required this.publicadaEm,
+    this.versoes = const [],
   });
 
   /// The first line when it is wholly bold — the convention a person already
@@ -24,11 +25,32 @@ class Novidade {
   final String? autor;
   final DateTime publicadaEm;
 
+  /// Que mercados este recado afeta, lidos de uma linha de marcadores.
+  ///
+  /// **A regra, a pedido do dono em 27/10/2026:** quem escreve no Discord põe
+  /// uma linha só com as versões entre parênteses retos — `[1.8.7]`,
+  /// `[1.8.7] [1.2.6]`, ou `[todos]` quando vale para ambos. O site desenha-as
+  /// como etiquetas ao lado da data, e quem lê sabe num relance se aquilo lhe
+  /// diz respeito antes de ler o parágrafo.
+  ///
+  /// **Vazia quando não há marcador, e isso não é "vale para todos".** Os
+  /// recados antigos não têm linha nenhuma, e inventar-lhes uma etiqueta seria
+  /// o site afirmar o que ninguém escreveu — a mesma razão pela qual um
+  /// conduíte sem atributo não desenha zero. Sem marcador, sem etiqueta.
+  ///
+  /// **E vive no texto, não numa coluna.** O Discord continua a ser a única
+  /// fonte: não há migração, não há campo para o Worker enviar, e não há duas
+  /// cópias para divergirem. O preço é que um marcador mal escrito aparece
+  /// como texto — que é o pior caso certo, porque se vê na página em vez de
+  /// desaparecer em silêncio.
+  final List<String> versoes;
+
   factory Novidade.fromJson(Map<String, dynamic> json) {
     final base = Novidade.deTexto((json['texto'] as String?) ?? '');
     return Novidade(
       titulo: base.titulo,
       corpo: base.corpo,
+      versoes: base.versoes,
       autor: json['autor'] as String?,
       publicadaEm:
           DateTime.tryParse((json['publicada_em'] as String?) ?? '') ??
@@ -42,22 +64,52 @@ class Novidade {
     final primeira = linhas.isEmpty ? '' : linhas.first.trim();
     final cabecalho = _tituloPattern.firstMatch(primeira);
 
-    if (cabecalho == null) {
-      return Novidade(
-        titulo: null,
-        corpo: texto.trim(),
-        autor: null,
-        publicadaEm: DateTime.utc(2000),
-      );
-    }
+    final restantes = cabecalho == null ? linhas : linhas.skip(1).toList();
+    final (versoes, corpo) = _separarVersoes(restantes);
 
     return Novidade(
-      titulo: cabecalho.group(1)!.trim(),
-      corpo: linhas.skip(1).join('\n').trim(),
+      titulo: cabecalho?.group(1)?.trim(),
+      corpo: cabecalho == null && versoes.isEmpty ? texto.trim() : corpo,
+      versoes: versoes,
       autor: null,
       publicadaEm: DateTime.utc(2000),
     );
   }
+
+  /// Tira a linha de marcadores do corpo e devolve as versões que ela nomeia.
+  ///
+  /// Procura **só nas primeiras linhas úteis**, e não no texto todo: um
+  /// `[1.8.7]` no meio de um parágrafo é alguém a falar da versão, não a
+  /// etiquetar o recado, e promovê-lo seria o mesmo erro que promover um
+  /// negrito do meio de uma frase a título.
+  static (List<String>, String) _separarVersoes(List<String> linhas) {
+    for (var i = 0; i < linhas.length && i < 3; i++) {
+      final achados = _versaoPattern
+          .allMatches(linhas[i])
+          .map((m) => m.group(1)!.trim())
+          .toList();
+      if (achados.isEmpty) continue;
+      // A linha tem de ser **só** marcadores. Com texto à volta é uma frase
+      // que por acaso cita uma versão entre parênteses retos.
+      if (_versaoPattern
+          .allMatches(linhas[i])
+          .fold(
+            linhas[i].trim(),
+            (resto, m) => resto.replaceFirst(m.group(0)!, ''),
+          )
+          .trim()
+          .isNotEmpty) {
+        continue;
+      }
+      final semMarcador = [...linhas]..removeAt(i);
+      return (achados, semMarcador.join('\n').trim());
+    }
+    return (const [], linhas.join('\n').trim());
+  }
+
+  /// `[1.8.7]`, `[todos]` — o que estiver entre parênteses retos numa linha
+  /// que não tenha mais nada.
+  static final _versaoPattern = RegExp(r'\[([^\[\]]+)\]');
 
   /// A line that is **entirely** bold. Bold in the middle of a sentence is
   /// emphasis, not a heading, and promoting it would turn a remark into a

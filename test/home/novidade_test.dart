@@ -85,4 +85,69 @@ void main() {
       expect(paragrafos('texto\n\n\n\n'), ['texto']);
     });
   });
+
+  group('a linha de versões', () {
+    // **A regra, pedida pelo dono a 27/10/2026:** uma linha só com marcadores
+    // entre parênteses retos diz a que mercado o recado pertence. Com dois
+    // mercados no ar e um terceiro a caminho, metade dos recados não é para
+    // metade das pessoas.
+    test('uma versão é lida e sai do corpo', () {
+      final n = Novidade.deTexto('**Título**\n[1.8.7]\n\nO corpo.');
+
+      expect(n.versoes, ['1.8.7']);
+      expect(n.corpo, 'O corpo.');
+      expect(n.titulo, 'Título');
+    });
+
+    test('várias na mesma linha', () {
+      final n = Novidade.deTexto('**T**\n[1.8.7] [1.2.6]\n\nCorpo.');
+
+      expect(n.versoes, ['1.8.7', '1.2.6']);
+      expect(n.corpo, 'Corpo.');
+    });
+
+    test('todos é só mais um marcador, sem significado especial aqui', () {
+      expect(Novidade.deTexto('**T**\n[todos]\n\nC.').versoes, ['todos']);
+    });
+
+    // **Sem marcador é vazio, nunca "para todos".** Os recados anteriores a
+    // esta regra não têm linha nenhuma, e inventar-lhes uma etiqueta seria o
+    // site afirmar o que ninguém escreveu.
+    test('sem marcador não inventa etiqueta', () {
+      expect(Novidade.deTexto('**T**\n\nSó o corpo.').versoes, isEmpty);
+      expect(Novidade.deTexto('Uma nota solta.').versoes, isEmpty);
+    });
+
+    // O caso que separa uma etiqueta de alguém a falar de uma versão. Sem
+    // isto, qualquer frase com `[1.8.7]` no meio viraria marcador e perderia
+    // esse pedaço do texto — a mesma forma do negrito no meio da frase que
+    // não pode virar título.
+    test('uma versão citada no meio da frase não é etiqueta', () {
+      final n = Novidade.deTexto('**T**\n\nFalei do [1.8.7] aqui.');
+
+      expect(n.versoes, isEmpty);
+      expect(n.corpo, 'Falei do [1.8.7] aqui.');
+    });
+
+    test('vale sem título, para um recado curto', () {
+      final n = Novidade.deTexto('[1.4.4]\n\nUma nota.');
+
+      expect(n.versoes, ['1.4.4']);
+      expect(n.titulo, isNull);
+      expect(n.corpo, 'Uma nota.');
+    });
+
+    // O que vem do banco tem de carregar as versões também: é a travessia que
+    // `deTexto` sozinho não prova, e é onde um campo costuma morrer aqui.
+    test('fromJson leva as versões até o fim', () {
+      final n = Novidade.fromJson({
+        'texto': '**T**\n[1.2.6]\n\nCorpo.',
+        'autor': 'Duh',
+        'publicada_em': '2026-10-27T12:00:00Z',
+      });
+
+      expect(n.versoes, ['1.2.6']);
+      expect(n.autor, 'Duh');
+    });
+  });
 }

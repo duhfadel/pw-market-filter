@@ -130,6 +130,12 @@ class _PortasViewState extends State<PortasView> {
           // No `versao`: this is the one screen that has not picked a
           // marketplace yet, and printing either version here would be the
           // site answering a question nobody asked it.
+          //
+          // E `semMercado` pela mesma razão levada até ao fim: sem versão,
+          // `rotaDaTool` cai no 1.8.7, portanto as pílulas de ferramentas e
+          // guias escolhiam o mercado em silêncio para quem clicasse. Fica só
+          // *Novidades*, que serve os dois. Ver `Cabecalho.semMercado`.
+          semMercado: true,
         ),
       ),
       body: switch (_estado) {

@@ -228,13 +228,26 @@ class _Entrada extends StatelessWidget {
     children: [
       // The date is a count, not a name, so it stays on the body face —
       // Marcellus's `0` is barely an `O` and its `1` has no flag.
-      Text(
-        _data(entrada.publicadaEm),
-        style: const TextStyle(
-          color: PWColors.textMuted,
-          fontSize: 13,
-          letterSpacing: 0.3,
-        ),
+      // A data e as versões na mesma linha: as duas dizem *se isto é para
+      // mim* antes de o parágrafo começar, e separá-las obrigaria a ler duas
+      // linhas para a mesma decisão. `Wrap` porque num telemóvel com três
+      // etiquetas a linha quebra, e cortá-las esconderia justamente a que
+      // podia interessar.
+      Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 8,
+        runSpacing: 6,
+        children: [
+          Text(
+            _data(entrada.publicadaEm),
+            style: const TextStyle(
+              color: PWColors.textMuted,
+              fontSize: 13,
+              letterSpacing: 0.3,
+            ),
+          ),
+          for (final v in entrada.versoes) _Etiqueta(versao: v),
+        ],
       ),
       const SizedBox(height: 6),
       // An entry with no title is a remark, not an announcement — a short
@@ -261,5 +274,44 @@ class _Entrada extends StatelessWidget {
     final local = quando.toLocal();
     return '${local.day.toString().padLeft(2, '0')}/'
         '${local.month.toString().padLeft(2, '0')}/${local.year}';
+  }
+}
+
+/// A que mercado um recado pertence, ao lado da data.
+///
+/// **Existe para o leitor decidir em meio segundo se aquilo lhe diz
+/// respeito**, a pedido do dono em 27/10/2026. Com dois mercados no ar e um
+/// terceiro a caminho, metade dos recados não é para metade das pessoas, e
+/// até aqui elas tinham de ler o parágrafo para descobrir.
+///
+/// *todos* ganha a cor do acento e as versões ficam na cor calma: a etiqueta
+/// que diz **"isto é para si, seja quem for"** é a que vale a pena destacar;
+/// uma versão é uma distinção, não uma novidade maior.
+class _Etiqueta extends StatelessWidget {
+  const _Etiqueta({required this.versao});
+
+  final String versao;
+
+  bool get _paraTodos => versao.toLowerCase() == 'todos';
+
+  @override
+  Widget build(BuildContext context) {
+    final cor = _paraTodos ? PWColors.accent : PWColors.textMuted;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: cor.withValues(alpha: .45)),
+      ),
+      child: Text(
+        versao,
+        style: TextStyle(
+          color: cor,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
   }
 }

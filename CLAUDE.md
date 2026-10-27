@@ -301,7 +301,40 @@ Only a blank line starts a paragraph, for the reason the war map already
 learned: Discord hard-wraps as you type.
 
 Deleting in Discord hides it here, within the twenty-message window the Worker
-reads. Older than that and it is left alone — out of range is not a decision
+reads.
+
+**Um recado diz a que mercado pertence, numa linha de marcadores.** Pedido do
+dono a 27/10/2026: com dois mercados no ar e um terceiro a caminho, metade dos
+recados não é para metade das pessoas, e até aí só se descobria lendo o
+parágrafo. A convenção é uma linha — logo a seguir ao título — **só** com
+versões entre parênteses retos:
+
+```
+**Três semanas de novidades**
+[1.8.7] [1.2.6]
+
+Faz tempo que não escrevo aqui…
+```
+
+Vale `[todos]` quando serve os dois, e esse é o único que sai na cor do
+acento: a etiqueta que diz *isto é para si, seja quem for* é a que vale
+destacar; uma versão é uma distinção, não uma notícia maior.
+
+**Vive no texto e não numa coluna**, que é o que o torna barato: sem migração,
+sem campo novo para o Worker enviar, sem duas cópias para divergirem. O
+Discord continua a ser a única fonte. O preço é que um marcador mal escrito
+aparece como texto — o pior caso certo, porque se vê na página em vez de
+desaparecer em silêncio.
+
+**A linha tem de ser só marcadores.** `Falei do [1.8.7] aqui` é alguém a citar
+uma versão, não a etiquetar o recado, e promovê-la seria o mesmo erro que
+promover um negrito do meio da frase a título — e ainda comeria esse pedaço do
+texto. `novidade_test` crava os dois lados.
+
+**Sem marcador é vazio, nunca "para todos".** Os recados anteriores a esta
+regra não têm linha nenhuma, e inventar-lhes uma etiqueta seria o site afirmar
+o que ninguém escreveu — a mesma razão pela qual um conduíte sem atributo não
+desenha zero. Older than that and it is left alone — out of range is not a decision
 to remove something.
 
 **The `MESSAGE CONTENT INTENT` is the one that has to be on.** Without it

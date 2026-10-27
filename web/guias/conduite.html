@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>O conduíte, do começo ao nível máximo — Portal PW</title>
+  <meta name="description"
+        content="Como o conduíte funciona no The Classic 1.8.7: a panaceia, o que escolher em cada nível, os níveis 50 e 100, e os itens que garantem a subida.">
+
+  <link rel="canonical" href="https://portalpw.net/guias/conduite">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Portal PW">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="O conduíte, do começo ao nível máximo">
+  <meta property="og:description" content="Como o conduíte funciona no The Classic 1.8.7: a panaceia, o que escolher em cada nível, os níveis 50 e 100, e os itens que garantem a subida.">
+  <meta property="og:url" content="https://portalpw.net/guias/conduite">
+  <meta property="og:image" content="https://portalpw.net/og-v2.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2">
+  <link rel="stylesheet" href="estilo.css">
+
+  <style>
+    .tabela-caixa { overflow-x: auto; margin: 24px 0 8px; }
+    table.dados {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 440px;
+      font-size: 0.95rem;
+      font-variant-numeric: tabular-nums;
+    }
+    table.dados th {
+      text-align: left;
+      font-size: 0.72rem;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 700;
+      padding: 0 14px 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    table.dados td {
+      padding: 9px 14px 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    table.dados td.n { text-align: right; }
+    table.dados tr.destaque td { color: var(--accent); font-weight: 700; }
+    .nota-da-tabela { color: var(--text-muted); font-size: 0.85rem; margin: 0 0 32px; }
+
+    /* O card do vídeo de quem explica isto melhor em movimento.
+     *
+     * A miniatura vem de `img.youtube.com`, que é um pedido ao Google a partir
+     * do browser de quem lê — e está declarado em `/privacidade/` desde o
+     * primeiro dia, na secção dos terceiros. Não há player embutido: é uma
+     * imagem e um link, por isso nenhum cookie do YouTube nasce nesta página. */
+    .video-card {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin: 26px 0 8px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s;
+    }
+    .video-card:hover { border-color: var(--accent); }
+    .video-card img {
+      width: 168px;
+      height: 94px;
+      object-fit: cover;
+      border-radius: 8px;
+      flex-shrink: 0;
+      display: block;
+    }
+    /* `display: block` nos dois: são `<span>` porque o pai é um `<a>` e um
+       `<div>` dentro de um link é HTML de qualidade duvidosa — mas um `span`
+       é inline por omissão, e sem isto o título e o canal saem na mesma
+       linha, coladitos. */
+    .video-card .titulo {
+      display: block;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+    .video-card .canal {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    @media (max-width: 520px) {
+      .video-card { flex-direction: column; align-items: flex-start; }
+      .video-card img { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+    }
+  </style>
+  <!-- AdSense. O número de editor é público por desenho — ele vai no bundle de
+       toda a gente e também no `ads.txt` na raiz, que é o ficheiro que diz ao
+       mercado quem está autorizado a vender este espaço. Não é segredo e não
+       há onde o esconder.
+
+       Em **todas** as páginas, e não só nas que têm espaço de anúncio: a tag é
+       o que verifica a propriedade do site, e uma página sem ela é uma página
+       que o revisor não consegue associar à conta.
+
+       Quando os anúncios começarem a servir, `/privacidade/` tem de ser
+       conferida outra vez — ela já foi atualizada para dizer que o script está
+       cá, mas quem ligar os anúncios automáticos no painel muda o que a página
+       faz sem passar por aqui. -->
+  <script async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7064703455080324"
+          crossorigin="anonymous"></script>
+</head>
+<body>
+
+<header class="topo">
+  <div class="topo-interno">
+    <a href="/" title="Portal PW">
+      <img class="marca-larga" src="/assets/assets/images/portal-pw-logo-v2.webp" alt="Portal PW">
+      <img class="marca-curta" src="/assets/assets/images/pw-mark.webp" alt="Portal PW">
+    </a>
+    <span class="secao">Conduíte</span>
+  </div>
+</header>
+
+<main>
+
+  <h1>O conduíte, do começo ao nível máximo</h1>
+
+  <p class="resumo">
+    O conduíte é um dos itens que mais muda um personagem, e o jogo explica
+    muito pouco sobre ele. Aqui está como funciona, o que vale a pena subir, e
+    por que <strong>dois conduítes no mesmo nível podem ser completamente
+    diferentes</strong>.
+  </p>
+
+  <h2>Como se sobe de nível</h2>
+
+  <p>
+    Todo nível do conduíte vem de consumir o item
+    <strong>Panaceia da Divisão de Almas</strong> nele. Quanto maior o nível,
+    mais panaceia cada passo consome — então o começo é rápido e o fim é
+    longo.
+  </p>
+
+  <h2>Os atributos: escolha pela sua build</h2>
+
+  <p>
+    O conduíte tem sete atributos: <strong>vida</strong>,
+    <strong>defesa física</strong>, <strong>defesa mágica</strong>,
+    <strong>ataque físico</strong>, <strong>ataque mágico</strong>,
+    <strong>level de defesa</strong> e <strong>level de ataque</strong>. Mas
+    nem todos os níveis funcionam igual.
+  </p>
+
+  <ul>
+    <li><strong>Nos níveis quebrados</strong> — 11, 12, 13… — você escolhe
+      entre vários atributos, e cada um dá um valor baixo.</li>
+    <li><strong>Nos níveis redondos</strong> — 10, 20, 30, 40… — só existe
+      <em>um</em> atributo, e é ele que você vai evoluindo. É daí que vêm os
+      números grandes.</li>
+  </ul>
+
+  <p>
+    Por isso vale pensar antes de gastar panaceia. Se você quer
+    <strong>dano</strong>, vá nos pontos de ataque; se o seu personagem é mais
+    <strong>suporte ou defensivo</strong>, suba defesa, defesa mágica e vida.
+  </p>
+
+  <div class="aviso">
+    <p>
+      <strong>E dois desses níveis fixos valem mais que todos os outros
+      juntos:</strong>
+    </p>
+    <p>
+      O do <strong>nível 50</strong> dá até <strong>32 níveis de defesa</strong>.
+      O do <strong>nível 100</strong> dá até <strong>32 níveis de ataque</strong>.
+      São os dois que decidem se o conduíte é bom — e é por isso que vale
+      planejar a subida em vez de ir gastando panaceia sem olhar.
+    </p>
+  </div>
+
+  <h2>Os dois itens que te ajudam a chegar lá</h2>
+
+  <p>
+    Subir não é garantido, e é aí que entram dois itens:
+  </p>
+
+  <ul>
+    <li><strong>Disco de Pregar Almas</strong> — dá <strong>100% de chance</strong>
+      de subir de nível. <strong>Use só quando estiver quase chegando ao
+      final</strong>, que é onde cada nível custa mais e falhar dói mais.</li>
+    <li><strong>Loção Purificadora de Almas</strong> — quando você <em>cai</em>
+      um nível, ela devolve você à fila e te dá uma nova oportunidade.</li>
+  </ul>
+
+  <p>
+    Os dois saem dos eventos da <strong>mini TW</strong> e do
+    <strong>soldo da base</strong> — que é mais uma razão para aparecer neles.
+  </p>
+
+  <h2>O mercado confirma, sem uma exceção</h2>
+
+  <p>
+    Dá para ver a regra dos níveis 50 e 100 nos anúncios. Lendo os
+    <strong>2.264 conduítes</strong> à venda no marketplace em 27 de outubro
+    de 2026:
+  </p>
+
+  <div class="tabela-caixa">
+    <table class="dados">
+      <thead>
+        <tr><th>Atributo</th><th>Quantos têm</th><th>Nível mais baixo visto</th></tr>
+      </thead>
+      <tbody>
+        <tr class="destaque"><td>Nv. de Ataque</td><td class="n">455</td><td class="n">100</td></tr>
+        <tr><td>Nv. de Defesa</td><td class="n">908</td><td class="n">50</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="nota-da-tabela">
+    Nenhum conduíte abaixo do nível 100 tem nível de ataque, e nenhum abaixo
+    do 50 tem nível de defesa — em 2.264, zero exceções.
+  </p>
+
+  <h2>E por que o nível não diz a força</h2>
+
+  <p>
+    Chegar ao nível 100 é a parte que quase todo mundo termina: dos
+    <strong>463</strong> conduítes no nível máximo, <strong>436</strong> já têm
+    os seis atributos abertos. O difícil é o que vem depois — subir cada um.
+  </p>
+
+  <p>
+    Entre os 455 personagens que têm conduíte 100 <em>e</em> nível de ataque:
+  </p>
+
+  <div class="tabela-caixa">
+    <table class="dados">
+      <thead>
+        <tr><th>Nv. de Ataque no conduíte</th><th>Quantos têm</th></tr>
+      </thead>
+      <tbody>
+        <tr class="destaque"><td>+32 — o máximo</td><td class="n">289</td></tr>
+        <tr><td>entre +20 e +29</td><td class="n">25</td></tr>
+        <tr><td>entre +10 e +18</td><td class="n">60</td></tr>
+        <tr><td>entre +5 e +9</td><td class="n">67</td></tr>
+        <tr><td>+4 ou menos</td><td class="n">14</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="aviso">
+    <p>
+      <strong>Dois personagens com conduíte nível 100 podem estar a 31 pontos
+      de distância.</strong> A janela mostra o nível em letra grande e os
+      atributos em letra pequena, e é a letra pequena que decide. Na hora de
+      comprar um personagem, o nível do conduíte quase não é informação.
+    </p>
+  </div>
+
+  <h2>Os sete atributos, e onde está o teto</h2>
+
+  <p>
+    São os sete lá de cima, e o marketplace escreve-os abreviados. O mais
+    comum é HP; o mais raro é o nível de ataque, que só existe no nível 100.
+  </p>
+
+  <div class="tabela-caixa">
+    <table class="dados">
+      <thead>
+        <tr><th>Atributo</th><th>Quantos têm</th><th>Maior visto</th><th>Chegaram lá</th></tr>
+      </thead>
+      <tbody>
+        <tr class="destaque"><td>Nv. de Ataque</td><td class="n">455</td><td class="n">32</td><td class="n">64%</td></tr>
+        <tr><td>Nv. de Defesa</td><td class="n">908</td><td class="n">32</td><td class="n">27%</td></tr>
+        <tr><td>Atq Físico</td><td class="n">863</td><td class="n">2.054</td><td class="n">2%</td></tr>
+        <tr><td>Atq Mágico</td><td class="n">607</td><td class="n">2.054</td><td class="n">0,3%</td></tr>
+        <tr><td>Def</td><td class="n">1.326</td><td class="n">2.194</td><td class="n">—</td></tr>
+        <tr><td>DefM</td><td class="n">1.262</td><td class="n">2.394</td><td class="n">—</td></tr>
+        <tr><td>HP</td><td class="n">1.349</td><td class="n">4.668</td><td class="n">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    <strong>Os dois primeiros têm parede; os outros cinco, até onde dá para
+    ver, não.</strong> Em <em>Nv. de Ataque</em> os quarenta maiores do mercado
+    são todos exatamente 32, com 289 pessoas paradas ali — isso é teto do jogo,
+    e bate com os 32 que o nível 100 promete.
+  </p>
+
+  <p>
+    Em HP é diferente: o maior é 4.668, e abaixo vêm 4.500, 4.452 e 4.127,
+    cada um de uma pessoa só. Isso não é parede, é fila — o
+    <strong>4.668 é só o mais longe que alguém chegou</strong>, e não dá para
+    dizer que seja o limite.
+  </p>
+
+  <h2>Na hora de comprar um personagem</h2>
+
+  <ul>
+    <li><strong>Pule o nível.</strong> No topo do mercado quase todos estão em
+      100.</li>
+    <li><strong>Olhe Nv. de Ataque e Nv. de Defesa primeiro.</strong> São os
+      dois que têm teto em 32, e a diferença entre +32 e +8 é enorme.</li>
+    <li><strong>Depois os números grandes.</strong> Atq Físico, Def, DefM e HP
+      não têm parede à vista, e é onde as diferenças passam despercebidas: 800
+      de Atq Físico e 2.000 parecem iguais de longe.</li>
+  </ul>
+
+  <div class="aviso">
+    <p>
+      O <a href="/#/1.8.7/filtro">filtro do Portal PW</a> mostra os atributos
+      de cada conduíte no card, peça por peça — é só passar o mouse por cima,
+      no computador. Até outubro de 2026 nem nós líamos isso: o marketplace
+      publica tudo e o nosso leitor não enxergava.
+    </p>
+  </div>
+
+  <h2>Quer ver em movimento?</h2>
+
+  <p>
+    O <strong>RomanZitto</strong> fez um guia em vídeo sobre o conduíte, com
+    mais detalhe do que cabe aqui. Se ficou alguma dúvida, é por ali:
+  </p>
+
+  <a class="video-card" href="https://www.youtube.com/watch?v=yJZzoj3S0Rw">
+    <img src="https://img.youtube.com/vi/yJZzoj3S0Rw/hqdefault.jpg"
+         width="168" height="94" loading="lazy"
+         alt="Miniatura do vídeo Guia definitivo do conduíte do cosmo">
+    <span>
+      <span class="titulo">GUIA DEFINITIVO DO CONDUÍTE DO COSMO</span>
+      <span class="canal">no canal do RomanZitto PW</span>
+    </span>
+  </a>
+
+  <hr>
+
+  <p class="nota-da-tabela">
+    Como o conduíte funciona foi contado por quem joga. Os números de mercado
+    foram medidos sobre os 2.486 personagens à venda em
+    <strong>27 de outubro de 2026</strong> e mudam com o mercado; o que não
+    muda é a regra dos níveis 50 e 100.
+  </p>
+
+</main>
+
+<div class="publicidade">
+  <span class="rotulo">PUBLICIDADE</span>
+  <a class="casa" href="mailto:duhspain@gmail.com">Quer anunciar neste espaço? <strong>Clique aqui</strong></a>
+</div>
+
+<footer>
+  <p>
+    Projeto de fã, sem vínculo com o The Classic Games.<br>
+    <a href="/privacidade/">Privacidade</a> &middot; <a href="/">Voltar ao Portal</a>
+  </p>
+</footer>
+
+</body>
+</html>

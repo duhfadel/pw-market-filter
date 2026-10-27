@@ -127,6 +127,17 @@ class _NovidadesViewState extends State<NovidadesView> {
         // No `versao`, on purpose: this one screen reads the same twenty
         // messages for both marketplaces, so neither version is more true of
         // it than the other.
+        //
+        // E `semMercado` pela mesma razão, a pedido do dono em 27/10/2026.
+        // As pílulas de ferramentas e guias levam a rotas com versão, e sem
+        // versão `rotaDaTool` cai no 1.8.7 — portanto clicar nelas aqui
+        // mandava para um mercado que esta tela não sabe se é o de quem está
+        // a ler. Era o mesmo defeito do seletor, em menor grau.
+        //
+        // A alternativa era esta tela lembrar-se de onde veio, e foi
+        // recusada por ser mais máquina do que o problema pede: a marca já
+        // leva a casa, e quem quiser uma ferramenta escolhe o mercado lá.
+        semMercado: true,
       ),
     ),
     body: switch (_estado) {

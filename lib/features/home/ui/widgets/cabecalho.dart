@@ -32,6 +32,7 @@ class Cabecalho extends StatelessWidget {
     required this.wide,
     this.versao,
     this.memoriaDeNovidades,
+    this.semMercado = false,
     super.key,
   });
 
@@ -96,6 +97,27 @@ class Cabecalho extends StatelessWidget {
   /// to show a `Cabecalho`.
   final BrowserMemory? memoriaDeNovidades;
 
+  /// Se esta tela ainda não tem mercado escolhido — só o seletor.
+  ///
+  /// **Aqui a barra mostra apenas *Novidades*, e isso é correcção de um
+  /// defeito.** Até 27/10/2026 o seletor exibia as quatro secções, porque
+  /// `Tool.serveA(null)` devolve tudo e o comentário de então dizia que "ali
+  /// a barra é o catálogo do site". O que ninguém pesou: `rotaDaTool` sem
+  /// versão **cai no 1.8.7**, portanto clicar em *Ferramentas* na página de
+  /// entrada escolhia o mercado em silêncio — exactamente a pergunta que o
+  /// seletor existe para fazer, respondida por ele mesmo sem avisar.
+  ///
+  /// *Novidades* fica porque é a única honesta sem mercado: lê as mesmas
+  /// mensagens para os dois, por isso nenhuma versão é mais verdadeira dela
+  /// que a outra.
+  ///
+  /// **`/novidades` não passa isto, e a diferença é deliberada.** Lá o
+  /// visitante já veio de algum lado, e tirar-lhe o menu deixaria a tela sem
+  /// saída a não ser a marca. O mesmo defeito existe lá em menor grau — as
+  /// pílulas também caem no 1.8.7 — e é um problema por resolver, não um
+  /// esquecimento.
+  final bool semMercado;
+
   @override
   Widget build(BuildContext context) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -121,18 +143,19 @@ class Cabecalho extends StatelessWidget {
             reverse: true,
             child: Row(
               children: [
-                for (final secao in secoesDaHome)
-                  if (toolsDe(secao, versao: versao).isNotEmpty) ...[
-                    _SectionPill(secao: secao, versao: versao),
-                    const SizedBox(width: 8),
-                  ],
+                if (!semMercado)
+                  for (final secao in secoesDaHome)
+                    if (toolsDe(secao, versao: versao).isNotEmpty) ...[
+                      _SectionPill(secao: secao, versao: versao),
+                      const SizedBox(width: 8),
+                    ],
                 _NovidadesPill(memoria: memoriaDeNovidades),
               ],
             ),
           ),
         )
       else
-        _OverflowMenu(versao: versao),
+        _OverflowMenu(versao: versao, semMercado: semMercado),
     ],
   );
 }
@@ -587,13 +610,17 @@ class GavetaItem extends StatelessWidget {
 /// same information the wide row offers, in the one panel this site allows
 /// itself on a phone.
 class _OverflowMenu extends StatelessWidget {
-  const _OverflowMenu({this.versao});
+  const _OverflowMenu({this.versao, this.semMercado = false});
 
   /// A mesma versão que as pílulas usam no largo. O menu estreito é a mesma
   /// navegação noutro invólucro, e uma das duas a mostrar ferramentas de
   /// outro mercado seria a barra a discordar de si própria consoante a
   /// largura da janela.
   final String? versao;
+
+  /// Ver `Cabecalho.semMercado`. O menu estreito tem de obedecer à mesma
+  /// regra, ou a barra mostra coisas diferentes consoante a largura.
+  final bool semMercado;
 
   @override
   Widget build(BuildContext context) => PopupMenuButton<Tool?>(
@@ -603,27 +630,28 @@ class _OverflowMenu extends StatelessWidget {
       if (tool != null) abrirTool(context, tool);
     },
     itemBuilder: (context) => [
-      for (final secao in secoesDaHome)
-        if (toolsDe(secao, versao: versao).isNotEmpty) ...[
-          PopupMenuItem<Tool?>(
-            enabled: false,
-            child: Text(
-              secao.toUpperCase(),
-              style: const TextStyle(
-                color: PWColors.textMuted,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
+      if (!semMercado)
+        for (final secao in secoesDaHome)
+          if (toolsDe(secao, versao: versao).isNotEmpty) ...[
+            PopupMenuItem<Tool?>(
+              enabled: false,
+              child: Text(
+                secao.toUpperCase(),
+                style: const TextStyle(
+                  color: PWColors.textMuted,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
+                ),
               ),
             ),
-          ),
-          for (final tool in toolsDe(secao, versao: versao))
-            PopupMenuItem<Tool?>(
-              value: tool,
-              enabled: tool.isReady,
-              child: GavetaItem(tool: tool),
-            ),
-        ],
+            for (final tool in toolsDe(secao, versao: versao))
+              PopupMenuItem<Tool?>(
+                value: tool,
+                enabled: tool.isReady,
+                child: GavetaItem(tool: tool),
+              ),
+          ],
       PopupMenuItem<Tool?>(
         onTap: () => _abrirNovidades(context),
         child: const Text(

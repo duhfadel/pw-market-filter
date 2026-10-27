@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:pw_market_filter/core/di/injection.dart';
 import 'package:pw_market_filter/core/theme/pw_theme.dart';
+import 'package:pw_market_filter/features/home/domain/tool.dart';
 import 'package:pw_market_filter/features/portas/ui/portas_view.dart';
 import 'package:pw_market_filter/market/versoes.dart';
 import 'package:pw_market_filter/market/versoes_repository.dart';
@@ -359,5 +360,40 @@ void main() {
       find.textContaining('Nomes, atributos e arte do jogo'),
       findsOneWidget,
     );
+  });
+
+  // **Montado como a app monta, e não com um `Cabecalho` solto.**
+  //
+  // O primeiro teste desta regra ficou em `cabecalho_versao_test` e provava
+  // só que o widget obedece a `semMercado`. Trocando `semMercado: true` por
+  // `false` aqui no seletor, ele continuava verde — porque injetava a flag em
+  // vez de a deixar a produção resolver. É a mesma forma que custou a tela de
+  // escolha inteira a 02/10/2026: *um fake injetado prova a lógica e nada diz
+  // sobre a montagem, e é a montagem que quebra.*
+  //
+  // Por isso este vive aqui, no ecrã real, e falha se alguém deixar de passar
+  // a flag.
+  testWidgets('o seletor não oferece porta nenhuma de mercado', (tester) async {
+    _registrarRepositorio(
+      _cliente(
+        (_) => _corpo({
+          'pw187': _resumo(chave: 'pw187', nome: '1.8.7').toJson(),
+          'pw126': _resumo(chave: 'pw126', nome: '1.2.6').toJson(),
+        }),
+      ),
+    );
+    await _montar(tester);
+
+    for (final secao in secoesDaHome) {
+      expect(
+        find.text(secao),
+        findsNothing,
+        reason:
+            'A secção $secao leva a uma rota com versão, e nesta tela a versão '
+            'ainda não foi escolhida — clicar escolheria por quem clicou.',
+      );
+    }
+    // Novidades fica: lê as mesmas mensagens para os dois mercados.
+    expect(find.text('Novidades'), findsOneWidget);
   });
 }

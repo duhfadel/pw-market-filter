@@ -13,7 +13,12 @@ import '../support/novidades_test_support.dart';
 /// **Nenhuma delas erraria em silêncio.** O filtro tem `/1.8.7/filtro` cravado
 /// na rota, portanto clicar nele a partir do 1.2.6 trocava a versão debaixo
 /// dos pés de quem clicou.
-Future<void> _montar(WidgetTester tester, {String? versao}) async {
+Future<void> _montar(
+  WidgetTester tester, {
+  String? versao,
+  bool semMercado = false,
+  bool wide = true,
+}) async {
   tester.view.physicalSize = const Size(1400, 800);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -24,7 +29,9 @@ Future<void> _montar(WidgetTester tester, {String? versao}) async {
       home: Scaffold(
         appBar: AppBar(
           title: comVisitas(
-            comNovidades(Cabecalho(wide: true, versao: versao)),
+            comNovidades(
+              Cabecalho(wide: wide, versao: versao, semMercado: semMercado),
+            ),
           ),
         ),
       ),
@@ -78,5 +85,42 @@ void main() {
     }
     expect(toolsDe('Ferramentas', versao: '1.2.6'), isEmpty);
     expect(toolsDe('Ferramentas', versao: '1.8.7'), isNotEmpty);
+  });
+
+  // **O seletor não pode oferecer porta nenhuma de mercado, e isto é a
+  // correcção de um defeito de 27/10/2026.**
+  //
+  // `Tool.serveA(null)` devolve tudo, por isso a página de entrada exibia as
+  // quatro secções. O que ninguém pesou: `rotaDaTool` sem versão cai no
+  // 1.8.7, portanto clicar em *Ferramentas* ali escolhia o mercado em
+  // silêncio — a única pergunta que aquela tela existe para fazer, respondida
+  // por ela mesma.
+  //
+  // *Novidades* fica, e é a única que pode: lê as mesmas mensagens para os
+  // dois mercados.
+  testWidgets('o seletor só mostra Novidades, em qualquer largura', (
+    tester,
+  ) async {
+    for (final wide in [true, false]) {
+      await _montar(tester, semMercado: true, wide: wide);
+
+      for (final secao in secoesDaHome) {
+        expect(
+          find.text(secao),
+          findsNothing,
+          reason: 'A secção $secao não pode aparecer antes de escolher mercado',
+        );
+      }
+      expect(find.text('Novidades'), wide ? findsOneWidget : findsNothing);
+      expect(find.byKey(const Key('cabecalho-marca')), findsOneWidget);
+    }
+  });
+
+  // E o contrário, para o teste acima não passar por o cabeçalho ter deixado
+  // de desenhar seja o que for: com mercado, as secções voltam.
+  testWidgets('com mercado escolhido, as secções voltam', (tester) async {
+    await _montar(tester, versao: '1.8.7');
+
+    expect(find.text('Ferramentas'), findsOneWidget);
   });
 }

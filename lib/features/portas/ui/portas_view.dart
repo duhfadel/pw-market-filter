@@ -428,7 +428,17 @@ class _Veu extends StatelessWidget {
           PWColors.noite.withValues(alpha: 0.88),
           PWColors.noite.withValues(alpha: 0.97),
         ],
-        stops: const [0.38, 0.58, 0.78, 1],
+        // **Subiu de 0.38 para 0.20 quando a descrição entrou**, a 28/10/2026.
+        // O card achatado do telemóvel é 3:2, e ali o texto cresceu para fora
+        // do véu: a primeira linha do 1.2.6 caía em cima da capa vermelha e a
+        // do 1.8.7 em cima da armadura branca — exactamente o defeito que o
+        // comentário acima descreve, repetido por o conteúdo ter crescido e
+        // não por o gradiente ter mudado.
+        //
+        // Um véu que depende da altura do texto tem a mesma fragilidade que
+        // um que depende da pintura: começa onde o conteúdo mais alto começa,
+        // e não onde o mais curto acaba.
+        stops: const [0.20, 0.48, 0.74, 1],
       ),
     ),
   );
@@ -466,7 +476,31 @@ class _Rodape extends StatelessWidget {
               color: PWColors.papel,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
+          // **A descrição vem antes dos números, e a ordem é o argumento.**
+          // Quem chega aqui não sabe o que distingue um servidor do outro;
+          // saber que há 2.400 personagens à venda não ajuda a escolher entre
+          // três jogos diferentes. Primeiro o que é, depois o tamanho.
+          //
+          // Quatro linhas no máximo: a porta é um card com arte por baixo, e
+          // um parágrafo que cresce empurraria os números para fora dele.
+          //
+          // A primeira versão cortava em três e **as três frases saíam com
+          // reticências**, perdendo justamente a parte que distingue um
+          // servidor do outro — o número de raças, o meta, a rate. As frases
+          // foram encurtadas para caberem, e a quarta linha é a folga para
+          // quem lê com fonte maior.
+          Text(
+            porta.descricao,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1.4,
+              color: PWColors.apagado,
+            ),
+          ),
+          const SizedBox(height: 10),
           if (pronta) _Resumo(resumo: porta.resumo!) else const _EmBreve(),
         ],
       ),

@@ -8,6 +8,7 @@ import 'package:http/testing.dart';
 import 'package:pw_market_filter/core/di/injection.dart';
 import 'package:pw_market_filter/core/theme/pw_theme.dart';
 import 'package:pw_market_filter/features/home/domain/tool.dart';
+import 'package:pw_market_filter/features/portas/domain/versao.dart';
 import 'package:pw_market_filter/features/portas/ui/portas_view.dart';
 import 'package:pw_market_filter/market/versoes.dart';
 import 'package:pw_market_filter/market/versoes_repository.dart';
@@ -395,5 +396,43 @@ void main() {
     }
     // Novidades fica: lê as mesmas mensagens para os dois mercados.
     expect(find.text('Novidades'), findsOneWidget);
+  });
+
+  // **Toda porta diz o que é aquele servidor, e isso e desenhado no ecra.**
+  //
+  // A tela pergunta *qual mercado* e ate 28/10/2026 so respondia com numeros:
+  // quantos personagens ha a venda e quando foi a coleta. Isso diz o tamanho
+  // da loja e nao diz nada sobre o jogo la dentro, que e a unica coisa que um
+  // visitante novo precisa para decidir.
+  //
+  // Montado no ecra real, pela licao do mesmo dia: injectar a descricao
+  // provaria que o card a sabe desenhar e nada diria sobre o modelo a ter.
+  testWidgets('cada porta mostra a descrição do servidor', (tester) async {
+    _registrarRepositorio(
+      _cliente(
+        (_) => _corpo({
+          'pw187': _resumo(chave: 'pw187', nome: '1.8.7').toJson(),
+          'pw126': _resumo(chave: 'pw126', nome: '1.2.6').toJson(),
+        }),
+      ),
+    );
+    await _montar(tester);
+
+    for (final porta in portasDe(const {})) {
+      expect(
+        porta.descricao.trim(),
+        isNotEmpty,
+        reason: 'A porta ${porta.nome} nasceu sem descrição',
+      );
+      // O começo da frase, e nao ela inteira: o card corta em quatro linhas,
+      // e cravar o texto todo faria este teste reprovar uma frase mais longa
+      // que continua a desenhar bem.
+      final comeco = porta.descricao.split(',').first;
+      expect(
+        find.textContaining(comeco, findRichText: true),
+        findsOneWidget,
+        reason: 'A descrição da porta ${porta.nome} não chegou à tela',
+      );
+    }
   });
 }

@@ -15,6 +15,7 @@ class Porta {
     required this.chave,
     required this.nome,
     required this.rota,
+    required this.descricao,
     this.resumo,
   });
 
@@ -33,6 +34,15 @@ class Porta {
   /// fechada. É a mesma armadilha do `tem_ficha` do mapa de guerras, onde um
   /// território clicável abria uma ficha vazia.
   final String? rota;
+
+  /// Uma frase sobre o servidor, escrita pelo dono.
+  ///
+  /// **Existe porque a tela pergunta *qual mercado* e só respondia com
+  /// números.** Quantos personagens há à venda e quando foi a coleta dizem o
+  /// tamanho da loja; não dizem nada sobre o jogo que está lá dentro, que é a
+  /// única coisa que um visitante novo precisa para decidir. Pedida pelo dono
+  /// em 28/10/2026.
+  final String descricao;
 
   /// What the last collection for this version found, or `null` before the
   /// first one has ever run — the state that draws this door dimmed.
@@ -70,6 +80,9 @@ List<Porta> portasDe(Map<String, VersaoResumo> versoes) => [
     chave: IndexRepository.pw126,
     nome: rotas.pw126,
     rota: '/${rotas.pw126}',
+    descricao:
+        'O mais antigo, online há mais de cinco anos. Três raças, as seis '
+        'classes iniciais e rates baixas — o PW clássico.',
     resumo: versoes[IndexRepository.pw126],
   ),
   // **Sem rota e sem índice: a porta existe para dizer que vem aí.** A chave
@@ -81,6 +94,13 @@ List<Porta> portasDe(Map<String, VersaoResumo> versoes) => [
     chave: chavePw144,
     nome: '1.4.4',
     rota: null,
+    // **Esta frase tem data de validade: 13/11/2026.** A partir do dia em que
+    // o servidor abrir, *abre a 13 de novembro* deixa de ser notícia e passa a
+    // ser história — e o mesmo dia em que a rota nasce é o dia de a reescrever.
+    // Fica dito aqui porque é onde quem ligar a porta vai passar.
+    descricao:
+        'Abre a 13 de novembro de 2026. Cinco raças, dez classes, meta '
+        'nirvana e rates baixas.',
     // Lê o resumo na mesma, e isso não é zelo inútil: a porta fica a saber o
     // que foi colhido e recusa abrir **por falta de rota**, que é a verdade.
     // Ignorar a linha faria `pronta` ser falsa por acidente em vez de por
@@ -92,6 +112,9 @@ List<Porta> portasDe(Map<String, VersaoResumo> versoes) => [
     chave: IndexRepository.pw187,
     nome: rotas.pw187,
     rota: '/${rotas.pw187}',
+    descricao:
+        'Aberto em junho de 2026, o mais atualizado. Rate média, conteúdos '
+        'novos e todas as classes e instâncias.',
     resumo: versoes[IndexRepository.pw187],
   ),
 ];

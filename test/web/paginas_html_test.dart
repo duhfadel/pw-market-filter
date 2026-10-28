@@ -61,4 +61,50 @@ void main() {
       );
     });
   }
+
+  // **Marcellus so estraga o `0` e o `1`, e isso foi medido.**
+  //
+  // Renderizando `0123456789` com o ficheiro real sai `OI23456789`: o zero e
+  // um `O` e o um e um `I`. Os outros oito desenham normalmente. Por isso a
+  // regra olha para `[01]` e nao para qualquer digito — a primeira versao
+  // deste teste era severa demais e acusou *Os 52 territorios*, que esta
+  // correcto.
+  //
+  // O defeito ja apareceu tres vezes — no guia das runas, no indice dos guias
+  // e no do astrolabio — sempre apanhado a olhar para a pagina, nunca por um
+  // teste. A folha tem `.algarismos`, que devolve o numero a pilha do
+  // sistema, e e isso que este teste exige.
+  //
+  // Corre em todas as paginas que carregam `estilo.css`, que inclui as de
+  // `/guerras/`: elas usam a folha dos guias para a casca.
+  for (final f in paginas) {
+    final html = f.readAsStringSync();
+    if (!html.contains('guias/estilo.css') && !html.contains('"estilo.css"')) {
+      continue;
+    }
+
+    test('${f.path} nao deixa digito solto num titulo', () {
+      final titulos = RegExp(
+        r'<h[123]>(.*?)</h[123]>',
+        dotAll: true,
+      ).allMatches(html);
+
+      for (final t in titulos) {
+        // Tira o que ja esta protegido antes de procurar digitos.
+        final semProtegidos = t
+            .group(1)!
+            .replaceAll(
+              RegExp(r'<span class="algarismos">.*?</span>', dotAll: true),
+              '',
+            );
+        expect(
+          semProtegidos.contains(RegExp(r'[01]')),
+          isFalse,
+          reason:
+              'O titulo «${t.group(1)!.trim()}» tem um 0 ou um 1 fora de '
+              '<span class="algarismos">: Marcellus desenha-os como O e I.',
+        );
+      }
+    });
+  }
 }

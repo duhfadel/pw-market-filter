@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>O astrolábio, do primeiro ao nível máximo — Portal PW</title>
+  <meta name="description"
+        content="Como funciona o astrolábio no The Classic 1.8.7: as três barras, os quatro botões, a parede do nível 50 e onde não desperdiçar pérola.">
+
+  <link rel="canonical" href="https://portalpw.net/guias/astrolabio">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Portal PW">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="O astrolábio, do primeiro ao nível máximo">
+  <meta property="og:description" content="Como funciona o astrolábio no The Classic 1.8.7: as três barras, os quatro botões, a parede do nível 50 e onde não desperdiçar pérola.">
+  <meta property="og:url" content="https://portalpw.net/guias/astrolabio">
+  <meta property="og:image" content="https://portalpw.net/og-v2.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2">
+  <link rel="stylesheet" href="estilo.css">
+
+  <style>
+    .tabela-caixa { overflow-x: auto; margin: 24px 0 8px; }
+    table.dados {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 440px;
+      font-size: 0.95rem;
+      font-variant-numeric: tabular-nums;
+    }
+    table.dados th {
+      text-align: left;
+      font-size: 0.72rem;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 700;
+      padding: 0 14px 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    table.dados td {
+      padding: 9px 14px 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    table.dados td.n { text-align: right; }
+    table.dados tr.destaque td { color: var(--accent); font-weight: 700; }
+    .nota-da-tabela { color: var(--text-muted); font-size: 0.85rem; margin: 0 0 32px; }
+
+    .video-card {
+      display: flex; gap: 16px; align-items: center;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px; margin: 14px 0;
+      text-decoration: none; color: inherit; transition: border-color 0.15s;
+    }
+    .video-card:hover { border-color: var(--accent); }
+    .video-card img {
+      width: 168px; height: 94px; object-fit: cover;
+      border-radius: 8px; flex-shrink: 0; display: block;
+    }
+    .video-card .titulo {
+      display: block; font-weight: 700; font-size: 1rem; margin-bottom: 4px;
+    }
+    .video-card .canal {
+      display: block; color: var(--text-muted); font-size: 0.9rem;
+    }
+    @media (max-width: 520px) {
+      .video-card { flex-direction: column; align-items: flex-start; }
+      .video-card img { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+    }
+  </style>
+  <!-- AdSense. O número de editor é público por desenho — ele vai no bundle de
+       toda a gente e também no `ads.txt` na raiz, que é o ficheiro que diz ao
+       mercado quem está autorizado a vender este espaço. Não é segredo e não
+       há onde o esconder.
+
+       Em **todas** as páginas, e não só nas que têm espaço de anúncio: a tag é
+       o que verifica a propriedade do site, e uma página sem ela é uma página
+       que o revisor não consegue associar à conta.
+
+       Quando os anúncios começarem a servir, `/privacidade/` tem de ser
+       conferida outra vez — ela já foi atualizada para dizer que o script está
+       cá, mas quem ligar os anúncios automáticos no painel muda o que a página
+       faz sem passar por aqui. -->
+  <script async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7064703455080324"
+          crossorigin="anonymous"></script>
+</head>
+<body>
+
+<header class="topo">
+  <div class="topo-interno">
+    <a href="/" title="Portal PW">
+      <img class="marca-larga" src="/assets/assets/images/portal-pw-logo-v2.webp" alt="Portal PW">
+      <img class="marca-curta" src="/assets/assets/images/pw-mark.webp" alt="Portal PW">
+    </a>
+    <span class="secao">Astrolábio</span>
+  </div>
+</header>
+
+<main>
+  <h1>O astrolábio, do primeiro ao nível máximo</h1>
+
+  <p class="resumo">
+    A janela do astrolábio é das mais confusas do jogo: <strong>três barras que
+    fazem coisas diferentes</strong>, quatro botões que gastam recursos
+    diferentes, e nenhuma explicação. Aqui está o que cada uma faz — e onde
+    não desperdiçar o que você tem.
+  </p>
+
+  <h2>O primeiro é de graça</h2>
+
+  <p>
+    Fazendo a sua quest você chega num ponto em que fala com o
+    <strong>Alexander</strong>, e ele te dá um <strong>baú de astrolábio</strong>.
+    Abrindo, saem <strong>cinco</strong>. Escolha um e comece — os do começo não
+    vão servir muito, e tudo bem.
+  </p>
+
+  <h2>As três barras fazem coisas diferentes</h2>
+
+  <div class="tabela-caixa">
+    <table class="dados">
+      <thead>
+        <tr><th>Barra</th><th>O que ela controla</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Nível</td>
+          <td>O <strong>tamanho</strong> dos números. Mais nível, atributos
+            maiores.</td>
+        </tr>
+        <tr>
+          <td>Energia astral</td>
+          <td>O <strong>mínimo de linhas</strong> que o astrolábio vai ter.
+            Mínimo, não máximo.</td>
+        </tr>
+        <tr>
+          <td>Aptidão</td>
+          <td><strong>Quais pontas</strong> seguram os maiores atributos.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>A parede do nível <span class="algarismos">50</span></h2>
+
+  <p>
+    Até o nível 50 você sobe consumindo a <strong>pérola do astrolábio</strong>,
+    que dá <strong>1 de XP</strong> e cai aos montes — vem da 999 e do baú de
+    diárias.
+  </p>
+
+  <p>
+    <strong>No nível 50 ela para de funcionar.</strong> A janela responde
+    <em>"impossível imbuir esse item"</em>, e dali em diante só serve a
+    <strong>pérola suprema do astrolábio</strong>, que dá <strong>10 de
+    XP</strong> e não cai de graça.
+  </p>
+
+  <div class="aviso">
+    <p><strong>Onde conseguir a pérola suprema:</strong></p>
+    <p>
+      <strong>Base do clã</strong>, em <em>troca entre clãs</em>: 3 de lealdade
+      dão 2 pérolas, com reset semanal — ou seja, 30 de lealdade por semana
+      viram 20 pérolas.
+    </p>
+    <p>
+      <strong>Soldo</strong>: 35 soldos dão 100 pérolas, que são 1.000 de XP de
+      uma vez. É de longe a melhor troca.
+    </p>
+  </div>
+
+  <h2>Roletar: o horóscopo</h2>
+
+  <p>
+    O horóscopo troca os atributos. Você escolhe o mínimo de linhas que aceita,
+    e <strong>esse mínimo nunca é menor que a sua energia</strong> — com energia
+    7, qualquer rolagem traz pelo menos sete linhas.
+  </p>
+
+  <p>
+    Pedir acima do mínimo gasta mais esferas por rolagem, mas é assim que se
+    acha um astrolábio de muitas linhas. Na prática pede-se <strong>uma ou duas
+    a mais</strong> que a energia e vai-se rodando.
+  </p>
+
+  <div class="aviso">
+    <p>
+      <strong>Nunca roletar o que você está usando.</strong> Equipe o reserva e
+      role esse. Quando sair um bom, use a <em>infusão</em> para consumir o
+      antigo dentro dele — a experiência passa, e você escolhe ficar com a
+      aptidão maior dos dois.
+    </p>
+    <p>
+      É por isso que ter dois astrolábios não custa progresso nenhum. Custa só
+      esferas.
+    </p>
+  </div>
+
+  <h2>A aptidão, e as duas camadas de estrelas</h2>
+
+  <p>
+    Todo astrolábio começa com <strong>aptidão 5</strong>: são cinco estrelas
+    internas, cada uma no nível 1. E aqui está o que a janela não explica —
+    <strong>as pontas herdam a soma das duas internas ao lado delas</strong>.
+  </p>
+
+  <p>
+    Uma ponta entre duas internas de 4,60 e 3,87 fica com <strong>8,47</strong>.
+    Quanto maior a ponta, maior o atributo que ela segura. Por isso o que se
+    sobe são as internas; as pontas são o resultado.
+  </p>
+
+  <h3>As pérolas astrais, e a faixa de cada uma</h3>
+
+  <div class="tabela-caixa">
+    <table class="dados">
+      <thead><tr><th>Pérola astral</th><th>Sobe a aptidão até</th><th>Quanto dá por uso</th></tr></thead>
+      <tbody>
+        <tr><td>nível 1</td><td class="n">10</td><td class="n">—</td></tr>
+        <tr><td>nível 2</td><td class="n">15</td><td class="n">0,01 ou 0,02</td></tr>
+        <tr class="destaque"><td>nível 3</td><td class="n">20 — o máximo</td><td class="n">0,01</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    A de nível 1 vem do caminho do iniciante; a de nível 2 cai na 999 e no baú
+    diário, com estoque de sobra. <strong>Gaste cada uma na faixa dela</strong>:
+    passando do 10, a de nível 1 deixa de servir e vira lixo na bag.
+  </p>
+
+  <h3>Quanto custa ir do <span class="algarismos">15</span> ao <span class="algarismos">20</span></h3>
+
+  <p>
+    Aqui a conta é dura, porque a pérola nível 3 sobe sempre 0,01 — sem sorte
+    envolvida:
+  </p>
+
+  <div class="aviso">
+    <p>
+      <strong>500 pérolas astrais nível 3</strong>, e cada uma custa três
+      poeiras — ou seja, <strong>1.500 poeiras do Cosmo Cerúleo</strong> para
+      levar a aptidão ao máximo. Forjam-se no <strong>Agente da Bênção</strong>,
+      em <em>astrolábio</em>.
+    </p>
+    <p>
+      O caminho mais barato é o <strong>pacote de poeira do caminho do
+      iniciante</strong>, por volta de 40 de gold e com cerca de mil.
+    </p>
+  </div>
+
+  <p>
+    Com a aptidão no máximo entra a <strong>pérola astral nível 4</strong>: ela
+    <strong>redistribui</strong> a aptidão entre as estrelas, mantendo o total
+    em 20. Serve para empurrar os pontos para as pontas que seguram os atributos
+    que você quer.
+  </p>
+
+  <h2>Mudança e pó estelar</h2>
+
+  <p>
+    A <strong>mudança</strong> troca qual atributo fica em qual ponta, e gasta
+    <strong>pó estelar</strong>. Ele se forja no Agente da Bênção com poeira do
+    Cosmo Cerúleo, ou se compra com <strong>ponto de coroa</strong> — 70 pontos
+    cada, até cem por mês.
+  </p>
+
+  <p>
+    É o último passo: primeiro você acha os atributos no horóscopo, depois usa a
+    mudança para os levar às pontas maiores.
+  </p>
+
+  <h2>Trave quando ficar bom</h2>
+
+  <div class="aviso">
+    <p>
+      Um astrolábio pode ser <strong>travado por 1.000 de prata</strong>, e
+      destravado por 9.000. Travado, ele não pode ser consumido por engano nem
+      ter as estrelas mexidas.
+    </p>
+    <p>
+      Como prata é fácil neste servidor, vale travar assim que ficar bom — e
+      destravar só no dia em que sair um melhor.
+    </p>
+  </div>
+
+  <h2>O nível <span class="algarismos">105</span>, e o fim do roletar</h2>
+
+  <p>
+    No nível 105 abre o botão <strong>escolha</strong>, e aí acaba a sorte:
+    você escolhe cada atributo do astrolábio, um a um.
+  </p>
+
+  <p>
+    É longe — e por isso quase ninguém chega lá. Até chegar, o caminho é o
+    horóscopo.
+  </p>
+
+  <div class="aviso">
+    <p>
+      <strong>No máximo dois atributos iguais.</strong> Dois de ataque, dois de
+      penetração, dois de espírito — e assim por diante, até fechar as dez
+      linhas. Vale em todos os níveis, não só no 105.
+    </p>
+  </div>
+
+  <h2>O que escolher, pela sua classe</h2>
+
+  <p>
+    Depende da sua classe — e você pode ter mais de um astrolábio: um para
+    dano e outro para defesa.
+  </p>
+
+  <h3>O de dano</h3>
+
+  <p>
+    Como atributos principais: <strong>ataque físico ou mágico</strong>,
+    <strong>penetração física ou mágica</strong> — conforme a classe — e
+    <strong>espírito</strong>.
+  </p>
+
+  <h3>O de defesa</h3>
+
+  <p>
+    <strong>Vida</strong>, <strong>defesa física ou mágica</strong> — de novo,
+    conforme a classe — e <strong>espírito</strong>.
+  </p>
+
+  <p>
+    E vale o trabalho porque o ataque do astrolábio entra <em>antes</em> das
+    porcentagens do set e das passivas: cem ali podem virar quinhentos depois
+    de tudo multiplicado.
+  </p>
+
+  <h2>Os vídeos</h2>
+
+  <p>
+    Dois criadores da comunidade explicaram o astrolábio em vídeo, mostrando a
+    janela na prática. Se ficou alguma dúvida, vale ver os dois:
+  </p>
+
+  <a class="video-card" href="https://www.youtube.com/watch?v=rT-Kdu25SRg">
+    <img src="https://img.youtube.com/vi/rT-Kdu25SRg/hqdefault.jpg"
+         width="168" height="94" loading="lazy"
+         alt="Miniatura do vídeo do RomanZitto sobre o astrolábio">
+    <span>
+      <span class="titulo">Todas as mecânicas do astrolábio</span>
+      <span class="canal">no canal do RomanZitto PW</span>
+    </span>
+  </a>
+
+  <a class="video-card" href="https://www.youtube.com/watch?v=agTAL5HrSos">
+    <img src="https://img.youtube.com/vi/agTAL5HrSos/hqdefault.jpg"
+         width="168" height="94" loading="lazy"
+         alt="Miniatura do vídeo do PavãoTV sobre o astrolábio">
+    <span>
+      <span class="titulo">GUIA DE ASTROLÁBIO DEFINITIVO! COMO UPAR?</span>
+      <span class="canal">no canal do PavãoTV</span>
+    </span>
+  </a>
+
+  <hr>
+
+  <p class="nota-da-tabela">
+    Este guia foi montado a partir do que dois jogadores da comunidade
+    explicaram em vídeo. Se alguma coisa mudar numa atualização, ou se você faz
+    diferente e funciona melhor, conte no
+    <a href="https://discord.gg/n5v3WdSJyg">Discord</a> que eu corrijo.
+  </p>
+
+</main>
+
+<div class="publicidade">
+  <span class="rotulo">PUBLICIDADE</span>
+  <a class="casa" href="mailto:duhspain@gmail.com">Quer anunciar neste espaço? <strong>Clique aqui</strong></a>
+</div>
+
+<footer>
+  <p>
+    Projeto de fã, sem vínculo com o The Classic Games.<br>
+    <a href="/privacidade/">Privacidade</a> &middot; <a href="/">Voltar ao Portal</a>
+  </p>
+</footer>
+
+</body>
+</html>

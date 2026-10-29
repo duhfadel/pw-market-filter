@@ -201,16 +201,31 @@ final tools = <Tool>[
   // das duas páginas e devolvê-las ao sitemap.
   //
   // `assets/images/barbaro.webp` ficou livre com a saída dela.
+  // **Esta entrada era o *Início rápido* e passou a ser a Saga do Herói a
+  // 29/10/2026, a pedido do dono, e a troca é sobre a quem a gaveta serve.**
+  // A gaveta tem duas entradas de Guias: uma destacada e a porta para a
+  // lista inteira. A destacada estava gasta com o guia que serve quem está
+  // a começar — e quem está a começar não abre menus, abre o jogo. Quem abre
+  // esta gaveta já joga, e para esse a pergunta corrente é qual saga fazer.
+  //
+  // O *Início rápido* não saiu do site: continua em `web/guias/index.html`,
+  // que é a lista que se mantém sozinha, e a entrada *Todos os guias* logo
+  // abaixo leva lá. É exactamente a divisão que essa entrada existe para
+  // garantir — o menu destaca um, a lista guarda todos.
   Tool(
-    name: 'Início rápido',
+    name: 'Saga do Herói',
+    // Um mês de selo, e a data vence sozinha.
+    novoAte: _ateFimDeNovembro,
     tagline:
-        'Como ganhar nível: as quests vermelhas, o Vale da Fênix e as '
-        'Anedotas.',
-    icon: Icons.auto_stories_outlined,
+        'As 17 sagas lado a lado: o mascote e o título de +100 de HP de cada '
+        'classe, e as missões de cada uma com as coordenadas.',
+    icon: Icons.military_tech_outlined,
     secao: 'Guias',
-    // Pedra de Hiper EXP, which is what the guide is about: levelling fast.
-    emblem: 27424,
-    href: '/guias/inicio-rapido',
+    // Um ovo de mascote, que é o que as dezassete sagas pagam. Partilha a
+    // arte com todos os outros ovos — mas `emblem` não é lido em lado
+    // nenhum hoje, e quando for, o ovo é o símbolo certo para isto.
+    emblem: 38587,
+    href: '/guias/saga-do-heroi/',
     versoes: const {'1.8.7'},
   ),
   // **A porta para a lista, e ela existe porque havia duas listas de guias que
@@ -291,6 +306,9 @@ final tools = <Tool>[
 /// Títulos tinha-se apagado sozinho a 20/10 — que é precisamente o que a data
 /// existe para fazer.
 final _ateNovembro = DateTime.utc(2026, 11, 5);
+
+/// Um mês a contar da publicação das dezassete Sagas do Herói, a 29/10/2026.
+final _ateFimDeNovembro = DateTime.utc(2026, 11, 29);
 
 /// As seções na ordem em que a home as mostra, cada uma uma vez.
 ///

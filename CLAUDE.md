@@ -1065,6 +1065,82 @@ do outro como actuais. O 187 ia subir de 4 para 5 e o 126 já estava em 5;
 daí o salto para 6. O teste que guardava isto afirmava a desigualdade como
 se fosse acaso, e era o mecanismo.
 
+## As dezessete Sagas do Herói
+
+`web/guias/saga-do-heroi/` são dezoito páginas geradas por `tool/sagas/`: uma
+por classe, com as 645 missões e as coordenadas, mais um índice com as
+dezassete lado a lado. **A tabela comparativa não existe em lado nenhum** — o
+Trivia tem dezassete páginas separadas, o wikipw quinze, a PWpedia tem tudo
+numa só mas em inglês e sem o Paladino.
+
+**Traduzir o nome foi o que abriu a fonte que faltava.** `Perfect World Hero
+Saga` levou à PWpedia, a única que diz que **a experiência escala até ao
+nível 100 e trava ali**: a saga abre no 80 e o mascote é o mesmo, portanto
+fazer no 80 é trocar milhões de experiência por pressa. Nenhuma fonte em
+português diz isso, e é o conselho mais útil das dezoito páginas.
+
+A mesma fonte corrigiu um mapeamento que o nome teria estragado: **o herói do
+Arcano é Mu Suiliang, que a PWpedia publica como *Seeker*.** Traduzir a
+classe teria emparelhado o Seeker com o Paladino. **O que fecha a
+correspondência é o herói, nunca o nome traduzido** — e vale para qualquer
+cruzamento futuro entre as versões.
+
+**Duas linhas vão escritas como não confirmadas, na própria página.** O
+Paladino tem uma fonte só e de teste: as duas páginas em português trazem o
+mesmo texto e o mesmo aviso do servidor de testes da Level Up, e a PWpedia
+não o tem. E o Ceifador diverge — em português o ovo é o do *Tianshou* e o
+título *Outono do Mundo*; em inglês a PWpedia regista *Tevin* e *Undefeated*,
+que não são traduções uma da outra. Dizer a dúvida custa menos do que uma
+certeza inventada, e é o que traz uma correção de quem jogou.
+
+### A arte vem do mercado deles, e o endereço é a ocupação
+
+As dezassete estão em
+`marketplace.theclassic.games/assets/img/<ocupacao>.png`, **já recortadas** —
+62% a 76% de cada ficheiro é transparente. `tool/sagas/baixar_arte.py` lê a
+correspondência classe→ocupação do próprio `web/market_index.json`, onde
+2.486 personagens a confirmam sem uma única mistura, e as dezassete foram
+conferidas contra as fichas do site: 17 de 17.
+
+A primeira versão capturava as artes de dois wikis — oito das páginas das
+sagas, oito das páginas das classes, e o Ceifador de lado nenhum porque o
+wiki não tem página dele. **Procurar num sítio só e concluir que não existe
+foi o erro**, e quem o apanhou foi o dono.
+
+`tool/sagas/arte.py` pergunta ao ficheiro se já é um recorte antes de
+recortar: `convert('RGB')` deita fora o canal alfa e o que estava por baixo
+dos pixéis transparentes passa a visível, portanto recortar o que já está
+recortado destrói-o. O caminho do recorte fica para arte que chegue em fundo
+branco, e é **um preenchimento a partir dos quatro cantos, nunca um limiar
+sobre o branco**: o que faz um pixel ser fundo não é ser branco, é ser branco
+*e alcançável de fora da figura*. As bolsas presas dentro da figura vão até
+5% da imagem — medido, não arbitrado: a maior real foi 1,86% e a seguinte
+0,01%, e o vão é largo porque **arte pintada quase nunca é 240+ nos três
+canais numa região inteira e fundo chapado sempre é**.
+
+### O campo que repetia o slug durou uma hora
+
+`Saga.arte` guardava `guerreiro.webp` ao lado de `'slug': 'guerreiro'` — o
+mesmo facto em dois sítios. Divergiu na primeira vez que alguém lhe tocou:
+uma expressão regular com `(?:.*\n)*?` a preencher os campos **atravessou
+registos** e deu ao Ceifador a arte do Guerreiro. O campo saiu; o nome deriva
+do slug e `pagina.py` recusa-se a correr se faltar um ficheiro.
+
+`paginas_html_test` ganhou a guarda geral que faltava: **toda a imagem que
+uma página pede tem de existir em disco**. Apanhou duas coisas que não
+estavam escritas — `/assets/assets/` é o caminho do *build* do Flutter e não
+o do repositório, e as páginas de `/guerras/` montam o brasão em JavaScript,
+portanto não há ficheiro para conferir.
+
+### A gaveta de Guias destaca uma e a lista guarda todas
+
+A pílula *Guias* lista a Saga do Herói, *Todos os guias* e *Multi contas*. O
+*Início rápido* saiu do destaque a pedido do dono a 29/10/2026 e **não saiu
+do site**: continua em `web/guias/index.html`. É a divisão que a entrada
+*Todos os guias* existe para garantir, e a razão pela qual a correção de
+22/10 não foi dar um `Tool` a cada artigo — isso repara o terceiro e deixa o
+quarto cair no mesmo buraco.
+
 ## Gotchas
 
 Each of these already cost something — measured on the live site, not guessed.
@@ -1371,6 +1447,24 @@ Each of these already cost something — measured on the live site, not guessed.
   `last-modified`. It expires on its own. The way to tell "still propagating"
   from "actually broken" is to compare `md5` of the served bundle against
   `build/web/main.dart.js`, not to look at the page.
+
+  **E a medição tem de ser do endereço canónico, sem query — o contrário da
+  regra da página, e a 29/10/2026 quase publiquei um verde falso por causa
+  disso.** Para não ler do cache pedi `main.dart.js?cb=1`, e a query **é**
+  chave de cache: a Cloudflare foi buscar fresco à origem só para mim. O
+  grep encontrou a string nova e eu ia anunciar que estava no ar, enquanto
+  `main.dart.js` sem query continuava a devolver `HIT` com o bundle
+  anterior — md5 diferente entre as duas respostas na mesma máquina, no
+  mesmo segundo.
+
+  É a mesma armadilha da nota acima vista pelo outro lado: ali o
+  cache-buster **não chega** ao recurso que interessa, aqui **chega demais**
+  e mede um recurso que nenhum visitante pede. `flutter_bootstrap.js` pede
+  `"main.dart.js"` exactamente assim, sem versão, e é esse o único endereço
+  que diz o que o visitante recebe. O que separa propagação de avaria é ver
+  `cf-cache-status` passar de `HIT` a `EXPIRED` **no endereço canónico** —
+  mediu-se a virar aos 562 segundos de idade, com a string nova a aparecer
+  no mesmo pedido.
 
 - **Um teste que não percorre o caminho do utilizador não é uma rede, é um
   enfeite — e em 02/10/2026 três defeitos bloqueantes chegaram a um build

@@ -313,3 +313,114 @@ footer a { color: var(--text-muted); }
 .publicidade a strong { color: var(--accent); }
 
 .publicidade img { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+
+/* ── Saga do Herói ────────────────────────────────────────────────────────
+   A arte do herói vem do wikipw com fundo branco, e `tool/sagas/arte.py`
+   recorta-o. Por isso aqui não há moldura nem fundo: uma caixa à volta de
+   uma figura recortada desenha um rectângulo onde já não há nada. A sombra
+   é o que a assenta na página — o recorte sozinho fá-la flutuar. */
+.arte-heroi { margin: 20px 0 28px; text-align: center; }
+.arte-heroi img {
+  max-width: 260px;
+  width: 100%;
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
+}
+
+/* A lista de missões é longa — cinquenta itens no Mago — por isso cada uma
+   ganha ar, e o número fica fora do texto para a leitura poder saltar. */
+ol.passos { margin: 20px 0; padding-left: 28px; }
+ol.passos li { margin-bottom: 14px; line-height: 1.6; }
+ol.passos li strong { color: var(--text); }
+
+/* A tabela das dezassete é larga de propósito; quem rola é ela, nunca a
+   página — a regra que o resto do site já segue para conteúdo largo. */
+.rolagem { overflow-x: auto; margin: 24px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td {
+  text-align: left;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* **Os nomes quebram; o número nunca.** Com `nowrap` em tudo, a tabela das
+   dezassete sagas ficava larga por causa de «Ovo de Pequena Dongfang Meng» e
+   empurrava a coluna das missões para fora do ecrã — justamente a coluna que
+   leva alguém a escolher por onde começar. Um nome partido em duas linhas
+   lê-se; uma coluna que não se vê, não. */
+th:last-child, td:last-child { white-space: nowrap; }
+th { color: var(--text-muted); font-weight: 600; font-size: 0.82rem;
+     text-transform: uppercase; letter-spacing: 0.04em; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+tbody tr:hover { background: rgba(255, 255, 255, 0.025); }
+
+/* O remate dourado no fim de cada saga. É o único bloco da página inteira
+   que usa o acento como fundo — gastá-lo noutro sítio tiraria-lhe o peso
+   aqui, que é o único sítio onde há algo para celebrar. */
+.remate {
+  background: linear-gradient(135deg,
+              rgba(255, 180, 84, 0.14), rgba(255, 180, 84, 0.05));
+  border: 1px solid rgba(255, 180, 84, 0.45);
+  border-radius: 10px;
+  padding: 20px 22px;
+  margin: 30px 0;
+}
+
+.remate .parabens {
+  font-family: 'Marcellus', Georgia, serif;
+  font-size: 1.32rem;
+  line-height: 1.35;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.remate p:last-child { margin-bottom: 0; }
+
+/* ── A grade das dezassete classes ────────────────────────────────────────
+   É a porta de entrada do índice das sagas: quem chega, chega pela classe
+   que joga, e reconhece-a pela arte antes de ler nome nenhum. `auto-fill`
+   com um mínimo de 124 px dá seis colunas num portátil e duas num
+   telemóvel sem nenhum breakpoint escrito à mão. */
+.grade-classes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+  gap: 10px;
+  margin: 26px 0 34px;
+}
+
+.carta-classe {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 6px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.carta-classe:hover,
+.carta-classe:focus-visible {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+/* A arte tem alturas diferentes entre classes — o Bárbaro é largo, o Bardo
+   é alto — por isso a caixa é que manda, e `contain` mantém cada uma
+   inteira em vez de cortar o que não cabe. */
+.carta-classe img {
+  width: 100%;
+  height: 104px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+}
+
+.carta-classe span {
+  color: var(--text);
+  font-size: 0.86rem;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.carta-classe:hover span { color: var(--accent); }

@@ -62,6 +62,52 @@ void main() {
     });
   }
 
+  // **Toda imagem que uma página pede tem de existir.**
+  //
+  // A 29/10/2026 uma expressão regular que preenchia o nome do ficheiro da
+  // arte atravessou registos e deu ao Ceifador a arte do Guerreiro. Esse
+  // caso concreto deixou de ser possível — o nome passou a ser derivado do
+  // slug — mas a forma geral continua: **o HTML aponta para um ficheiro e
+  // ninguém verifica que ele está lá.** Um `src` partido não falha nada; só
+  // desenha um ícone de imagem partida a quem visita.
+  for (final f in paginas) {
+    final html = f.readAsStringSync();
+    final pasta = f.parent.path;
+
+    test('${f.path} aponta só para imagens que existem', () {
+      final fontes = RegExp(r'<img[^>]+src="([^"]+)"')
+          .allMatches(html)
+          .map((m) => m.group(1)!)
+          // Absolutas resolvem a partir de `web/`, relativas a partir da
+          // pasta da própria página; endereços externos não são nossos.
+          // Endereços externos não são nossos; e um `src` com `\${…}` é
+          // montado em JavaScript a partir do Supabase quando a página
+          // corre — o brasão de cada guilda no mapa das guerras — portanto
+          // não há ficheiro nenhum no repositório para conferir.
+          .where((s) =>
+              !s.startsWith('http') &&
+              !s.startsWith('data:') &&
+              !s.contains(r'${'));
+
+      for (final src in fontes) {
+        // **`/assets/assets/…` é o caminho do build, não o do repositório.**
+        // O Flutter copia a pasta `assets/` para dentro de `assets/` no
+        // bundle, e é por isso que o logótipo de todas as páginas aparece
+        // com o nome duplicado. No disco ele está em `assets/images/`.
+        final caminho = src.startsWith('/assets/assets/')
+            ? src.substring('/assets/'.length)
+            : src.startsWith('/')
+                ? 'web$src'
+                : '$pasta/$src';
+        expect(
+          File(caminho).existsSync(),
+          isTrue,
+          reason: '${f.path} pede «$src», que não existe em $caminho.',
+        );
+      }
+    });
+  }
+
   // **Marcellus so estraga o `0` e o `1`, e isso foi medido.**
   //
   // Renderizando `0123456789` com o ficheiro real sai `OI23456789`: o zero e

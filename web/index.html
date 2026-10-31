@@ -95,24 +95,82 @@
       background-color: #0B0B1A;
     }
   </style>
-  <!-- AdSense. O número de editor é público por desenho — ele vai no bundle de
-       toda a gente e também no `ads.txt` na raiz, que é o ficheiro que diz ao
-       mercado quem está autorizado a vender este espaço. Não é segredo e não
-       há onde o esconder.
-
-       Em **todas** as páginas, e não só nas que têm espaço de anúncio: a tag é
-       o que verifica a propriedade do site, e uma página sem ela é uma página
-       que o revisor não consegue associar à conta.
-
-       Quando os anúncios começarem a servir, `/privacidade/` tem de ser
-       conferida outra vez — ela já foi atualizada para dizer que o script está
-       cá, mas quem ligar os anúncios automáticos no painel muda o que a página
-       faz sem passar por aqui. -->
-  <script async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7064703455080324"
-          crossorigin="anonymous"></script>
 </head>
 <body>
+  <!-- **Este conteúdo existe para quem não executa JavaScript, e isso inclui
+       o robô do Google.** A app desenha em canvas: depois de o Flutter
+       arrancar não há um único nó de texto nesta página, e com rota por
+       hash `/`, `/#/pw187/filtro`, `/#/runas` e `/#/registros` são todos
+       este mesmo ficheiro. Durante meses isso foi uma casca de 67
+       caracteres — e a 31/10/2026 o AdSense reprovou o site com, palavra
+       por palavra, «anúncios veiculados em telas sem conteúdo do editor».
+
+       O `flutter_bootstrap.js` substitui tudo o que está aqui dentro
+       quando arranca, portanto um visitante nunca vê este bloco. Quem o vê
+       é o robô, o revisor, e quem chega com JavaScript desligado — e para
+       esses três passa a haver um caminho para o resto do site, que antes
+       não existia.
+
+       **Tem de continuar verdadeiro.** Encher isto de palavras-chave seria
+       trocar uma infração por outra pior. Diz o que o site faz e aponta
+       para onde está o conteúdo. -->
+  <!-- **O Flutter acrescenta, não substitui.** O carregador cria um
+       `<flutter-view>` e pendura-o no `<body>`; o que já lá estava fica. Sem
+       isto o bloco abaixo continuaria visível por baixo da app. O evento
+       `flutter-first-frame` é o sinal documentado de que há ecrã desenhado,
+       e é nele que o bloco sai — antes disso fica, que é o que serve a quem
+       não executa JavaScript. -->
+  <style>
+    #sem-script {
+      max-width: 42rem;
+      margin: 0 auto;
+      padding: 40px 24px;
+      font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #E8E8F4;
+      background: #0B0B1A;
+    }
+    #sem-script a { color: #FFB454; }
+  </style>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var fora = document.getElementById('sem-script');
+      if (fora) fora.remove();
+    });
+  </script>
+  <div id="sem-script">
+    <h1>Portal PW</h1>
+    <p>
+      Ferramentas e guias para o <strong>Perfect World The Classic</strong>,
+      nas versões 1.8.7 e 1.2.6.
+    </p>
+    <p>
+      O <strong>filtro de mercado</strong> procura personagens à venda
+      <em>pelos atributos do que eles estão usando</em> — arma, cartas,
+      relíquias, essências e runas — que é o que o marketplace guarda no
+      inventário e não deixa procurar. Há ainda uma calculadora de fusão de
+      runas, as receitas do NPC de Títulos e o mapa das guerras
+      territoriais.
+    </p>
+    <p>
+      Esta página precisa de JavaScript. Os guias são páginas normais e
+      funcionam sem ele:
+    </p>
+    <ul>
+      <li><a href="/guias/">Todos os guias</a></li>
+      <li><a href="/guias/saga-do-heroi/">Saga do Herói: as 17 classes</a></li>
+      <li><a href="/guias/runas">Quanto custa uma runa nível 10</a></li>
+      <li><a href="/guias/conduite">O conduíte, do começo ao nível máximo</a></li>
+      <li><a href="/guias/astrolabio">O astrolábio, do primeiro ao nível máximo</a></li>
+      <li><a href="/guias/cartas-nuema">As cartas do conjunto Nuema</a></li>
+      <li><a href="/guias/quests-diarias">Quais diárias valem a pena</a></li>
+      <li><a href="/guias/inicio-rapido">Início rápido: como ganhar nível</a></li>
+      <li><a href="/guerras/">Mapa das guerras territoriais</a></li>
+      <li><a href="/privacidade/">Privacidade</a></li>
+    </ul>
+    <p>
+      Projeto de fã, sem vínculo com o The Classic Games.
+    </p>
+  </div>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

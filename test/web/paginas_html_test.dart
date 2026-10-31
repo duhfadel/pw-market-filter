@@ -34,25 +34,66 @@ void main() {
     expect(paginas.length, greaterThanOrEqualTo(7));
   });
 
+  // **A tag do AdSense vai nas páginas com conteúdo, e é proibida nas
+  // outras — e a segunda metade desta regra nasceu de uma reprovação.**
+  //
+  // Este teste exigia a tag em *toda* página HTML, com a justificação de que
+  // «uma página sem ela é uma página que o revisor não consegue associar à
+  // conta». Era falso: quem prova a propriedade é o `ads.txt` na raiz, que o
+  // painel já dava como *Autorizado*. E o custo foi real — a 31/10/2026 o
+  // AdSense reprovou `portalpw.net` com, palavra por palavra, **«anúncios
+  // veiculados pelo Google em telas sem conteúdo do editor»**.
+  //
+  // A tela em causa é `web/index.html`, cujo `<body>` eram 67 caracteres: um
+  // `<script>`. A app desenha em canvas, portanto nem depois de executar o
+  // JavaScript existe texto para ler — e com rota por hash, metade do site é
+  // esse mesmo ficheiro. O teste estava a defender exactamente o que nos
+  // reprovou.
+  //
+  // A regra é por **pasta** e não por lista de ficheiros, de propósito: um
+  // guia novo herda-a sem ninguém se lembrar, que é a mesma razão pela qual
+  // este ficheiro varre `web/` em vez de enumerar páginas.
+  bool temConteudoProprio(File f) =>
+      f.path.startsWith('web/guias/') || f.path.startsWith('web/privacidade/');
+
   for (final f in paginas) {
     final html = f.readAsStringSync();
 
-    test('${f.path} carrega a tag do AdSense', () {
-      // O número de editor e não só o nome do script: um `adsbygoogle.js` com
-      // o id de outra conta verifica a conta de outra pessoa.
-      expect(
-        html,
-        contains('ca-pub-7064703455080324'),
-        reason:
-            'Sem a tag, esta página não se associa à conta do AdSense. '
-            'Copie o bloco `<!-- AdSense. ... -->` de outra página do site.',
-      );
-    });
+    if (temConteudoProprio(f)) {
+      test('${f.path} carrega a tag do AdSense', () {
+        // O número de editor e não só o nome do script: um `adsbygoogle.js`
+        // com o id de outra conta verifica a conta de outra pessoa.
+        expect(
+          html,
+          contains('ca-pub-7064703455080324'),
+          reason:
+              'Esta página tem conteúdo próprio e devia servir anúncio. '
+              'Copie o bloco `<!-- AdSense. ... -->` de outra página.',
+        );
+      });
+    } else {
+      test('${f.path} NÃO carrega a tag do AdSense', () {
+        expect(
+          html,
+          isNot(contains('ca-pub-7064703455080324')),
+          reason:
+              'Esta página não tem conteúdo próprio — é a casca da app ou '
+              'uma página `noindex`. Servir anúncio aqui é a infração que '
+              'reprovou o site a 31/10/2026.',
+        );
+      });
+    }
+  }
+
+  // A política é obrigatória para quem serve anúncio e pedida pela LGPD, e
+  // de nada serve se a página que a precisa não lhe apontar. Vale para todas
+  // as páginas e não só para as que servem anúncio: um visitante que chega a
+  // `/guerras/` tem o mesmo direito de encontrar o caminho.
+  for (final f in paginas) {
+    final html = f.readAsStringSync();
 
     test('${f.path} liga a política de privacidade', () {
-      // A política é obrigatória para o AdSense e pedida pela LGPD, e de nada
-      // serve se a página que a precisa não lhe apontar. A própria política
-      // está isenta: ela não se liga a si mesma.
+      // A própria política está isenta: ela não se liga a si mesma.
       if (f.path.contains('privacidade')) return;
       expect(
         html,
@@ -107,6 +148,53 @@ void main() {
       }
     });
   }
+
+  // **O sitemap tem de descrever as páginas que existem.**
+  //
+  // Era uma lista à mão, e envelheceu como listas à mão envelhecem: as
+  // dezoito páginas das Sagas do Herói entraram a 29/10/2026 e nenhuma foi
+  // inscrita. A 31/10 o AdSense reprovou o site por **conteúdo de baixo
+  // valor** tendo diante dele nove endereços de vinte e sete — as melhores
+  // páginas estavam publicadas e invisíveis.
+  //
+  // `tool/sitemap.py` gera o ficheiro; este teste é o que obriga a correr o
+  // gerador. Sem ele o gerador existe e ninguém se lembra dele, que é
+  // exactamente o estado anterior com mais um script.
+  test('o sitemap lista todas as páginas indexáveis, e só essas', () {
+    final xml = File('web/sitemap.xml').readAsStringSync();
+    final listados = RegExp(r'<loc>https://portalpw\.net([^<]*)</loc>')
+        .allMatches(xml)
+        .map((m) => m.group(1)!)
+        .toSet();
+
+    for (final f in paginas) {
+      final html = f.readAsStringSync();
+      final rel = f.path.substring('web'.length);
+      final url = rel == '/index.html'
+          ? '/'
+          : rel.endsWith('/index.html')
+              ? rel.substring(0, rel.length - 'index.html'.length)
+              : rel.substring(0, rel.length - '.html'.length);
+
+      if (html.contains('noindex')) {
+        expect(
+          listados,
+          isNot(contains(url)),
+          reason:
+              '${f.path} pede noindex e está no sitemap — são duas '
+              'instruções opostas ao mesmo robô. Corra tool/sitemap.py.',
+        );
+      } else {
+        expect(
+          listados,
+          contains(url),
+          reason:
+              '${f.path} está publicada e fora do sitemap. '
+              'Corra `python3 tool/sitemap.py`.',
+        );
+      }
+    }
+  });
 
   // **Marcellus so estraga o `0` e o `1`, e isso foi medido.**
   //

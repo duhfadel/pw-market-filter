@@ -342,6 +342,41 @@ Discord returns the messages with `content` empty — no error, no warning — s
 the channel looks empty and the bug looks like a wrong channel ID. The log
 counts `N vieram, M com texto` precisely to tell those two apart.
 
+#### Os vídeos de guerra: o Worker procura, e quem decide é uma pessoa
+
+`canais_youtube (canal, nome, personagem, classe, ativo, visto_em)` guarda os
+doze canais que publicam TW. Uma vez por dia o Worker lê os feeds RSS
+(`/feeds/videos.xml?channel_id=…`, doze pedidos) e **avisa no Discord** o que
+apareceu e o que morreu.
+
+**Avisa e não insere, e são três coisas que o feed não dá.** *TW não é a única
+guerra* — os mesmos canais publicam NW, GVG, Soldo e Mini TW, e ao levantar
+isto à mão a 02/11/2026 cinco vídeos foram descartados por isso. *A data da
+guerra não é a do upload* — o LeoBiju publicou a 27/10 uma guerra de 24/10.
+E *a classe e o personagem não estão no feed*: o canal «Akkah» publica vídeos
+do ANTIФak, que é Místico, e é por isso que a tabela os guarda.
+
+**Olha nos dois sentidos, e a segunda metade custou um defeito.** A 02/11
+inseri o vídeo do WinX-Sombrao; a 03/11 ele respondia 404 — apagado ou tornado
+privado em menos de um dia. Um cartão morto no site é pior do que um cartão a
+menos. O job esconde (`visivel = false`, nunca apaga) **só com um 404 na mão**:
+uma falha de rede não é prova de morte, que é a mesma regra da Twitch.
+
+**A marca de «parece TW» é negativa.** A primeira versão exigia a palavra *TW*
+no título e reprovava os sete vídeos do Mozaum, que são todos guerra
+territorial — ele escreve «Ragnarok x Nexus 31/10/2026» e mais nada. Marca-se
+➖ só com prova de ser outra coisa; *Mini TW* tem *TW* lá dentro e é por isso
+que a lista do que **não** é ganha.
+
+**E a data do título tem uma armadilha que só a medição mostra.** `The Classic
+PW 1.8.7` casa como 1 de Agosto antes da data verdadeira. A primeira correcção
+foi apagar `\d+.\d+.\d+` antes de procurar — e isso **apagou também as
+datas**, porque `24.10.26` tem exactamente a mesma forma que `1.8.7`. Não há
+como distinguir os dois pela forma. O que os distingue é o resultado, portanto
+varrem-se todos os candidatos e fica o primeiro que cai perto do upload. O
+mesmo teste apanha o «31.11.2026» que o Sombrão escreveu: 31 de Novembro não
+existe.
+
 #### The streamers: a third table, and the Worker as the only writer
 
 `canais_twitch (canal, nome, ativo, ao_vivo, titulo, jogo, espectadores,

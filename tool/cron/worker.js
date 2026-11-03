@@ -64,6 +64,13 @@ const CRON_DA_COLETA = '7,37 * * * *';
 // banner nenhum.
 const CRON_DA_TWITCH = '*/5 * * * *';
 
+// **Uma vez por dia, e tem de bater com `wrangler.toml` carácter a
+// carácter** — o despacho compara as strings, como o da coleta. 14:11 UTC
+// são 11:11 em Brasília: as guerras são à sexta e ao sábado à noite, os
+// vídeos sobem no dia seguinte, e um aviso de madrugada é um aviso que
+// ninguém lê.
+const CRON_DOS_VIDEOS = '11 14 * * *';
+
 // Público por decisão da Twitch, não por descuido: a documentação diz que o
 // Client ID "is considered public and can be embedded in a web page's source".
 // O que não pode aparecer é o secret, e ele vive no `wrangler secret`.
@@ -113,7 +120,12 @@ export default {
       return;
     }
 
-    // Nem o da Twitch nem o da coleta: sobra o keep-alive diário do Supabase.
+    if (event.cron === CRON_DOS_VIDEOS) {
+      await procurarVideosDeGuerra(env);
+      return;
+    }
+
+    // Nem a Twitch, nem os vídeos, nem a coleta: sobra o keep-alive do banco.
     if (event.cron !== CRON_DA_COLETA) {
       await manterOBancoAcordado();
       return;
@@ -728,4 +740,292 @@ function github(env, caminho, method = 'GET', body) {
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+}
+
+// ── Vídeos de guerra ────────────────────────────────────────────────────────
+//
+// Lê os feeds RSS dos canais em `canais_youtube` e avisa no Discord o que há
+// de novo — e o que **deixou de existir**.
+//
+// **Avisa, não insere, e isso é decisão e não preguiça.** Três coisas que uma
+// linha de `videos` precisa não saem do feed de forma fiável:
+//
+//   1. **TW não é a única guerra.** Os mesmos canais publicam NW, GVG, Soldo,
+//      Mini TW e vídeos de build. A 02/11/2026, ao levantar isto à mão, cinco
+//      vídeos foram descartados por isso. O título dá um palpite, não uma
+//      certeza.
+//   2. **A data da guerra não é a data do upload.** O LeoBiju publicou a 27/10
+//      uma guerra de 24/10. Gravar o upload poria o vídeo na noite errada.
+//   3. **A classe e o personagem não estão no feed.** Vêm da tabela de canais,
+//      e é por isso que ela os guarda — mas um canal pode publicar o vídeo de
+//      outra pessoa, e aí só quem lê é que sabe.
+//
+// Um job que adivinhasse as três erraria em silêncio. Este propõe e espera.
+//
+// **E olha nos dois sentidos, o que custou um defeito para aprender.** A
+// 02/11 inseri o vídeo do WinX-Sombrao; a 03/11 ele já respondia 404 — apagado
+// ou tornado privado em menos de um dia. Um cartão morto no site é pior do
+// que um cartão a menos, e ninguém ia reparar.
+const FEED_YOUTUBE = 'https://www.youtube.com/feeds/videos.xml?channel_id=';
+
+// **A marca é negativa: ➖ só com prova de que é outra coisa.**
+//
+// A primeira versão exigia a palavra *TW* no título, e medida contra os
+// feeds reais a 03/11/2026 reprovou sete vídeos do Mozaum que são todos
+// guerra territorial — ele escreve «Ragnarok x Nexus 31/10/2026» e mais
+// nada. Exigir a palavra punha o trabalho todo de volta em quem lê.
+//
+// «Mini TW» tem *TW* lá dentro e não é, e é por isso que esta lista existe
+// e ganha.
+const NAO_E_TW =
+  /\b(mini.?tw|nw|nation war|guerra das na|gvg|soldo|arena|x1|evento|arte(s)? marciai|como |build)/i;
+
+async function procurarVideosDeGuerra(env) {
+  const canais = await lerCanaisDoYoutube(env);
+  if (canais.length === 0) {
+    console.error('nenhum canal activo em canais_youtube.');
+    return;
+  }
+
+  const conhecidos = await lerVideosConhecidos(env);
+  if (conhecidos === null) {
+    // Sem a lista do que já temos, tudo pareceria novo. Calar é o certo.
+    console.error('não deu para ler a tabela videos; nada a avisar.');
+    return;
+  }
+
+  const novos = [];
+  const mudos = [];
+
+  for (const canal of canais) {
+    const entradas = await lerFeed(canal.canal);
+    if (entradas === null) {
+      mudos.push(canal.nome);
+      continue;
+    }
+    await marcarCanalVisto(env, canal.canal);
+
+    for (const e of entradas) {
+      if (conhecidos.has(e.id)) continue;
+      // Só o que subiu nos últimos dez dias: o feed traz quinze vídeos por
+      // canal e alguns canais têm anos de histórico. Sem este corte, o
+      // primeiro aviso teria cento e vinte e oito linhas.
+      if (diasDesde(e.publicado) > 10) continue;
+      novos.push({ ...e, canal });
+    }
+  }
+
+  const mortos = await procurarVideosMortos(env);
+  await contarOsVideos(env, novos, mortos, mudos);
+}
+
+// Os vídeos visíveis que o YouTube já não serve.
+//
+// **Só esconde com um 404 na mão.** Uma falha de rede não é prova de que o
+// vídeo morreu, e marcar como ausente o que apenas não respondeu seria
+// transformar um problema de rede numa afirmação falsa — a mesma regra que a
+// Twitch já segue aqui.
+async function procurarVideosMortos(env) {
+  const resposta = await supabase(
+    env,
+    '/videos?select=id,youtube,personagem,data&visivel=is.true',
+  );
+  if (!resposta.ok) return [];
+
+  const mortos = [];
+  for (const v of await resposta.json()) {
+    const existe = await videoExiste(v.youtube);
+    if (existe !== false) continue;
+    const escondido = await supabase(env, `/videos?id=eq.${v.id}`, {
+      method: 'PATCH',
+      body: { visivel: false },
+    });
+    mortos.push({ ...v, escondido: escondido.ok });
+  }
+  return mortos;
+}
+
+// `true` existe, `false` não existe, `null` não deu para saber.
+async function videoExiste(id) {
+  try {
+    const r = await fetch(
+      `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`,
+    );
+    if (r.status === 404) return false;
+    if (r.ok) return true;
+    return null;
+  } catch (erro) {
+    console.error(`oembed falhou para ${id}: ${erro}`);
+    return null;
+  }
+}
+
+async function lerCanaisDoYoutube(env) {
+  const r = await supabase(
+    env,
+    '/canais_youtube?select=canal,nome,personagem,classe&ativo=is.true',
+  );
+  if (!r.ok) {
+    console.error(`canais_youtube respondeu ${r.status}`);
+    return [];
+  }
+  return r.json();
+}
+
+async function lerVideosConhecidos(env) {
+  // **Inclui os invisíveis de propósito.** Um vídeo escondido por ter morrido
+  // continua conhecido; sem isto, o aviso voltaria a propô-lo todos os dias.
+  const r = await supabase(env, '/videos?select=youtube');
+  if (!r.ok) return null;
+  return new Set((await r.json()).map((v) => v.youtube));
+}
+
+async function lerFeed(canal) {
+  try {
+    const r = await fetch(FEED_YOUTUBE + canal);
+    if (!r.ok) return null;
+    const xml = await r.text();
+    const entradas = [];
+    for (const bloco of xml.split('<entry>').slice(1)) {
+      const id = entre(bloco, '<yt:videoId>', '</yt:videoId>');
+      const titulo = entre(bloco, '<title>', '</title>');
+      const publicado = entre(bloco, '<published>', '</published>');
+      if (id && publicado) entradas.push({ id, titulo, publicado });
+    }
+    return entradas;
+  } catch (erro) {
+    console.error(`feed de ${canal} falhou: ${erro}`);
+    return null;
+  }
+}
+
+function entre(texto, abre, fecha) {
+  const i = texto.indexOf(abre);
+  if (i < 0) return '';
+  const j = texto.indexOf(fecha, i + abre.length);
+  return j < 0 ? '' : texto.slice(i + abre.length, j);
+}
+
+function diasDesde(iso) {
+  return (Date.now() - new Date(iso).getTime()) / 86400000;
+}
+
+// A data que o título anuncia, que é a da guerra — não a do upload.
+//
+// Aceita `31/10`, `31.10.26`, `01/11/2026` e `24.10.26`. Devolve `null` quando
+// não encontra, e **isso é melhor do que devolver o upload**: um palpite
+// marcado como palpite custa uma pergunta, um palpite disfarçado de facto
+// põe o vídeo na noite errada.
+function dataNoTitulo(titulo, publicado) {
+  // **Tenta todos os candidatos e aceita o primeiro que faz sentido** — em
+  // vez de tentar limpar a versão do jogo antes de procurar.
+  //
+  // A primeira versão apagava `\d+.\d+.\d+` para se livrar de «The Classic
+  // PW 1.8.7», que casava como 1 de Agosto. Medida a 03/11/2026 contra os
+  // feeds reais, essa limpeza **apagava também as datas**: `24.10.26` e
+  // `25.10.26` têm exactamente a mesma forma que `1.8.7`, e três títulos
+  // perderam a data que tinham.
+  //
+  // Não há como distinguir os dois pela forma, e por isso nem se tenta. O
+  // que distingue é o resultado: `1.8.7` lido como data dá 1 de Agosto, a
+  // noventa dias do upload, e cai na mesma prova que já existia. Varrer os
+  // candidatos pela ordem e ficar com o primeiro plausível resolve os dois
+  // casos com uma regra só.
+  const padrao = /\b(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?\b/g;
+  const subida = new Date(publicado).getTime();
+
+  for (const m of titulo.matchAll(padrao)) {
+    const dia = Number(m[1]);
+    const mes = Number(m[2]);
+    if (dia < 1 || dia > 31 || mes < 1 || mes > 12) continue;
+    let ano = m[3] ? Number(m[3]) : new Date(publicado).getUTCFullYear();
+    if (ano < 100) ano += 2000;
+    const d = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+
+    // A guerra vem antes do upload, e não muito antes. Isto é o que recusa a
+    // versão do jogo, e também o que apanha um título mal escrito: o
+    // «31.11.2026» do Sombrão é um dia que não existe, e o `Date` devolve 1
+    // de Dezembro — distante do upload, portanto recusado.
+    const dist = (subida - new Date(d + 'T12:00:00Z').getTime()) / 86400000;
+    if (Number.isNaN(dist) || dist < -1 || dist > 30) continue;
+    // Guarda contra o 31 de Novembro e companhia: se o `Date` normalizou
+    // para outro dia, a data escrita não existe.
+    const voltou = new Date(d + 'T12:00:00Z').toISOString().slice(0, 10);
+    if (voltou !== d) continue;
+    return d;
+  }
+  return null;
+}
+
+async function marcarCanalVisto(env, canal) {
+  await supabase(env, `/canais_youtube?canal=eq.${encodeURIComponent(canal)}`, {
+    method: 'PATCH',
+    body: { visto_em: new Date().toISOString() },
+  });
+}
+
+async function contarOsVideos(env, novos, mortos, mudos) {
+  if (novos.length === 0 && mortos.length === 0 && mudos.length === 0) {
+    console.log('vídeos de guerra: nada novo, nada morto.');
+    return;
+  }
+
+  const linhas = [];
+
+  if (novos.length > 0) {
+    // Os que parecem TW primeiro, porque são os que pedem acção.
+    const ordenados = [...novos].sort(
+      (a, b) => Number(ehTW(b.titulo)) - Number(ehTW(a.titulo)),
+    );
+    linhas.push(`🎥 **${novos.length} vídeo(s) novo(s)**`);
+    for (const v of ordenados.slice(0, 12)) {
+      const data = dataNoTitulo(v.titulo, v.publicado);
+      const marca = ehTW(v.titulo) ? '🗡️' : '➖';
+      linhas.push(
+        `${marca} **${v.canal.personagem}** (${v.canal.classe}) · ` +
+          `${data ?? '`data?`'} · <https://youtu.be/${v.id}>\n` +
+          `    ${v.titulo.slice(0, 90)}`,
+      );
+    }
+    if (ordenados.length > 12) {
+      // Nunca cortar em silêncio: um aviso que esconde metade ensina a
+      // confiar no número errado.
+      linhas.push(`… e mais ${ordenados.length - 12} não listados.`);
+    }
+    linhas.push('🗡️ parece TW · ➖ parece NW, GVG, Soldo ou outra coisa');
+  }
+
+  if (mortos.length > 0) {
+    linhas.push(`\n💀 **${mortos.length} vídeo(s) do site deixaram de existir**`);
+    for (const v of mortos.slice(0, 8)) {
+      linhas.push(
+        `• ${v.personagem} · ${v.data} · \`${v.youtube}\`` +
+          (v.escondido ? ' — escondido' : ' — **não deu para esconder**'),
+      );
+    }
+  }
+
+  if (mudos.length > 0) {
+    linhas.push(`\n🔇 Sem resposta: ${mudos.join(', ')}`);
+  }
+
+  const texto = linhas.join('\n');
+  console.log(texto);
+
+  if (!env.DISCORD_ALERTAS) {
+    console.error('sem DISCORD_ALERTAS: aviso dos vídeos ficou só no log.');
+    return;
+  }
+  const enviado = await fetch(env.DISCORD_ALERTAS, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ content: texto.slice(0, 1900) }),
+  });
+  if (!enviado.ok) {
+    console.error(`Discord recusou o aviso dos vídeos: ${enviado.status}`);
+  }
+}
+
+function ehTW(titulo) {
+  return !NAO_E_TW.test(titulo);
 }

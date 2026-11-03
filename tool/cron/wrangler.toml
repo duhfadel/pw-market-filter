@@ -44,4 +44,9 @@ crons = [
   "7,37 * * * *",
   "13 4 * * *",
   "*/5 * * * *",
+  # Os vidios de guerra, uma vez por dia. **Tem de bater com
+  # `CRON_DOS_VIDEOS` no worker.js caracter a caracter** - o despacho compara
+  # as strings, e se divergirem este ramo nunca dispara e cai no keep-alive
+  # sem ninguem dizer nada.
+  "11 14 * * *",
 ]

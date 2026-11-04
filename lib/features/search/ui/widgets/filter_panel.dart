@@ -22,6 +22,7 @@ import 'pet_section.dart';
 import 'realm_section.dart';
 import 'rune_section.dart';
 import 'slot_section.dart';
+import 'stone_set_section.dart';
 
 class FilterPanel extends StatelessWidget {
   const FilterPanel({required this.state, required this.viewModel, super.key});
@@ -65,7 +66,7 @@ class FilterPanel extends StatelessWidget {
         RealmSection(state: state, viewModel: viewModel),
         AnecdoteSection(state: state, viewModel: viewModel),
         _grupo('Equipamento'),
-        for (var i = 0; i < slotGroupsFor(state.index).length; i++)
+        for (var i = 0; i < slotGroupsFor(state.index).length; i++) ...[
           SlotSection(
             group: slotGroupsFor(state.index)[i],
             state: state,
@@ -74,6 +75,11 @@ class FilterPanel extends StatelessWidget {
             // character's price, and fourteen dropdowns open at once is a wall.
             startsOpen: i == 0,
           ),
+          // **Entre a Arma e o Set, a pedido do dono.** O conjunto de pedras
+          // não é um slot e por isso não cabe em `slotGroups`; mas pertence a
+          // este sítio porque é sobre as mesmas peças que os grupos à volta.
+          if (i == 0) StoneSetSection(state: state, viewModel: viewModel),
+        ],
         CardSection(state: state, viewModel: viewModel),
         RuneSection(state: state, viewModel: viewModel),
         // A heading with nothing under it is the same mistake the sections

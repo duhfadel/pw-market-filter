@@ -30,6 +30,8 @@ import '../../../market/market_index.dart';
 import '../../../market/romanos.dart';
 import 'item_criterion.dart';
 import 'search_query.dart';
+import '../../../market/set_stones.dart';
+import 'stone_set_criterion.dart';
 
 const _classParam = 'classe';
 const _cultivationParam = 'cultivo';
@@ -64,6 +66,14 @@ const _realmParam = 'ceu';
 const _founderParam = 'fundador';
 const _pathParam = 'caminho';
 const _forjaParam = 'forja';
+
+/// O conjunto de pedras, escrito como `pedras=a3` ou `pedras=d2`.
+///
+/// **Uma letra e um dígito, e a letra não é um índice.** É `a` de ataque e
+/// `d` de defesa, pela mesma razão que o atributo de um critério viaja pelo
+/// nome: um número aqui seria uma posição, e uma posição é o que muda entre
+/// recolhas sem nada no ecrã a dizê-lo.
+const _pedrasParam = 'pedras';
 const _runeParam = 'runa';
 const _orderParam = 'ordem';
 
@@ -156,6 +166,14 @@ String encodeQuery(SearchQuery query, [MarketIndex? index]) {
   // índice novo possa renumerar.
   final forja = query.forjaMinima;
   if (forja != null) put(_forjaParam, '$forja');
+
+  final pedras = query.stoneSet;
+  if (pedras != null) {
+    put(
+      _pedrasParam,
+      '${pedras.kind == StoneKind.attack ? 'a' : 'd'}${pedras.level}',
+    );
+  }
 
   final runes = query.runes;
   if (runes != null) {
@@ -251,6 +269,25 @@ SearchQuery decodeQuery(
   final minFounderTier = grauDoRomano(first(_founderParam)?.trim() ?? '');
   final forjaMinima = int.tryParse(first(_forjaParam)?.trim() ?? '');
 
+  // Um conjunto que esta versão não oferece é deitado fora em vez de aceite:
+  // `pedras=d1` num link antigo pediria uma pedra que não existe no jogo, e
+  // devolveria uma grelha vazia sem nada a explicar porquê.
+  final pedrasBruto = first(_pedrasParam)?.trim().toLowerCase() ?? '';
+  StoneSetCriterion? stoneSet;
+  if (pedrasBruto.length == 2) {
+    final kind = pedrasBruto[0] == 'a'
+        ? StoneKind.attack
+        : pedrasBruto[0] == 'd'
+        ? StoneKind.defence
+        : null;
+    final level = int.tryParse(pedrasBruto[1]);
+    if (kind != null &&
+        level != null &&
+        setsDisponiveis.any((s) => s.kind == kind && s.level == level)) {
+      stoneSet = StoneSetCriterion(kind: kind, level: level);
+    }
+  }
+
   RuneCriterion? runes;
   final runeRaw = first(_runeParam);
   if (runeRaw != null) {
@@ -297,6 +334,7 @@ SearchQuery decodeQuery(
     shownOwned: shownOwned,
     minimumOwned: minimumOwned,
     forjaMinima: forjaMinima,
+    stoneSet: stoneSet,
     anecdotesOnCard: anecdotesOnCard,
     pets: pets,
     minRealm: minRealm,

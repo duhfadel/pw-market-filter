@@ -84,6 +84,11 @@ flutter:
     - assets/images/classes-verticais/
     - assets/icons/classes/
     - assets/icons/items/
+    # As pedras do set sem moldura nem fundo, escritas por
+    # `tool/pedras/recortar.py`. Pasta propria e nao por cima de `items/`:
+    # aquela e partilhada pelo card, pelas tiras de pedra e pelas linhas de
+    # item, e recortar em cima mudaria o site inteiro para servir um chip.
+    - assets/icons/pedras/
     - assets/icons/lojas/
 
   # One face, one weight, for headings only. Bundled rather than fetched:

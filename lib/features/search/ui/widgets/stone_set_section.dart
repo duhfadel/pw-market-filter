@@ -25,7 +25,7 @@ import 'section_header.dart';
 /// **Defesa +1 não é oferecida porque a pedra não existe.** Zero encaixes em
 /// 2.486 personagens, nem no equipamento nem no acessório. Um chip que não
 /// pode dar resultado é pior do que chip nenhum — ver `setsDisponiveis`.
-class StoneSetSection extends StatelessWidget {
+class StoneSetSection extends StatefulWidget {
   const StoneSetSection({
     required this.state,
     required this.viewModel,
@@ -34,6 +34,25 @@ class StoneSetSection extends StatelessWidget {
 
   final SearchReady state;
   final SearchViewModel viewModel;
+
+  @override
+  State<StoneSetSection> createState() => _StoneSetSectionState();
+}
+
+class _StoneSetSectionState extends State<StoneSetSection> {
+  /// **Aberta de início, e fechável — a seta tem de fazer alguma coisa.**
+  ///
+  /// A primeira versão passava `expanded: true` fixo ao cabeçalho, que é o
+  /// que *desenha* a seta; recolher é trabalho da secção, e não estava
+  /// ligado. O resultado foi uma seta a prometer um gesto que não existia,
+  /// e o dono tentou fechar e nada aconteceu. Pior do que não ter seta.
+  ///
+  /// Começa aberta porque são cinco chips numa linha e meia: ao contrário
+  /// dos catorze menus dos slots, não há parede nenhuma a esconder.
+  bool _aberta = true;
+
+  SearchReady get state => widget.state;
+  SearchViewModel get viewModel => widget.viewModel;
 
   /// Quantos, no escopo, têm cada conjunto.
   ///
@@ -69,92 +88,105 @@ class StoneSetSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 10),
-          child: SectionHeader(
-            title: 'Pedras do set',
-            emblem: stoneIcon,
-            expanded: true,
+        InkWell(
+          onTap: () => setState(() => _aberta = !_aberta),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: SectionHeader(
+              title: 'Pedras do set',
+              emblem: stoneIcon,
+              // Fechada com um conjunto em vigor, o número é o que diz que
+              // há filtro escondido ali dentro — a mesma razão por que os
+              // grupos de slot contam quantos estão escolhidos.
+              badge: escolhido == null ? 0 : 1,
+              expanded: _aberta,
+            ),
           ),
         ),
-        const Text(
-          'Mostra só quem tem a pedra nas sete peças — elmo, peito, perneira, '
-          'bota, luvas, colar e ornamento. Faltando uma, não aparece.',
-          style: TextStyle(color: PWColors.textMuted, fontSize: 12),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            for (final s in setsDisponiveis)
-              Builder(
-                builder: (_) {
-                  final n = conta[(s.kind, s.level)] ?? 0;
-                  final ligado =
-                      escolhido?.kind == s.kind && escolhido?.level == s.level;
-                  return ChoiceChip(
-                    // **Só o atributo, sem a contagem** — pedido do dono a
-                    // 04/11/2026. A contagem estava lá para ninguém clicar
-                    // num conjunto vazio sem saber; esse trabalho passa a
-                    // ser todo do chip apagado, que é o sinal mais curto
-                    // para a mesma coisa. Cinco chips com número viravam
-                    // cinco linhas de dígitos num painel onde o preço e o
-                    // nível já competem pela mesma atenção.
-                    // **Uma pedra só, a do equipamento, sem moldura.**
-                    //
-                    // A pilha das duas foi tentada e rejeitada a
-                    // 04/11/2026, e a razão é a arte e não o desenho: estes
-                    // ícones são 32×32 **opacos**, com moldura e fundo
-                    // próprio, portanto sobrepostos leem como duas caixas
-                    // em cima uma da outra. Recortar o fundo foi medido em
-                    // três tolerâncias e não sai limpo — a pedra tem brilho
-                    // que se dissolve no fundo, e não há fronteira onde
-                    // cortar sem deixar halo ou comer o brilho.
-                    //
-                    // A escolhida é a das cinco peças. O colar e o
-                    // ornamento levam outra pedra, com outra arte; o chip
-                    // aponta o conjunto, não a lista de compras.
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        StoneIcon(equipmentStoneOf(s.kind, s.level).id, size: 20),
-                        const SizedBox(width: 6),
-                        Text(
-                          setLabel(s.kind, s.level),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: ligado
-                                ? PWColors.background
-                                : n == 0
-                                ? PWColors.textMuted
-                                : PWColors.text,
+        if (_aberta) ...[
+          const Text(
+            'Mostra só quem tem a pedra nas sete peças — elmo, peito, perneira, '
+            'bota, luvas, colar e ornamento. Faltando uma, não aparece.',
+            style: TextStyle(color: PWColors.textMuted, fontSize: 12),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final s in setsDisponiveis)
+                Builder(
+                  builder: (_) {
+                    final n = conta[(s.kind, s.level)] ?? 0;
+                    final ligado =
+                        escolhido?.kind == s.kind &&
+                        escolhido?.level == s.level;
+                    return ChoiceChip(
+                      // **Só o atributo, sem a contagem** — pedido do dono a
+                      // 04/11/2026. A contagem estava lá para ninguém clicar
+                      // num conjunto vazio sem saber; esse trabalho passa a
+                      // ser todo do chip apagado, que é o sinal mais curto
+                      // para a mesma coisa. Cinco chips com número viravam
+                      // cinco linhas de dígitos num painel onde o preço e o
+                      // nível já competem pela mesma atenção.
+                      // **Uma pedra só, a do equipamento, sem moldura.**
+                      //
+                      // A pilha das duas foi tentada e rejeitada a
+                      // 04/11/2026, e a razão é a arte e não o desenho: estes
+                      // ícones são 32×32 **opacos**, com moldura e fundo
+                      // próprio, portanto sobrepostos leem como duas caixas
+                      // em cima uma da outra. Recortar o fundo foi medido em
+                      // três tolerâncias e não sai limpo — a pedra tem brilho
+                      // que se dissolve no fundo, e não há fronteira onde
+                      // cortar sem deixar halo ou comer o brilho.
+                      //
+                      // A escolhida é a das cinco peças. O colar e o
+                      // ornamento levam outra pedra, com outra arte; o chip
+                      // aponta o conjunto, não a lista de compras.
+                      label: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          StoneIcon(
+                            equipmentStoneOf(s.kind, s.level).id,
+                            size: 20,
                           ),
-                        ),
-                      ],
-                    ),
-                    selected: ligado,
-                    // Um conjunto que ninguém tem fica apagado em vez de
-                    // sumir: a ausência é informação, e um chip que
-                    // desaparece quando o escopo muda lê como erro.
-                    onSelected: n == 0 && !ligado
-                        ? null
-                        : (liga) => viewModel.setStoneSet(
-                            liga
-                                ? StoneSetCriterion(
-                                    kind: s.kind,
-                                    level: s.level,
-                                  )
-                                : null,
+                          const SizedBox(width: 6),
+                          Text(
+                            setLabel(s.kind, s.level),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: ligado
+                                  ? PWColors.background
+                                  : n == 0
+                                  ? PWColors.textMuted
+                                  : PWColors.text,
+                            ),
                           ),
-                    selectedColor: PWColors.accent,
-                    backgroundColor: PWColors.surfaceRaised,
-                    showCheckmark: false,
-                  );
-                },
-              ),
-          ],
-        ),
+                        ],
+                      ),
+                      selected: ligado,
+                      // Um conjunto que ninguém tem fica apagado em vez de
+                      // sumir: a ausência é informação, e um chip que
+                      // desaparece quando o escopo muda lê como erro.
+                      onSelected: n == 0 && !ligado
+                          ? null
+                          : (liga) => viewModel.setStoneSet(
+                              liga
+                                  ? StoneSetCriterion(
+                                      kind: s.kind,
+                                      level: s.level,
+                                    )
+                                  : null,
+                            ),
+                      selectedColor: PWColors.accent,
+                      backgroundColor: PWColors.surfaceRaised,
+                      showCheckmark: false,
+                    );
+                  },
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }

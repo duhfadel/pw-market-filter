@@ -4,7 +4,6 @@ library;
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pw_market_filter/features/search/domain/stone_set_criterion.dart';
 import 'package:pw_market_filter/market/set_stones.dart';
 
 /// Os ícones recortados que o chip desenha.

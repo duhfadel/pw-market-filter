@@ -158,3 +158,18 @@ const setsDisponiveis = <({StoneKind kind, int level})>[
 
 String setLabel(StoneKind kind, int level) =>
     '${kind == StoneKind.attack ? 'Ataque' : 'Defesa'} +$level';
+
+/// A pedra que representa o conjunto: a do equipamento.
+///
+/// **Um conjunto pode ter duas pedras, e esta é a das cinco peças.** Ataque
+/// +3 é a Pedra do Demônio no elmo, peito, perneira, bota e luvas, e a Pedra
+/// de Yan Luo no colar e no ornamento — itens diferentes, com arte
+/// diferente. O chip mostra a primeira, que é a de cinco das sete peças.
+///
+/// **E nem sempre há duas.** Ataque +1 existe só no equipamento: não há
+/// pedra de acessório nesse nível. Isso não quebra o conjunto, porque o
+/// filtro é um mínimo — o colar e o ornamento entram com +2 ou +3, e o
+/// mínimo das sete continua a ser 1.
+SetStone equipmentStoneOf(StoneKind kind, int level) => setStones.firstWhere(
+  (p) => p.kind == kind && p.level == level && !p.accessory,
+);

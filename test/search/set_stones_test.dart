@@ -133,6 +133,36 @@ void main() {
     );
   });
 
+  test('todo conjunto tem a pedra de equipamento que o chip desenha', () {
+    // O chip chama `equipmentStoneOf`, que lança se não achar. Um conjunto
+    // oferecido sem pedra de equipamento rebentaria a tela em vez de
+    // desenhar sem ícone.
+    for (final s in setsDisponiveis) {
+      final pedra = equipmentStoneOf(s.kind, s.level);
+      expect(pedra.accessory, isFalse);
+      expect(pedra.kind, s.kind);
+      expect(pedra.level, s.level);
+    }
+  });
+
+  test('Ataque +1 não tem pedra de acessório, e o conjunto continua de pé', () {
+    // Medido: no nível 1 só existe o Diamante do Tigre, do equipamento.
+    // Não quebra nada porque o filtro é um mínimo — o colar e o ornamento
+    // entram com +2 ou +3 e o mínimo das sete continua a ser 1. Este teste
+    // está aqui para que, se alguém trocar o mínimo por uma igualdade, se
+    // veja já que o conjunto de +1 deixa de existir.
+    expect(
+      setStones.any(
+        (p) => p.kind == StoneKind.attack && p.level == 1 && p.accessory,
+      ),
+      isFalse,
+    );
+    final com = index.characters
+        .where((c) => (stoneSetLevel(c, StoneKind.attack) ?? 0) >= 1)
+        .length;
+    expect(com, greaterThan(0));
+  });
+
   test('as sete peças são as que o dono escolheu, e não as nove', () {
     // A capa e a arma aceitam estas pedras e ficam de fora de propósito:
     // medido a 04/11/2026, incluí-las levava o conjunto de Ataque +3 de 32

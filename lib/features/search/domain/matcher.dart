@@ -5,6 +5,7 @@ import '../../../market/market_index.dart';
 import 'item_criterion.dart';
 import 'name_folding.dart';
 import 'search_query.dart';
+import 'stone_set_criterion.dart';
 
 /// The characters that satisfy [query], ordered by [SearchQuery.order].
 ///
@@ -174,6 +175,16 @@ bool _matchesInventory(
   // número que não é quantidade de nada, o mesmo erro que saiu do painel dos
   // Registros. Lista vazia é ausência da perícia e não nível zero, portanto
   // quem não a tem nunca passa num mínimo.
+  // **O conjunto de pedras é um mínimo entre as sete peças.** Quem tem seis
+  // em +2 e uma em +1 vale +1, e não aparece no filtro de +2 — é o que o
+  // dono pediu, e a razão é que ali ele não cumpre o requisito. Faltar a
+  // pedra numa peça derruba tudo, em vez de valer zero.
+  final conjunto = query.stoneSet;
+  if (conjunto != null) {
+    final nivel = stoneSetLevel(character, conjunto.kind);
+    if (nivel == null || nivel < conjunto.level) return false;
+  }
+
   final forjaMinima = query.forjaMinima;
   if (forjaMinima != null) {
     if (character.forja.isEmpty) return false;

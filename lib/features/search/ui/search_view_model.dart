@@ -10,6 +10,7 @@ import '../domain/presets.dart';
 import '../domain/search_query.dart';
 import '../domain/search_query_url.dart';
 import 'search_state.dart';
+import '../domain/stone_set_criterion.dart';
 
 /// The ViewModel is the Bloc. Every change to the form rebuilds the query and
 /// re-runs it — 779 characters against a handful of criteria is nothing, so
@@ -169,6 +170,9 @@ class SearchViewModel extends Cubit<SearchState> {
 
   void setForjaMinima(int? nivel) =>
       _apply(_query!.copyWith(forjaMinima: () => nivel));
+
+  void setStoneSet(StoneSetCriterion? conjunto) =>
+      _apply(_query!.copyWith(stoneSet: () => conjunto));
 
   void setPath(String? path) => _apply(_query!.copyWith(path: () => path));
 

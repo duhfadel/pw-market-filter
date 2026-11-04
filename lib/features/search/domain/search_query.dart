@@ -1,6 +1,7 @@
 import '../../../market/celestial_realm.dart';
 import '../../../market/counted_items.dart';
 import '../../../market/market_index.dart';
+import 'stone_set_criterion.dart';
 import 'item_criterion.dart';
 
 /// One control on the form.
@@ -26,6 +27,9 @@ enum FacetDimension {
 
   /// Os ofícios de artesanato, só no 1.2.6.
   forja,
+
+  /// O conjunto de pedras de nível nas sete peças.
+  stoneSet,
 }
 
 /// How the results are ordered.
@@ -151,6 +155,7 @@ class SearchQuery {
     this.minRealm,
     this.minFounderTier,
     this.forjaMinima,
+    this.stoneSet,
     this.path,
     this.runes,
     this.order = ResultOrder.cheapest,
@@ -233,6 +238,14 @@ class SearchQuery {
   /// Quem não tem nenhum dos quatro nunca passa: a lista vazia é ausência da
   /// perícia, não nível zero.
   final int? forjaMinima;
+
+  /// O conjunto de pedras pedido, ou nulo.
+  ///
+  /// Um só de cada vez, e isso não é limitação: um personagem com o conjunto
+  /// de ataque **e** o de defesa teria de ter catorze pedras em sete peças, e
+  /// cada peça só tem os encaixes que tem. Oferecer o *e* seria oferecer uma
+  /// pergunta cuja resposta é sempre vazia.
+  final StoneSetCriterion? stoneSet;
 
   /// Counted items whose number the card should print.
   ///
@@ -321,6 +334,7 @@ class SearchQuery {
       minRealm == null &&
       minFounderTier == null &&
       forjaMinima == null &&
+      stoneSet == null &&
       path == null &&
       runes == null;
 
@@ -355,6 +369,7 @@ class SearchQuery {
     FacetDimension.founder => copyWith(minFounderTier: () => null),
     FacetDimension.path => copyWith(path: () => null),
     FacetDimension.forja => copyWith(forjaMinima: () => null),
+    FacetDimension.stoneSet => copyWith(stoneSet: () => null),
     FacetDimension.runes => copyWith(runes: () => null),
     FacetDimension.owned => copyWith(
       shownOwned: const {},
@@ -384,6 +399,7 @@ class SearchQuery {
     int? Function()? minRealm,
     int? Function()? minFounderTier,
     int? Function()? forjaMinima,
+    StoneSetCriterion? Function()? stoneSet,
     String? Function()? path,
     RuneCriterion? Function()? runes,
     ResultOrder? order,
@@ -409,6 +425,7 @@ class SearchQuery {
     pets: pets ?? this.pets,
     minRealm: minRealm == null ? this.minRealm : minRealm(),
     forjaMinima: forjaMinima == null ? this.forjaMinima : forjaMinima(),
+    stoneSet: stoneSet == null ? this.stoneSet : stoneSet(),
     minFounderTier: minFounderTier == null
         ? this.minFounderTier
         : minFounderTier(),

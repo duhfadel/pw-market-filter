@@ -5,6 +5,7 @@ import '../../../market/romanos.dart';
 import '../../../market/slot_names.dart';
 import 'item_criterion.dart';
 import 'search_query.dart';
+import '../../../market/set_stones.dart';
 
 /// One thing the form is asking, said in words, with the way to stop asking it.
 ///
@@ -51,6 +52,14 @@ List<ActiveFilter> activeFilters(MarketIndex index, SearchQuery query) {
   if (query.path != null) {
     add(query.path!, (q) => q.copyWith(path: () => null));
   }
+  final pedras = query.stoneSet;
+  if (pedras != null) {
+    add(
+      'pedras ${setLabel(pedras.kind, pedras.level)}',
+      (q) => q.copyWith(stoneSet: () => null),
+    );
+  }
+
   final forja = query.forjaMinima;
   if (forja != null) {
     // Diz o que a pergunta é, e não só o número: um chip a dizer `8+` ao lado

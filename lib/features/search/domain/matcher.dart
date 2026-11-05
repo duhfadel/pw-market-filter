@@ -2,6 +2,7 @@ import '../../../market/card_combos.dart';
 import '../../../market/celestial_realm.dart';
 import '../../../market/counted_items.dart';
 import '../../../market/market_index.dart';
+import 'combo_rebirth.dart';
 import 'item_criterion.dart';
 import 'name_folding.dart';
 import 'search_query.dart';
@@ -267,6 +268,13 @@ bool _matchesCards(MarketCharacter character, SearchQuery query) {
     // Complete only: every card of the combo, which for a six-card set worn in
     // six slots also means nothing else.
     if (!worn.containsAll(combo.cardIds)) return false;
+    final pedido = query.comboMinRebirth;
+    if (pedido != null) {
+      // O mínimo entre as seis, nunca a melhor carta: um combo com cinco
+      // renascidas 2 e uma normal é um combo normal.
+      final nivel = comboRebirthLevel(character, combo);
+      if (nivel == null || nivel < pedido) return false;
+    }
   }
   return true;
 }

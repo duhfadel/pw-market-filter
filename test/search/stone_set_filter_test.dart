@@ -26,7 +26,9 @@ void main() {
         (c) => matchesQuery(
           index,
           c,
-          SearchQuery(stoneSet: StoneSetCriterion(kind: kind, level: level)),
+          SearchQuery(
+            stoneSet: StoneSetCriterion(kind: kind, level: level),
+          ),
         ),
       )
       .length;
@@ -41,7 +43,8 @@ void main() {
       expect(
         n,
         lessThan(index.characters.length ~/ 4),
-        reason: '${setLabel(s.kind, s.level)} deixa um quarto do mercado no ecrã',
+        reason:
+            '${setLabel(s.kind, s.level)} deixa um quarto do mercado no ecrã',
       );
     }
   });
@@ -69,10 +72,7 @@ void main() {
             index,
             c,
             const SearchQuery(
-              stoneSet: StoneSetCriterion(
-                kind: StoneKind.attack,
-                level: 3,
-              ),
+              stoneSet: StoneSetCriterion(kind: StoneKind.attack, level: 3),
             ),
           ),
         )

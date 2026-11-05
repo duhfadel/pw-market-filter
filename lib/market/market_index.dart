@@ -441,6 +441,7 @@ class EquippedCard {
     required this.type,
     required this.level,
     required this.maxLevel,
+    this.rebirths = 0,
   });
 
   final int cardId;
@@ -456,6 +457,15 @@ class EquippedCard {
   final int level;
   final int maxLevel;
 
+  /// How many times the card has been reborn, from the tooltip's
+  /// `Renascimentos`. Zero is a reading and not a default: the page prints no
+  /// `Renascimentos 0`, so an absent line is a real nought.
+  ///
+  /// **It is not [maxLevel].** That was the first guess and it is wrong —
+  /// `maxLevel` is purely the rarity's cap (B 25, A 40, S 80) and says nothing
+  /// about rebirth.
+  final int rebirths;
+
   /// A card at its cap. Owning one and having it finished are different
   /// things — a character was found with ten S cards, nine of them at 1/80.
   bool get isMaxed => maxLevel > 0 && level >= maxLevel;
@@ -467,6 +477,9 @@ class EquippedCard {
     'type': type,
     'level': level,
     'maxLevel': maxLevel,
+    // Omitted when nought, which is the common case: writing a zero for every
+    // card of every character costs the index weight for no information.
+    if (rebirths > 0) 'rebirths': rebirths,
   };
 
   factory EquippedCard.fromJson(Map<String, dynamic> json) => EquippedCard(
@@ -476,6 +489,7 @@ class EquippedCard {
     type: _string(json, 'type'),
     level: _int(json, 'level'),
     maxLevel: _int(json, 'maxLevel'),
+    rebirths: _intOpcional(json, 'rebirths'),
   );
 }
 
@@ -624,6 +638,25 @@ String _string(Map<String, dynamic> json, String field) {
   final value = json[field];
   if (value is! String) {
     throw IndexFormatException(field, 'esperava texto, veio $value');
+  }
+  return value;
+}
+
+/// Um número que o índice pode legitimamente não escrever.
+///
+/// **O leitor estrito é a regra e esta é a excepção declarada**, para um campo
+/// que [EquippedCard.toJson] omite quando é nought — e omite porque escrever
+/// um zero por carta em treze mil cartas custa peso de índice para não dizer
+/// nada. A ausência é então parte do contrato e não um ficheiro corrompido,
+/// que é o que o leitor estrito existe para apanhar.
+///
+/// Um valor presente mas do tipo errado continua a estourar. É a diferença
+/// que importa: *não escrito* é informação, *escrito como texto* é defeito.
+int _intOpcional(Map<String, dynamic> json, String field) {
+  final value = json[field];
+  if (value == null) return 0;
+  if (value is! int) {
+    throw IndexFormatException(field, 'esperava número, veio $value');
   }
   return value;
 }

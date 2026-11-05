@@ -145,8 +145,22 @@ class SearchViewModel extends Cubit<SearchState> {
     _apply(query.copyWith(characterClass: () => value, itemBySlot: surviving));
   }
 
-  void setCombo(String? name) =>
-      _apply(_query!.copyWith(comboName: () => name));
+  /// **Trocar ou limpar o combo leva o renascimento com ele.**
+  ///
+  /// Um renascimento pedido sobre um combo que já não está escolhido é um
+  /// filtro que a tela não tem onde mostrar — e ainda viajaria no link,
+  /// invisível. É a mesma regra do mínimo de relíquias, que sai quando o item
+  /// deixa de estar marcado: um filtro em vigor sobre algo que o card já não
+  /// nomeia é um resultado que ninguém explica.
+  ///
+  /// Vale também ao **trocar** de combo, não só ao limpar: pedir «renascidas
+  /// 2» era uma afirmação sobre o Nuema, e não sobre o conjunto seguinte.
+  void setCombo(String? name) => _apply(
+    _query!.copyWith(comboName: () => name, comboMinRebirth: () => null),
+  );
+
+  void setComboMinRebirth(int? nivel) =>
+      _apply(_query!.copyWith(comboMinRebirth: () => nivel));
 
   void setCardRarity(String? rarity) =>
       _apply(_query!.copyWith(cardRarity: () => rarity));

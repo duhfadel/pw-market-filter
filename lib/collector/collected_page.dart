@@ -77,7 +77,12 @@ class CollectedPage {
   /// ficheiro que existe para a impedir.
   ///
   /// Oito e não sete: sete é do 126.
-  static const versoes = <String, int>{'pw187': 8, 'pw126': 7};
+  /// O 187 vai em 9 desde 05/11/2026: as cartas passaram a guardar
+  /// `Renascimentos`, e nenhum estado escrito antes disto o tem. O 126 fica
+  /// onde está — não tem cartas de avatar nenhumas, portanto subir-lhe o
+  /// número gastaria setenta minutos da rede deles para não aprender nada.
+  /// É exactamente o caso para que o carimbo deixou de ser um só.
+  static const versoes = <String, int>{'pw187': 9, 'pw126': 7};
 
   /// The stamp a page collected from [servidor] carries.
   static int versaoDe(String servidor) => versoes[servidor] ?? 0;
@@ -348,6 +353,7 @@ Map<String, dynamic> _cardToJson(ParsedCard card) => {
   'type': card.type,
   'level': card.level,
   'maxLevel': card.maxLevel,
+  'rebirths': card.rebirths,
 };
 
 ParsedCard _cardFromJson(Map<String, dynamic> json) => ParsedCard(
@@ -357,4 +363,5 @@ ParsedCard _cardFromJson(Map<String, dynamic> json) => ParsedCard(
   type: json['type'] as String,
   level: json['level'] as int,
   maxLevel: json['maxLevel'] as int,
+  rebirths: json['rebirths'] as int? ?? 0,
 );

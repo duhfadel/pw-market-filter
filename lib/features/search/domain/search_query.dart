@@ -144,6 +144,7 @@ class SearchQuery {
     this.maxPrice,
     this.itemBySlot = const {},
     this.comboName,
+    this.comboMinRebirth,
     this.cardRarity,
     this.cardsMaxed = false,
     this.criteria = const [],
@@ -200,6 +201,13 @@ class SearchQuery {
 
   /// Name of a [CardCombo] the character must wear in full.
   final String? comboName;
+
+  /// Quantos renascimentos **cada** carta do combo tem de ter.
+  ///
+  /// É um mínimo entre as seis, como o conjunto de pedras — ver
+  /// [comboRebirthLevel]. Só tem sentido com [comboName] posto, e é a UI que
+  /// garante isso: os chips põem os dois juntos, nunca este só.
+  final int? comboMinRebirth;
 
   /// All six cards at this rarity — useful even where no named combo applies,
   /// because six S cards is the thing that moves the price whatever the set is
@@ -325,6 +333,7 @@ class SearchQuery {
       maxPrice == null &&
       itemBySlot.isEmpty &&
       comboName == null &&
+      comboMinRebirth == null &&
       cardRarity == null &&
       !cardsMaxed &&
       criteria.isEmpty &&
@@ -359,6 +368,7 @@ class SearchQuery {
     ),
     FacetDimension.cards => copyWith(
       comboName: () => null,
+      comboMinRebirth: () => null,
       cardRarity: () => null,
       cardsMaxed: false,
     ),
@@ -388,6 +398,7 @@ class SearchQuery {
     int? Function()? maxPrice,
     Map<int, int>? itemBySlot,
     String? Function()? comboName,
+    int? Function()? comboMinRebirth,
     String? Function()? cardRarity,
     bool? cardsMaxed,
     List<ItemCriterion>? criteria,
@@ -415,6 +426,9 @@ class SearchQuery {
     maxPrice: maxPrice == null ? this.maxPrice : maxPrice(),
     itemBySlot: itemBySlot ?? this.itemBySlot,
     comboName: comboName == null ? this.comboName : comboName(),
+    comboMinRebirth: comboMinRebirth == null
+        ? this.comboMinRebirth
+        : comboMinRebirth(),
     cardRarity: cardRarity == null ? this.cardRarity : cardRarity(),
     cardsMaxed: cardsMaxed ?? this.cardsMaxed,
     criteria: criteria ?? this.criteria,

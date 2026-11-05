@@ -47,6 +47,7 @@ const _priceParam = 'preco';
 const _nameParam = 'nome';
 const _itemParam = 'item';
 const _comboParam = 'carta';
+const _comboRebirthParam = 'renasc';
 const _rarityParam = 'raridade';
 const _maxedParam = 'maximas';
 const _criterionParam = 'c';
@@ -112,6 +113,12 @@ String encodeQuery(SearchQuery query, [MarketIndex? index]) {
   put(_levelParam, _encodeRange(query.minLevel, query.maxLevel));
   put(_priceParam, _encodeRange(query.minPrice, query.maxPrice));
   put(_comboParam, query.comboName);
+  final renascimento = query.comboMinRebirth;
+  // Só com o combo escrito, que é a mesma regra que o view-model impõe: um
+  // `renasc` sozinho é um filtro que nenhuma tela mostra.
+  if (renascimento != null && query.comboName != null) {
+    put(_comboRebirthParam, '$renascimento');
+  }
   put(_rarityParam, query.cardRarity);
   if (query.cardsMaxed) put(_maxedParam, '1');
   if (query.minAnecdotes != null) {
@@ -268,6 +275,13 @@ SearchQuery decodeQuery(
   // does nothing, because the count on screen looks like an answer.
   final minFounderTier = grauDoRomano(first(_founderParam)?.trim() ?? '');
   final forjaMinima = int.tryParse(first(_forjaParam)?.trim() ?? '');
+  // Um renascimento sem combo é descartado em vez de ficar à espera: o
+  // matcher nunca o leria e ele continuaria a viajar no link, invisível — a
+  // mesma razão por que um atributo que esta colecta já não tem deixa cair o
+  // seu critério em vez de recuar para o atributo zero.
+  final comboMinRebirth = first(_comboParam) == null
+      ? null
+      : int.tryParse(first(_comboRebirthParam)?.trim() ?? '');
 
   // Um conjunto que esta versão não oferece é deitado fora em vez de aceite:
   // `pedras=d1` num link antigo pediria uma pedra que não existe no jogo, e
@@ -328,6 +342,7 @@ SearchQuery decodeQuery(
     name: first(_nameParam),
     itemBySlot: itemBySlot,
     comboName: first(_comboParam),
+    comboMinRebirth: comboMinRebirth,
     cardRarity: first(_rarityParam),
     cardsMaxed: first(_maxedParam) == '1',
     minAnecdotes: int.tryParse(first(_anecdoteParam) ?? ''),

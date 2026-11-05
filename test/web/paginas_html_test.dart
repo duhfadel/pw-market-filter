@@ -125,10 +125,12 @@ void main() {
           // montado em JavaScript a partir do Supabase quando a página
           // corre — o brasão de cada guilda no mapa das guerras — portanto
           // não há ficheiro nenhum no repositório para conferir.
-          .where((s) =>
-              !s.startsWith('http') &&
-              !s.startsWith('data:') &&
-              !s.contains(r'${'));
+          .where(
+            (s) =>
+                !s.startsWith('http') &&
+                !s.startsWith('data:') &&
+                !s.contains(r'${'),
+          );
 
       for (final src in fontes) {
         // **`/assets/assets/…` é o caminho do build, não o do repositório.**
@@ -138,8 +140,8 @@ void main() {
         final caminho = src.startsWith('/assets/assets/')
             ? src.substring('/assets/'.length)
             : src.startsWith('/')
-                ? 'web$src'
-                : '$pasta/$src';
+            ? 'web$src'
+            : '$pasta/$src';
         expect(
           File(caminho).existsSync(),
           isTrue,
@@ -162,10 +164,9 @@ void main() {
   // exactamente o estado anterior com mais um script.
   test('o sitemap lista todas as páginas indexáveis, e só essas', () {
     final xml = File('web/sitemap.xml').readAsStringSync();
-    final listados = RegExp(r'<loc>https://portalpw\.net([^<]*)</loc>')
-        .allMatches(xml)
-        .map((m) => m.group(1)!)
-        .toSet();
+    final listados = RegExp(
+      r'<loc>https://portalpw\.net([^<]*)</loc>',
+    ).allMatches(xml).map((m) => m.group(1)!).toSet();
 
     for (final f in paginas) {
       final html = f.readAsStringSync();
@@ -173,8 +174,8 @@ void main() {
       final url = rel == '/index.html'
           ? '/'
           : rel.endsWith('/index.html')
-              ? rel.substring(0, rel.length - 'index.html'.length)
-              : rel.substring(0, rel.length - '.html'.length);
+          ? rel.substring(0, rel.length - 'index.html'.length)
+          : rel.substring(0, rel.length - '.html'.length);
 
       if (html.contains('noindex')) {
         expect(

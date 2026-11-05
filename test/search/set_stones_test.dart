@@ -92,7 +92,8 @@ void main() {
     expect(
       conferidos,
       greaterThan(0),
-      reason: 'ninguém no mercado tem conjunto nenhum — o teste não provou nada',
+      reason:
+          'ninguém no mercado tem conjunto nenhum — o teste não provou nada',
     );
   });
 

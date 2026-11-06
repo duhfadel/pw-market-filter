@@ -185,7 +185,7 @@ final _spanBonusPattern = RegExp(
 /// tem 238 de espírito, e dois nomes dividiriam em duas colunas uma coisa
 /// que o jogador soma. Ver a nota em `_lerBonusDeSpan` para a volta que esta
 /// decisão deu.
-final _ramoPattern = RegExp(r'^(?:Destino|Guia)\s*·\s*');
+final _ramoPattern = RegExp(r'^(?:Destino|Gu[íi]a)\s*·\s*');
 
 /// A escada de refino do livro divino: `(+3) : Atq Físico +50`.
 ///
@@ -203,7 +203,7 @@ final _escadaPattern = RegExp(r'^\(\+(\d+)\)\s*:\s*');
 /// nível de ataque sobe 1, 2, 4 … até 32. Três personagens medidos **todos no
 /// nível 100** deram +32/+32, +32/+32 e +26/+6. O nível é tecto; os
 /// atributos são o que o personagem tem.
-final _nivelPattern = RegExp(r'Nível(?: do Conduíte)? (\d+)<');
+final _nivelPattern = RegExp(r'N[íi]vel(?: d[eo] Condu[íi]te)? (\d+)<');
 
 /// O site a dizer que não sabe: `Atributos do Conduíte não resolvidos.`
 ///
@@ -401,12 +401,20 @@ List<ParsedStack> parseInventory(String html) {
   ];
 }
 
-final _rarityPattern = RegExp(r'Nível ([SAB])<br>');
+// **O acento é opcional em todos os rótulos de moldura daqui para baixo.**
+// A 06/11/2026 o site começou a traduzir-se e a oscilar, e dois campos que
+// casavam um rótulo por igualdade exacta vieram a zero em 2.879 personagens.
+// Medido no mesmo dia, nenhum destes tinha ainda mudado — `Nível S`,
+// `Renascimentos`, `Nv. 6` e `Nível do Conduíte` estavam todos em português,
+// e as variantes espanholas davam zero achados. Aceitá-las custa um
+// caractere por padrão e poupa a próxima recolha de 200 minutos, portanto
+// faz-se antes e não depois.
+final _rarityPattern = RegExp(r'N[íi]vel ([SAB])<br>');
 final _cardTypePattern = RegExp(r'Tipo ([^<]+?)<br>');
-final _cardLevelPattern = RegExp(r'Nível (\d+)/(\d+)');
+final _cardLevelPattern = RegExp(r'N[íi]vel (\d+)/(\d+)');
 // `Renascimentos 2`. Absent on a card that has never been reborn — the page
 // never prints a zero — so a card with no line is a nought and not an unknown.
-final _cardRebirthPattern = RegExp(r'Renascimentos (\d+)');
+final _cardRebirthPattern = RegExp(r'(?:Renascimentos|Renacimientos) (\d+)');
 
 /// The six cards the character has equipped.
 ///
@@ -468,8 +476,10 @@ String? parsePath(String html) {
   // source finds nothing and reports every character as pathless.
   for (final slot in html_parser.parse(html).querySelectorAll('[aria-label]')) {
     final label = slot.attributes['aria-label'] ?? '';
-    if (label.contains('Erupção Demoníaca')) return 'Evil';
-    if (label.contains('Erupção Celestial')) return 'God';
+    // `Erupción` aceito pela mesma razão: o caminho não tem campo nenhum
+    // nesta página, e perdê-lo por um acento seria perder a distinção toda.
+    if (_erupcaoDemoniaca.hasMatch(label)) return 'Evil';
+    if (_erupcaoCelestial.hasMatch(label)) return 'God';
   }
   return null;
 }
@@ -513,6 +523,9 @@ const _sexos = {'Masculino', 'Feminino', 'Femenino'};
 final _reinoPattern = RegExp(r'^(?:C[ée]u|Cielo)\b.*\b[IVXLC]+$');
 
 bool _pareceReino(String valor) => _reinoPattern.hasMatch(valor);
+
+final _erupcaoDemoniaca = RegExp(r'Erup[çc](?:ão|i[óo]n) Demon[íi]aca');
+final _erupcaoCelestial = RegExp(r'Erup[çc](?:ão|i[óo]n) Celestial');
 
 /// A linha da ficha cujo **valor** passa [aceita], e não a cujo rótulo
 /// coincide com uma string nossa.
@@ -585,7 +598,7 @@ class ParsedRune {
 // `Runa Áurea Nv. 6 · Slot 3` and `Runa Celeste Nível 8 · Slot 3` both occur,
 // on the same page. Reading only `Nv.` silently drops every level 8 — which is
 // exactly the band anybody filtering on runes cares about.
-final _runeLabelPattern = RegExp(r'Runa\s+(\S+)\s+(?:Nv\.|Nível)\s+(\d+)');
+final _runeLabelPattern = RegExp(r'Runa\s+(\S+)\s+(?:Nv\.|N[íi]vel)\s+(\d+)');
 
 /// The runes the character has set, one per slot, in slot order.
 ///

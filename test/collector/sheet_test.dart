@@ -164,6 +164,14 @@ void main() {
       expect(parseCelestialRealm(h), 'Céu Soberano IV');
     });
 
+    test('o caminho sobrevive ao acento da erupção', () {
+      // O caminho não tem campo nenhum na página — lê-se do nome de uma
+      // habilidade — portanto perdê-lo por um acento seria perder a
+      // distinção inteira entre Sagrado e Demoníaco.
+      expect(parsePath('<div aria-label="Erupción Demoníaca"></div>'), 'Evil');
+      expect(parsePath('<div aria-label="Erupção Celestial"></div>'), 'God');
+    });
+
     test('uma ficha sem nada diz nada, nunca um palpite', () {
       expect(parseSex('<html><body></body></html>'), isEmpty);
       expect(parseCelestialRealm('<html><body></body></html>'), isNull);

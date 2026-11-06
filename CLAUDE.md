@@ -1345,6 +1345,34 @@ não *nesta coleta* de propósito: num `--resume` quase nada é lido de novo, e
 um rótulo que dissesse o contrário seria a mesma classe de mentira que esta
 secção existe para registar.
 
+### Reler só quem está sem o campo, com tecto por corrida
+
+**O arrasto salva o índice e não salva o estado**, e o estado é de onde a
+recolha seguinte parte. Depois de 06/11 ficaram 115 personagens com o sexo e
+o reino vazios no estado — a página deles tem os dois, conferido à mão — e
+nada os releria, porque no estado já constam como colhidos.
+
+Subir o carimbo resolveria, e é a ferramenta errada aqui: deita fora o
+estado inteiro e obriga a ~150 minutos numa corrida só, que não grava cache
+se estourar o tecto e tranca o site. `aReler` faz o contrário — tira do
+`done` até **200** entradas sem nem sexo nem reino, e o laço de recolha
+fetcha-as como se fossem novas. São ~11 minutos por corrida, cabem na meia
+hora entre duas, e o site publica em todas.
+
+**Os dois vazios, nunca um.** Uma página pode legitimamente não dizer o
+sexo; não dizer nem o sexo nem o reino é a assinatura da leitura que falhou,
+porque os dois saem da mesma lista de três linhas da ficha.
+
+**E cada um é relido uma vez, o que é o ponto todo.** `relidos` fica no
+estado precisamente porque este ficheiro já recusou a pergunta «falta esta
+chave?» como critério de recolha — sem memória, um personagem cuja ficha
+genuinamente não imprime os dois campos voltaria à fila em cada corrida para
+sempre. Com ela, o conjunto esgota-se sozinho e a reparação é temporária em
+vez de um imposto permanente. `relidos` é podado em `pruneTo` junto com o
+resto, ou o ficheiro guardaria ids de quem já saiu do mercado — e quem
+voltar a anunciar merece releitura nova, porque a página dele pode ter
+mudado entretanto.
+
 ### O teste que faltava, e a sorte que o substituía
 
 **Cada campo do índice tem de ter ao menos um portador** —

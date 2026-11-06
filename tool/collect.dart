@@ -40,6 +40,7 @@ import 'package:pw_market_filter/collector/memoria.dart';
 import 'package:pw_market_filter/market/alerta_de_entrada.dart';
 
 import 'avisar_discord.dart';
+import 'package:pw_market_filter/collector/reler_sem_campo.dart';
 import 'package:pw_market_filter/collector/servidor.dart';
 import 'package:pw_market_filter/collector/ultima_leitura.dart';
 import 'package:pw_market_filter/market/card_combos.dart';
@@ -1015,10 +1016,19 @@ void _rebuildFromState() {
 /// What has already been read, so an interrupted run can continue — and so a
 /// rebuild never needs the network.
 class _CollectState {
-  _CollectState(this.done, this.failed, this.listing);
+  _CollectState(this.done, this.failed, this.listing, [Set<int>? relidos])
+    : relidos = relidos ?? <int>{};
 
   final Map<int, CollectedPage> done;
   final Set<int> failed;
+
+  /// Quem já foi relido por lhe faltar o sexo e o reino.
+  ///
+  /// Guardado para que cada um custe **uma** página e não uma por corrida
+  /// para sempre: um personagem cuja ficha genuinamente não imprime os dois
+  /// campos continuaria a parecer por reparar em todas as corridas. Ver
+  /// [aReler].
+  final Set<int> relidos;
 
   /// The roster as it was when this collection started. Kept so `--rebuild`
   /// can write a whole index offline, and so the index always describes one
@@ -1047,12 +1057,33 @@ class _CollectState {
       if (!CollectedPage.isCurrent(value, _servidor.chave)) continue;
       done[int.parse(entry.key)] = CollectedPage.fromJson(value, names);
     }
+    final relidos = (json['relidos'] as List<dynamic>? ?? const [])
+        .cast<int>()
+        .toSet();
+
+    // **A reparação acontece aqui, ao carregar, e é por isso que custa uma
+    // linha no resto do programa.** Tirar do `done` é tudo o que é preciso:
+    // o laço de recolha fetcha quem não está lá, portanto estes voltam a ser
+    // lidos como se fossem novos, com o parser corrigido.
+    final alvos = aReler(done, relidos);
+    if (alvos.isNotEmpty) {
+      for (final id in alvos) {
+        done.remove(id);
+        relidos.add(id);
+      }
+      stdout.writeln(
+        '  ${alvos.length} sem sexo nem reino vão ser relidos '
+        '(tecto de $releiturasPorCorrida por corrida)',
+      );
+    }
+
     return _CollectState(
       done,
       (json['failed'] as List<dynamic>).cast<int>().toSet(),
       (json['listing'] as List<dynamic>? ?? const [])
           .map((c) => _cardFromJson(c as Map<String, dynamic>))
           .toList(),
+      relidos,
     );
   }
 
@@ -1064,6 +1095,10 @@ class _CollectState {
       done.remove(id);
     }
     failed.removeWhere((id) => !onSale.contains(id));
+    // `relidos` também, ou o ficheiro de estado guarda para sempre ids de
+    // quem já saiu do mercado — e quem voltar a anunciar merece uma
+    // releitura nova, porque entretanto a sua página pode ter mudado.
+    relidos.removeWhere((id) => !onSale.contains(id));
     return gone.length;
   }
 
@@ -1091,6 +1126,9 @@ class _CollectState {
           for (final entry in names.entries) entry.key.toString(): entry.value,
         },
         'failed': failed.toList(),
+        // Sem isto a memória perde-se a cada corrida e os mesmos voltam a ser
+        // relidos para sempre — o defeito que `relidos` existe para impedir.
+        'relidos': relidos.toList(),
         'listing': listing.map(_cardToJson).toList(),
       }),
     );

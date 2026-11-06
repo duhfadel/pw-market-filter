@@ -100,11 +100,21 @@ jobs:
     # três minutos; o custo de um tecto curto é o laço.
     #
     # A conta a refazer sempre que o mercado crescer: `páginas × 3,2 s`. Hoje
-    # 2.486 → 131 min e 1.426 → 76 min. Refeita a 05/11/2026, quando o
-    # carimbo do pw187 subiu para 9 pelos `Renascimentos` das cartas e
-    # obrigou a uma recolha completa — é esse o momento em que esta conta
-    # tem de ser refeita, e não o momento em que falha.
-    timeout-minutes: 180
+    # 2.899 → 155 min e 1.426 → 76 min.
+    #
+    # **330 desde 06/11/2026, e a razão é que 180 deixou de ter margem.** A
+    # recolha completa desse dia levou **148 minutos** — 2.899 páginas a
+    # 3,07 s, que confirma a constante de 3,2 s pela terceira vez. São 82%
+    # do tecto de 180. E o mercado cresceu **17% em duas semanas**, de 2.486
+    # a 23/10 para 2.898 a 06/11: ao mesmo ritmo, 180 estoura dentro de um
+    # mês, e o que estoura não é só a corrida.
+    #
+    # O erro a não repetir é o meu nesse dia: estimei 131 minutos usando a
+    # contagem de personagens do índice **publicado**, de 23/10, em vez de
+    # pedir a listagem e contar os anúncios de agora. A listagem é **um**
+    # pedido e dá o número certo; a conta a partir do índice velho dá sempre
+    # um número optimista, porque o mercado só cresce entre recolhas.
+    timeout-minutes: 330
 
     strategy:
       # Uma versão que falha não pode levar as outras: o site prefere um

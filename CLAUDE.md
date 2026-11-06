@@ -1293,6 +1293,69 @@ do site**: continua em `web/guias/index.html`. É a divisão que a entrada
 22/10 não foi dar um `Tool` a cada artigo — isso repara o terceiro e deixa o
 quarto cair no mesmo buraco.
 
+## O site passou um painel a espanhol, e custou 148 minutos
+
+A 06/11/2026 os rótulos do painel das anedotas mudaram de língua: `Progresso
+total` virou **`Progreso total`** e `Linhas` virou `Líneas`. O conteúdo
+continua português — *«Radiante como Sol»*, *«Céu Real»* — só os rótulos do
+painel vazaram. `parseAnecdotes` comparava `label == 'Progresso total'` por
+igualdade exacta, portanto devolveu null para **os 2.898 personagens de uma
+vez**, e a recolha completa de 148 minutos saiu sem anedotas.
+
+**Dois testes sobre o índice real recusaram publicá-la, e é esse o trabalho
+deles.** `counted_items_test` e `poda_126_test` falharam pela mesma causa
+única, quatro corridas seguidas, e o site continuou a servir o índice de
+23/10 — velho e correcto, em vez de novo e mutilado. É a distinção que a
+regra do gate já fazia: **um defeito nosso põe a suíte vermelha; um facto
+sobre um mercado que muda sozinho não congela o site.** Um campo que deixa de
+ser lido é a primeira coisa, não a segunda.
+
+**A correcção lê a forma do valor e não a língua do rótulo.** O painel traz
+duas linhas: o progresso como `N/M` e a contagem como um inteiro só, e essas
+duas formas bastam para os separar. É a lição dos reinos celestiais — casar
+pela parte distintiva e nunca pela frase inteira — levada um passo além,
+porque aqui nem a parte distintiva do rótulo é precisa e uma terceira língua
+também não quebra. `anecdote_summary_es.html` são 220 bytes de excerto
+verbatim da página, guardados porque este caso não se encontra rolando a
+grelha.
+
+**E o estado não salva.** Ele guarda `ParsedAnecdotes`, não o HTML, portanto
+o nulo está gravado para os 2.898 e um `--rebuild` reconstrói o mesmo nada.
+Carimbo de 9 para 10, outra recolha completa. **É a recolha mais cara deste
+ficheiro: 148 minutos de rede deles para corrigir uma linha nossa** — e o que
+a tornou caríssima foi escolher a igualdade exacta sobre um rótulo que nunca
+foi nosso.
+
+**Um rótulo em língua estrangeira não é um sintoma visível.** Vale verificar
+os outros de uma vez quando um aparece: a 06/11 todos os restantes
+continuavam portugueses — `Sexo`, `Masculino`, `Reino Celestial`, `Erupção`,
+`Nível de Ataque`, `Renascimentos` — portanto o vazamento era de um painel e
+não do site. Uma página na mão responde isso em segundos e evita corrigir
+sete parsers por causa de um.
+
+### O tecto subiu para 330, e o erro da estimativa foi meu
+
+A recolha de 06/11 levou **148 minutos**: 2.899 páginas a **3,07 s**, o que
+confirma a constante de 3,2 s pela terceira vez. São 82% do tecto de 180, e o
+mercado cresceu **17% em duas semanas** — 2.486 a 23/10 para 2.898 a 06/11.
+Ao mesmo ritmo, 180 estoura dentro de um mês, e o que estoura não é só a
+corrida: uma que passa do tecto **não grava cache**, e a seguinte repete tudo.
+
+**Eu estimei 131 minutos e errei, e o erro tem uma forma a reconhecer:**
+contei as páginas a partir da contagem de personagens do índice
+**publicado**, de 23/10, em vez de pedir a listagem e contar os anúncios de
+agora. A listagem é **um** pedido e dá o número certo; a conta a partir do
+índice velho dá sempre um número optimista, porque o mercado só cresce entre
+recolhas.
+
+**E a 15:01 eu li `in_progress` numa corrida que tinha terminado às 14:10.**
+A API respondeu-me um estado velho por quase uma hora, e eu construí em cima
+dele um diagnóstico inteiro — 4,12 s por página, suspeita de bloqueio — que
+era todo falso. É a mesma inconsistência entre réplicas que este ficheiro já
+registra para o `deploy-pages`, a chegar por outra porta: **o campo de estado
+de uma corrida não é mais fiável do que a contagem de artefactos.** O que
+resolveu foi ler `jobs[].completedAt`, que trazia a hora certa.
+
 ## Gotchas
 
 Each of these already cost something — measured on the live site, not guessed.

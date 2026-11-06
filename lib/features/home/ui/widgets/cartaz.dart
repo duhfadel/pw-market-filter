@@ -38,7 +38,7 @@ class Cartaz extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final arte = arteVerticalDaClasse(classe);
+    final arte = arteVerticalDaClasse(classe, tamanho: TamanhoDaArte.cartaz);
     final acento = acentoDaClasse(classe);
 
     return SizedBox(

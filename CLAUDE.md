@@ -962,6 +962,54 @@ mais abaixo nesta mesma página — e virou um link direto que rola a página at
 lá (`Scrollable.ensureVisible`), em vez de um menu que abriria para mostrar
 uma entrada só.
 
+## A arte das classes existe em dois tamanhos, e só o Cartaz pede o grande
+
+`arteVerticalDaClasse` resolve `classes-verticais/480/` ou `/960/` conforme
+quem desenha — **duas pastas e uma regra de endereço, não duas listas de
+ficheiros**, o mesmo arranjo do ícone de item derivado do id. Acrescentar um
+terceiro tamanho não toca na tabela de classes.
+
+**O Cartaz é o único chamador que amplia a arte, e é por isso que o parâmetro
+existe.** A caixa dele é da largura da página por 360 px, com `BoxFit.cover`,
+portanto numa página de 1280 px uma fonte de 480 é esticada **2,67×** — 5,3×
+em `DPR 2`. Os Destaques a seis colunas dão ~120 px por carta e as Portas
+menos: ali 480 já é quatro vezes o que o ecrã mostra, e servir 960 seria
+pagar por píxeis que ninguém vê.
+
+**A conta que decidiu, por visita de home** — uma classe para o Cartaz e seis
+para os Destaques, sete ficheiros:
+
+| | por visita |
+|---|---|
+| tudo a 480, como estava | 373 KB |
+| tudo a 960 | 1009 KB |
+| 1×960 + 6×480, o que ficou | **464 KB** |
+
+**As artes novas são fonte verdadeira e isso foi medido, não suposto.**
+Energia de borda das de 960 contra as nossas de 480 ampliadas para o mesmo
+tamanho: **1,94× de média** sobre as dezassete. Um upscale daria 1,00×. E são
+a mesma arte, não outra — o espiritualista, que mais se destacou, tem 9,5/255
+de diferença média por canal à mesma escala.
+
+**Chegaram como `pw-01..17` e o emparelhamento é por ordem alfabética**, o
+que foi confirmado por assinatura de 16×16 antes de renomear: distância 1 a 6
+contra a classe certa, 45 a 85 contra a segunda melhor. Não se adivinhou.
+
+**Três testes guardam isto, e o segundo é o que não é óbvio.** Que toda a arte
+declarada existe em disco nos dois tamanhos — `errorBuilder` engole o 404 de
+propósito, para uma classe sem arte desenhar o chão em vez de uma caixa
+partida, e é isso mesmo que torna a falta invisível. Que **cada ficheiro tem a
+largura que o nome da pasta promete**, lida do cabeçalho WebP: um 480 guardado
+em `960/` serviria metade dos píxeis sob um nome que promete o dobro, e nada na
+página diria, porque `BoxFit.cover` estica o que lhe derem. E que o Cartaz
+continua a ser o único a pedir o tamanho grande, para um segundo chamador ser
+uma decisão e não um descuido.
+
+**E o teste do Cartaz cravava o caminho à mão**, portanto quebrou no dia em
+que a pasta mudou. Lê da função agora — um caminho escrito num teste é o
+mesmo facto em dois sítios, que é a forma que já custou a arte do Ceifador
+nas Sagas.
+
 ## O combo vale pela pior carta dele
 
 Um combo de seis cartas tem um nível de renascimento, e **é o mínimo entre as
@@ -1244,6 +1292,69 @@ do site**: continua em `web/guias/index.html`. É a divisão que a entrada
 *Todos os guias* existe para garantir, e a razão pela qual a correção de
 22/10 não foi dar um `Tool` a cada artigo — isso repara o terceiro e deixa o
 quarto cair no mesmo buraco.
+
+## O site passou um painel a espanhol, e custou 148 minutos
+
+A 06/11/2026 os rótulos do painel das anedotas mudaram de língua: `Progresso
+total` virou **`Progreso total`** e `Linhas` virou `Líneas`. O conteúdo
+continua português — *«Radiante como Sol»*, *«Céu Real»* — só os rótulos do
+painel vazaram. `parseAnecdotes` comparava `label == 'Progresso total'` por
+igualdade exacta, portanto devolveu null para **os 2.898 personagens de uma
+vez**, e a recolha completa de 148 minutos saiu sem anedotas.
+
+**Dois testes sobre o índice real recusaram publicá-la, e é esse o trabalho
+deles.** `counted_items_test` e `poda_126_test` falharam pela mesma causa
+única, quatro corridas seguidas, e o site continuou a servir o índice de
+23/10 — velho e correcto, em vez de novo e mutilado. É a distinção que a
+regra do gate já fazia: **um defeito nosso põe a suíte vermelha; um facto
+sobre um mercado que muda sozinho não congela o site.** Um campo que deixa de
+ser lido é a primeira coisa, não a segunda.
+
+**A correcção lê a forma do valor e não a língua do rótulo.** O painel traz
+duas linhas: o progresso como `N/M` e a contagem como um inteiro só, e essas
+duas formas bastam para os separar. É a lição dos reinos celestiais — casar
+pela parte distintiva e nunca pela frase inteira — levada um passo além,
+porque aqui nem a parte distintiva do rótulo é precisa e uma terceira língua
+também não quebra. `anecdote_summary_es.html` são 220 bytes de excerto
+verbatim da página, guardados porque este caso não se encontra rolando a
+grelha.
+
+**E o estado não salva.** Ele guarda `ParsedAnecdotes`, não o HTML, portanto
+o nulo está gravado para os 2.898 e um `--rebuild` reconstrói o mesmo nada.
+Carimbo de 9 para 10, outra recolha completa. **É a recolha mais cara deste
+ficheiro: 148 minutos de rede deles para corrigir uma linha nossa** — e o que
+a tornou caríssima foi escolher a igualdade exacta sobre um rótulo que nunca
+foi nosso.
+
+**Um rótulo em língua estrangeira não é um sintoma visível.** Vale verificar
+os outros de uma vez quando um aparece: a 06/11 todos os restantes
+continuavam portugueses — `Sexo`, `Masculino`, `Reino Celestial`, `Erupção`,
+`Nível de Ataque`, `Renascimentos` — portanto o vazamento era de um painel e
+não do site. Uma página na mão responde isso em segundos e evita corrigir
+sete parsers por causa de um.
+
+### O tecto subiu para 330, e o erro da estimativa foi meu
+
+A recolha de 06/11 levou **148 minutos**: 2.899 páginas a **3,07 s**, o que
+confirma a constante de 3,2 s pela terceira vez. São 82% do tecto de 180, e o
+mercado cresceu **17% em duas semanas** — 2.486 a 23/10 para 2.898 a 06/11.
+Ao mesmo ritmo, 180 estoura dentro de um mês, e o que estoura não é só a
+corrida: uma que passa do tecto **não grava cache**, e a seguinte repete tudo.
+
+**Eu estimei 131 minutos e errei, e o erro tem uma forma a reconhecer:**
+contei as páginas a partir da contagem de personagens do índice
+**publicado**, de 23/10, em vez de pedir a listagem e contar os anúncios de
+agora. A listagem é **um** pedido e dá o número certo; a conta a partir do
+índice velho dá sempre um número optimista, porque o mercado só cresce entre
+recolhas.
+
+**E a 15:01 eu li `in_progress` numa corrida que tinha terminado às 14:10.**
+A API respondeu-me um estado velho por quase uma hora, e eu construí em cima
+dele um diagnóstico inteiro — 4,12 s por página, suspeita de bloqueio — que
+era todo falso. É a mesma inconsistência entre réplicas que este ficheiro já
+registra para o `deploy-pages`, a chegar por outra porta: **o campo de estado
+de uma corrida não é mais fiável do que a contagem de artefactos.** O que
+resolveu foi ler `jobs[].completedAt`, que trazia a hora certa.
 
 ## Gotchas
 

@@ -82,7 +82,19 @@ class CollectedPage {
   /// onde está — não tem cartas de avatar nenhumas, portanto subir-lhe o
   /// número gastaria setenta minutos da rede deles para não aprender nada.
   /// É exactamente o caso para que o carimbo deixou de ser um só.
-  static const versoes = <String, int>{'pw187': 9, 'pw126': 7};
+  /// O 187 vai em 10 desde 06/11/2026, e esta é a recolha mais cara deste
+  /// ficheiro: paga-se 148 minutos para corrigir um defeito nosso de uma
+  /// linha. O site passou os rótulos do painel das anedotas a espanhol —
+  /// `Progreso total`, `Líneas` — e `parseAnecdotes` comparava o rótulo por
+  /// igualdade exacta, portanto devolveu null para os **2.898** personagens
+  /// de uma vez. O estado guarda [ParsedAnecdotes] e não o HTML, logo o nulo
+  /// está gravado e um `--rebuild` não o salva: só relendo as páginas.
+  ///
+  /// **É o preço de casar pela frase inteira**, e a lição estava escrita a
+  /// propósito dos reinos celestiais. O parser lê agora a forma do valor —
+  /// `N/M` é o progresso — portanto uma terceira língua não volta a cobrar
+  /// isto.
+  static const versoes = <String, int>{'pw187': 10, 'pw126': 7};
 
   /// The stamp a page collected from [servidor] carries.
   static int versaoDe(String servidor) => versoes[servidor] ?? 0;

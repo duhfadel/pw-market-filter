@@ -113,6 +113,29 @@ void main() {
       expect(anecdotes.lines, 107);
     });
 
+    test('os rótulos em espanhol continuam a ser lidos', () {
+      // **O site mudou e não nós, a 06/11/2026.** Os rótulos deste painel
+      // passaram a espanhol — `Progreso total` e `Líneas` — e o parser
+      // comparava `label == 'Progresso total'` por igualdade exacta, portanto
+      // devolveu null para **todos** os 2.898 personagens. A recolha de 148
+      // minutos ficou sem anedotas e dois testes sobre o índice real
+      // recusaram publicá-la, que é exactamente o trabalho deles.
+      //
+      // A correcção lê a **forma do valor** e não a língua do rótulo: a
+      // linha do progresso é a que traz `N/M`, a das linhas é a que traz um
+      // inteiro só. É a mesma lição dos reinos celestiais — casar pela parte
+      // distintiva e nunca pela frase inteira — levada um passo além, porque
+      // uma terceira língua também não quebra isto.
+      final anedotas = parseAnecdotes(
+        File('test/fixtures/anecdote_summary_es.html').readAsStringSync(),
+      );
+
+      expect(anedotas, isNotNull);
+      expect(anedotas!.done, 1363);
+      expect(anedotas.total, 2756);
+      expect(anedotas.lines, 107);
+    });
+
     test('a page without the panel yields null, not a zeroed pair', () {
       // Zero of zero would read as a character who has completed nothing,
       // which is a claim. Absent is not a number.

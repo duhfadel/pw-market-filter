@@ -320,19 +320,33 @@ ParsedAnecdotes? parseAnecdotes(String html) {
   var lines = 0;
   var found = false;
 
+  // **Lido pela forma do valor, nunca pelo rótulo.** O painel traz duas
+  // linhas: o progresso como `N/M` e a contagem como um inteiro só. Essas
+  // duas formas bastam para os distinguir, e é a única leitura que sobrevive
+  // à língua do rótulo mudar — o que aconteceu a 06/11/2026, quando o site
+  // passou este painel a espanhol (`Progreso total`, `Líneas`) e um
+  // `label == 'Progresso total'` deixou de casar para os 2.898 personagens
+  // do mercado, de uma vez.
+  //
+  // É a lição dos reinos celestiais — casar pela parte distintiva e nunca
+  // pela frase inteira — levada um passo além: aqui nem a parte distintiva
+  // do rótulo é precisa, portanto uma terceira língua também não quebra.
   for (final row in summary.querySelectorAll('li')) {
-    final label = row.querySelector('span')?.text.trim() ?? '';
     final value = row.querySelector('strong')?.text.trim() ?? '';
 
-    if (label == 'Progresso total') {
-      final match = _anecdoteProgressPattern.firstMatch(value);
-      if (match == null) continue;
+    final match = _anecdoteProgressPattern.firstMatch(value);
+    if (match != null) {
+      // A primeira que traz `N/M` é o progresso. Primeira e não última, para
+      // que uma linha nova com a mesma forma não roube o lugar a esta.
+      if (found) continue;
       done = int.parse(match.group(1)!);
       total = int.parse(match.group(2)!);
       found = true;
-    } else if (label == 'Linhas') {
-      lines = int.tryParse(value) ?? 0;
+      continue;
     }
+
+    final inteiro = int.tryParse(value);
+    if (inteiro != null) lines = inteiro;
   }
 
   return found ? ParsedAnecdotes(done: done, total: total, lines: lines) : null;

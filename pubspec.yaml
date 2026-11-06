@@ -81,7 +81,8 @@ flutter:
     #
     # No Flutter web o asset e buscado sob demanda, entao as dezessete no
     # deploy nao viram peso no navegador: o visitante baixa a do dia.
-    - assets/images/classes-verticais/
+    - assets/images/classes-verticais/480/
+    - assets/images/classes-verticais/960/
     - assets/icons/classes/
     - assets/icons/items/
     # As pedras do set sem moldura nem fundo, escritas por

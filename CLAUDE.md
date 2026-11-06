@@ -1348,13 +1348,34 @@ agora. A listagem é **um** pedido e dá o número certo; a conta a partir do
 índice velho dá sempre um número optimista, porque o mercado só cresce entre
 recolhas.
 
-**E a 15:01 eu li `in_progress` numa corrida que tinha terminado às 14:10.**
-A API respondeu-me um estado velho por quase uma hora, e eu construí em cima
-dele um diagnóstico inteiro — 4,12 s por página, suspeita de bloqueio — que
-era todo falso. É a mesma inconsistência entre réplicas que este ficheiro já
-registra para o `deploy-pages`, a chegar por outra porta: **o campo de estado
-de uma corrida não é mais fiável do que a contagem de artefactos.** O que
-resolveu foi ler `jobs[].completedAt`, que trazia a hora certa.
+### A máquina está em CET e o GitHub fala UTC, e isso inventou uma avaria
+
+**Esta secção dizia que a API do Actions tinha respondido um estado velho
+por quase uma hora, e era mentira minha.** O que aconteceu a 06/11/2026: a
+corrida arrancou às `11:42:22Z` e terminou às `14:10:37Z`, 148 minutos. Eu
+li `date +%H:%M` — hora **local**, CET, `UTC+1` — vi `15:01` e concluí 199
+minutos decorridos, logo tecto estourado. Eram 14:01 UTC e **139** minutos,
+e o job ainda corria com razão.
+
+Em cima desse erro construí um diagnóstico inteiro e falso: 4,12 s por
+página em vez dos 3,07 reais, suspeita de bloqueio do site deles, e a
+acusação de que a API mentia — a que depois estendi ao nível do passo, pela
+mesma causa. Nada disso era verdade. **A API esteve certa o tempo todo.**
+
+Três coisas a guardar. **Carimbos do GitHub acabam em `Z` e são UTC**, logo
+compará-los com a hora local erra por uma hora inteira em metade do ano
+deste fuso — a conta faz-se em UTC dos dois lados, ou com um `datetime`
+ciente do fuso, nunca com `date +%H:%M`. **Uma medição que contradiz o
+sistema é primeiro suspeita da medição**, e esta contradizia-o por uma
+quantia exactamente igual ao desvio do fuso, que era o sinal e eu não o li.
+E **uma nota inventada neste ficheiro é pior do que nota nenhuma**: ela
+mandaria a próxima pessoa desconfiar de uma API sã e procurar a avaria no
+lugar errado.
+
+O que sobrevive do episódio é só o que foi medido na página: a tradução do
+painel das anedotas, que era real. O tecto subiu para 330 pelos seus
+próprios motivos — 148 de 180 são 82%, e o mercado cresceu 17% em duas
+semanas — e não por causa da corrida que eu julguei estourada.
 
 ## Gotchas
 

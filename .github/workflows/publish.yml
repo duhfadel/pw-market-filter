@@ -109,6 +109,11 @@ jobs:
     # a 23/10 para 2.898 a 06/11: ao mesmo ritmo, 180 estoura dentro de um
     # mês, e o que estoura não é só a corrida.
     #
+    # **E a medição faz-se em UTC dos dois lados.** Os carimbos do Actions
+    # acabam em `Z`; comparar com a hora local desta máquina, CET, erra por
+    # uma hora inteira — foi assim que nesse dia julguei esta corrida
+    # estourada aos 199 minutos quando ia nos 139, e acusei a API de mentir.
+    #
     # O erro a não repetir é o meu nesse dia: estimei 131 minutos usando a
     # contagem de personagens do índice **publicado**, de 23/10, em vez de
     # pedir a listagem e contar os anúncios de agora. A listagem é **um**

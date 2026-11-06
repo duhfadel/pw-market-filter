@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FontLoader, rootBundle;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pw_market_filter/features/home/domain/arte_da_classe.dart';
 import 'package:pw_market_filter/core/theme/pw_colors.dart';
 import 'package:pw_market_filter/features/home/ui/widgets/cartaz.dart';
 
@@ -89,7 +90,16 @@ void main() {
         .widgetList<Image>(find.byType(Image))
         .map((i) => (i.image as AssetImage).assetName);
 
-    expect(imagens, contains('assets/images/classes-verticais/barbaro.webp'));
+    // Lido da função e não cravado à mão: um caminho escrito aqui divergiria
+    // no dia em que a função mudasse de pasta, que é precisamente o que
+    // aconteceu a 06/11/2026 ao entrarem os dois tamanhos.
+    expect(
+      imagens,
+      contains(arteVerticalDaClasse('Bárbaro', tamanho: TamanhoDaArte.cartaz)),
+    );
+    // E é o tamanho grande que ele pede, porque o Cartaz é o único sítio que
+    // amplia a arte — a caixa é da largura da página.
+    expect(imagens.single, contains('/960/'));
   });
 
   testWidgets('a class with no art draws no image and does not crash', (

@@ -962,6 +962,54 @@ mais abaixo nesta mesma página — e virou um link direto que rola a página at
 lá (`Scrollable.ensureVisible`), em vez de um menu que abriria para mostrar
 uma entrada só.
 
+## A arte das classes existe em dois tamanhos, e só o Cartaz pede o grande
+
+`arteVerticalDaClasse` resolve `classes-verticais/480/` ou `/960/` conforme
+quem desenha — **duas pastas e uma regra de endereço, não duas listas de
+ficheiros**, o mesmo arranjo do ícone de item derivado do id. Acrescentar um
+terceiro tamanho não toca na tabela de classes.
+
+**O Cartaz é o único chamador que amplia a arte, e é por isso que o parâmetro
+existe.** A caixa dele é da largura da página por 360 px, com `BoxFit.cover`,
+portanto numa página de 1280 px uma fonte de 480 é esticada **2,67×** — 5,3×
+em `DPR 2`. Os Destaques a seis colunas dão ~120 px por carta e as Portas
+menos: ali 480 já é quatro vezes o que o ecrã mostra, e servir 960 seria
+pagar por píxeis que ninguém vê.
+
+**A conta que decidiu, por visita de home** — uma classe para o Cartaz e seis
+para os Destaques, sete ficheiros:
+
+| | por visita |
+|---|---|
+| tudo a 480, como estava | 373 KB |
+| tudo a 960 | 1009 KB |
+| 1×960 + 6×480, o que ficou | **464 KB** |
+
+**As artes novas são fonte verdadeira e isso foi medido, não suposto.**
+Energia de borda das de 960 contra as nossas de 480 ampliadas para o mesmo
+tamanho: **1,94× de média** sobre as dezassete. Um upscale daria 1,00×. E são
+a mesma arte, não outra — o espiritualista, que mais se destacou, tem 9,5/255
+de diferença média por canal à mesma escala.
+
+**Chegaram como `pw-01..17` e o emparelhamento é por ordem alfabética**, o
+que foi confirmado por assinatura de 16×16 antes de renomear: distância 1 a 6
+contra a classe certa, 45 a 85 contra a segunda melhor. Não se adivinhou.
+
+**Três testes guardam isto, e o segundo é o que não é óbvio.** Que toda a arte
+declarada existe em disco nos dois tamanhos — `errorBuilder` engole o 404 de
+propósito, para uma classe sem arte desenhar o chão em vez de uma caixa
+partida, e é isso mesmo que torna a falta invisível. Que **cada ficheiro tem a
+largura que o nome da pasta promete**, lida do cabeçalho WebP: um 480 guardado
+em `960/` serviria metade dos píxeis sob um nome que promete o dobro, e nada na
+página diria, porque `BoxFit.cover` estica o que lhe derem. E que o Cartaz
+continua a ser o único a pedir o tamanho grande, para um segundo chamador ser
+uma decisão e não um descuido.
+
+**E o teste do Cartaz cravava o caminho à mão**, portanto quebrou no dia em
+que a pasta mudou. Lê da função agora — um caminho escrito num teste é o
+mesmo facto em dois sítios, que é a forma que já custou a arte do Ceifador
+nas Sagas.
+
 ## O combo vale pela pior carta dele
 
 Um combo de seis cartas tem um nível de renascimento, e **é o mínimo entre as

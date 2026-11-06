@@ -56,12 +56,42 @@ const classesComArte = [
   'Tormentador',
 ];
 
-/// The art for [classe] at the 480×720 crop, or `null` where none was ever
+/// Os dois tamanhos em que a arte vertical existe, em píxeis de largura.
+///
+/// **São duas pastas e uma regra de endereço, não duas listas de ficheiros.**
+/// A classe é o facto; a pasta é escolhida por quem desenha, conforme a caixa
+/// que vai preencher. É o mesmo arranjo do ícone de item, derivado do id, e é
+/// por isso que acrescentar um terceiro tamanho não toca em [_classes].
+enum TamanhoDaArte {
+  /// Para cartões: os Destaques a seis colunas dão ~120 px cada, e as Portas
+  /// menos ainda. Aqui 480 já é quatro vezes o que o ecrã mostra.
+  cartao(480),
+
+  /// Para o Cartaz, que é o único sítio que **amplia** a arte: a caixa é da
+  /// largura da página por 360 px de altura, com `BoxFit.cover`, portanto numa
+  /// página de 1280 px uma fonte de 480 é esticada 2,67× — 5,3× em `DPR 2`.
+  /// Medido a 06/11/2026: as artes de 960 trazem **1,94×** mais energia de
+  /// borda do que as de 480 ampliadas para o mesmo tamanho, o que as prova
+  /// fonte verdadeira e não um upscale, que daria 1,00×.
+  cartaz(960);
+
+  const TamanhoDaArte(this.largura);
+
+  final int largura;
+}
+
+/// The art for [classe] at the 2:3 crop, or `null` where none was ever
 /// supplied.
 ///
 /// `null` draws the plain ground — the same silent fallback `ItemIcon` makes.
 /// A hero showing somebody else's face would be worse than a hero showing no
 /// face at all.
+///
+/// **[tamanho] existe porque só um chamador amplia.** Servir 960 a todos
+/// custaria 600 KB a mais em cada abertura da home — a visita busca sete
+/// ficheiros, uma classe para o Cartaz e seis para os Destaques — e seis
+/// desses sete já recebem mais píxeis do que desenham. O valor por omissão é
+/// o do cartão, que é o caso comum.
 ///
 /// This used to have a square 560 sibling, `arteDaClasse`, cropped to put the
 /// face a fifth from the top for a half-width card. It was deleted on
@@ -69,11 +99,15 @@ const classesComArte = [
 /// called the square one — kept alive only by its own test, which is the
 /// inverse of the failure CLAUDE.md names when it says "a codec with no test
 /// is where a field goes to die". `assets/images/classes/` went with it.
-String? arteVerticalDaClasse(String classe) {
+String? arteVerticalDaClasse(
+  String classe, {
+  TamanhoDaArte tamanho = TamanhoDaArte.cartao,
+}) {
   final entrada = _classes[classe];
   return entrada == null
       ? null
-      : 'assets/images/classes-verticais/${entrada.arquivo}.webp';
+      : 'assets/images/classes-verticais/${tamanho.largura}/'
+            '${entrada.arquivo}.webp';
 }
 
 /// The accent the page wears while showing [classe].

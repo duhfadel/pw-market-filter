@@ -124,6 +124,7 @@ class ParsedCard {
     required this.type,
     required this.level,
     required this.maxLevel,
+    this.rebirths = 0,
   });
 
   final int cardId;
@@ -138,6 +139,16 @@ class ParsedCard {
   /// knows the difference: one character had ten S cards, nine of them at 1/80.
   final int level;
   final int maxLevel;
+
+  /// How many times the card has been reborn — the tooltip's `Renascimentos`.
+  ///
+  /// **Zero means none, and that is a reading of the page rather than a
+  /// default.** The line is simply absent on a card that has never been
+  /// reborn: measured across the five fixtures that have a cards panel,
+  /// `Renascimentos 0` is printed nowhere, while `Renascimentos 1` and
+  /// `Renascimentos 2` both appear. So an absent line is a real nought and
+  /// not an unknown, which is what lets a combo's level be a minimum.
+  final int rebirths;
 }
 
 final _slotPattern = RegExp(r'slot-(\d+)');
@@ -379,6 +390,9 @@ List<ParsedStack> parseInventory(String html) {
 final _rarityPattern = RegExp(r'Nível ([SAB])<br>');
 final _cardTypePattern = RegExp(r'Tipo ([^<]+?)<br>');
 final _cardLevelPattern = RegExp(r'Nível (\d+)/(\d+)');
+// `Renascimentos 2`. Absent on a card that has never been reborn — the page
+// never prints a zero — so a card with no line is a nought and not an unknown.
+final _cardRebirthPattern = RegExp(r'Renascimentos (\d+)');
 
 /// The six cards the character has equipped.
 ///
@@ -410,6 +424,9 @@ ParsedCard? _readCard(Element element) {
     type: _cardTypePattern.firstMatch(tooltip)?.group(1)?.trim() ?? '',
     level: int.tryParse(progress?.group(1) ?? '') ?? 0,
     maxLevel: int.tryParse(progress?.group(2) ?? '') ?? 0,
+    rebirths:
+        int.tryParse(_cardRebirthPattern.firstMatch(tooltip)?.group(1) ?? '') ??
+        0,
   );
 }
 

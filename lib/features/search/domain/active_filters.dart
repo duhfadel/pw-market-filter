@@ -133,7 +133,18 @@ List<ActiveFilter> activeFilters(MarketIndex index, SearchQuery query) {
   }
 
   if (query.comboName != null) {
-    add(query.comboName!, (q) => q.copyWith(comboName: () => null));
+    // Tirar o combo tira o renascimento com ele: um «renascidas 2» sobre
+    // combo nenhum é um filtro sem onde se mostrar.
+    add(
+      query.comboName!,
+      (q) => q.copyWith(comboName: () => null, comboMinRebirth: () => null),
+    );
+  }
+  if (query.comboMinRebirth != null) {
+    add(
+      'renascidas ${query.comboMinRebirth}+',
+      (q) => q.copyWith(comboMinRebirth: () => null),
+    );
   }
   if (query.cardRarity != null) {
     add(

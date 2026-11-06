@@ -54,6 +54,43 @@ void main() {
     expect(parseEquippedCards('<html><body></body></html>'), isEmpty);
   });
 
+  group('Renascimentos', () {
+    String fixture(String name) =>
+        File('test/fixtures/$name').readAsStringSync();
+
+    test('reads the count off the tooltip', () {
+      final cards = parseEquippedCards(fixture('detail_92624.html'));
+
+      expect(cards, hasLength(6));
+      expect(cards.map((c) => c.rebirths), everyElement(2));
+    });
+
+    test('a card never reborn reads zero, which is not unknown', () {
+      // The page prints `Renascimentos 0` nowhere — measured across every
+      // fixture that has a cards panel — so an absent line is a real nought,
+      // and that is what lets a combo's level be the minimum of six numbers.
+      final cards = parseEquippedCards(fixture('detail_330640.html'));
+
+      expect(cards.map((c) => c.rebirths).toList(), [0, 0, 0, 0, 1, 0]);
+    });
+
+    test('a combo may mix levels, and that is what a minimum is for', () {
+      final cards = parseEquippedCards(fixture('detail_2192.html'));
+
+      expect(cards.map((c) => c.rebirths).toList(), [2, 2, 1, 2, 2, 1]);
+    });
+
+    test('the garbage in the inventory panel never reaches the worn six', () {
+      // The same page's inventory cards print `Renascimentos 6619244` and
+      // `Renascimentos 1192755200` — raw bits wearing a number's clothes, the
+      // same family as `Movimento m/seg. +1036831949`. They sit outside
+      // `.pw187-detail-equipped-cards`, so a `>= 2` filter can never see one.
+      final cards = parseEquippedCards(fixture('detail_92624.html'));
+
+      expect(cards.map((c) => c.rebirths), everyElement(lessThan(10)));
+    });
+  });
+
   group('the character sex', () {
     test('is read from the info list', () {
       expect(parseSex(html), 'Masculino');

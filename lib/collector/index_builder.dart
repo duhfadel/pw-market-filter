@@ -107,6 +107,7 @@ class IndexBuilder {
                 type: c.type,
                 level: c.level,
                 maxLevel: c.maxLevel,
+                rebirths: c.rebirths,
               ),
             )
             .toList(growable: false),

@@ -61,6 +61,32 @@ void main() {
     expect(restored.sex, 'Masculino');
   });
 
+  test('a card keeps its Renascimentos across the disk', () {
+    // The field that pays for the whole re-collection. `nivel`, `escada` and
+    // `bonusNaoResolvidos` were parsed on 20/10/2026 and never reached this
+    // codec, so a two-hour crawl read them and threw them away in the same
+    // run — with every parser test green, because they exercised the call and
+    // never the crossing. This is that crossing.
+    final restored = roundTrip(page).cards;
+
+    expect(restored.map((c) => c.rebirths).toList(), [1, 1, 1, 0, 1, 0]);
+  });
+
+  test('a stored page written before Renascimentos reads zero, not null', () {
+    // The stamp drops such a page on load, so this can only be reached by a
+    // hand-written entry — but a codec that throws on a missing key turns an
+    // old file into a crash instead of a re-fetch.
+    final json =
+        jsonDecode(jsonEncode(page.toJson('pw187'))) as Map<String, dynamic>;
+    for (final card in json['cards'] as List<dynamic>) {
+      (card as Map<String, dynamic>).remove('rebirths');
+    }
+
+    final restored = CollectedPage.fromJson(json, itemNamesOf([page]));
+
+    expect(restored.cards.map((c) => c.rebirths), everyElement(0));
+  });
+
   test('the inventory comes back named, out of the shared table', () {
     // The names are written once for the whole file. If the table and the
     // counts ever stop agreeing, the counted items resolve to nothing and the

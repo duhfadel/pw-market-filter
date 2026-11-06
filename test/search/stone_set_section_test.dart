@@ -68,10 +68,8 @@ Future<SearchViewModel> _pump(WidgetTester tester) async {
   addTearDown(tester.view.reset);
 
   final client = MockClient(
-    (_) async => http.Response.bytes(
-      utf8.encode(jsonEncode(_index().toJson())),
-      200,
-    ),
+    (_) async =>
+        http.Response.bytes(utf8.encode(jsonEncode(_index().toJson())), 200),
   );
   final viewModel = SearchViewModel(IndexRepository(client));
   await viewModel.load();

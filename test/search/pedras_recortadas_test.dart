@@ -32,7 +32,9 @@ void main() {
     // carregar alfa — as duas coisas que o corte faz.
     for (final s in setsDisponiveis) {
       final pedra = equipmentStoneOf(s.kind, s.level);
-      final bytes = File('assets/icons/pedras/${pedra.id}.png').readAsBytesSync();
+      final bytes = File(
+        'assets/icons/pedras/${pedra.id}.png',
+      ).readAsBytesSync();
 
       // Cabeçalho PNG: largura e altura são big-endian nos bytes 16..23.
       final largura =
@@ -44,11 +46,7 @@ void main() {
       );
 
       // Byte 25 é o tipo de cor: 6 é RGBA.
-      expect(
-        bytes[25],
-        6,
-        reason: '${pedra.name} não tem canal alfa',
-      );
+      expect(bytes[25], 6, reason: '${pedra.name} não tem canal alfa');
     }
   });
 
@@ -56,11 +54,9 @@ void main() {
     // As de acessório não cortam — brilho mediano de 157 contra 53 — e por
     // isso não são geradas. Se alguém as acrescentar sem medir outra vez,
     // este teste diz que a ausência era decisão.
-    final naPasta = Directory('assets/icons/pedras')
-        .listSync()
-        .whereType<File>()
-        .where((f) => f.path.endsWith('.png'))
-        .length;
+    final naPasta = Directory(
+      'assets/icons/pedras',
+    ).listSync().whereType<File>().where((f) => f.path.endsWith('.png')).length;
     final deEquipamento = setStones.where((p) => !p.accessory).length;
     expect(naPasta, deEquipamento);
   });

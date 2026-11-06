@@ -100,7 +100,10 @@ jobs:
     # três minutos; o custo de um tecto curto é o laço.
     #
     # A conta a refazer sempre que o mercado crescer: `páginas × 3,2 s`. Hoje
-    # 2.226 → 119 min e 1.370 → 73 min.
+    # 2.486 → 131 min e 1.426 → 76 min. Refeita a 05/11/2026, quando o
+    # carimbo do pw187 subiu para 9 pelos `Renascimentos` das cartas e
+    # obrigou a uma recolha completa — é esse o momento em que esta conta
+    # tem de ser refeita, e não o momento em que falha.
     timeout-minutes: 180
 
     strategy:

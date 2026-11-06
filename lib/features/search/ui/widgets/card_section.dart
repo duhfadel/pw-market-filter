@@ -4,6 +4,7 @@ import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/game_icon.dart';
 import '../../../../market/card_combos.dart';
 import '../../../../market/slot_names.dart';
+import '../../domain/combo_rebirth.dart';
 import '../../domain/search_query.dart';
 import '../search_state.dart';
 import '../search_view_model.dart';
@@ -37,6 +38,7 @@ class _CardSectionState extends State<CardSection> {
   int get _active {
     final query = state.query;
     return (query.comboName != null ? 1 : 0) +
+        (query.comboMinRebirth != null ? 1 : 0) +
         (query.cardRarity != null ? 1 : 0) +
         (query.cardsMaxed ? 1 : 0);
   }
@@ -56,6 +58,7 @@ class _CardSectionState extends State<CardSection> {
         if (_open) ...[
           const SizedBox(height: 10),
           _comboField(query.comboName),
+          if (query.comboName != null) _renascimentos(query),
           const SizedBox(height: 10),
           _rarityField(query.cardRarity),
           CheckboxListTile(
@@ -146,6 +149,111 @@ class _CardSectionState extends State<CardSection> {
       onChanged: viewModel.setCombo,
     );
   }
+
+  /// Quantos renascimentos cada carta do combo tem de ter.
+  ///
+  /// **Aparece só com um combo escolhido**, porque é dele que a pergunta
+  /// fala: «renascidas 2» sem conjunto nomeado não é pergunta nenhuma, já
+  /// que as seis cartas de alguém podem não formar combo algum.
+  ///
+  /// **O nível é o da pior carta das seis**, que é a regra que o dono
+  /// descreveu nos mesmos termos do conjunto de pedras: quem tem quatro
+  /// renascidas 2 e duas renascidas 1 aparece em *1+* e não em *2+*. E como
+  /// é um mínimo, quem tem as seis em 2 também responde a *1+* — seria
+  /// absurdo dizer a quem procura renascidas 1 que o combo melhor não serve.
+  Widget _renascimentos(SearchQuery query) {
+    final combo = cardCombos
+        .where((c) => c.name == query.comboName)
+        .firstOrNull;
+    // Um nome vindo de um link antigo que nenhuma tabela conhece: não há
+    // conjunto para medir renascimento nenhum, e o combo em si já tem saída
+    // própria pelo chip de filtro activo.
+    if (combo == null) return const SizedBox.shrink();
+
+    // Contado no escopo que exclui as cartas, como todo o resto do painel:
+    // senão escolher *2+* faria os outros chips contarem só dentro de quem já
+    // tem 2+, e a volta para trás ficaria sem números.
+    final niveis = <int>[];
+    for (final c in state.facetsFor(FacetDimension.cards).scope) {
+      final nivel = comboRebirthLevel(c, combo);
+      if (nivel != null) niveis.add(nivel);
+    }
+    int quantos(int pedido) => niveis.where((n) => n >= pedido).length;
+
+    // Um e dois são sempre oferecidos, porque são os dois degraus que o jogo
+    // tem hoje e um chip apagado diz mais do que um chip ausente. Acima
+    // disso, só o que o mercado mostrar — se um dia aparecer um 3, o controlo
+    // cresce sozinho em vez de esconder o topo.
+    final maximo = niveis.isEmpty
+        ? 2
+        : niveis.reduce((a, b) => a > b ? a : b).clamp(2, 9);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Renascimento das seis cartas — conta pela pior delas, então uma '
+            'carta sem renascer deixa o combo fora.',
+            style: TextStyle(color: PWColors.textMuted, fontSize: 12),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              _chipDeRenascimento(
+                rotulo: 'Sem exigir',
+                nivel: null,
+                escolhido: query.comboMinRebirth == null,
+                vazio: false,
+              ),
+              for (var nivel = 1; nivel <= maximo; nivel++)
+                _chipDeRenascimento(
+                  rotulo: 'Renascidas $nivel+',
+                  nivel: nivel,
+                  escolhido: query.comboMinRebirth == nivel,
+                  vazio: quantos(nivel) == 0,
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _chipDeRenascimento({
+    required String rotulo,
+    required int? nivel,
+    required bool escolhido,
+    required bool vazio,
+  }) => ChoiceChip(
+    label: Text(
+      rotulo,
+      style: TextStyle(
+        fontSize: 12,
+        color: escolhido
+            ? PWColors.background
+            : vazio
+            ? PWColors.textMuted
+            : PWColors.text,
+      ),
+    ),
+    selected: escolhido,
+    // Um nível que ninguém tem fica apagado em vez de sumir — a ausência é
+    // informação, e um chip que desaparece quando o escopo muda lê como erro.
+    // É a mesma escolha dos conjuntos de pedras, e aqui ela ganha peso: até
+    // à recolha que trouxe o campo, nenhum personagem tem renascimento
+    // nenhum, portanto *todos* os chips nascem apagados e o painel explica-se
+    // em vez de ficar vazio.
+    onSelected: vazio && !escolhido
+        ? null
+        : (liga) => viewModel.setComboMinRebirth(liga ? nivel : null),
+    selectedColor: PWColors.accent,
+    backgroundColor: PWColors.surfaceRaised,
+    showCheckmark: false,
+  );
 
   /// One row of the combo list: the art of its first cards, the name, and what
   /// it costs in results.

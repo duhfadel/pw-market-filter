@@ -962,6 +962,75 @@ mais abaixo nesta mesma página — e virou um link direto que rola a página at
 lá (`Scrollable.ensureVisible`), em vez de um menu que abriria para mostrar
 uma entrada só.
 
+## O combo vale pela pior carta dele
+
+Um combo de seis cartas tem um nível de renascimento, e **é o mínimo entre as
+seis** — pedido do dono a 05/11/2026, nos mesmos termos do conjunto de pedras:
+*«se o player tem as 6 cartas renascidas 2, aí mostramos em rb2, se tem
+algumas rb2 e algumas rb1, mostra rb1, se tem rb1 e normais, normais»*. Quem
+tem quatro renascidas 2 e duas renascidas 1 aparece em *1+* e não em *2+*,
+porque ali não cumpre o requisito. Como é um mínimo, as seis em 2 também
+respondem a *1+*.
+
+**O campo chama-se `Renascimentos` e o parser nunca o tinha lido.** Nem
+`Liderança Requerida`, nem `Nv. necessário`, nem os `Ataque físico +270` que a
+carta publica. Só o renascimento entrou, **por decisão do dono contra a regra
+deste ficheiro** — a de que uma varredura já paga leva o que a página oferece.
+O argumento dele é melhor neste caso e vale guardar: o índice é baixado por
+todo visitante, e ataque físico e mágico em treze mil cartas pesariam de
+verdade para responder pergunta nenhuma. Os outros campos ficam medidos aqui
+para a próxima recolha não ter de os redescobrir.
+
+**`maxLevel` não é marcador de renascimento, e foi o primeiro palpite.** É
+puramente o tecto da raridade — B 25, A 40, S 80 — e não diz nada sobre
+renascer. Confirmado antes de escrever qualquer linha.
+
+**Ausente significa zero, e isso é uma leitura da página e não um valor por
+omissão.** `Renascimentos 0` não é impresso em lugar nenhum: o jogo só escreve
+a linha quando há algo para escrever. É isso que permite ao nível de um combo
+ser um mínimo — sem essa certeza, uma carta sem linha seria desconhecida e o
+mínimo seria indefinido.
+
+**Null e zero são coisas diferentes na função, e a distinção é a honestidade
+do filtro.** `comboRebirthLevel` dá null para *não tem o combo* e zero para
+*tem o combo e nenhuma carta renascida* — que é precisamente quem o filtro
+simples procura. Juntá-los faria o chip de renascimento responder a uma
+pergunta sobre posse.
+
+**Os três casos existem em páginas reais, o que é sorte e vale dizer.**
+`detail_92624` traz o Portal de Nuema com as seis em 2, `detail_2192` o mesmo
+combo em `2 2 1 2 2 1`, e `detail_330640` com uma só carta renascida. Os
+testes do domínio correm sobre eles em vez de sobre um índice sintético — que
+é a forma que já falhou três vezes neste ficheiro, a última no chip da UP5
+defensiva.
+
+**O leitor estrito do índice apanhou-me, e estava certo.** `toJson` omite o
+campo quando é nought, para não escrever um zero por carta em treze mil
+cartas — portanto a ausência passou a ser parte do contrato, e `_int` estoura
+em ausência de propósito. `_intOpcional` é a excepção declarada: não escrito é
+informação, escrito como texto continua a ser defeito.
+
+**Trocar ou limpar o combo leva o renascimento com ele.** «Renascidas 2» era
+uma afirmação sobre o Nuema e não sobre o conjunto seguinte, e um `renasc` no
+link sem `carta` é descartado na leitura — o matcher nunca o leria e ele
+continuaria a viajar no endereço, invisível. Mesma regra do mínimo de
+relíquias, que sai quando o item deixa de estar marcado.
+
+**Os chips nascem todos apagados, e isso é o caso normal e não um defeito.**
+Até à recolha de 05/11/2026 nenhum personagem do índice tem renascimento
+nenhum, portanto um nível que ninguém tem fica esmaecido em vez de sumir — a
+ausência é informação, e um controlo que desaparece quando o escopo muda lê
+como erro. É também por isso que *1+* e *2+* são sempre oferecidos: acima
+disso, só o que o mercado mostrar, para o controlo crescer sozinho se o jogo
+ganhar um terceiro degrau.
+
+**A recolha custou 131 minutos e o carimbo do pw187 subiu de 8 para 9.** O
+126 ficou onde estava: não tem cartas de avatar nenhumas, portanto subir-lhe o
+número gastaria setenta minutos da rede deles para não aprender nada — é
+exactamente o caso para que o carimbo deixou de ser um só. A conta contra o
+`timeout` foi refeita no mesmo commit, que é o momento em que ela tem de ser
+refeita e não o momento em que falha.
+
 ## A licença, e por que ela existe
 
 `LICENSE` diz **todos os direitos reservados**, e foi escrita em 29/09/2026

@@ -41,6 +41,7 @@ import 'package:pw_market_filter/market/alerta_de_entrada.dart';
 
 import 'avisar_discord.dart';
 import 'package:pw_market_filter/collector/servidor.dart';
+import 'package:pw_market_filter/collector/ultima_leitura.dart';
 import 'package:pw_market_filter/market/card_combos.dart';
 import 'package:pw_market_filter/market/celestial_realm.dart';
 import 'package:pw_market_filter/market/counted_items.dart';
@@ -634,17 +635,24 @@ List<EntradaNova> _writeIndex(
     agora: agora,
   );
 
+  // O sexo e o reino da última publicação, para preencherem a ausência desta
+  // vez. Ver `ultima_leitura.dart` para por que só estes dois.
+  final anteriores = ultimasLeiturasDe(publicado);
+  final noEstado = <UltimaLeitura>[];
+
   for (final card in listing) {
     final collected = state.itemsFor(card.roleId);
     if (collected != null) {
+      noEstado.add(UltimaLeitura(sex: collected.sex, realm: collected.realm));
+      final anterior = anteriores[card.roleId];
       builder.add(
         card,
         collected.items,
-        sex: collected.sex,
+        sex: comArrasto(collected.sex, anterior?.sex),
         cards: collected.cards,
         anecdotes: collected.anecdotes,
         inventory: collected.inventory,
-        realm: collected.realm,
+        realm: comArrasto(collected.realm, anterior?.realm),
         path: collected.path,
         runes: collected.runes,
         titles: collected.titles,
@@ -724,6 +732,21 @@ List<EntradaNova> _writeIndex(
     memoria: memoria,
     agora: agora,
   );
+
+  // **Quantos trazem cada campo no estado, antes do arrasto.** É o que seria
+  // publicado sem ele, e é a linha que o impede de ser um esconderijo: um
+  // campo a zero aparece em cada corrida até uma recolha o repor, em vez de
+  // meses depois quando alguém nota que o glifo de sexo não muda desde
+  // Novembro. Diz *no estado* e não *nesta coleta* porque num `--resume`
+  // quase nada é lido de novo — o número é do ficheiro, não da corrida.
+  for (final entry in censoDosCampos(noEstado).entries) {
+    final aviso = entry.value == 0
+        ? '  <<< NENHUM no estado: só uma recolha completa repõe'
+        : '';
+    stdout.writeln(
+      '  ${entry.key}: ${entry.value}/${noEstado.length} no estado$aviso',
+    );
+  }
 
   final index = builder.build(historyFrom: historyFromDe(publicado, agora));
   final file = File(_servidor.arquivoDoIndice)

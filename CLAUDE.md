@@ -1293,6 +1293,100 @@ do site**: continua em `web/guias/index.html`. É a divisão que a entrada
 22/10 não foi dar um `Tool` a cada artigo — isso repara o terceiro e deixa o
 quarto cair no mesmo buraco.
 
+## A ficha lê-se pelo valor, e o que não chega arrasta-se
+
+O site começou a ser traduzido a 06/11/2026 e **oscila**: a mesma página deu
+`Clase`/`Progreso total` às 15:00, outra vez às 20:50, e `Classe`/`Progresso
+total` às 21:30 — medido, não suposto. `parseSex` e `parseCelestialRealm`
+casavam o rótulo da ficha por igualdade exacta, e **duas recolhas completas,
+com três horas de intervalo, vieram com zero de 2.879 nos dois campos**,
+enquanto anedotas, cartas e caminho saíam inteiros das mesmas páginas.
+
+**A leitura passou a ser pelo valor, não pelo rótulo.** O vocabulário de cada
+campo é fechado o bastante para isso: o sexo é um de três — `Masculino`,
+`Feminino`, `Femenino`, o último medido numa página real — e um reino começa
+pelo céu e acaba em algarismo romano. Nenhuma das dezessete classes colide com
+nenhuma das duas formas, e a classe é a outra linha da mesma ficha. É a
+correcção que as anedotas levaram no mesmo dia, e nem o rótulo é preciso:
+uma quarta língua também não quebra.
+
+**O reino tem segunda fonte e o sexo não.** O painel `Alma Celeste` reimprime
+o reino num `pw187-detail-attr-row`, portanto ele sobrevive até ao contentor
+da ficha mudar de classe. O sexo é impresso num lugar só — e é por isso que
+ele precisa da rede seguinte.
+
+**Não consegui reproduzir a variante que quebrou, e isso fica dito.** Busquei
+a página oito vezes nesse dia e as oito leram-se bem. O que está medido é o
+resto: duas recolhas a zero, os outros campos inteiros das mesmas páginas, e
+a língua a mudar três vezes. Qual era o rótulo naquelas horas, não vi — e a
+correcção foi feita para não depender de o saber.
+
+### O arrasto: o que não chega fica como estava
+
+Decisão do dono, nos termos dele: *«se não chega esses campos, deixamos vazio
+até que se resolva no site deles»*. `ultima_leitura.dart` faz melhor do que
+vazio — reaproveita a última leitura publicada.
+
+**Dois campos e só dois, porque só estes não podem mudar para trás.** O sexo
+não muda nunca; o reino só sobe. A leitura de ontem é, no pior caso, um piso
+verdadeiro. Preço, nível e fama mudam nos dois sentidos e **não** entram:
+arrastá-los seria publicar um número velho com cara de novo, que é a razão
+pela qual a data da coleta está sempre na tela.
+
+**Uma leitura fresca ganha sempre**, mesmo discordando da anterior — é ela
+que vê o jogo de hoje. O arrasto só preenche ausência, e um personagem novo
+numa coleta que não lê o campo fica vazio em vez de ganhar um valor
+inventado.
+
+**E o arrasto não pode ser esconderijo.** Com ele o índice sai completo e o
+defeito ficaria invisível, portanto o coletor imprime quantos personagens
+trazem cada campo **no estado**, antes de qualquer arrasto. Diz *no estado* e
+não *nesta coleta* de propósito: num `--resume` quase nada é lido de novo, e
+um rótulo que dissesse o contrário seria a mesma classe de mentira que esta
+secção existe para registar.
+
+### O teste que faltava, e a sorte que o substituía
+
+**Cada campo do índice tem de ter ao menos um portador** —
+`campos_do_indice_test`, nas duas versões. A 06/11 dois testes apanharam dois
+campos — `counted_items_test` as anedotas, `poda_126_test` o reino — e **o
+sexo passou calado**, porque nenhum teste afirmava que alguém o tinha. Só o
+vimos porque estava ao lado do reino no mesmo artefacto. Isso é sorte, não
+cobertura.
+
+Ele não pergunta se o parser funciona, que é trabalho do `sheet_test` contra
+páginas guardadas: pergunta se o campo **chegou ao outro lado do disco** — a
+travessia onde este ficheiro já perdeu o `require_level`, o `sexo`, o
+`nivel`, a `escada` e os `bonusNaoResolvidos`. A fronteira é **zero** e é
+dura: um campo que o site publica e nós não lemos nunca é uma opinião. Uma
+contagem baixa só se imprime, porque aí a entrada é um mercado que muda
+sozinho.
+
+**Os campos que uma versão não publica são omitidos, nunca afirmados.** O
+1.2.6 não tem reino, caminho, anedotas, cartas nem runas, e exigi-los seria
+reprovar por não existirem. Sexo e cultivo são exigidos lá também, porque
+medidos: 1426 de 1426.
+
+### Uma armadilha de relógio que inventou uma avaria
+
+**Esta secção dizia que a API do Actions respondia estados velhos, e era
+mentira minha.** A corrida arrancou `11:42:22Z` e terminou `14:10:37Z` — 148
+minutos. Eu li `date +%H:%M`, hora local, CET, `UTC+1`, vi `15:01` e concluí
+199 minutos, logo tecto estourado. Eram 14:01 UTC e **139** minutos, e o job
+corria com razão.
+
+Em cima disso construí um diagnóstico inteiro e falso: 4,12 s por página em
+vez dos 3,07 reais, suspeita de bloqueio do site deles, e a acusação à API —
+que estendi ao nível do passo, pela mesma causa. **A API esteve certa o tempo
+todo.**
+
+Três coisas a guardar. **Carimbos do GitHub acabam em `Z` e são UTC**, logo a
+conta faz-se em UTC dos dois lados e nunca com `date +%H:%M`. **Uma medição
+que contradiz o sistema é primeiro suspeita da medição** — e esta
+contradizia-o por uma quantia exactamente igual ao desvio do fuso, que era o
+sinal. E **uma nota inventada neste ficheiro é pior do que nota nenhuma**:
+mandaria a próxima pessoa desconfiar de uma API sã.
+
 ## O site passou um painel a espanhol, e custou 148 minutos
 
 A 06/11/2026 os rótulos do painel das anedotas mudaram de língua: `Progresso
@@ -1347,35 +1441,6 @@ contei as páginas a partir da contagem de personagens do índice
 agora. A listagem é **um** pedido e dá o número certo; a conta a partir do
 índice velho dá sempre um número optimista, porque o mercado só cresce entre
 recolhas.
-
-### A máquina está em CET e o GitHub fala UTC, e isso inventou uma avaria
-
-**Esta secção dizia que a API do Actions tinha respondido um estado velho
-por quase uma hora, e era mentira minha.** O que aconteceu a 06/11/2026: a
-corrida arrancou às `11:42:22Z` e terminou às `14:10:37Z`, 148 minutos. Eu
-li `date +%H:%M` — hora **local**, CET, `UTC+1` — vi `15:01` e concluí 199
-minutos decorridos, logo tecto estourado. Eram 14:01 UTC e **139** minutos,
-e o job ainda corria com razão.
-
-Em cima desse erro construí um diagnóstico inteiro e falso: 4,12 s por
-página em vez dos 3,07 reais, suspeita de bloqueio do site deles, e a
-acusação de que a API mentia — a que depois estendi ao nível do passo, pela
-mesma causa. Nada disso era verdade. **A API esteve certa o tempo todo.**
-
-Três coisas a guardar. **Carimbos do GitHub acabam em `Z` e são UTC**, logo
-compará-los com a hora local erra por uma hora inteira em metade do ano
-deste fuso — a conta faz-se em UTC dos dois lados, ou com um `datetime`
-ciente do fuso, nunca com `date +%H:%M`. **Uma medição que contradiz o
-sistema é primeiro suspeita da medição**, e esta contradizia-o por uma
-quantia exactamente igual ao desvio do fuso, que era o sinal e eu não o li.
-E **uma nota inventada neste ficheiro é pior do que nota nenhuma**: ela
-mandaria a próxima pessoa desconfiar de uma API sã e procurar a avaria no
-lugar errado.
-
-O que sobrevive do episódio é só o que foi medido na página: a tradução do
-painel das anedotas, que era real. O tecto subiu para 330 pelos seus
-próprios motivos — 148 de 180 são 82%, e o mercado cresceu 17% em duas
-semanas — e não por causa da corrida que eu julguei estourada.
 
 ## Gotchas
 

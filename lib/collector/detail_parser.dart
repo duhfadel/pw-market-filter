@@ -481,8 +481,15 @@ String? parsePath(String html) {
 /// collector works this way: the ordering is a fact about the game, not about
 /// HTML, and a wrong order corrected later would otherwise cost a fresh crawl.
 /// `CelestialRealm` turns the string into a position.
-String? parseCelestialRealm(String html) =>
-    _sheetValue(html_parser.parse(html), 'Reino Celestial');
+String? parseCelestialRealm(String html) {
+  final document = html_parser.parse(html);
+  return _fichaOndeOValor(document, _pareceReino) ??
+      // Segunda fonte na mesma página: o painel `Alma Celeste` reimprime o
+      // reino num `pw187-detail-attr-row`. Duas fontes independentes para o
+      // mesmo facto é o que torna este campo o mais robusto dos dois — o
+      // sexo só é impresso num lugar, e por isso depende da ficha.
+      _linhaDeAtributoOndeOValor(document, _pareceReino);
+}
 
 /// `Masculino` or `Feminino`, empty when the page does not say.
 ///
@@ -490,14 +497,61 @@ String? parseCelestialRealm(String html) =>
 /// gender and this server mostly follows, but Bardo has both — which is why
 /// this has to be read per character.
 String parseSex(String html) =>
-    _sheetValue(html_parser.parse(html), 'Sexo') ?? '';
+    _fichaOndeOValor(html_parser.parse(html), _sexos.contains) ?? '';
 
-/// One labelled row of the character sheet — the short list that carries
-/// `Classe`, `Sexo` and `Reino Celestial` and nothing else.
-String? _sheetValue(Document document, String label) {
+/// Os valores que o sexo pode tomar, nas duas línguas em que o site já o
+/// imprimiu — medido a 06/11/2026, quando uma página devolveu `Femenino`.
+///
+/// **É um vocabulário fechado de três, e é isso que permite achar a linha
+/// pelo valor em vez do rótulo.** A ficha tem três linhas — classe, sexo e
+/// reino — e nenhum nome de classe é um destes, portanto não há como
+/// confundir.
+const _sexos = {'Masculino', 'Feminino', 'Femenino'};
+
+/// Um reino começa pelo céu e acaba em algarismo romano: `Céu Ápice VIII`.
+/// Nenhuma das dezessete classes tem nome com esta forma.
+final _reinoPattern = RegExp(r'^(?:C[ée]u|Cielo)\b.*\b[IVXLC]+$');
+
+bool _pareceReino(String valor) => _reinoPattern.hasMatch(valor);
+
+/// A linha da ficha cujo **valor** passa [aceita], e não a cujo rótulo
+/// coincide com uma string nossa.
+///
+/// **O rótulo era a dependência e custou uma recolha de 200 minutos.** Até
+/// 06/11/2026 isto comparava `row.querySelector('.skill-desc').text` com
+/// `'Sexo'` e `'Reino Celestial'` por igualdade exacta. O site passou a
+/// oscilar entre português e espanhol — a mesma página mudou de língua três
+/// vezes nesse dia — e duas recolhas completas vieram com **zero de 2.879**
+/// em ambos os campos, enquanto as anedotas, as cartas e o caminho saíam
+/// inteiros das mesmas páginas.
+///
+/// É exactamente a correcção que [parseAnecdotes] levou no mesmo dia, e a
+/// mesma lição que os reinos celestiais já tinham ensinado: **casar pela
+/// parte distintiva do valor, nunca pela frase do rótulo.** Aqui nem o
+/// rótulo é preciso, portanto uma quarta língua também não quebra.
+String? _fichaOndeOValor(Document document, bool Function(String) aceita) {
   for (final row in document.querySelectorAll('.character-info--list')) {
-    if (row.querySelector('.skill-desc')?.text.trim() != label) continue;
-    return row.querySelector('.value')?.text.trim();
+    final valor = row.querySelector('.value')?.text.trim() ?? '';
+    if (aceita(valor)) return valor;
+  }
+  // E se o próprio contentor mudar de classe, ainda há os `.value` soltos.
+  // Mais largo de propósito: o vocabulário de cada campo é fechado o
+  // bastante para que um falso positivo exija o site imprimir `Masculino` ou
+  // `Céu … IV` num sítio onde isso não seja o facto que procuramos.
+  for (final valor in document.querySelectorAll('.value')) {
+    final texto = valor.text.trim();
+    if (aceita(texto)) return texto;
+  }
+  return null;
+}
+
+String? _linhaDeAtributoOndeOValor(
+  Document document,
+  bool Function(String) aceita,
+) {
+  for (final row in document.querySelectorAll('.pw187-detail-attr-row')) {
+    final valor = row.querySelector('strong')?.text.trim() ?? '';
+    if (aceita(valor)) return valor;
   }
   return null;
 }

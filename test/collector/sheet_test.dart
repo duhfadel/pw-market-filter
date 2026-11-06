@@ -91,4 +91,82 @@ void main() {
       expect(parseRunes('<html><body></body></html>'), isEmpty);
     });
   });
+
+  group('a ficha lê-se pelo valor, não pelo rótulo', () {
+    // **O rótulo era a dependência e custou 200 minutos de recolha.** Até
+    // 06/11/2026 isto comparava o `.skill-desc` com `'Sexo'` e
+    // `'Reino Celestial'` por igualdade exacta. O site passou a oscilar entre
+    // português e espanhol — a mesma página mudou de língua três vezes nesse
+    // dia — e duas recolhas completas trouxeram **zero de 2.879** nos dois
+    // campos, enquanto anedotas, cartas e caminho saíam inteiros das mesmas
+    // páginas. É por isso que estes casos existem: a forma que falha não se
+    // encontra a rolar a grelha.
+    String ficha(String rotuloSexo, String rotuloReino, String sexo) =>
+        '<ul>'
+        '<li class="character-info--list"><span class="skill-desc">Clase</span>'
+        '<strong class="value">Bardo</strong></li>'
+        '<li class="character-info--list">'
+        '<span class="skill-desc">$rotuloSexo</span>'
+        '<strong class="value">$sexo</strong></li>'
+        '<li class="character-info--list">'
+        '<span class="skill-desc">$rotuloReino</span>'
+        '<strong class="value">Céu Soberano IV</strong></li>'
+        '</ul>';
+
+    test('o rótulo em português continua a ser lido', () {
+      final h = ficha('Sexo', 'Reino Celestial', 'Masculino');
+      expect(parseSex(h), 'Masculino');
+      expect(parseCelestialRealm(h), 'Céu Soberano IV');
+    });
+
+    test('um rótulo noutra língua não impede a leitura', () {
+      final h = ficha('Género', 'Reino Celeste', 'Femenino');
+      expect(parseSex(h), 'Femenino');
+      expect(parseCelestialRealm(h), 'Céu Soberano IV');
+    });
+
+    test('um rótulo que não existe também não impede', () {
+      // O caso-limite honesto: não sabemos que variante o site serviu
+      // naquelas horas, portanto a leitura não pode depender de adivinhá-la.
+      final h = ficha('', '', 'Feminino');
+      expect(parseSex(h), 'Feminino');
+      expect(parseCelestialRealm(h), 'Céu Soberano IV');
+    });
+
+    test('o contentor mudar de classe também não impede', () {
+      expect(
+        parseSex(
+          '<li class="character-info--item">'
+          '<strong class="value">Masculino</strong></li>',
+        ),
+        'Masculino',
+      );
+    });
+
+    test('o reino tem segunda fonte no painel Alma Celeste', () {
+      // Duas fontes independentes para o mesmo facto, e é o que torna o reino
+      // mais robusto do que o sexo, que a página só imprime num lugar.
+      expect(
+        parseCelestialRealm(
+          '<div class="pw187-detail-attr-row"><span>Reino Celestial</span>'
+          '<strong>Céu Devoto V</strong></div>',
+        ),
+        'Céu Devoto V',
+      );
+    });
+
+    test('a linha da classe nunca é confundida com as outras duas', () {
+      // O que torna a leitura pelo valor segura é o vocabulário fechado de
+      // cada campo: `Bardo` está na ficha, em primeiro lugar, e não é nem um
+      // sexo nem um reino.
+      final h = ficha('', '', 'Masculino');
+      expect(parseSex(h), 'Masculino');
+      expect(parseCelestialRealm(h), 'Céu Soberano IV');
+    });
+
+    test('uma ficha sem nada diz nada, nunca um palpite', () {
+      expect(parseSex('<html><body></body></html>'), isEmpty);
+      expect(parseCelestialRealm('<html><body></body></html>'), isNull);
+    });
+  });
 }

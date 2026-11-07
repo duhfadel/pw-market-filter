@@ -1293,6 +1293,48 @@ do site**: continua em `web/guias/index.html`. É a divisão que a entrada
 22/10 não foi dar um `Tool` a cada artigo — isso repara o terceiro e deixa o
 quarto cair no mesmo buraco.
 
+## A língua da página é um cookie, e sem o fixar ela é sorteada
+
+**`Set-Cookie: mkt_lang=…`** — descoberto a 07/11/2026, a ler os cabeçalhos
+de uma resposta. Valores conhecidos: `portuguese`, `brazilian`, `english`,
+`spanish`. O `HttpClient` do Dart não reenvia cookies, portanto cada um dos
+~2.900 pedidos do coletor é uma primeira visita e recebe a língua que o
+servidor decidir — e os runners do Actions vinham a receber **inglês**.
+
+O coletor manda agora `Cookie: mkt_lang=portuguese` em todos os pedidos, e
+isso mata a classe inteira de problema: deixa de haver variante para
+adivinhar. É a correcção que faltava, e as três rodadas de ontem foram todas
+tratamento de sintoma.
+
+**O que a medição separou, e é a parte que vale guardar: só o valor do sexo
+é interface. Tudo o resto é dado do jogo.**
+
+| em inglês | |
+|---|---|
+| rótulo `Sex`, valor **`Male`** | interface ← o único que muda |
+| rótulo `Celestial Realm`, valor `Céu Soberano IV` | dado do jogo |
+| rótulo `Class`, valor `Andarilho` | dado do jogo |
+| listagem: 17 classes, 61 cultivos | **idênticos** nas duas línguas |
+
+É por isso que o reino sobreviveu ao episódio e o sexo não. A leitura por
+forma do valor — que a correcção das anedotas trouxe — é imune à língua
+**quando o valor é dado do jogo**, e o sexo é a única excepção da ficha.
+`_sexoCanonico` normaliza as cinco grafias à portuguesa, à entrada, porque
+`character_card.dart` compara com `Masculino` e `Feminino` exactos: guardar
+`Male` no índice empurraria a tradução para dentro do browser de toda a
+gente.
+
+**O sinal que apontou para aqui foi uma assimetria, e levou quase um dia a
+ser lida.** Depois da reparação nocturna o estado tinha `reino: 2881/2881` e
+`sexo: 0/2881` — as **mesmas** páginas relidas, dois campos que saem da
+**mesma** lista de três linhas. Ou subiam os dois ou nenhum. O que os separa
+é o reino ter segunda fonte no painel `Alma Celeste`, e foi essa porta dos
+fundos que o salvou enquanto a ficha era lida em inglês.
+
+A lição prática: **quando dois campos da mesma origem divergem, a diferença
+não está na origem — está no que os distingue.** E a resposta estava nos
+cabeçalhos da resposta, que eu só fui ler ao terceiro dia.
+
 ## A ficha lê-se pelo valor, e o que não chega arrasta-se
 
 O site começou a ser traduzido a 06/11/2026 e **oscila**: a mesma página deu

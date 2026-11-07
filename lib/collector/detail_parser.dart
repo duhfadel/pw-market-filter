@@ -506,8 +506,13 @@ String? parseCelestialRealm(String html) {
 /// It cannot be derived from the class: Perfect World locks most classes to a
 /// gender and this server mostly follows, but Bardo has both — which is why
 /// this has to be read per character.
-String parseSex(String html) =>
-    _fichaOndeOValor(html_parser.parse(html), _sexos.contains) ?? '';
+String parseSex(String html) {
+  final bruto = _fichaOndeOValor(
+    html_parser.parse(html),
+    _sexoCanonico.containsKey,
+  );
+  return bruto == null ? '' : _sexoCanonico[bruto]!;
+}
 
 /// Os valores que o sexo pode tomar, nas duas línguas em que o site já o
 /// imprimiu — medido a 06/11/2026, quando uma página devolveu `Femenino`.
@@ -516,7 +521,26 @@ String parseSex(String html) =>
 /// pelo valor em vez do rótulo.** A ficha tem três linhas — classe, sexo e
 /// reino — e nenhum nome de classe é um destes, portanto não há como
 /// confundir.
-const _sexos = {'Masculino', 'Feminino', 'Femenino'};
+/// Cada grafia do sexo que o site já imprimiu, na língua em que a imprimiu,
+/// apontando à forma portuguesa que o índice guarda e a tela compara.
+///
+/// **O sexo é a única coisa da ficha cujo valor é interface e não dado do
+/// jogo**, e foi isso que o deixou cair sozinho a 07/11/2026: a página em
+/// inglês diz `Male`, enquanto o reino continua `Céu Soberano IV` nas quatro
+/// línguas e por isso sobreviveu. A classe também é dado do jogo —
+/// `Andarilho` em qualquer língua.
+///
+/// `character_card.dart` compara com `Masculino` e `Feminino` exactos, logo
+/// a normalização tem de acontecer aqui, na entrada, e não espalhada pela
+/// tela. Guardar `Male` no índice empurraria a tradução para dentro do
+/// browser de toda a gente.
+const _sexoCanonico = {
+  'Masculino': 'Masculino',
+  'Male': 'Masculino',
+  'Feminino': 'Feminino',
+  'Femenino': 'Feminino',
+  'Female': 'Feminino',
+};
 
 /// Um reino começa pelo céu e acaba em algarismo romano: `Céu Ápice VIII`.
 /// Nenhuma das dezessete classes tem nome com esta forma.

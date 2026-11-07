@@ -561,6 +561,23 @@ Future<String?> _get(HttpClient client, String url) async {
     final request = await client.getUrl(Uri.parse(url));
     request.headers.set(HttpHeaders.userAgentHeader, _userAgent);
     request.headers.set(HttpHeaders.acceptLanguageHeader, 'pt-BR,pt;q=0.9');
+    // **A língua da página é um cookie, e sem o fixar ela é sorteada.**
+    //
+    // Descoberto a 07/11/2026, depois de o `sexo` ficar em zero sobre 2.881
+    // personagens enquanto o `reino` subia a 2.881 — relendo as mesmas
+    // páginas. A resposta traz `Set-Cookie: mkt_lang=…` e o `HttpClient` do
+    // Dart não reenvia cookies, portanto cada um dos 2.900 pedidos é uma
+    // primeira visita e recebe a língua que o servidor escolher. Os runners
+    // do Actions vinham a receber **inglês**, onde `Sexo` é `Sex` e o valor
+    // é `Male` em vez de `Masculino`.
+    //
+    // O reino sobreviveu porque o valor dele é dado do jogo — `Céu Soberano
+    // IV` nas quatro línguas — e a leitura por forma do valor não depende da
+    // língua. O sexo é a única coisa da ficha cujo **valor** é interface.
+    //
+    // Fixar o cookie mata a classe inteira de problema: deixa de haver
+    // variante para adivinhar. `_sexoCanonico` fica na mesma, como rede.
+    request.headers.set(HttpHeaders.cookieHeader, 'mkt_lang=portuguese');
     // The server compresses: a detail page is 1.13 MB plain and 116 KB gzipped,
     // and arrives in two thirds of the time. `autoUncompress` is on by default,
     // so the bytes are transparent from here on.

@@ -121,7 +121,12 @@ void main() {
 
     test('um rótulo noutra língua não impede a leitura', () {
       final h = ficha('Género', 'Reino Celeste', 'Femenino');
-      expect(parseSex(h), 'Femenino');
+      // Volta em português: a 07/11 o sexo passou a ser normalizado à
+      // entrada, porque `character_card.dart` compara com `Feminino` exacto
+      // e guardar a grafia estrangeira empurraria a tradução para o browser
+      // de toda a gente. Este teste cravava o valor cru, que era a nossa
+      // ausência de normalização registada como se fosse regra.
+      expect(parseSex(h), 'Feminino');
       expect(parseCelestialRealm(h), 'Céu Soberano IV');
     });
 
@@ -152,6 +157,37 @@ void main() {
           '<strong>Céu Devoto V</strong></div>',
         ),
         'Céu Devoto V',
+      );
+    });
+
+    test('o sexo em inglês e em espanhol volta na forma portuguesa', () {
+      // **O sexo é a única coisa da ficha cujo valor é interface.** A 07/11
+      // os runners do Actions vinham a receber a página em inglês — o site
+      // sorteia a língua por pedido e devolve-a num `Set-Cookie: mkt_lang` —
+      // e `Sex: Male` deixou o campo a zero em 2.881 personagens, enquanto o
+      // reino subia a 2.881 porque `Céu Soberano IV` é dado do jogo e é
+      // igual nas quatro línguas.
+      //
+      // `character_card.dart` compara com `Masculino` e `Feminino` exactos,
+      // portanto a normalização é aqui, na entrada. Guardar `Male` no índice
+      // empurraria a tradução para dentro do browser de toda a gente.
+      expect(parseSex(ficha('Sex', 'Celestial Realm', 'Male')), 'Masculino');
+      expect(parseSex(ficha('Sex', 'Celestial Realm', 'Female')), 'Feminino');
+      expect(
+        parseSex(ficha('Sexo', 'Reino Celestial', 'Femenino')),
+        'Feminino',
+      );
+      expect(
+        parseSex(ficha('Sexo', 'Reino Celestial', 'Masculino')),
+        'Masculino',
+      );
+    });
+
+    test('o reino é dado do jogo e não muda de língua', () {
+      // A razão pela qual ele sobreviveu ao episódio e o sexo não.
+      expect(
+        parseCelestialRealm(ficha('Sex', 'Celestial Realm', 'Male')),
+        'Céu Soberano IV',
       );
     });
 

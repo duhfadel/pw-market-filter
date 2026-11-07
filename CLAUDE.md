@@ -1401,9 +1401,21 @@ se estourar o tecto e tranca o site. `aReler` faz o contrário — tira do
 fetcha-as como se fossem novas. São ~11 minutos por corrida, cabem na meia
 hora entre duas, e o site publica em todas.
 
-**Os dois vazios, nunca um.** Uma página pode legitimamente não dizer o
-sexo; não dizer nem o sexo nem o reino é a assinatura da leitura que falhou,
-porque os dois saem da mesma lista de três linhas da ficha.
+**Faltar um dos dois já basta, desde 07/11.** Enquanto a causa era
+desconhecida, exigir os dois vazios era a assinatura prudente de uma leitura
+falhada. Com a língua fixa a ficha lê-se inteira, portanto faltar um é
+motivo — e era exactamente o caso que escapava ao critério antigo: o reino
+vinha do painel `Alma Celeste` e o sexo ficava vazio, e esses nunca entravam
+na fila.
+
+**E a memória tem de poder ser esquecida.** `relidos` guarda quem já foi
+relido **por um motivo**; quando o motivo muda, ela passa a responder a outra
+pergunta. Aconteceu logo à primeira: a reparação releu o mercado inteiro por
+faltarem os campos, e no dia seguinte descobriu-se o cookie da língua. As
+mesmas 2.881 páginas precisavam de voltar à fila e `relidos` dizia que não.
+`motivoDaReleitura` é um número no estado — o carimbo do `CollectedPage` em
+pequeno, e pela mesma razão: um número é uma decisão explícita, e «falta esta
+chave?» não é.
 
 **E cada um é relido uma vez, o que é o ponto todo.** `relidos` fica no
 estado precisamente porque este ficheiro já recusou a pergunta «falta esta

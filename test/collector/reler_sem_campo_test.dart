@@ -13,26 +13,29 @@ CollectedPage _pagina({String sex = '', String realm = ''}) =>
     CollectedPage(items: const [], cards: const [], sex: sex, realm: realm);
 
 void main() {
-  test('escolhe quem não tem nem sexo nem reino', () {
+  test('escolhe quem tem algum dos dois campos em falta', () {
     final alvos = aReler({
       1: _pagina(sex: 'Masculino', realm: 'Céu Real I'),
       2: _pagina(),
       3: _pagina(realm: 'Céu Devoto V'),
     }, const {});
 
-    expect(alvos, {2});
+    expect(alvos, {2, 3});
   });
 
-  test('um só dos dois em falta não conta', () {
-    // Uma página pode legitimamente não dizer o sexo. Não dizer **nenhum** dos
-    // dois é a assinatura da leitura que falhou, porque os dois saem da mesma
-    // lista de três linhas da ficha.
+  test('faltar um dos dois já basta', () {
+    // **Mudou a 07/11, e a mudança vem de se saber a causa.** Enquanto ela
+    // era desconhecida, exigir os dois vazios era a assinatura prudente de
+    // uma leitura falhada. Com a língua fixa a ficha lê-se inteira, portanto
+    // faltar um já é motivo — e era exactamente o caso que escapava: o reino
+    // vinha do painel `Alma Celeste` e o sexo ficava vazio.
     final alvos = aReler({
       1: _pagina(realm: 'Céu Real I'),
       2: _pagina(sex: 'Feminino'),
+      3: _pagina(sex: 'Feminino', realm: 'Céu Real I'),
     }, const {});
 
-    expect(alvos, isEmpty);
+    expect(alvos, {1, 2});
   });
 
   test('quem já foi relido não volta à fila', () {
@@ -43,6 +46,15 @@ void main() {
 
     expect(aReler(estado, const {1}), {2});
     expect(aReler(estado, const {1, 2}), isEmpty);
+  });
+
+  test('o motivo é um número, para a memória poder ser esquecida', () {
+    // `relidos` guarda quem já foi relido **por um motivo**. Quando o motivo
+    // muda, a memória passa a responder a outra pergunta — foi o que
+    // aconteceu à primeira: releu-se o mercado por faltarem os campos, e no
+    // dia seguinte descobriu-se que a língua era sorteada por pedido. As
+    // mesmas páginas precisavam de voltar à fila, e `relidos` dizia que não.
+    expect(motivoDaReleitura, greaterThan(1));
   });
 
   test('o tecto é respeitado, e é ele que separa isto de um carimbo novo', () {

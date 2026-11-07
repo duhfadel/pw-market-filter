@@ -1074,9 +1074,11 @@ class _CollectState {
       if (!CollectedPage.isCurrent(value, _servidor.chave)) continue;
       done[int.parse(entry.key)] = CollectedPage.fromJson(value, names);
     }
-    final relidos = (json['relidos'] as List<dynamic>? ?? const [])
-        .cast<int>()
-        .toSet();
+    // A memória só vale para o motivo com que foi escrita: um número novo
+    // esquece tudo, uma vez. Ver [motivoDaReleitura].
+    final relidos = (json['motivoRelidos'] as int? ?? 1) == motivoDaReleitura
+        ? (json['relidos'] as List<dynamic>? ?? const []).cast<int>().toSet()
+        : <int>{};
 
     // **A reparação acontece aqui, ao carregar, e é por isso que custa uma
     // linha no resto do programa.** Tirar do `done` é tudo o que é preciso:
@@ -1146,6 +1148,7 @@ class _CollectState {
         // Sem isto a memória perde-se a cada corrida e os mesmos voltam a ser
         // relidos para sempre — o defeito que `relidos` existe para impedir.
         'relidos': relidos.toList(),
+        'motivoRelidos': motivoDaReleitura,
         'listing': listing.map(_cardToJson).toList(),
       }),
     );

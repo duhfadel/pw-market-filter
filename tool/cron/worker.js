@@ -777,8 +777,23 @@ const FEED_YOUTUBE = 'https://www.youtube.com/feeds/videos.xml?channel_id=';
 //
 // «Mini TW» tem *TW* lá dentro e não é, e é por isso que esta lista existe
 // e ganha.
+//
+// **O canal do Fezinho acrescentou cinco provas de uma vez, a 08/11/2026.**
+// Ele foi o décimo-terceiro canal a entrar, e medir a regra contra o feed
+// dele deu **sete anúncios para dois vídeos certos** — cinco de ruído. O
+// que faltava não era afinação: eram três famílias inteiras.
+//
+// *Guerra Celeste* é outro evento, e escreve-se nas duas línguas —
+// `Celeste War` e `Guerra Celestial` no mesmo canal. *PW NH* é outro
+// servidor, e `1.8.8` é outra versão: nenhum dos dois é guerra nossa, por
+// mais TW que haja no vídeo. E `War of the Nations` é a *Nation War* por
+// extenso, que a lista já tinha na forma curta — a mesma coisa escrita de
+// um jeito que a regra não via.
+//
+// A lição é a de sempre aqui: a prova vem do feed, nunca do palpite. Cada
+// termo abaixo saiu de um título real.
 const NAO_E_TW =
-  /\b(mini.?tw|nw|nation war|guerra das na|gvg|soldo|arena|x1|evento|arte(s)? marciai|como |build)/i;
+  /\b(mini.?tw|nw|nation war|war of the nations|guerra das na|gvg|soldo|arena|x1|evento|arte(s)? marciai|como |build|guerra celes|celes\w* war|macroplayer|pw nh|1\.8\.8)/i;
 
 async function procurarVideosDeGuerra(env) {
   const canais = await lerCanaisDoYoutube(env);

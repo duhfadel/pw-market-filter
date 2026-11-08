@@ -53,8 +53,16 @@ void main() {
   // A regra é por **pasta** e não por lista de ficheiros, de propósito: um
   // guia novo herda-a sem ninguém se lembrar, que é a mesma razão pela qual
   // este ficheiro varre `web/` em vez de enumerar páginas.
-  bool temConteudoProprio(File f) =>
-      f.path.startsWith('web/guias/') || f.path.startsWith('web/privacidade/');
+  // **E `web/privacidade/` saiu da regra a 08/11/2026.** São 496 palavras de
+  // texto de política: ninguém as procura, e não são conteúdo do editor no
+  // sentido que o programa pede. Era o único caso discutível que restava
+  // depois da correcção de 31/10, e saiu antes de se pedir nova análise — a
+  // mesma razão que tirou a tag das telas em canvas, levada até ao fim em vez
+  // de parada a meio.
+  //
+  // A política continua a dizer que o site usa publicidade da Google, e tem
+  // de continuar: ela descreve o site inteiro, não esta página.
+  bool temConteudoProprio(File f) => f.path.startsWith('web/guias/');
 
   for (final f in paginas) {
     final html = f.readAsStringSync();

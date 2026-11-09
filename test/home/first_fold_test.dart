@@ -149,7 +149,7 @@ Future<List<String>> _pumpHome(WidgetTester tester) async {
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  await _assentar(tester);
 
   return pushed;
 }
@@ -169,6 +169,21 @@ Future<void> _rolarAte(WidgetTester tester, Finder alvo) async {
     await tester.drag(lista, const Offset(0, -300));
     await tester.pump();
   }
+}
+
+/// Espera o que uma transição precisa, **sem esperar por sossego**.
+///
+/// **`pumpAndSettle` deixou de servir nestas telas a 09/11/2026**, quando o
+/// herói ganhou as brasas da maquete: uma animação permanente agenda frames
+/// para sempre, portanto nada «assenta» nunca e o `pumpAndSettle` só devolve
+/// quando estoura o tempo. Foram quarenta e cinco testes de uma vez.
+///
+/// Não é um defeito das brasas nem um atalho: é o que se faz em qualquer
+/// aplicação com movimento ambiente — espera-se o tempo da transição, que é
+/// o que de facto se quer saber, em vez de esperar que o ecrã fique parado.
+Future<void> _assentar(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
 }
 
 void main() {
@@ -200,7 +215,7 @@ void main() {
         scrollDelta: Offset(0, 300),
       ),
     );
-    await tester.pumpAndSettle();
+    await _assentar(tester);
 
     final depois = tester
         .widget<Scrollable>(find.byType(Scrollable).first)
@@ -222,7 +237,7 @@ void main() {
     final pushed = await _pumpHome(tester);
 
     await tester.tap(find.text('Buscar personagens'));
-    await tester.pumpAndSettle();
+    await _assentar(tester);
 
     // The canonical path, not the bare `/filtro` — see `AddressBar`'s note on
     // why the app never writes that one again.
@@ -282,7 +297,7 @@ void main() {
     final pushed = await _pumpHome(tester);
 
     await tester.tap(find.text('baixaram o preço'));
-    await tester.pumpAndSettle();
+    await _assentar(tester);
     expect(pushed, ['/1.8.7/filtro?baixou=1']);
   });
 

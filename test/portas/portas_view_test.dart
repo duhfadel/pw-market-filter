@@ -103,7 +103,7 @@ Future<void> _montar(
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  await _assentar(tester);
 }
 
 /// The door for [chave] — `'pw187'` or `'pw126'` — and nothing else.
@@ -122,6 +122,21 @@ Finder _textoNaPorta(String chave, String texto) =>
 
 Finder _contendoNaPorta(String chave, String trecho) =>
     find.descendant(of: _porta(chave), matching: find.textContaining(trecho));
+
+/// Espera o que uma transição precisa, **sem esperar por sossego**.
+///
+/// **`pumpAndSettle` deixou de servir nestas telas a 09/11/2026**, quando o
+/// herói ganhou as brasas da maquete: uma animação permanente agenda frames
+/// para sempre, portanto nada «assenta» nunca e o `pumpAndSettle` só devolve
+/// quando estoura o tempo. Foram quarenta e cinco testes de uma vez.
+///
+/// Não é um defeito das brasas nem um atalho: é o que se faz em qualquer
+/// aplicação com movimento ambiente — espera-se o tempo da transição, que é
+/// o que de facto se quer saber, em vez de esperar que o ecrã fique parado.
+Future<void> _assentar(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
+}
 
 void main() {
   setUpAll(_carregarFontesReais);
@@ -273,9 +288,9 @@ void main() {
       await _montar(tester);
 
       await tester.ensureVisible(_porta('pw187'));
-      await tester.pumpAndSettle();
+      await _assentar(tester);
       await tester.tap(_porta('pw187'));
-      await tester.pumpAndSettle();
+      await _assentar(tester);
 
       expect(find.text('rota: /1.8.7'), findsOneWidget);
     });
@@ -397,7 +412,7 @@ void main() {
       _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
     );
     await _montar(tester);
-    await tester.pumpAndSettle();
+    await _assentar(tester);
 
     expect(find.textContaining('Projeto de fã'), findsOneWidget);
     expect(
@@ -663,7 +678,7 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.byType(Rodape), findsOneWidget);
       await tester.ensureVisible(find.byType(Rodape));
-      await tester.pumpAndSettle();
+      await _assentar(tester);
       expect(tester.takeException(), isNull);
     });
   });

@@ -152,7 +152,22 @@ Future<void> _abrir(
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  await _assentar(tester);
+}
+
+/// Espera o que uma transição precisa, **sem esperar por sossego**.
+///
+/// **`pumpAndSettle` deixou de servir nestas telas a 09/11/2026**, quando o
+/// herói ganhou as brasas da maquete: uma animação permanente agenda frames
+/// para sempre, portanto nada «assenta» nunca e o `pumpAndSettle` só devolve
+/// quando estoura o tempo. Foram quarenta e cinco testes de uma vez.
+///
+/// Não é um defeito das brasas nem um atalho: é o que se faz em qualquer
+/// aplicação com movimento ambiente — espera-se o tempo da transição, que é
+/// o que de facto se quer saber, em vez de esperar que o ecrã fique parado.
+Future<void> _assentar(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
 }
 
 void main() {
@@ -168,7 +183,7 @@ void main() {
   testWidgets('the mark goes home from a tool screen', (tester) async {
     await _abrir(tester, '/runas');
     await tester.tap(find.byKey(const Key('cabecalho-marca')));
-    await tester.pumpAndSettle();
+    await _assentar(tester);
 
     expect(find.byType(HomeView), findsOneWidget);
   });
@@ -176,7 +191,7 @@ void main() {
   testWidgets('Novidades navigates rather than scrolling', (tester) async {
     await _abrir(tester, '/registros');
     await tester.tap(find.text('Novidades'));
-    await tester.pumpAndSettle();
+    await _assentar(tester);
 
     expect(find.byType(NovidadesView), findsOneWidget);
   });
@@ -242,7 +257,7 @@ void main() {
       await _abrir(tester, '/novidades', rotas: rotas);
 
       await tester.tap(find.text('Novidades'));
-      await tester.pumpAndSettle();
+      await _assentar(tester);
 
       // `MaterialApp` generates both `/` and `/novidades` for this initial
       // route on its own, to keep a proper back stack under a deep link —
@@ -264,9 +279,9 @@ void main() {
       await _abrir(tester, '/registros', rotas: rotas, largura: 390);
 
       await tester.tap(find.byIcon(Icons.menu));
-      await tester.pumpAndSettle();
+      await _assentar(tester);
       await tester.tap(find.text('Títulos'));
-      await tester.pumpAndSettle();
+      await _assentar(tester);
 
       expect(rotas, ['/', '/registros']);
     },

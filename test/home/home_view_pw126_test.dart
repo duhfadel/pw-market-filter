@@ -131,9 +131,24 @@ Future<List<String>> _pumpHomePw126(WidgetTester tester) async {
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  await _assentar(tester);
 
   return pushed;
+}
+
+/// Espera o que uma transição precisa, **sem esperar por sossego**.
+///
+/// **`pumpAndSettle` deixou de servir nestas telas a 09/11/2026**, quando o
+/// herói ganhou as brasas da maquete: uma animação permanente agenda frames
+/// para sempre, portanto nada «assenta» nunca e o `pumpAndSettle` só devolve
+/// quando estoura o tempo. Foram quarenta e cinco testes de uma vez.
+///
+/// Não é um defeito das brasas nem um atalho: é o que se faz em qualquer
+/// aplicação com movimento ambiente — espera-se o tempo da transição, que é
+/// o que de facto se quer saber, em vez de esperar que o ecrã fique parado.
+Future<void> _assentar(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
 }
 
 void main() {
@@ -174,7 +189,7 @@ void main() {
       final pushed = await _pumpHomePw126(tester);
 
       await tester.tap(find.text('Buscar personagens'));
-      await tester.pumpAndSettle();
+      await _assentar(tester);
 
       expect(pushed, contains('/1.2.6/filtro'));
       expect(pushed, isNot(contains('/1.8.7/filtro')));
@@ -196,7 +211,7 @@ void main() {
       matching: find.byType(InkWell),
     );
     await tester.tap(inkWell.first);
-    await tester.pumpAndSettle();
+    await _assentar(tester);
 
     expect(
       pushed.any((nome) => nome.startsWith('/1.2.6/filtro')),

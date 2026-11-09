@@ -185,7 +185,7 @@ Future<void> _pumpHome(
       child: const MaterialApp(home: HomeView()),
     ),
   );
-  await tester.pumpAndSettle();
+  await _assentar(tester);
 }
 
 /// Rola a página até [alvo] ser construído.
@@ -203,6 +203,21 @@ Future<void> _rolarAte(WidgetTester tester, Finder alvo) async {
     await tester.drag(lista, const Offset(0, -300));
     await tester.pump();
   }
+}
+
+/// Espera o que uma transição precisa, **sem esperar por sossego**.
+///
+/// **`pumpAndSettle` deixou de servir nestas telas a 09/11/2026**, quando o
+/// herói ganhou as brasas da maquete: uma animação permanente agenda frames
+/// para sempre, portanto nada «assenta» nunca e o `pumpAndSettle` só devolve
+/// quando estoura o tempo. Foram quarenta e cinco testes de uma vez.
+///
+/// Não é um defeito das brasas nem um atalho: é o que se faz em qualquer
+/// aplicação com movimento ambiente — espera-se o tempo da transição, que é
+/// o que de facto se quer saber, em vez de esperar que o ecrã fique parado.
+Future<void> _assentar(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
 }
 
 void main() {
@@ -347,7 +362,7 @@ void main() {
       // card por construir devolve a posicao do ultimo que existe, que foi o
       // que fez as cinco aparecerem na mesma linha.
       await _rolarAte(tester, find.byType(Card).at(4));
-      await tester.pumpAndSettle();
+      await _assentar(tester);
       final topos = [
         for (var i = 0; i < 5; i++) tester.getTopLeft(find.byType(Card).at(i)),
       ];

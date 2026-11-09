@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/pw_colors.dart';
+import '../../../../core/ui/cabeca_de_seccao.dart';
 import '../../../home/domain/novidade.dart';
 import '../../../home/ui/novidades_view_model.dart';
 import '../../../home/ui/widgets/novidade_texto.dart';
@@ -42,52 +43,18 @@ class NovidadesNaRaiz extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (espacoAcima > 0) SizedBox(height: espacoAcima),
-              _Cabeca(wide: wide),
+              CabecaDeSeccao(
+                titulo: 'Novidades do portal',
+                porta: 'todos os recados →',
+                aoTocarNaPorta: () =>
+                    Navigator.of(context).pushNamed('/novidades'),
+              ),
               SizedBox(height: wide ? 14 : 11),
               _Painel(novidade: ultima, wide: wide),
             ],
           );
         },
       );
-}
-
-class _Cabeca extends StatelessWidget {
-  const _Cabeca({required this.wide});
-
-  final bool wide;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Text(
-        // **`NOVIDADES DO PORTAL` e não `NOVIDADES`**: uma palavra solta a
-        // poucos píxeis da marca do Perfect World lê-se como as notas de
-        // versão do jogo, e este site não fala por ninguém senão por si.
-        // No telemóvel não cabe com a porta ao lado, e `DO PORTAL` é o que
-        // cede — ali a marca está logo acima, no cabeçalho.
-        wide ? 'NOVIDADES DO PORTAL' : 'NOVIDADES',
-        style: const TextStyle(
-          color: PWColors.apagado,
-          fontSize: 11,
-          letterSpacing: 2,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      const SizedBox(width: 14),
-      const Expanded(child: Divider(color: PWColors.border, height: 1)),
-      const SizedBox(width: 14),
-      InkWell(
-        onTap: () => Navigator.of(context).pushNamed('/novidades'),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          child: Text(
-            wide ? 'todos os recados →' : 'todos →',
-            style: const TextStyle(color: PWColors.accent, fontSize: 12.5),
-          ),
-        ),
-      ),
-    ],
-  );
 }
 
 class _Painel extends StatelessWidget {

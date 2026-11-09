@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/theme/pw_theme.dart';
+import '../../../../core/ui/cabeca_de_seccao.dart';
 import '../../../guias/data/video_repository.dart';
 import '../../../guias/domain/video.dart';
 import '../../../guias/ui/widgets/cartao_de_video.dart';
@@ -78,6 +79,12 @@ class _CanalDoPortalState extends State<CanalDoPortal> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (widget.espacoAcima > 0) SizedBox(height: widget.espacoAcima),
+        // **A régua vem por cima do painel e não dentro dele.** Dentro, ela
+        // ficava na coluna do convite — 40% da largura — e o filete
+        // transbordava 14 px a 772. A maquete põe `.cab` antes de
+        // `.canal.larga`, e é também onde ela diz o que a secção é.
+        const CabecaDeSeccao(titulo: 'O canal do Portal PW'),
+        SizedBox(height: widget.wide ? 14 : 11),
         // **Um painel e não uma secção lisa**, e é a única coisa na raiz com
         // chão próprio. O canal é o que o site está a começar agora: a
         // moldura dá-lhe o peso de um anúncio sem precisar de o escrever.
@@ -148,16 +155,6 @@ class _Convite extends StatelessWidget {
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      const Text(
-        'O CANAL DO PORTAL PW',
-        style: TextStyle(
-          fontFamily: PWTheme.display,
-          color: PWColors.apagado,
-          fontSize: 13,
-          letterSpacing: 2.6,
-        ),
-      ),
-      SizedBox(height: wide ? 14 : 10),
       // Sem algarismos: a Marcellus desenha figuras romanas.
       ConstrainedBox(
         // `.canal.larga h3 { max-width: 16ch }` — duas linhas, como na

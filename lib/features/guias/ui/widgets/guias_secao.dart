@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../../home/ui/widgets/tool_navigation.dart';
 import '../../../../core/theme/pw_theme.dart';
+import '../../../../core/ui/cabeca_de_seccao.dart';
 import '../../domain/guia.dart';
 
 /// Os guias desta versão, na tela da versão.
@@ -46,18 +47,19 @@ class GuiasSecao extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _Cabeca(
+        CabecaDeSeccao(
           // **O título diz o escopo da secção, não o da outra página.** Na
           // raiz ela é mesmo toda a lista; numa tela de versão é um recorte,
           // e chamar-lhe *todos* seria afirmar que o site tem oito guias de
           // 1.2.6 quando tem um.
-          titulo: versao == null ? 'TODOS OS GUIAS' : 'GUIAS',
+          titulo: versao == null ? 'Todos os guias' : 'Guias',
           // E a porta diz o que a outra página acrescenta, em vez de repetir
           // o que esta já mostra.
           porta: versao == null
               ? 'com tempo de leitura →'
               : 'os ${guias.length} →',
-          aoVerTodos: () => abrirEndereco(context, '/guias/', externo: true),
+          aoTocarNaPorta: () =>
+              abrirEndereco(context, '/guias/', externo: true),
         ),
         // `.cab { margin-bottom: 22px }`.
         const SizedBox(height: 22),
@@ -92,56 +94,6 @@ class GuiasSecao extends StatelessWidget {
       ],
     );
   }
-}
-
-class _Cabeca extends StatelessWidget {
-  const _Cabeca({
-    required this.titulo,
-    required this.porta,
-    required this.aoVerTodos,
-  });
-
-  final String titulo;
-  final String porta;
-  final VoidCallback aoVerTodos;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    // `.cab { align-items: baseline }` — o filete alinha pela base do texto
-    // e não pelo meio da caixa, que é o que o faz parecer uma régua debaixo
-    // da palavra em vez de uma linha a cortá-la.
-    crossAxisAlignment: CrossAxisAlignment.end,
-    children: [
-      // **Marcellus aqui**, e é seguro: nenhum destes títulos tem algarismo.
-      Text(
-        titulo,
-        style: const TextStyle(
-          fontFamily: PWTheme.display,
-          color: PWColors.apagado,
-          fontSize: 13,
-          letterSpacing: 2.6,
-        ),
-      ),
-      const SizedBox(width: 16),
-      const Expanded(
-        child: Padding(
-          padding: EdgeInsets.only(bottom: 5),
-          child: Divider(color: PWColors.border, height: 1),
-        ),
-      ),
-      const SizedBox(width: 16),
-      InkWell(
-        onTap: aoVerTodos,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-          child: Text(
-            porta,
-            style: const TextStyle(color: PWColors.accent, fontSize: 13),
-          ),
-        ),
-      ),
-    ],
-  );
 }
 
 class _Carta extends StatelessWidget {

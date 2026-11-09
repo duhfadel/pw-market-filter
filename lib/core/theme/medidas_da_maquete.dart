@@ -50,6 +50,17 @@ class Maquete {
   static const pilulaBorda = 0.18;
   static const pilulaBordaOuro = 0.55;
 
+  /// `.veu { linear-gradient(100deg, #0B0B1A 4%, rgba(11,11,26,.86) 36%,
+  /// rgba(11,11,26,.1) 66%, rgba(11,11,26,.5) 100%) }`.
+  ///
+  /// **A última paragem sobe outra vez**, de 10% para 50%: escurece a borda
+  /// direita para a figura não encostar acesa ao fim do ecrã.
+  static const veuParagens = [0.04, 0.36, 0.66, 1.0];
+  static const veuOpacidades = [1.0, 0.86, 0.10, 0.50];
+
+  /// `.veu2 { linear-gradient(to top, #0B0B1A, transparent 34%) }`.
+  static const veuDeBaixoAte = 0.34;
+
   /// `section { padding: 58px 0 }`.
   static const respiroDeSeccao = 58.0;
 

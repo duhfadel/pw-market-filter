@@ -3,6 +3,7 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/theme/medidas_da_maquete.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/theme/pw_theme.dart';
 import '../../data/browser_memory.dart';
@@ -296,13 +297,16 @@ class _Pill extends StatelessWidget {
   /// o desfoque, ela assenta sobre a arte e deixa-a passar — que é a razão de
   /// ela viver ali e não numa barra com chão próprio. Reparado pelo dono a
   /// 09/11/2026: *«as pílulas não deveriam ter opacidade?»*.
-  static const _chao = 0.42;
+  static const _chao = Maquete.pilulaOpacidade;
 
   @override
   Widget build(BuildContext context) => ClipRRect(
     borderRadius: BorderRadius.circular(999),
     child: BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+      filter: ImageFilter.blur(
+        sigmaX: Maquete.pilulaDesfoque,
+        sigmaY: Maquete.pilulaDesfoque,
+      ),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
         decoration: BoxDecoration(
@@ -310,8 +314,8 @@ class _Pill extends StatelessWidget {
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
             color: ouro
-                ? PWColors.accent.withValues(alpha: 0.55)
-                : Colors.white.withValues(alpha: 0.18),
+                ? PWColors.accent.withValues(alpha: Maquete.pilulaBordaOuro)
+                : Colors.white.withValues(alpha: Maquete.pilulaBorda),
           ),
         ),
         child: _Dentro(label: label, count: count, dot: dot, ouro: ouro),

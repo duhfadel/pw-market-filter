@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/theme/medidas_da_maquete.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/theme/pw_theme.dart';
 import '../../../home/domain/arte_da_classe.dart';
@@ -49,8 +50,12 @@ class HeroiDaRaiz extends StatelessWidget {
   ///
   /// Inclui a altura da barra, que assenta por cima: o palco começa no topo
   /// do ecrã, portanto os ~56 px da barra saem do que sobra para o texto.
-  static double alturaPara(bool wide, double alturaDaJanela) =>
-      wide ? (alturaDaJanela * 0.86).clamp(420, 760) : 470;
+  static double alturaPara(bool wide, double alturaDaJanela) => wide
+      ? (alturaDaJanela * Maquete.heroiFraccaoDaJanela).clamp(
+          Maquete.heroiAlturaMinima,
+          Maquete.heroiAlturaMaxima,
+        )
+      : 470;
 
   /// A classe que o herói veste — **o Guerreiro, sempre**.
   ///
@@ -124,7 +129,10 @@ class _Texto extends StatelessWidget {
           builder: (context) {
             // `clamp(38px, 5.6vw, 68px)` — a escala da maquete, à letra.
             final largura = MediaQuery.sizeOf(context).width;
-            final corpo = (largura * 0.056).clamp(38.0, 68.0);
+            final corpo = (largura * Maquete.mancheteFraccao).clamp(
+              Maquete.mancheteMinima,
+              Maquete.mancheteMaxima,
+            );
             final tamanho = wide ? corpo : 36.0;
             return ConstrainedBox(
               // `max-width: 14ch` da maquete. Um `ch` da Marcellus mede

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/medidas_da_maquete.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/theme/pw_theme.dart';
 import '../../../../market/versoes.dart';
@@ -128,7 +129,7 @@ class _ColunaState extends State<_Coluna> {
     return Opacity(
       key: Key('porta-${porta.chave}'),
       // `.vz.breve { opacity:.62 }`.
-      opacity: pronta ? 1 : 0.62,
+      opacity: pronta ? 1 : Maquete.versaoFechadaOpacidade,
       child: MouseRegion(
         onEnter: (_) => setState(() => _sobre = true),
         onExit: (_) => setState(() => _sobre = false),
@@ -141,7 +142,9 @@ class _ColunaState extends State<_Coluna> {
             decoration: BoxDecoration(
               // `.vz:hover { background: rgba(255,180,84,.045) }`.
               color: _sobre && pronta
-                  ? PWColors.accent.withValues(alpha: 0.045)
+                  ? PWColors.accent.withValues(
+                      alpha: Maquete.versaoSobOPonteiro,
+                    )
                   : Colors.transparent,
               border: Border(
                 left: widget.comFileteAEsquerda
@@ -160,6 +163,14 @@ class _ColunaState extends State<_Coluna> {
                   padding: const EdgeInsets.fromLTRB(18, 34, 18, 36),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
+                    // **Centrada na vertical, e isso e nosso e nao da
+                    // maquete.** La as tres colunas tem o mesmo numero de
+                    // linhas; aqui as abertas levam mais uma -- a descricao
+                    // do servidor que o dono pediu -- portanto a fechada
+                    // ficava encostada ao topo a parecer cortada. Centrada,
+                    // ela le-se como uma coluna mais curta em vez de uma
+                    // coluna por acabar.
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // **Marcellus no rótulo da versão, e é a maquete a
                       // mandar.** A regra deste projecto é que nenhum número

@@ -15,6 +15,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/medidas_da_maquete.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../domain/arte_da_classe.dart';
 
@@ -171,9 +172,15 @@ enum EnquadramentoDaArte {
   /// toda; só faltava ler o CSS dela em vez de deduzir.
   heroi(Alignment(0.52, -0.6));
 
-  const EnquadramentoDaArte(this.alinhamento);
+  const EnquadramentoDaArte(this._alinhamento);
 
-  final Alignment alinhamento;
+  final Alignment _alinhamento;
+
+  /// O do herói vem de `Maquete`, que é o ficheiro que o teste confronta com
+  /// o CSS. O do `Cartaz` é nosso e fica aqui.
+  Alignment get alinhamento => this == EnquadramentoDaArte.heroi
+      ? Maquete.alinhamentoDaArte
+      : _alinhamento;
 }
 
 /// A primeira lavagem do herói, copiada da maquete:
@@ -200,12 +207,10 @@ class _VeuDoHeroi extends StatelessWidget {
         // 100° em CSS é da esquerda para a direita, ligeiramente a descer.
         begin: const Alignment(-1, -0.17),
         end: const Alignment(1, 0.17),
-        stops: const [0.04, 0.36, 0.66, 1],
+        stops: Maquete.veuParagens,
         colors: [
-          PWColors.background,
-          PWColors.background.withValues(alpha: 0.86),
-          PWColors.background.withValues(alpha: 0.10),
-          PWColors.background.withValues(alpha: 0.50),
+          for (final opacidade in Maquete.veuOpacidades)
+            PWColors.background.withValues(alpha: opacidade),
         ],
       ),
     ),
@@ -223,7 +228,7 @@ class _VeuDeBaixo extends StatelessWidget {
       gradient: LinearGradient(
         begin: Alignment.bottomCenter,
         end: Alignment.topCenter,
-        stops: const [0, 0.34],
+        stops: const [0, Maquete.veuDeBaixoAte],
         colors: [PWColors.background, PWColors.background.withValues(alpha: 0)],
       ),
     ),

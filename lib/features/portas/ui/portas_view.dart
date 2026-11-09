@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/di/injection.dart';
 import '../../../core/result/result.dart';
+import '../../../core/theme/medidas_da_maquete.dart';
 import '../../../core/theme/pw_colors.dart';
 import '../../../market/versoes_repository.dart';
 import '../../guias/ui/widgets/guias_secao.dart';
@@ -235,7 +236,7 @@ class _Portas extends StatelessWidget {
     // **760 px era a medida de três cartas e um rodapé.** Com abertura,
     // guias, canal e streamers a página passou a ser um documento, e a
     // maquete mede 1180 (`--col: 1180px`), lido do CSS dela.
-    const colunaDeLeitura = 1180.0;
+    const colunaDeLeitura = Maquete.colunaDeLeitura;
     final margem = ladoALado ? 24.0 : 16.0;
 
     final abertura = Padding(
@@ -260,7 +261,7 @@ class _Portas extends StatelessWidget {
             children: [
               // `section { padding: 58px 0 }`.
               // `section { padding: 58px 0 }`.
-              SizedBox(height: ladoALado ? 58 : 40),
+              SizedBox(height: ladoALado ? Maquete.respiroDeSeccao : 40),
               // Os guias das três versões, cada um com a sua à vista — aqui a
               // etiqueta é a informação que falta, ao contrário de uma tela de
               // versão onde seria ruído. Ver `GuiasSecao`.

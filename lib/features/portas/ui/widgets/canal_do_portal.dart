@@ -101,12 +101,22 @@ class _CanalDoPortalState extends State<CanalDoPortal> {
           ),
           child: widget.wide
               ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  // `.canal.larga { align-items: center }` — o convite senta
+                  // no meio do que a fila de videos ocupa, em vez de ficar
+                  // encostado ao topo com meio painel vazio por baixo.
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // `grid-template-columns: 1fr 1.15fr; gap: 30px`.
                     const Expanded(flex: 100, child: _Convite(wide: true)),
                     const SizedBox(width: 30),
-                    Expanded(flex: 115, child: GrelhaDeVideos(videos: _videos)),
+                    Expanded(
+                      flex: 115,
+                      child: GrelhaDeVideos(
+                        videos: _videos,
+                        compacta: true,
+                        depois: const _Vago(),
+                      ),
+                    ),
                   ],
                 )
               : Column(
@@ -114,7 +124,11 @@ class _CanalDoPortalState extends State<CanalDoPortal> {
                   children: [
                     _Convite(wide: false),
                     const SizedBox(height: 18),
-                    GrelhaDeVideos(videos: _videos),
+                    GrelhaDeVideos(
+                      videos: _videos,
+                      compacta: true,
+                      depois: const _Vago(),
+                    ),
                   ],
                 ),
         ),
@@ -201,4 +215,94 @@ class _Botao extends StatelessWidget {
       child: const Text('Inscrever no YouTube →'),
     ),
   );
+}
+
+/// O lugar que ainda não tem vídeo.
+///
+/// ```css
+/// .vago { aspect-ratio:16/9; border:1px dashed rgba(255,180,84,.34);
+///         border-radius:10px; background:rgba(255,180,84,.03) }
+/// ```
+///
+/// **Enche a terceira coluna e diz porquê.** Sem ele a fila ficava com um
+/// buraco do tamanho de um cartão e o convite à esquerda ficava com meio
+/// painel vazio ao lado — que foi o que o dono viu. Tracejado e não cheio,
+/// porque promete e não entrega: é um lugar guardado, não um vídeo.
+///
+/// **Não promete data.** *Está a caminho* é verdade sobre a intenção de quem
+/// grava; *«todas as semanas»* seria uma cadência que ninguém garantiu, e uma
+/// promessa falhada numa página de entrada custa mais do que o lugar vazio
+/// que ela tapava.
+class _Vago extends StatelessWidget {
+  const _Vago();
+
+  @override
+  Widget build(BuildContext context) => AspectRatio(
+    aspectRatio: 16 / 9,
+    child: DottedBorder(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'o próximo',
+            style: TextStyle(
+              color: PWColors.accent,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            'está a caminho',
+            style: TextStyle(
+              color: PWColors.accent.withValues(alpha: 0.6),
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// Uma moldura tracejada, que o Flutter não tem de origem.
+class DottedBorder extends StatelessWidget {
+  const DottedBorder({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+    painter: _Tracejado(),
+    child: ColoredBox(
+      color: PWColors.accent.withValues(alpha: 0.03),
+      child: child,
+    ),
+  );
+}
+
+class _Tracejado extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final caneta = Paint()
+      ..color = PWColors.accent.withValues(alpha: 0.34)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    const raio = Radius.circular(10);
+    final caminho = Path()
+      ..addRRect(RRect.fromRectAndRadius(Offset.zero & size, raio));
+    // Seis píxeis desenhados, quatro de intervalo — a cadência que lê como
+    // tracejado sem virar pontilhado a esta espessura.
+    for (final metrica in caminho.computeMetrics()) {
+      var d = 0.0;
+      while (d < metrica.length) {
+        final ate = (d + 6).clamp(0.0, metrica.length);
+        canvas.drawPath(metrica.extractPath(d, ate), caneta);
+        d += 10;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

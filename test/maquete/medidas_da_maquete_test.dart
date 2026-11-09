@@ -156,4 +156,65 @@ void main() {
       isTrue,
     );
   });
+
+  test('toda medida da tabela tem quem a leia', () {
+    // **A tabela só vale se os widgets a lerem.** Criei-a primeiro com os
+    // widgets a manterem os literais, e isso é pior do que não a ter: dá a
+    // impressão de haver uma fonte única onde há duas.
+    //
+    // **Varrer o `lib/` à procura dos números não serve**, e a primeira
+    // versão deste teste fez isso e apanhou dois falsos positivos em
+    // segundos — `0.86` é o alfa de uma paragem do véu e também a fracção da
+    // altura; `0.42` é a opacidade do cenário de um streamer e também o fundo
+    // da pílula. Um número nu não diz de que facto é.
+    //
+    // O que se verifica é o contrário, e não tem falso positivo nenhum: cada
+    // constante desta tabela tem pelo menos um leitor fora dela.
+    final medidas = File('lib/core/theme/medidas_da_maquete.dart');
+    final nomes = RegExp(
+      r'static const (\w+)',
+    ).allMatches(medidas.readAsStringSync()).map((m) => m.group(1)!).toList();
+    expect(nomes, isNotEmpty);
+
+    final restante = Directory('lib')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.dart'))
+        .where((f) => f.absolute.path != medidas.absolute.path)
+        .map((f) => f.readAsStringSync())
+        .join('\n');
+
+    final corpo = medidas.readAsStringSync();
+    for (final nome in nomes) {
+      // Uma constante pode alimentar outra da mesma tabela em vez de ir
+      // direita a um widget -- `arteDoHeroiX` so existe para
+      // `alinhamentoDaArte` a converter. Ai o leitor e o proprio ficheiro, e
+      // o que conta e a segunda ocorrencia.
+      final leitorPerto = RegExp('\\b$nome\\b').allMatches(corpo).length > 1;
+      expect(
+        restante.contains('Maquete.$nome') || leitorPerto,
+        isTrue,
+        reason:
+            'Maquete.$nome nao e lida por ninguem -- ou se liga ao widget '
+            'que a devia usar, ou sai da tabela',
+      );
+    }
+  });
+
+  test('o véu do herói é o da maquete, paragem a paragem', () {
+    final regra = RegExp(r'\.veu\{([^}]*)\}').firstMatch(css)!.group(1)!;
+    final paragens = RegExp(
+      r'(\d+)%',
+    ).allMatches(regra).map((m) => int.parse(m.group(1)!) / 100).toList();
+    expect(paragens, Maquete.veuParagens);
+
+    final opacidades = <double>[1];
+    for (final m in RegExp(r'rgba\(11,11,26,([\d.]+)\)').allMatches(regra)) {
+      opacidades.add(double.parse(m.group(1)!));
+    }
+    expect(opacidades, Maquete.veuOpacidades);
+
+    final baixo = RegExp(r'\.veu2\{[^}]*transparent (\d+)%').firstMatch(css)!;
+    expect(int.parse(baixo.group(1)!) / 100, Maquete.veuDeBaixoAte);
+  });
 }

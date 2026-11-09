@@ -1080,6 +1080,64 @@ exactamente o caso para que o carimbo deixou de ser um só. A conta contra o
 `timeout` foi refeita no mesmo commit, que é o momento em que ela tem de ser
 refeita e não o momento em que falha.
 
+## Os streamers por versão, lidos do título da transmissão
+
+Pedido do dono a 09/11/2026: no 1.8.7 só quem joga 1.8.7, e assim por diante.
+
+**A versão vem do título e não de uma coluna, e a ideia é dele.** A Twitch só
+diz *Perfect World* e não distingue versão; o título é reescrito a cada
+transmissão, portanto quem muda de versão muda sozinho. Uma coluna
+envelheceria em silêncio — e o site só mostra quem está **ao vivo**, logo o
+título existe exactamente quando é preciso.
+
+**A fronteira é o dígito e o ponto, nunca `\b`.** `PW187` é a grafia mais
+comum de todas e entre o `W` e o `1` não há fronteira de palavra nenhuma,
+portanto um `\b187\b` perderia justamente o caso que mais aparece. O que tem
+de ser recusado é o número dentro de outro número: `2187`, `1870`, `187.5`.
+
+**A forma nua recusa também a letra depois, e a com pontos não.** `187k` é
+dano ou ouro, e títulos destes estão cheios de números com `k`; `1.8.7` não
+tem como ser outra coisa. A assimetria é deliberada — letra **antes** é como
+se escreve o jogo (`pw187`), letra **depois** é uma unidade. O preço está
+cravado num teste: um `PW187BR` também é recusado.
+
+**Duas versões nomeadas contam como não saber.** Decisão minha e barata de
+mudar: quem escreve as duas não disse em qual está, e escolher pela ordem de
+aparição seria o site a inventar a resposta. Em tudo isto **falsos positivos
+são o único dano real** — não mostrar alguém custa visibilidade, mostrá-lo na
+versão errada é o site a afirmar o que não sabe.
+
+**São duas funções e duas perguntas.** `aoVivoAgora` responde *está ao vivo
+neste jogo*, que é um facto sobre o canal e o mesmo em todas as telas, e é por
+isso que o cubit — único para o site inteiro — a aplica uma vez.
+`transmiteAVersao` responde *pertence a esta tela*, que muda de tela para tela
+e por isso é decidida onde a tela sabe quem é. A contagem do título conta os
+desta versão e não os do site: vinda de antes do filtro, a faixa anunciaria
+«4 ao vivo» e mostraria um, e a conta é a única parte que o visitante pode
+verificar.
+
+**O título é lido e nunca mostrado.** Está cheio de cupões e emoji, e já tinha
+sido deixado de fora do cartão por isso — vale repeti-lo agora que é ele que
+decide quem aparece.
+
+### O efeito prático está por medir, e a razão é a própria tabela
+
+`canais_twitch.titulo` é nulo quando o canal está offline, portanto **não há
+histórico de títulos** e não há como medir com que frequência um deles traz a
+versão. A 09/11/2026, às 21h, os oito canais estavam offline — o Worker são,
+vistos há 24 segundos — e a única observação que existe é a do levantamento:
+`magraotvv` com *THE CLASSIC PW 1.4.4 BETA ABERTO*.
+
+Essa observação é também o aviso: **ele não apareceria em nenhuma página.** O
+1.4.4 não tem tela, e o 1.8.7 e o 1.2.6 recusam-no com razão.
+
+**A rede que a spec prevê para isto é a faixa na raiz**, que não é de versão
+nenhuma e por isso não afirma nada ao mostrar quem não escreveu a sua — e ela
+**ainda não existe**: a faixa só está montada nas telas de versão. Até lá,
+quem não escrever a versão no título não aparece em sítio nenhum do site. A
+faixa é uma cortesia a quem transmite, portanto este é o risco a vigiar, e
+desligá-lo é tirar `versao:` da chamada em `home_view.dart`.
+
 ## A porta da versão diz quantos entraram hoje
 
 Até 09/11/2026 as duas portas da raiz diziam o tamanho da loja e a data da

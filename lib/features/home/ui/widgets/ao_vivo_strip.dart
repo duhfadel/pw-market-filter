@@ -104,9 +104,13 @@ String arteDoStreamer(String login) =>
     '/storage/v1/object/public/streamers/${login.toLowerCase()}.webp';
 
 class AoVivoStrip extends StatefulWidget {
-  const AoVivoStrip({required this.wide, super.key});
+  const AoVivoStrip({required this.wide, this.versao, super.key});
 
   final bool wide;
+
+  /// Qual página esta faixa está a servir — `1.8.7`, `1.2.6` — ou `null` na
+  /// raiz, que não é de versão nenhuma. Ver `transmiteAVersao`.
+  final String? versao;
 
   @override
   State<AoVivoStrip> createState() => _AoVivoStripState();
@@ -209,7 +213,14 @@ class _AoVivoStripState extends State<AoVivoStrip> {
   @override
   Widget build(BuildContext context) =>
       BlocBuilder<AoVivoViewModel, List<CanalAoVivo>>(
-        builder: (context, canais) {
+        builder: (context, todos) {
+          // O cubit já respondeu *está ao vivo neste jogo*, que é igual em
+          // todas as telas. O que falta é *pertence a esta tela*, e é aqui
+          // que se sabe qual ela é.
+          final canais = [
+            for (final canal in todos)
+              if (transmiteAVersao(canal, widget.versao)) canal,
+          ];
           if (canais.isEmpty) return const SizedBox.shrink();
 
           final porPagina = _porPagina(widget.wide);

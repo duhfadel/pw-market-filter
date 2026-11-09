@@ -318,7 +318,16 @@ class HomeView extends StatelessWidget {
                           // ninguém veria.
                           _ComMargem(
                             wide: wide,
-                            child: AoVivoStrip(wide: wide),
+                            // **Só quem joga esta versão**, pedido do dono
+                            // a 09/11/2026. A versão vem do título da
+                            // transmissão e não de uma coluna: a Twitch só
+                            // diz *Perfect World*, e um título é reescrito a
+                            // cada transmissão, portanto quem muda de versão
+                            // muda sozinho.
+                            child: AoVivoStrip(
+                              wide: wide,
+                              versao: pw126 ? rotas.pw126 : rotas.pw187,
+                            ),
                           ),
                           SizedBox(height: wide ? 26 : 20),
                           _ComMargem(

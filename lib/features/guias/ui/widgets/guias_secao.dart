@@ -18,15 +18,22 @@ import '../../domain/guia.dart';
 /// alguém acrescenta um parágrafo. Aqui a pergunta também é outra: nesta tela
 /// os guias são uma secção, e é na lista inteira que alguém escolhe o que ler.
 ///
-/// **A etiqueta da versão desenha-se só quando diz algo.** Numa tela de 1.8.7,
-/// escrever `1.8.7` em sete de oito cartas é ruído; o que vale dizer é qual
-/// serve *todas* as versões, porque essa é a que não é de cá.
+/// **A etiqueta da versão diz o que difere do escopo da página, e nada
+/// mais.** Numa tela de 1.8.7, escrever `1.8.7` em sete de oito cartas é
+/// ruído — ali o que vale dizer é qual serve *todas* as versões, porque essa
+/// é a que não é de cá. Na raiz é o contrário: ela não tem versão nenhuma,
+/// portanto a versão de cada guia é precisamente a informação que falta, e
+/// todas as cartas a levam.
 class GuiasSecao extends StatelessWidget {
   const GuiasSecao({required this.versao, required this.wide, super.key});
 
-  /// `1.8.7`, `1.2.6`, `1.4.4`. Nunca nulo aqui: a tela de escolha não tem
-  /// secção de guias, e `null` significaria «todos», que é a página `/guias/`.
-  final String versao;
+  /// `1.8.7`, `1.2.6`, `1.4.4` — ou **nulo na raiz**, que serve as três e por
+  /// isso lista todos.
+  ///
+  /// Era obrigatório até 09/11/2026, quando a raiz deixou de ser um
+  /// torniquete e passou a ter secções próprias. A regra não mudou, só ganhou
+  /// o caso de fora: *todos os guias* é simplesmente não filtrar.
+  final String? versao;
 
   final bool wide;
 
@@ -85,13 +92,23 @@ class _Carta extends StatelessWidget {
   const _Carta({required this.guia, required this.versao, required this.wide});
 
   final Guia guia;
-  final String versao;
+
+  /// A versão da **página**, não do guia — é contra ela que a etiqueta decide
+  /// se diz algo. Nula na raiz.
+  final String? versao;
   final bool wide;
 
   @override
   Widget build(BuildContext context) {
-    // Só o que serve todas as versões ganha etiqueta: ver a nota da classe.
-    final etiqueta = guia.versoes.isEmpty ? 'todas as versões' : null;
+    // Ver a nota da classe: a etiqueta diz o que difere do escopo da página.
+    final String? etiqueta;
+    if (guia.versoes.isEmpty) {
+      etiqueta = 'todas as versões';
+    } else if (versao == null) {
+      etiqueta = guia.versoes.toList().join(' · ');
+    } else {
+      etiqueta = null;
+    }
 
     return Material(
       color: PWColors.surface,

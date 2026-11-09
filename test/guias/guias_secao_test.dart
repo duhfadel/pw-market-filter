@@ -13,7 +13,7 @@ import 'package:pw_market_filter/features/guias/ui/widgets/guias_secao.dart';
 void main() {
   Future<void> montar(
     WidgetTester tester,
-    String versao, {
+    String? versao, {
     double largura = 1280,
   }) async {
     tester.view.physicalSize = Size(largura, 1800);
@@ -114,10 +114,22 @@ void main() {
     }
   });
 
-  test('a tela de escolha não tem secção de guias, e por isso não é nula', () {
-    // `null` em `guiasDe` quer dizer «todos», que é a página `/guias/`.
-    // `GuiasSecao.versao` é obrigatório exactamente para que ninguém monte
-    // esta secção a listar os oito numa tela que ainda não escolheu mercado.
-    expect(guiasDe(null), hasLength(guias.length));
+  testWidgets('a raiz lista todos, cada um com a sua versão à vista', (
+    tester,
+  ) async {
+    // **Este teste substituiu um que afirmava o contrário**, e é decisão de
+    // produto e não conserto: `GuiasSecao.versao` era obrigatório para que
+    // ninguém montasse a secção numa tela sem mercado escolhido. A 09/11/2026
+    // a raiz deixou de ser um torniquete e passou a ter secções próprias,
+    // portanto o caso de fora passou a existir — e ali a versão de cada guia
+    // é precisamente a informação que falta.
+    await montar(tester, null);
+
+    expect(find.text('GUIAS'), findsOneWidget);
+    expect(find.text('Cartas Nuema'), findsOneWidget);
+    expect(find.text('Multi contas'), findsOneWidget);
+    // Sete cartas de 1.8.7 e uma de todas as versões.
+    expect(find.text('1.8.7'), findsNWidgets(guiasDe('1.8.7').length - 1));
+    expect(find.text('todas as versões'), findsOneWidget);
   });
 }

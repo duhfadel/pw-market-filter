@@ -1080,6 +1080,98 @@ exactamente o caso para que o carimbo deixou de ser um só. A conta contra o
 `timeout` foi refeita no mesmo commit, que é o momento em que ela tem de ser
 refeita e não o momento em que falha.
 
+## A raiz deixou de ser torniquete
+
+Até 09/11/2026 `/` eram três cartas e **148 palavras**, e a doc de
+`PortasView` dizia que a tela *«responde duas perguntas e nada mais, de
+propósito»*, com o argumento de que não há nada para vender a quem já está no
+site. **O argumento vale para metade de quem chega.** Quem vem de um link de
+`/filtro` já sabe o que isto é; quem escreveu `portalpw.net` às cegas — que é
+exactamente quem esta tela recebe — não sabe.
+
+Duas coisas forçaram a mudança, e as duas são medidas. **Foi esta a página que
+o AdSense viu como vazia a 31/10.** E o dono apontou a falta nos termos dele:
+*«talvez falte a informaçao antes do market para que o pessoal entenda o que
+sao aqueles numeros»* — sem premissa, *2.486 personagens à venda* é um número
+sem substantivo.
+
+A raiz tem agora abertura, as três portas, os guias das três versões, a banda
+do canal e os streamers. A abertura são **204 palavras**; o DOM de
+`web/index.html` passou de 145 para **239**.
+
+**A prosa da abertura não publica preço nenhum, e isso é regra.** Um número do
+jogo é permanente e um preço de mercado não é — a lição do guia das runas —
+portanto os números que se movem ficam nas portas, onde a data da coleta está
+ao lado. A primeira versão deste parágrafo dizia *«a de 70 vende por 1000 TCC
+e as de 40 por 90»*, copiado da medição de Agosto sobre 770 personagens;
+medido outra vez a 09/11 sobre 2.486, o Dilacerador Raivoso (70) vai de 40 a
+2500 TCC e o do Vento (40) de 40 a 500 — **as faixas sobrepõem-se**, e a frase
+tinha deixado de ser verdade sem ninguém notar. Saiu em vez de ser
+actualizada.
+
+**E o 70 já não é o topo**, o que o dono tinha previsto: *«cada vez mais, as
+armas do 70 serao mais normais»*. A 09/11 são 1107 de 2486 pessoas, e acima
+delas há **52 com 80** — eram 13 a 29/09. A abertura diz *a arma de topo de
+cada classe* sem cravar o número, por isso.
+
+O que ficou é durável e medido: **quatro armas chamam-se Dilacerador** —
+★★Gelado dá 30, ★★★do Vento dá 40, ★★★Raivoso dá 70, e ★★★de Almas, com as
+mesmas três estrelas, não dá nível de ataque nenhum.
+
+**O texto do `#sem-script` e a abertura da app dizem o mesmo e não são a mesma
+string, de propósito.** Um é o que um rastreador e um visitante sem
+JavaScript recebem; o outro é a premissa de quem vai ler números a seguir.
+Ligá-los obrigaria a gerar HTML a partir de Dart para poupar dois parágrafos.
+A nota está nos dois ficheiros para a próxima pessoa saber que são um par — e
+**é o `#sem-script` que conta para a revisão automática do AdSense**, porque a
+app desenha em canvas e não deixa texto no DOM.
+
+### Um ramo de layout a menos
+
+A raiz tinha dois: largo, o rodapé ficava pregado em baixo e as portas
+centravam-se no que sobrava; empilhado, o rodapé era o fim da página e rolava
+com ela. **O que os separava era haver espaço de sobra no caso largo**, e com
+a abertura acima e três secções abaixo não há — a página rola em qualquer
+largura. Um ramo só.
+
+O aviso antigo continua a valer para quem pensar em voltar atrás: uma
+tentativa de servir os dois casos com um desenho só (`minHeight` +
+`IntrinsicHeight`) empurrou o rodapé para fora do ecrã no caso largo. A saída
+não é um truque que equilibra os dois — é não ter dois.
+
+**Dois testes mudaram de afirmação e nenhum deles quebrou.** O do rodapé
+cravava que ele cabia no ecrã, o que era certo enquanto estava pregado e
+passaria a querer dizer *página sem conteúdo*; agora crava que existe, que se
+alcança rolando, e que nada transborda pelo caminho. E o do toque na porta
+precisou de janela alta: `ensureVisible` alinha o mínimo, e a porta é um
+retrato 2:3 mais alto do que o ecrã deixa, portanto o **centro** dela — onde o
+toque cai — ficava a 751 px num ecrã de 600.
+
+### A banda do canal, e o cartão que foi extraído
+
+`CanalDoPortal` mostra os vídeos de `videos` com `secao = 'canal'` — dois, a
+09/11. **É do site e não de uma versão**, portanto vive na raiz e não se
+repete na tela de cada mercado.
+
+**Sem pílula no cabeçalho**: uma entrada de navegação para uma secção da mesma
+página, de um canal com dois vídeos, é promessa a mais. *Novidades* tem a sua
+porque muda sozinha e tem o ponto a avisar.
+
+**Carrega sozinha e falha calada**, como a faixa dos streamers — é uma secção
+a somar, não a razão de alguém ter vindo. Sem vídeos não desenha nada e **nem
+o espaço**, que é a mesma razão pela qual `AoVivoStrip.espacoAcima` existe: a
+secção desaparece inteira e o vão tem de se ir com ela.
+
+`CartaoDeVideo` e `GrelhaDeVideos` saíram de `tela_de_videos.dart` no mesmo
+commit, quando passou a haver um segundo chamador. Copiar o cartão seria a
+cópia que este repositório já pagou três vezes — `_abrir` e `_openTool` byte a
+byte iguais, duas listas de guias que não se conheciam, dois escritores de
+`versoes.json`.
+
+**E a secção monta o repositório ela própria**, como `TelaDeVideos` já faz. Um
+`getIt` em falta, engolido por um `unawaited`, foi o que deixou esta mesma
+tela a girar para sempre em 02/10/2026.
+
 ## Os streamers por versão, lidos do título da transmissão
 
 Pedido do dono a 09/11/2026: no 1.8.7 só quem joga 1.8.7, e assim por diante.

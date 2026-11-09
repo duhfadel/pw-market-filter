@@ -12,6 +12,7 @@ import 'package:pw_market_filter/features/portas/domain/versao.dart';
 import 'package:pw_market_filter/features/home/domain/canal_ao_vivo.dart';
 import 'package:pw_market_filter/features/home/ui/widgets/rodape.dart';
 import 'package:pw_market_filter/features/portas/ui/portas_view.dart';
+import 'package:pw_market_filter/features/portas/ui/widgets/canal_do_portal.dart';
 import 'package:pw_market_filter/market/versoes.dart';
 import 'package:pw_market_filter/market/versoes_repository.dart';
 
@@ -244,8 +245,22 @@ void main() {
         _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
       );
 
+      // **A porta passou a estar abaixo da dobra a 09/11/2026**, quando a raiz
+      // ganhou a abertura por cima dela, e um `tap` num widget fora do ecrã
+      // não acerta. `ensureVisible` sozinho não basta: alinha o mínimo, e a
+      // porta é um retrato 2:3 mais alto do que o ecrã deixa, portanto o
+      // **centro** dela — onde o toque cai — continuava fora, a 751 px num
+      // ecrã de 600. Uma janela alta é a resposta certa aqui, porque este
+      // teste é sobre a navegação e não sobre o layout, que tem testes
+      // próprios.
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
       await _montar(tester);
 
+      await tester.ensureVisible(_porta('pw187'));
+      await tester.pumpAndSettle();
       await tester.tap(_porta('pw187'));
       await tester.pumpAndSettle();
 
@@ -593,25 +608,117 @@ void main() {
       expect(find.text('STREAMERS AMIGOS'), findsOneWidget);
     });
 
-    testWidgets('a faixa não empurra o rodapé para fora do ecrã', (
+    testWidgets('o rodapé fica no fim da página e alcança-se rolando', (
       tester,
     ) async {
-      // O ramo largo prega o rodapé em baixo e centra as portas no que sobra.
-      // Uma secção nova dentro dele é exactamente o que já empurrou o rodapé
-      // para fora uma vez, quando se tentou servir os dois ramos com um
-      // desenho só.
+      // **Este teste mudou de afirmação a 09/11/2026**, e é o desenho que
+      // mudou e não o código que quebrou. O rodapé estava pregado em baixo no
+      // caso largo, portanto cravar que ele cabia no ecrã era a asserção
+      // certa; com a abertura por cima e três secções abaixo a página rola
+      // sempre, e um rodapé que caiba no ecrã passaria a querer dizer uma
+      // página sem conteúdo.
+      //
+      // O que continua a valer é que ele existe, que se alcança, e que nada
+      // transborda pelo caminho — o defeito real que a versão anterior
+      // procurava.
       _registrarRepositorio(
         _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
       );
       await _montar(tester, aoVivo: [canal('Magraotvv', 'pw 1.4.4 beta')]);
 
       expect(tester.takeException(), isNull);
-      final rodape = tester.getRect(find.byType(Rodape));
-      expect(
-        rodape.bottom,
-        lessThanOrEqualTo(tester.view.physicalSize.height + 1),
-        reason: 'o rodapé saiu do ecrã: $rodape',
+      expect(find.byType(Rodape), findsOneWidget);
+      await tester.ensureVisible(find.byType(Rodape));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('a abertura: a raiz deixou de ser torniquete', () {
+    testWidgets('diz o que o site faz antes de dizer o nome dele', (
+      tester,
+    ) async {
+      // Eram três cartas e 148 palavras, e foi esta a página que o AdSense
+      // viu como vazia a 31/10/2026.
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
       );
+      await _montar(tester);
+
+      expect(find.text('As contas que o jogo não faz'), findsOneWidget);
+      expect(find.text('O MERCADO DE PERSONAGENS'), findsOneWidget);
+      expect(
+        find.textContaining('um personagem pode ser vendido inteiro'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a premissa não publica preço nenhum', (tester) async {
+      // Um número do jogo é permanente e um preço de mercado não é. A
+      // primeira versão desta prosa dizia «a de 70 vende por 1000 TCC e as de
+      // 40 por 90», copiado de uma medição de Agosto — e a 09/11 as faixas já
+      // se sobrepunham. Os números que se movem ficam nas portas, com a data
+      // da coleta ao lado.
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
+      );
+      await _montar(tester);
+
+      final premissa = find.ancestor(
+        of: find.text('O MERCADO DE PERSONAGENS'),
+        matching: find.byType(Column),
+      );
+      final textos = tester
+          .widgetList<Text>(
+            find.descendant(of: premissa.first, matching: find.byType(Text)),
+          )
+          .map((t) => t.data ?? '')
+          .join(' ');
+      expect(textos, isNot(contains('TCC')));
+    });
+
+    testWidgets('a abertura vem antes das portas, nunca depois', (
+      tester,
+    ) async {
+      // É a ordem que o dono pediu: «talvez falte a informaçao antes do
+      // market para que o pessoal entenda o que sao aqueles numeros».
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
+      );
+      await _montar(tester);
+
+      final heroi = tester.getTopLeft(
+        find.text('As contas que o jogo não faz'),
+      );
+      final porta = tester.getTopLeft(_porta('pw126'));
+      expect(heroi.dy, lessThan(porta.dy));
+    });
+
+    testWidgets('a banda do canal está na árvore da raiz', (tester) async {
+      // **Montada, e não só testada sozinha.** A banda busca os vídeos pela
+      // rede, portanto o que ela desenha vive no teste dela; o que vive aqui
+      // é a ligação — a secção existir nesta tela e em nenhuma de versão,
+      // porque o canal é do site e não de um mercado.
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
+      );
+      await _montar(tester);
+
+      expect(find.byType(CanalDoPortal), findsOneWidget);
+    });
+
+    testWidgets('os guias das três versões, cada um com a sua à vista', (
+      tester,
+    ) async {
+      // Aqui a etiqueta de versão é a informação que falta — ao contrário de
+      // uma tela de versão, onde seria ruído em sete de oito cartas.
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
+      );
+      await _montar(tester);
+
+      expect(find.text('GUIAS'), findsOneWidget);
+      expect(find.text('todas as versões'), findsOneWidget);
     });
   });
 }

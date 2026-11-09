@@ -11,10 +11,13 @@ import '../../../market/versoes.dart';
 import '../../../market/versoes_repository.dart';
 import '../../home/domain/arte_da_classe.dart';
 import '../../home/domain/visit_label.dart' show groupThousands;
+import '../../guias/ui/widgets/guias_secao.dart';
 import '../../home/ui/widgets/cabecalho.dart';
 import '../../home/ui/widgets/ao_vivo_strip.dart';
 import '../../home/ui/widgets/rodape.dart';
 import '../domain/versao.dart';
+import 'widgets/abertura.dart';
+import 'widgets/canal_do_portal.dart';
 
 /// The front door, now that the site is two marketplaces.
 ///
@@ -200,9 +203,15 @@ class _Mensagem extends StatelessWidget {
 /// which on a 760 px page made a door about 370×150 — a letterbox so wide
 /// that a 480×720 portrait had nothing left to show but a wing or a slice of
 /// cape, no face, no figure. `AspectRatio` fixes the shape instead of
-/// measuring it off whatever width the row happens to have, and the page has
-/// the vertical room to spend: there was never anything else below the fold
-/// here to compete with it.
+/// measuring it off whatever width the row happens to have.
+///
+/// **E a página passou a ter coisas abaixo das portas, a 09/11/2026.** Esta
+/// nota dizia que havia espaço vertical de sobra porque *«nunca houve nada
+/// abaixo da dobra aqui a competir»*; há agora — a abertura acima, os guias,
+/// o canal e os streamers abaixo. Com conteúdo a sério a página rola sempre,
+/// portanto **os dois ramos de layout colapsaram num só**: o rodapé deixou de
+/// ser pregado em baixo no caso largo, porque deixou de haver espaço de sobra
+/// para o prender. Um ramo a menos é um ramo a menos para divergir.
 class _Portas extends StatelessWidget {
   const _Portas({required this.portas});
 
@@ -259,14 +268,6 @@ class _Portas extends StatelessWidget {
       ],
     );
 
-    final rodape = Padding(
-      padding: EdgeInsets.fromLTRB(24, 0, 24, 16),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: 760),
-        child: Rodape(),
-      ),
-    );
-
     final grade = Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -275,7 +276,17 @@ class _Portas extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // **O que o site faz, antes de dizer o nome dele.** Ver
+              // `Abertura`: esta tela eram 148 palavras e um torniquete, e é
+              // a página que o AdSense viu como vazia a 31/10/2026.
+              Abertura(wide: ladoALado),
+              SizedBox(height: ladoALado ? 30 : 24),
               linha,
+              // Os guias das três versões, cada um com a sua à vista — aqui a
+              // etiqueta é a informação que falta, ao contrário de uma tela de
+              // versão onde seria ruído. Ver `GuiasSecao`.
+              SizedBox(height: ladoALado ? 30 : 24),
+              GuiasSecao(versao: null, wide: ladoALado),
               // **Quem está ao vivo, sem pedir versão — e é esta a tela que
               // podia mostrá-los sem versão nenhuma.** Pedido do dono a
               // 09/11/2026: o 1.4.4 tem de aparecer na home. Ele não tem tela
@@ -288,38 +299,30 @@ class _Portas extends StatelessWidget {
               // nenhuma, logo não afirma nada ao mostrar quem não escreveu a
               // sua. É o contrário de uma página de versão, onde mostrar
               // alguém sem versão seria o site a dizer o que não sabe.
+              // **O canal é do site e não de uma versão**, portanto vive
+              // aqui e não se repete na tela de cada mercado.
+              CanalDoPortal(wide: ladoALado, espacoAcima: 28),
               AoVivoStrip(wide: ladoALado, espacoAcima: 28),
+              SizedBox(height: ladoALado ? 30 : 24),
+              const Rodape(),
             ],
           ),
         ),
       ),
     );
 
-    // **Os dois casos são mesmo diferentes, e cada um tem o seu ramo.**
+    // **Um ramo só, desde 09/11/2026.** Havia dois: largo, o rodapé ficava
+    // pregado em baixo e as portas centravam-se no que sobrava; empilhado, o
+    // rodapé era o fim da página e rolava com ela. O que os separava era
+    // haver espaço de sobra no caso largo — e com a abertura acima e três
+    // secções abaixo não há: a página rola em qualquer largura.
     //
-    // Lado a lado, as portas cabem com folga: o rodapé fica preso em baixo e
-    // elas ficam centradas no que sobra, que é a página que o ecrã grande
-    // mostrou sempre.
-    //
-    // Empilhadas, duas cartas 2:3 não cabem em nenhum telemóvel. Pregar o
-    // rodapé ali punha a segunda porta a passar por trás dele, com o texto
-    // assente na arte — foi assim que saiu da primeira vez. Ali o rodapé é o
-    // fim da página e rola com ela.
-    //
-    // Houve uma tentativa de servir os dois com um desenho só
-    // (`minHeight` + `IntrinsicHeight`), e ela empurrou o rodapé para fora do
-    // ecrã no caso largo. Dois ramos que se veem são melhores que um truque
-    // que só uma captura de ecrã desmente.
-    if (!ladoALado) {
-      return SingleChildScrollView(child: Column(children: [grade, rodape]));
-    }
-
-    return Column(
-      children: [
-        Expanded(child: SingleChildScrollView(child: grade)),
-        rodape,
-      ],
-    );
+    // O aviso que ficava aqui continua a valer para quem pensar em voltar
+    // atrás: uma tentativa de servir os dois casos com um desenho só
+    // (`minHeight` + `IntrinsicHeight`) empurrou o rodapé para fora do ecrã
+    // no caso largo. A saída não é um truque que equilibra os dois — é não
+    // ter dois.
+    return SingleChildScrollView(child: grade);
   }
 }
 

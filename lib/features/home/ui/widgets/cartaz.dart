@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/medidas_da_maquete.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/theme/pw_theme.dart';
 import '../../domain/arte_da_classe.dart';
@@ -16,7 +17,9 @@ class Cartaz extends StatelessWidget {
     required this.classe,
     required this.wide,
     required this.aoBuscar,
+    required this.aoVerGuias,
     required this.subtitulo,
+    this.margemHorizontal = 24,
     super.key,
   });
 
@@ -37,26 +40,45 @@ class Cartaz extends StatelessWidget {
   /// once shipped advertising all four anyway.
   final String subtitulo;
 
+  /// Abre a lista de guias. **Dois botões e não um**, como na maquete: o
+  /// cheio leva ao filtro, que é a razão da tela, e o de contorno aos guias,
+  /// que é o que resta a quem não veio comprar.
+  final VoidCallback aoVerGuias;
+
+  /// O recuo lateral, para a manchete alinhar com o conteúdo abaixo.
+  final double margemHorizontal;
+
+  /// A mesma altura do herói da raiz: `min(86vh, 760px)`.
+  static double alturaDoHeroi(bool wide, double alturaDaJanela) => wide
+      ? (alturaDaJanela * Maquete.heroiFraccaoDaJanela).clamp(
+          Maquete.heroiAlturaMinima,
+          Maquete.heroiAlturaMaxima,
+        )
+      : 470;
+
   @override
   Widget build(BuildContext context) {
     final acento = acentoDaClasse(classe);
 
     return PalcoDeClasse(
       classe: classe,
-      // Measured against the real fonts, not guessed: `Cartaz` was tested
-      // only at 1200 px wide (`cartaz_test.dart`) and never at `wide: false`
-      // at all, so the fixed 320/260 pair overflowed the moment the front
-      // page actually wired this widget in — 36 px over at `wide: true` and
-      // 68 px over at `wide: false`, in both cases regardless of width,
-      // because neither the eyebrow, the headline nor the 430 px sub-line
-      // ever wrap differently above that width. These two numbers are the
-      // old ones plus that overflow, rounded up for a margin.
-      altura: wide ? 360 : 340,
-      margemHorizontal: wide ? 56 : 24,
+      // **Era 360 px e passou a ser a dobra, a 09/11/2026.** O número antigo
+      // estava medido contra as fontes reais e contra a sub-linha de 430 px,
+      // e estava certo para o que ele era: uma faixa. A maquete da tela da
+      // versão usa o mesmo `.heroi` da raiz — `min-height: min(86vh, 760px)`
+      // — portanto deixa de ser faixa e passa a ser dobra.
+      //
+      // O preço é a faixa do mercado começar abaixo da dobra. Aceite: a
+      // manchete diz o que o site faz em sete palavras, e quem rola uma vez
+      // encontra os números.
+      altura: alturaDoHeroi(wide, MediaQuery.sizeOf(context).height),
+      margemHorizontal: margemHorizontal,
+      enquadramento: EnquadramentoDaArte.heroi,
       child: _Conteudo(
         acento: acento,
         wide: wide,
         aoBuscar: aoBuscar,
+        aoVerGuias: aoVerGuias,
         subtitulo: subtitulo,
       ),
     );
@@ -70,12 +92,14 @@ class _Conteudo extends StatelessWidget {
     required this.acento,
     required this.wide,
     required this.aoBuscar,
+    required this.aoVerGuias,
     required this.subtitulo,
   });
 
   final Color acento;
   final bool wide;
   final VoidCallback aoBuscar;
+  final VoidCallback aoVerGuias;
   final String subtitulo;
 
   @override
@@ -83,16 +107,19 @@ class _Conteudo extends StatelessWidget {
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
+      // `.sobre { font-size:11.5px; letter-spacing:.24em; color: magenta }`
+      // — e o acento da classe continua a decidir a cor, que é o que faz a
+      // sobrancelha pertencer à arte que está por trás dela.
       Text(
         'MERCADO DE PERSONAGENS · THE CLASSIC',
         style: TextStyle(
           color: acento,
-          fontSize: 9.5,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.8,
+          fontSize: wide ? 11.5 : 10,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 2.8,
         ),
       ),
-      const SizedBox(height: 14),
+      const SizedBox(height: 20),
       Text(
         'Ache o personagem\npelo que ele está usando',
         style: TextStyle(
@@ -126,8 +153,13 @@ class _Conteudo extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 22),
-      Row(
-        mainAxisSize: MainAxisSize.min,
+      // **`Wrap` e não `Row`**: com o segundo botão, os dois lado a lado
+      // transbordam 178 px num telemóvel de 390 — o `Wrap` põe-nos um sobre
+      // o outro em vez de os cortar. A `Row` anterior servia porque havia um
+      // botão só.
+      Wrap(
+        spacing: wide ? 12 : 8,
+        runSpacing: 10,
         children: [
           FilledButton.icon(
             onPressed: aoBuscar,
@@ -153,6 +185,23 @@ class _Conteudo extends StatelessWidget {
                 letterSpacing: 0.2,
               ),
             ),
+          ),
+          // `.bt2 { background: transparent; border: 1px solid
+          // rgba(255,255,255,.28) }` — o segundo caminho, para quem não veio
+          // comprar. **Nunca leva a um mercado**: os guias servem as três
+          // versões, portanto não escolhe nada por quem clica.
+          OutlinedButton(
+            onPressed: aoVerGuias,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: PWColors.text,
+              side: BorderSide(color: Colors.white.withValues(alpha: 0.28)),
+              padding: EdgeInsets.symmetric(
+                horizontal: wide ? 22 : 16,
+                vertical: wide ? 16 : 13,
+              ),
+              textStyle: TextStyle(fontSize: wide ? 15 : 13.5),
+            ),
+            child: const Text('Ver os guias'),
           ),
         ],
       ),

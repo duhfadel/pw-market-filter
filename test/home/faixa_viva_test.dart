@@ -33,10 +33,13 @@ void main() {
       test('são três, nesta ordem', () {
         final figuras = figurasVivas(index);
         expect(figuras, hasLength(3));
+        // **A ordem é a da maquete, e ela põe o movimento primeiro.** O
+        // total vem no fim porque é o número que menos muda — está no selo
+        // logo acima, com a data da coleta.
         expect(figuras.map((f) => f.rotulo), [
-          'personagens à venda',
           'entraram hoje',
           'baixaram o preço',
+          'à venda agora',
         ]);
       });
 
@@ -53,7 +56,7 @@ void main() {
       });
 
       test('o total é todo o mercado, e a busca vazia confirma-o', () {
-        expect(figurasVivas(index).first.numero, index.characters.length);
+        expect(figurasVivas(index).last.numero, index.characters.length);
       });
 
       test('nenhum número é negativo nem passa do mercado', () {
@@ -67,7 +70,7 @@ void main() {
       // site duas vezes seguidas em 10/10/2026.
       test('mede quanto cada figura corta', () {
         final total = index.characters.length;
-        for (final figura in figurasVivas(index).skip(1)) {
+        for (final figura in figurasVivas(index).take(2)) {
           final fatia = total == 0 ? 0 : (100 * figura.numero / total).round();
           debugPrint('  ${figura.rotulo}: ${figura.numero} ($fatia%)');
         }

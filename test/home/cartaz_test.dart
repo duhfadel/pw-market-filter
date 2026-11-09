@@ -55,6 +55,7 @@ Future<void> _pump(
               classe: classe,
               wide: true,
               aoBuscar: aoBuscar ?? () {},
+              aoVerGuias: () {},
               subtitulo: subtitulo,
             ),
           ),
@@ -136,13 +137,23 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('the wide hero is exactly 360 px tall', (tester) async {
-    // `cartaz.dart`'s own `height: wide ? 360 : 340` used to be clamped away
-    // by this file's outer tight `SizedBox(height: 400)` — dropping 360 to
-    // 200 left every test in this file green. Measuring the widget's real
-    // size, under loose constraints, is what would catch that drift.
+  testWidgets('o herói ocupa a dobra, não uma faixa', (tester) async {
+    // **Eram 360 px cravados e passaram a ser `min(86vh, 760px)` a
+    // 09/11/2026**, que é o que a maquete declara para `.heroi` — o mesmo
+    // valor nas duas telas, raiz e versão. O número antigo estava certo para
+    // o que ele era: uma faixa. Deixou de ser faixa.
+    //
+    // A razão de medir continua a mesma e vale repeti-la: o `height` deste
+    // widget já foi engolido pelo `SizedBox` apertado deste ficheiro, e
+    // baixá-lo de 360 para 200 deixava tudo verde. Mede-se o tamanho real,
+    // sob restrições largas.
     await _pump(tester);
 
-    expect(tester.getSize(find.byType(Cartaz)).height, 360);
+    final janela =
+        tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    expect(
+      tester.getSize(find.byType(Cartaz)).height,
+      Cartaz.alturaDoHeroi(true, janela),
+    );
   });
 }

@@ -188,6 +188,23 @@ Future<void> _pumpHome(
   await tester.pumpAndSettle();
 }
 
+/// Rola a página até [alvo] ser construído.
+///
+/// **Necessário desde 09/11/2026**, quando o herói passou de uma faixa de 360
+/// px a `min(86vh, 760px)`: num `ListView` o que está abaixo da dobra não é
+/// construído, portanto `find.text` não acha o que um visitante encontra
+/// rolando uma vez.
+Future<void> _rolarAte(WidgetTester tester, Finder alvo) async {
+  // `scrollUntilVisible` nao serve aqui: a pagina tem mais do que um
+  // `Scrollable` -- o carrossel dos Destaques e a faixa dos streamers -- e
+  // ele rebenta com «Too many elements». Arrasta-se a lista de fora.
+  final lista = find.byType(ListView).first;
+  for (var i = 0; i < 30 && alvo.evaluate().isEmpty; i++) {
+    await tester.drag(lista, const Offset(0, -300));
+    await tester.pump();
+  }
+}
+
 void main() {
   setUpAll(_carregarFontesReais);
 
@@ -325,6 +342,12 @@ void main() {
       // `large` — so the grid never sees more than ~700 px here, which
       // `_columnsFor` reads as the middle tier (>=440, <760), never the
       // six-column one. The five cards split 3-then-2.
+      // **Rola ate o quinto card, e so entao mede.** Com o heroi a ocupar a
+      // dobra desde 09/11/2026, parte da grelha fica por construir -- e um
+      // card por construir devolve a posicao do ultimo que existe, que foi o
+      // que fez as cinco aparecerem na mesma linha.
+      await _rolarAte(tester, find.byType(Card).at(4));
+      await tester.pumpAndSettle();
       final topos = [
         for (var i = 0; i < 5; i++) tester.getTopLeft(find.byType(Card).at(i)),
       ];

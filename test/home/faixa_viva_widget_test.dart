@@ -56,6 +56,8 @@ void main() {
           body: FaixaViva(
             index: index,
             wide: largura >= 772,
+            larguraDaColuna: largura,
+            margem: 0,
             onAbrir: abertas.add,
           ),
         ),
@@ -101,7 +103,10 @@ void main() {
       ]),
     );
     expect(find.text('1.234'), findsOneWidget);
-    expect(find.text('personagens à venda'), findsOneWidget);
+    expect(find.text('à venda agora'), findsOneWidget);
+    // E o selo diz o tamanho e a data, acima da banda.
+    expect(find.text('O MERCADO AGORA'), findsOneWidget);
+    expect(find.textContaining('1.234 personagens · colhido'), findsOneWidget);
   });
 
   testWidgets('cada porta entrega a sua própria pergunta', (tester) async {
@@ -115,14 +120,14 @@ void main() {
     expect(abertas.last.soComQueda, isTrue);
     expect(abertas.last.novosEmDias, isNull);
 
-    await tester.tap(find.text('personagens à venda'));
+    await tester.tap(find.text('à venda agora'));
     expect(abertas.last.isEmpty, isTrue, reason: 'o total não pede nada');
   });
 
   testWidgets('o carimbo de hoje diz a hora, não os dias', (tester) async {
     await montar(tester, comMovimento());
     // «há 0 dias» não responde à pergunta que alguém que voltou tem.
-    expect(find.textContaining('hoje às 14:30'), findsOneWidget);
+    expect(find.textContaining('colhido hoje às 14:30'), findsOneWidget);
     expect(find.textContaining('há 0 dias'), findsNothing);
   });
 

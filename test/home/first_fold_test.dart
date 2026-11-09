@@ -154,6 +154,23 @@ Future<List<String>> _pumpHome(WidgetTester tester) async {
   return pushed;
 }
 
+/// Rola a página até [alvo] ser construído.
+///
+/// **Necessário desde 09/11/2026**, quando o herói passou de uma faixa de 360
+/// px a `min(86vh, 760px)`: num `ListView` o que está abaixo da dobra não é
+/// construído, portanto `find.text` não acha o que um visitante encontra
+/// rolando uma vez.
+Future<void> _rolarAte(WidgetTester tester, Finder alvo) async {
+  // `scrollUntilVisible` nao serve aqui: a pagina tem mais do que um
+  // `Scrollable` -- o carrossel dos Destaques e a faixa dos streamers -- e
+  // ele rebenta com «Too many elements». Arrasta-se a lista de fora.
+  final lista = find.byType(ListView).first;
+  for (var i = 0; i < 30 && alvo.evaluate().isEmpty; i++) {
+    await tester.drag(lista, const Offset(0, -300));
+    await tester.pump();
+  }
+}
+
 void main() {
   setUpAll(_carregarFontesReais);
 
@@ -243,7 +260,7 @@ void main() {
         find.descendant(of: find.byType(FaixaViva), matching: find.text(texto));
 
     expect(naFaixa('3'), findsOneWidget);
-    expect(naFaixa('personagens à venda'), findsOneWidget);
+    expect(naFaixa('à venda agora'), findsOneWidget);
     expect(naFaixa('entraram hoje'), findsOneWidget);
     expect(naFaixa('baixaram o preço'), findsOneWidget);
     expect(naFaixa('0'), findsNWidgets(2));
@@ -253,7 +270,7 @@ void main() {
     await _pumpHome(tester);
     // Um índice velho parece exactamente igual a um fresco, e um filtro
     // perfeito sobre dados do mês passado é pior do que filtro nenhum.
-    expect(find.textContaining('coletado a 09/08'), findsOneWidget);
+    expect(find.textContaining('colhido a 09/08'), findsOneWidget);
   });
 
   testWidgets('tocar uma figura abre o filtro com a pergunta já feita', (
@@ -277,6 +294,7 @@ void main() {
     // secção lista os oito que servem esta versão, e é o que torna as duas
     // superfícies coisas diferentes em vez de uma duplicada.
     await _pumpHome(tester);
+    await _rolarAte(tester, find.text('GUIAS'));
 
     expect(find.text('GUIAS'), findsOneWidget);
     expect(find.text('Cartas Nuema'), findsOneWidget);

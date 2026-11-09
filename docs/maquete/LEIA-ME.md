@@ -65,4 +65,4 @@ mediana de 3,3.
 | a descrição de cada servidor aparece nas colunas abertas | pedido do dono a 28/10/2026: *a tela pergunta qual mercado e só respondia com números* |
 | a ordem é 1.2.6, 1.4.4, 1.8.7 | ordem cronológica, decisão do dono a 12/10/2026 |
 | os guias são oito e não seis | são os reais |
-| sem o cartão tracejado *o próximo está a caminho* | promete uma cadência que ninguém garantiu |
+| o ponto da primeira figura não pulsa | `AnimationController.repeat()` agenda frames para sempre e `pumpAndSettle` deixa de terminar — foram **36 testes** de uma vez. O carrossel dos streamers tem animação infinita e não causa isto porque só roda quando há mais canais do que cabem |

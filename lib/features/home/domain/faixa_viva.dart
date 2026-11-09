@@ -41,13 +41,17 @@ List<FiguraViva> figurasVivas(MarketIndex index) {
   const hoje = SearchQuery(novosEmDias: 1);
   const queda = SearchQuery(soComQueda: true);
 
+  // **A ordem e a da maquete, e ela poe o movimento primeiro.** O total vem
+  // no fim porque e o numero que menos muda -- esta no selo logo acima, com a
+  // data da coleta, e repeti-lo em primeiro lugar dava a faixa viva o ar de
+  // um resumo em vez de um movimento.
   return [
-    FiguraViva(
-      numero: index.characters.length,
-      rotulo: 'personagens à venda',
-      query: const SearchQuery(),
-    ),
     FiguraViva(numero: conta(hoje), rotulo: 'entraram hoje', query: hoje),
     FiguraViva(numero: conta(queda), rotulo: 'baixaram o preço', query: queda),
+    FiguraViva(
+      numero: index.characters.length,
+      rotulo: 'à venda agora',
+      query: const SearchQuery(),
+    ),
   ];
 }

@@ -180,7 +180,7 @@ class _Carta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final arte = arteVerticalDaClasse(destaque.personagem.characterClass);
+    final recorte = recorteDaClasse(destaque.personagem.characterClass);
     final cor = destaque.cor;
 
     return Card(
@@ -202,16 +202,17 @@ class _Carta extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
+          // **O degradê diz o patamar da arma, e a figura fica por cima
+          // dele.** Até 09/11/2026 o fundo era a arte vertical a sangrar e a
+          // cor do patamar vivia só na moldura de 1,5 px — que ninguém lê a
+          // varrer uma fila de seis. Agora o patamar é o fundo inteiro e lê-se
+          // de relance, que é a mesma razão por que a grelha do filtro ganhou
+          // moldura colorida em 29/09.
+          _FundoDoPatamar(cor: cor),
           // A class with no art draws the plain ground, never a borrowed
-          // face — the same silent fallback `arteVerticalDaClasse` itself
-          // makes by returning null.
-          if (arte != null)
-            Image.asset(
-              arte,
-              fit: BoxFit.cover,
-              alignment: const Alignment(0, -0.76),
-              errorBuilder: (_, _, _) => const SizedBox.shrink(),
-            ),
+          // face — the same silent fallback `recorteDaClasse` itself makes by
+          // returning null.
+          if (recorte != null) _Figura(recorte: recorte),
           const _Veu(),
           if (destaque.selo != null) _Selo(texto: destaque.selo!),
           _Rodape(destaque: destaque),
@@ -232,6 +233,79 @@ class _Carta extends StatelessWidget {
       ),
     );
   }
+}
+
+/// O patamar da arma como fundo: forte no topo, morto antes do texto.
+///
+/// **Sem patamar não desenha nada**, e isso é a regra e não um descuido. É a
+/// mesma decisão que a moldura da grelha do filtro já carrega — pintar quem
+/// não tem patamar seria a mentira, não a omissão — e aqui ela é duplamente
+/// precisa, porque a categoria que trouxe a pessoa ao ecrã não é a arma que
+/// ela veste: *o mais barato* e *quem mais carrega Chave da Sorte* chegam
+/// aqui sem arma nenhuma de nota.
+///
+/// **E morre antes do texto, o que não é só estética.** [PWColors.accent] é
+/// `#FFB454` e o patamar de 70 é o **mesmo byte** — e 70 é o patamar mais
+/// comum do mercado, portanto o fundo mais frequente desta grelha é a cor do
+/// dinheiro. O preço, a ouro, cai na zona onde já não há cor nenhuma.
+class _FundoDoPatamar extends StatelessWidget {
+  const _FundoDoPatamar({required this.cor});
+
+  final Color? cor;
+
+  @override
+  Widget build(BuildContext context) {
+    final cor = this.cor;
+    if (cor == null) return const SizedBox.shrink();
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          // Três paragens e não duas: uma rampa recta deixa cor a meio da
+          // carta, onde a figura já está, e o fundo passa a competir com ela.
+          // Esta cai depressa — a 30% já só tem um terço da força.
+          colors: [
+            cor.withValues(alpha: 0.42),
+            cor.withValues(alpha: 0.15),
+            Colors.transparent,
+          ],
+          stops: const [0, 0.3, 0.62],
+        ),
+      ),
+    );
+  }
+}
+
+/// A figura recortada, assente sobre o bloco de texto.
+///
+/// **`contain` e não `cover`**, que é a diferença toda entre este card e o
+/// anterior: uma arte sem fundo cortada pelos lados fica um personagem sem
+/// braços, enquanto a mesma arte inteira num fundo liso é um cartão de
+/// coleção. Os recortes vêm perto de 1:1 e o card é 2:3, portanto a figura
+/// ocupa os dois terços de cima e o texto fica no terço que sobra — que é o
+/// espaço que ela deixa, e não um espaço roubado dela.
+///
+/// Os pés caem a 68% da altura e o rótulo começa a 78%: o [_Veu] por cima
+/// existe para esses dez pontos de sobreposição.
+class _Figura extends StatelessWidget {
+  const _Figura({required this.recorte});
+
+  final String recorte;
+
+  @override
+  Widget build(BuildContext context) => FractionallySizedBox(
+    alignment: Alignment.topCenter,
+    heightFactor: 0.68,
+    widthFactor: 0.96,
+    child: Image.asset(
+      recorte,
+      fit: BoxFit.contain,
+      alignment: Alignment.bottomCenter,
+      errorBuilder: (_, _, _) => const SizedBox.shrink(),
+    ),
+  );
 }
 
 /// Darkens only the card's lower third, so the footer's text has solid

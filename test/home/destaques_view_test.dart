@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FontLoader, rootBundle;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/core/theme/pw_theme.dart';
+import 'package:pw_market_filter/core/theme/pw_colors.dart';
+import 'package:pw_market_filter/features/home/domain/arte_da_classe.dart';
 import 'package:pw_market_filter/features/home/ui/widgets/destaques_view.dart';
 import 'package:pw_market_filter/features/search/domain/search_query.dart';
 import 'package:pw_market_filter/market/market_index.dart';
@@ -219,6 +221,83 @@ void main() {
 
     expect(find.byType(GridView), findsOneWidget);
   });
+  testWidgets('o card desenha o recorte, nunca a cena pintada', (tester) async {
+    // **São duas artes diferentes e não a mesma com e sem fundo.** A vertical
+    // é uma cena pintada, e usá-la aqui traria o céu dela por trás da figura
+    // — que é exactamente o que este card deixou de fazer a 09/11/2026, para
+    // o degradê do patamar poder ser o fundo. Um `Image.asset` que voltasse
+    // ao caminho antigo tapava o degradê inteiro e nada na suíte diria.
+    await _montar(tester, index: indiceDeTeste());
+
+    final caminhos = tester
+        .widgetList<Image>(find.byType(Image))
+        .map((i) => (i.image as AssetImage).assetName)
+        .toList();
+
+    expect(caminhos, isNotEmpty);
+    for (final caminho in caminhos) {
+      expect(caminho, contains('classes-recorte'));
+      expect(caminho, isNot(contains('classes-verticais')));
+    }
+  });
+
+  testWidgets('o fundo é a cor do patamar da arma que a pessoa veste', (
+    tester,
+  ) async {
+    // A cor tem de vir de `weaponTierColor` e não da categoria que trouxe a
+    // pessoa ao ecrã — o plano original pintava a carta da arma de 70 com a
+    // cor de um 40, e o card teria ensinado a cor errada à grelha para onde
+    // manda clicar. Aqui: quem veste 80 de ataque desenha o vermelho do topo.
+    await _montar(tester, index: indiceDeTeste());
+
+    final gradientes = tester
+        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+        .map((d) => (d.decoration as BoxDecoration).gradient)
+        .whereType<LinearGradient>()
+        .expand((g) => g.colors)
+        .map((c) => c.withValues(alpha: 1))
+        .toSet();
+
+    expect(gradientes, contains(PWColors.gradeColors[6]));
+    expect(gradientes, contains(PWColors.defenceTier));
+  });
+
+  testWidgets('sem patamar não há degradê nenhum', (tester) async {
+    // **A omissão é a verdade, não um descuido.** As categorias que trazem
+    // alguém sem arma de nota — o mais barato, quem mais carrega Chave da
+    // Sorte — não podem receber uma cor emprestada: é a mesma decisão que a
+    // moldura da grelha do filtro já carrega, e a razão por que o patamar 30
+    // não pinta nada.
+    final semArma = MarketIndex(
+      server: 'pw187',
+      collectedAt: DateTime.utc(2026, 10, 1),
+      attributes: const ['Nível de Ataque', 'Nível de Defesa'],
+      items: const {},
+      characters: [
+        _personagem('barato', 100, 'Guerreiro'),
+        _personagem('caro', 9000, 'Mago'),
+      ],
+    );
+
+    await _montar(tester, index: semArma);
+
+    final gradientes = tester
+        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+        .map((d) => (d.decoration as BoxDecoration).gradient)
+        .whereType<LinearGradient>()
+        .expand((g) => g.colors)
+        .toList();
+
+    // O véu é o único degradê que sobra, e ele é noite sobre transparente.
+    for (final cor in gradientes) {
+      expect(
+        cor.withValues(alpha: 1),
+        anyOf(PWColors.noite, const Color(0x00000000).withValues(alpha: 1)),
+        reason: 'uma cor de patamar apareceu num mercado sem patamar nenhum',
+      );
+    }
+  });
+
   testWidgets('the veil is dark where the footer text begins', (tester) async {
     // The defect this pins shipped once and was caught by eye, not by the
     // suite: the veil stayed clear until 62% of the card, the label is the

@@ -12,6 +12,7 @@ import '../../../market/versoes_repository.dart';
 import '../../home/domain/arte_da_classe.dart';
 import '../../home/domain/visit_label.dart' show groupThousands;
 import '../../home/ui/widgets/cabecalho.dart';
+import '../../home/ui/widgets/ao_vivo_strip.dart';
 import '../../home/ui/widgets/rodape.dart';
 import '../domain/versao.dart';
 
@@ -271,7 +272,25 @@ class _Portas extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 760),
-          child: linha,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              linha,
+              // **Quem está ao vivo, sem pedir versão — e é esta a tela que
+              // podia mostrá-los sem versão nenhuma.** Pedido do dono a
+              // 09/11/2026: o 1.4.4 tem de aparecer na home. Ele não tem tela
+              // própria ainda, e as duas que têm faixa recusam-no com razão,
+              // portanto o canal que escreve *1.4.4* no título não aparecia
+              // em sítio nenhum do site — e a faixa é uma cortesia a quem
+              // transmite.
+              //
+              // `versao: null` não é desleixo: a raiz não é de versão
+              // nenhuma, logo não afirma nada ao mostrar quem não escreveu a
+              // sua. É o contrário de uma página de versão, onde mostrar
+              // alguém sem versão seria o site a dizer o que não sabe.
+              AoVivoStrip(wide: ladoALado, espacoAcima: 28),
+            ],
+          ),
         ),
       ),
     );

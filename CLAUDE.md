@@ -1131,12 +1131,35 @@ vistos há 24 segundos — e a única observação que existe é a do levantamen
 Essa observação é também o aviso: **ele não apareceria em nenhuma página.** O
 1.4.4 não tem tela, e o 1.8.7 e o 1.2.6 recusam-no com razão.
 
-**A rede que a spec prevê para isto é a faixa na raiz**, que não é de versão
-nenhuma e por isso não afirma nada ao mostrar quem não escreveu a sua — e ela
-**ainda não existe**: a faixa só está montada nas telas de versão. Até lá,
-quem não escrever a versão no título não aparece em sítio nenhum do site. A
-faixa é uma cortesia a quem transmite, portanto este é o risco a vigiar, e
-desligá-lo é tirar `versao:` da chamada em `home_view.dart`.
+### A faixa na raiz é a rede, e foi construída no mesmo dia
+
+Pedido do dono assim que o problema apareceu: **o 1.4.4 tem de aparecer na
+home.** Ele não tem tela própria — *«em breve vamos abrir o market e outras
+coisas do 1.4.4»* — e as duas telas que têm faixa recusam-no com razão,
+portanto quem escreve `1.4.4` no título não aparecia em sítio nenhum do site.
+A faixa é uma cortesia a quem transmite, e uma cortesia que não chega a
+ninguém não é discreta, é inútil — a mesma lição do card dos streamers quando
+*discreto* saiu **invisível**.
+
+`AoVivoStrip(versao: null)` na tela de escolha. **Nulo não é desleixo**: a raiz
+não é de versão nenhuma, logo não afirma nada ao mostrar quem não escreveu a
+sua — é o oposto exacto de uma página de versão, onde mostrar alguém sem
+versão seria o site a dizer o que não sabe.
+
+**O espaço acima da faixa é desenhado por dentro dela**, e é por isso que
+`espacoAcima` existe em vez de um `SizedBox` de fora: a faixa desaparece
+inteira quando ninguém está ao vivo, e esse é o caso normal — oito canais
+offline foi o que a tabela respondeu a 09/11. Posto por fora, o vão ficava lá
+a abrir sobre nada.
+
+**A raiz tem dois ramos de layout e a secção tem de caber nos dois.** Largo, o
+rodapé está pregado em baixo e as portas centram-se no que sobra; empilhado, o
+rodapé é o fim da página e rola com ela. Já se tentou servir os dois com um
+desenho só e isso empurrou o rodapé para fora do ecrã, portanto há um teste
+por ramo — e o estreito é o que um teste a 800 px nunca exercita.
+
+Desligar o filtro das telas de versão continua a ser tirar `versao:` da
+chamada em `home_view.dart`.
 
 ## A porta da versão diz quantos entraram hoje
 

@@ -104,13 +104,27 @@ String arteDoStreamer(String login) =>
     '/storage/v1/object/public/streamers/${login.toLowerCase()}.webp';
 
 class AoVivoStrip extends StatefulWidget {
-  const AoVivoStrip({required this.wide, this.versao, super.key});
+  const AoVivoStrip({
+    required this.wide,
+    this.versao,
+    this.espacoAcima = 0,
+    super.key,
+  });
 
   final bool wide;
 
   /// Qual página esta faixa está a servir — `1.8.7`, `1.2.6` — ou `null` na
   /// raiz, que não é de versão nenhuma. Ver `transmiteAVersao`.
   final String? versao;
+
+  /// Quanto respirar acima do título, **desenhado por dentro**.
+  ///
+  /// Parece um detalhe e não é: a faixa desaparece inteira quando ninguém
+  /// está ao vivo, e um `SizedBox` posto por fora ficaria lá a abrir um vão
+  /// sobre nada. Quem chama põe o espaço aqui e ele vai-se com a secção.
+  /// Na home o espaço é da página, que já alterna as suas próprias folgas;
+  /// na raiz é esta, porque ali a faixa é a última coisa antes do rodapé.
+  final double espacoAcima;
 
   @override
   State<AoVivoStrip> createState() => _AoVivoStripState();
@@ -230,6 +244,7 @@ class _AoVivoStripState extends State<AoVivoStrip> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (widget.espacoAcima > 0) SizedBox(height: widget.espacoAcima),
               _Titulo(quantos: canais.length),
               SizedBox(height: widget.wide ? 12 : 10),
               MouseRegion(

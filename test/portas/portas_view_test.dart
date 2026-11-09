@@ -9,6 +9,8 @@ import 'package:pw_market_filter/core/di/injection.dart';
 import 'package:pw_market_filter/core/theme/pw_theme.dart';
 import 'package:pw_market_filter/features/home/domain/tool.dart';
 import 'package:pw_market_filter/features/portas/domain/versao.dart';
+import 'package:pw_market_filter/features/home/domain/canal_ao_vivo.dart';
+import 'package:pw_market_filter/features/home/ui/widgets/rodape.dart';
 import 'package:pw_market_filter/features/portas/ui/portas_view.dart';
 import 'package:pw_market_filter/market/versoes.dart';
 import 'package:pw_market_filter/market/versoes_repository.dart';
@@ -79,7 +81,10 @@ MockClient _cliente(http.Response Function(http.Request) responder) =>
 http.Response _corpo(Object json, [int status = 200]) =>
     http.Response(jsonEncode(json), status);
 
-Future<void> _montar(WidgetTester tester) async {
+Future<void> _montar(
+  WidgetTester tester, {
+  List<CanalAoVivo> aoVivo = const [],
+}) async {
   await tester.pumpWidget(
     MaterialApp(
       theme: PWTheme.build(),
@@ -91,7 +96,10 @@ Future<void> _montar(WidgetTester tester) async {
       // No `carregar:` override anywhere in this file — `PortasView` has none
       // any more. Every case below reaches `web/versoes.json` only through
       // `getIt<VersoesRepository>()`, registered per-test above.
-      home: comVisitas(comNovidades(const PortasView())),
+      home: comAoVivo(
+        comVisitas(comNovidades(const PortasView())),
+        canais: aoVivo,
+      ),
     ),
   );
   await tester.pumpAndSettle();
@@ -507,6 +515,103 @@ void main() {
 
       expect(find.text('em breve'), findsNWidgets(2));
       expect(find.textContaining('entraram hoje'), findsOneWidget);
+    });
+  });
+
+  group('a faixa de quem está ao vivo, na raiz', () {
+    CanalAoVivo canal(String nome, String? titulo) => CanalAoVivo(
+      canal: nome.toLowerCase(),
+      nome: nome,
+      aoVivo: true,
+      titulo: titulo,
+      jogo: 'Perfect World',
+      espectadores: 10,
+      vistoEm: DateTime.now(),
+    );
+
+    testWidgets('o canal do 1.4.4 aparece aqui, que é o pedido do dono', (
+      tester,
+    ) async {
+      // Ele não tem tela própria ainda, e as duas que têm faixa recusam-no
+      // com razão — portanto esta é a única tela do site onde ele cabe.
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
+      );
+      await _montar(
+        tester,
+        aoVivo: [canal('Magraotvv', 'THE CLASSIC PW 1.4.4 BETA ABERTO')],
+      );
+
+      expect(find.text('Magraotvv'), findsOneWidget);
+    });
+
+    testWidgets('quem não escreve versão nenhuma também aparece', (
+      tester,
+    ) async {
+      // A raiz não é de versão nenhuma, portanto não afirma nada ao
+      // mostrá-lo — o contrário exacto de uma página de versão.
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
+      );
+      await _montar(
+        tester,
+        aoVivo: [canal('SemVersao', 'Perfect World com os amigos')],
+      );
+
+      expect(find.text('SemVersao'), findsOneWidget);
+    });
+
+    testWidgets('ninguém ao vivo não abre vão nenhum', (tester) async {
+      // O espaço acima da faixa é desenhado por dentro dela de propósito:
+      // posto por fora ficaria a abrir um vão sobre nada, que é o caso
+      // normal — oito canais offline foi o que a tabela respondeu a 09/11.
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
+      );
+      await _montar(tester);
+
+      expect(find.text('STREAMERS AMIGOS'), findsNothing);
+    });
+
+    testWidgets('no telemóvel a faixa rola com a página, sem transbordar', (
+      tester,
+    ) async {
+      // O ramo empilhado é outro desenho: ali o rodapé é o fim da página e
+      // rola com ela, porque duas cartas 2:3 não cabem em telemóvel nenhum.
+      // Uma secção nova tem de caber nos dois ramos, e este é o que o teste
+      // de 800 px de largura nunca exercita.
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
+      );
+      await _montar(tester, aoVivo: [canal('Magraotvv', 'pw 1.4.4 beta')]);
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('STREAMERS AMIGOS'), findsOneWidget);
+    });
+
+    testWidgets('a faixa não empurra o rodapé para fora do ecrã', (
+      tester,
+    ) async {
+      // O ramo largo prega o rodapé em baixo e centra as portas no que sobra.
+      // Uma secção nova dentro dele é exactamente o que já empurrou o rodapé
+      // para fora uma vez, quando se tentou servir os dois ramos com um
+      // desenho só.
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
+      );
+      await _montar(tester, aoVivo: [canal('Magraotvv', 'pw 1.4.4 beta')]);
+
+      expect(tester.takeException(), isNull);
+      final rodape = tester.getRect(find.byType(Rodape));
+      expect(
+        rodape.bottom,
+        lessThanOrEqualTo(tester.view.physicalSize.height + 1),
+        reason: 'o rodapé saiu do ecrã: $rodape',
+      );
     });
   });
 }

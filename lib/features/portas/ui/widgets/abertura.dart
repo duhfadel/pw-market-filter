@@ -24,31 +24,32 @@ class Abertura extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      // Sem algarismos, portanto a face de display é segura — a Marcellus
-      // desenha figuras romanas e o seu `1` não tem bandeira.
+      // **A manchete saiu daqui a 09/11/2026**, no mesmo dia em que entrou:
+      // o herói passou a dizê-la em Marcellus sobre a arte, e tê-la nos dois
+      // sítios punha a mesma frase duas vezes na mesma dobra. Fica a secção,
+      // que é outra pergunta — *o que é isto que vou ver números sobre*.
       Text(
-        'As contas que o jogo não faz',
+        'Três versões, três mercados',
+        textAlign: TextAlign.center,
         style: TextStyle(
           fontFamily: PWTheme.display,
-          fontSize: wide ? 38 : 27,
+          fontSize: wide ? 30 : 23,
           color: PWColors.papel,
-          height: 1.12,
+          height: 1.15,
         ),
       ),
-      SizedBox(height: wide ? 12 : 9),
-      Text(
-        'Ferramentas e guias de fã para o The Classic PW: o que a janela do '
-        'jogo não mostra e as listas que ninguém publicou.',
-        style: TextStyle(
-          color: PWColors.apagado,
-          fontSize: wide ? 15 : 13.5,
-          height: 1.5,
+      SizedBox(height: wide ? 16 : 12),
+      // A prosa fica alinhada à esquerda numa coluna estreita e centrada.
+      // Centrar quatro parágrafos faria uma coluna com as duas margens
+      // irregulares — bonito numa frase, ilegível num texto.
+      Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 640),
+          child: _Premissa(wide: wide),
         ),
       ),
-      SizedBox(height: wide ? 22 : 18),
-      _Premissa(wide: wide),
     ],
   );
 }
@@ -81,58 +82,38 @@ class _Premissa extends StatelessWidget {
   final bool wide;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: EdgeInsets.all(wide ? 20 : 15),
-    decoration: BoxDecoration(
-      color: PWColors.surface,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: PWColors.border),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'O MERCADO DE PERSONAGENS',
-          style: TextStyle(
-            color: PWColors.textMuted,
-            fontSize: wide ? 11 : 10,
-            letterSpacing: 1.6,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        SizedBox(height: wide ? 10 : 8),
-        Text(
-          'No The Classic, um personagem pode ser vendido inteiro: o nível, o '
-          'cultivo, o equipamento, as cartas e os mascotes vão com ele. O '
-          'site do jogo lista quem está à venda e deixa procurar por nível, '
-          'classe e preço.',
-          style: _corpo(wide),
-        ),
-        SizedBox(height: wide ? 10 : 8),
-        Text(
-          'O que ele não deixa procurar é pelos atributos do que o personagem '
-          'está usando — e é isso que decide se um anúncio vale o preço.',
-          style: _corpo(wide),
-        ),
-        SizedBox(height: wide ? 10 : 8),
-        Text(
-          'Quatro armas do jogo chamam-se Dilacerador. Uma dá 30 de nível de '
-          'ataque, outra 40, outra 70 — e a quarta, com as mesmas três '
-          'estrelas das outras, não dá nenhum. Pelo nome são a mesma arma; '
-          'pelo que fazem, não são nem parecidas.',
-          style: _corpo(wide),
-        ),
-        SizedBox(height: wide ? 10 : 8),
-        Text(
-          'Cada uma das dezassete classes tem a sua arma de topo, com nome '
-          'próprio, para o mesmo patamar. Procurar pelo atributo em vez do '
-          'nome é o que este site faz e o do jogo não — e é também o que '
-          'mostra duas pessoas com a mesma arma a pedir preços que não se '
-          'parecem.',
-          style: _corpo(wide),
-        ),
-      ],
-    ),
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        'No The Classic, um personagem pode ser vendido inteiro: o nível, o '
+        'cultivo, o equipamento, as cartas e os mascotes vão com ele. O '
+        'site do jogo lista quem está à venda e deixa procurar por nível, '
+        'classe e preço.',
+        style: _corpo(wide),
+      ),
+      SizedBox(height: wide ? 10 : 8),
+      Text(
+        'O que ele não deixa procurar é pelos atributos do que o personagem '
+        'está usando — e é isso que decide se um anúncio vale o preço.',
+        style: _corpo(wide),
+      ),
+      SizedBox(height: wide ? 10 : 8),
+      Text(
+        'Quatro armas do jogo chamam-se Dilacerador. Uma dá 30 de nível de '
+        'ataque, outra 40, outra 70 — e a quarta, com as mesmas três '
+        'estrelas das outras, não dá nenhum. Pelo nome são a mesma arma; '
+        'pelo que fazem, não são nem parecidas.',
+        style: _corpo(wide),
+      ),
+      SizedBox(height: wide ? 10 : 8),
+      Text(
+        'Cada uma das dezassete classes tem a sua arma de topo, com nome '
+        'próprio, para o mesmo patamar. Procurar pelo atributo em vez do '
+        'nome é o que este site faz e o do jogo não.',
+        style: _corpo(wide),
+      ),
+    ],
   );
 
   static TextStyle _corpo(bool wide) => TextStyle(

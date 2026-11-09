@@ -132,11 +132,17 @@ void main() {
     }
   });
 
-  test('o Cartaz é o único chamador que pede o tamanho grande', () {
+  test('só o palco pede o tamanho grande, e ele é um só', () {
     // Servir 960 a todos custaria 600 KB a mais em cada abertura da home, e
     // seis dos sete ficheiros que a visita busca já recebem mais píxeis do
     // que desenham. Se um segundo chamador passar a pedir `cartaz`, que seja
     // uma decisão e não um descuido.
+    //
+    // **E foi decisão, a 09/11/2026.** O ficheiro mudou de `cartaz.dart`
+    // para `palco_de_classe.dart` porque a raiz ganhou um herói e as duas
+    // telas passaram a partilhar o dispositivo em vez de o copiar. O número
+    // de chamadores não subiu: continua a ser **um**, e é esse o facto que
+    // este teste guarda. Dois sítios a pedir 960 seria o descuido.
     final pedem = Directory('lib')
         .listSync(recursive: true)
         .whereType<File>()
@@ -145,7 +151,7 @@ void main() {
         .map((f) => f.uri.pathSegments.last)
         .toList();
 
-    expect(pedem, ['cartaz.dart']);
+    expect(pedem, ['palco_de_classe.dart']);
   });
 
   test('a class nobody has art for draws nothing', () {

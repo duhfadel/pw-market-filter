@@ -18,6 +18,7 @@ import '../../home/ui/widgets/rodape.dart';
 import '../domain/versao.dart';
 import 'widgets/abertura.dart';
 import 'widgets/canal_do_portal.dart';
+import 'widgets/heroi_da_raiz.dart';
 
 /// The front door, now that the site is two marketplaces.
 ///
@@ -268,11 +269,18 @@ class _Portas extends StatelessWidget {
       ],
     );
 
+    // **760 px era a medida de três cartas e um rodapé.** Com abertura,
+    // guias, canal e streamers a página passou a ser um documento, e a
+    // maquete mede 1130 — a mesma ordem de grandeza do degrau `large` da
+    // home das versões, que é 1040 de conteúdo numa janela de 1280.
+    const colunaDeLeitura = 1130.0;
+    final margem = ladoALado ? 24.0 : 16.0;
+
     final grade = Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.fromLTRB(margem, 0, margem, 24),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
+          constraints: const BoxConstraints(maxWidth: colunaDeLeitura),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -280,7 +288,7 @@ class _Portas extends StatelessWidget {
               // `Abertura`: esta tela eram 148 palavras e um torniquete, e é
               // a página que o AdSense viu como vazia a 31/10/2026.
               Abertura(wide: ladoALado),
-              SizedBox(height: ladoALado ? 30 : 24),
+              SizedBox(height: ladoALado ? 34 : 26),
               linha,
               // Os guias das três versões, cada um com a sua à vista — aqui a
               // etiqueta é a informação que falta, ao contrário de uma tela de
@@ -322,7 +330,46 @@ class _Portas extends StatelessWidget {
     // (`minHeight` + `IntrinsicHeight`) empurrou o rodapé para fora do ecrã
     // no caso largo. A saída não é um truque que equilibra os dois — é não
     // ter dois.
-    return SingleChildScrollView(child: grade);
+    // **O herói sangra e o resto não.** A arte é o chão da página, portanto
+    // prendê-la à coluna de leitura daria uma fotografia emoldurada no meio
+    // do ecrã — o contrário do que ela é. O **texto** dela alinha com a
+    // coluna, calculado da mesma largura, para a manchete e a prosa abaixo
+    // começarem na mesma linha vertical.
+    final sobra = (largura - colunaDeLeitura) / 2;
+    final recuoDoHeroi = sobra > 0 ? sobra + margem : margem;
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          HeroiDaRaiz(
+            wide: ladoALado,
+            // A coleta mais recente das que existem: é ela que decide a
+            // classe, e assim a página só muda quando o mercado muda.
+            quando: _coletaMaisRecente(),
+            margemHorizontal: recuoDoHeroi,
+          ),
+          SizedBox(height: ladoALado ? 44 : 32),
+          grade,
+        ],
+      ),
+    );
+  }
+
+  /// A data da coleta mais recente, ou uma fixa quando ainda não houve
+  /// nenhuma.
+  ///
+  /// **Fixa e não `DateTime.now()`**: a classe do herói deriva daqui, e um
+  /// relógio faria a página mudar de cara a cada recarregamento — que é a
+  /// regra que `classeDoCartaz` já segue, pela mesma razão.
+  DateTime _coletaMaisRecente() {
+    final datas = [
+      for (final porta in portas)
+        if (porta.resumo != null) porta.resumo!.coletadoEm,
+    ];
+    if (datas.isEmpty) return DateTime.utc(2026, 1, 1);
+    datas.sort();
+    return datas.last;
   }
 }
 

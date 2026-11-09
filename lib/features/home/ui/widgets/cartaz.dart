@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/theme/pw_theme.dart';
 import '../../domain/arte_da_classe.dart';
+import 'palco_de_classe.dart';
 
 /// The hero the front page now opens on: a class's own art, full-bleed, with
 /// the claim written in the empty space it leaves.
@@ -38,11 +39,10 @@ class Cartaz extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final arte = arteVerticalDaClasse(classe, tamanho: TamanhoDaArte.cartaz);
     final acento = acentoDaClasse(classe);
 
-    return SizedBox(
-      width: double.infinity,
+    return PalcoDeClasse(
+      classe: classe,
       // Measured against the real fonts, not guessed: `Cartaz` was tested
       // only at 1200 px wide (`cartaz_test.dart`) and never at `wide: false`
       // at all, so the fixed 320/260 pair overflowed the moment the front
@@ -51,99 +51,16 @@ class Cartaz extends StatelessWidget {
       // because neither the eyebrow, the headline nor the 430 px sub-line
       // ever wrap differently above that width. These two numbers are the
       // old ones plus that overflow, rounded up for a margin.
-      height: wide ? 360 : 340,
-      child: Stack(
-        // Non-positioned children fill the box: the art, the two gradients
-        // over it, and the text sit in one stack of full-size layers.
-        fit: StackFit.expand,
-        children: [
-          if (arte != null) _Arte(caminho: arte),
-          const _LavagemVertical(),
-          const _LavagemHorizontal(),
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: wide ? 56 : 24,
-              vertical: 24,
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: _Conteudo(
-                acento: acento,
-                wide: wide,
-                aoBuscar: aoBuscar,
-                subtitulo: subtitulo,
-              ),
-            ),
-          ),
-        ],
+      altura: wide ? 360 : 340,
+      margemHorizontal: wide ? 56 : 24,
+      child: _Conteudo(
+        acento: acento,
+        wide: wide,
+        aoBuscar: aoBuscar,
+        subtitulo: subtitulo,
       ),
     );
   }
-}
-
-/// The bottom layer: the class's own art, cropped to where its face is.
-class _Arte extends StatelessWidget {
-  const _Arte({required this.caminho});
-
-  final String caminho;
-
-  @override
-  Widget build(BuildContext context) => Image.asset(
-    caminho,
-    fit: BoxFit.cover,
-    // Not a guess: this is the 480x720 vertical crop, and its face sits much
-    // higher than the square's did — `-0.6` was tuned for that square and
-    // would land this art's face on its chest. `arteVerticalDaClasse`'s own
-    // doc has the full reasoning for the second folder.
-    alignment: const Alignment(0, -0.72),
-    // A missing file leaves the plain ground rather than a broken box — the
-    // same silent fallback `arteVerticalDaClasse` itself makes for an
-    // unmapped class.
-    errorBuilder: (_, _, _) => const SizedBox.shrink(),
-  );
-}
-
-/// A vertical wash of `noite`, light at the top and heavier at the bottom —
-/// what seats the hero against the header above it and the Destaques below.
-class _LavagemVertical extends StatelessWidget {
-  const _LavagemVertical();
-
-  @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          PWColors.noite.withValues(alpha: 0.18),
-          PWColors.noite.withValues(alpha: 0.55),
-        ],
-      ),
-    ),
-  );
-}
-
-/// A horizontal wash of `noite`, opaque over the text side and gone by the
-/// time it reaches the art — what keeps the headline readable without
-/// muddying the picture that carries it.
-class _LavagemHorizontal extends StatelessWidget {
-  const _LavagemHorizontal();
-
-  @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-        colors: [
-          PWColors.noite,
-          PWColors.noite,
-          PWColors.noite.withValues(alpha: 0),
-        ],
-        stops: const [0, 0.24, 0.76],
-      ),
-    ),
-  );
 }
 
 /// The top layer: eyebrow, headline, sub-line and the one button, all

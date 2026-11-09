@@ -646,7 +646,9 @@ void main() {
       await _montar(tester);
 
       expect(find.text('As contas que o jogo não faz'), findsOneWidget);
-      expect(find.text('O MERCADO DE PERSONAGENS'), findsOneWidget);
+      // A manchete é do herói, em Marcellus sobre a arte; a secção abaixo
+      // responde outra pergunta — *o que é isto que vou ver números sobre*.
+      expect(find.text('Três versões, três mercados'), findsOneWidget);
       expect(
         find.textContaining('um personagem pode ser vendido inteiro'),
         findsOneWidget,
@@ -664,14 +666,11 @@ void main() {
       );
       await _montar(tester);
 
-      final premissa = find.ancestor(
-        of: find.text('O MERCADO DE PERSONAGENS'),
-        matching: find.byType(Column),
-      );
+      // Varre a página inteira e não só a premissa: o único TCC que pode
+      // aparecer na raiz é dentro de uma porta, e as portas não escrevem
+      // preço nenhum — dizem quantos personagens há.
       final textos = tester
-          .widgetList<Text>(
-            find.descendant(of: premissa.first, matching: find.byType(Text)),
-          )
+          .widgetList<Text>(find.byType(Text))
           .map((t) => t.data ?? '')
           .join(' ');
       expect(textos, isNot(contains('TCC')));

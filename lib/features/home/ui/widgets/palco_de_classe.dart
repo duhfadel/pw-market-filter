@@ -72,10 +72,19 @@ class PalcoDeClasse extends StatelessWidget {
             if (arteADireita)
               Align(
                 alignment: Alignment.centerRight,
-                child: AspectRatio(
-                  // O formato em que a arte foi desenhada. Sem isto o
-                  // `cover` volta a esticá-la pela caixa toda.
-                  aspectRatio: 480 / 720,
+                child: FractionallySizedBox(
+                  // **Pouco mais de metade da largura, com recorte.** A
+                  // primeira versão prendeu o painel ao formato da fonte
+                  // (2:3), o que o deixava estreito — um quarto da dobra — e
+                  // os outros três quartos vazios. O dono pôs a maquete ao
+                  // lado e a diferença era essa: ali a arte é cheia e quente,
+                  // aqui era um texto com uma ilustração ao canto.
+                  //
+                  // Largo, o `cover` corta a figura pelos pés em vez de a
+                  // espremer, e é o corte certo: estas artes têm a cara no
+                  // quinto superior — ver `arteVerticalDaClasse`.
+                  widthFactor: 0.58,
+                  alignment: Alignment.centerRight,
                   child: _ArteEncostada(caminho: arte),
                 ),
               )

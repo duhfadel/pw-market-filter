@@ -103,9 +103,9 @@ void main() {
     // caía em cima da figura — visto a renderizar. No estreito volta ao
     // enquadramento que o `Cartaz` já prova a 340 px.
     await montar(tester, largura: 390);
-    expect(find.byType(AspectRatio), findsNothing);
+    expect(find.byType(FractionallySizedBox), findsNothing);
 
     await montar(tester, largura: 1440);
-    expect(find.byType(AspectRatio), findsOneWidget);
+    expect(find.byType(FractionallySizedBox), findsOneWidget);
   });
 }

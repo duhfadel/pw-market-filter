@@ -43,12 +43,37 @@ class HeroiDaRaiz extends StatelessWidget {
   /// O Cartaz tem os Destaques a disputar a dobra logo a seguir; aqui a
   /// primeira coisa abaixo é a prosa, que pode esperar.
   ///
-  /// **Inclui a altura da barra**, que desde 09/11/2026 assenta por cima: o
-  /// palco começa no topo do ecrã, portanto os ~56 px da barra saem do que
-  /// sobra para o texto e têm de ser devolvidos aqui.
-  static double alturaPara(bool wide) => wide ? 560 : 470;
+  /// **Inclui a altura da barra**, que assenta por cima: o palco começa no
+  /// topo do ecrã, portanto os ~56 px da barra saem do que sobra para o
+  /// texto e têm de ser devolvidos aqui.
+  ///
+  /// **750 no largo é a medida da maquete**, e é alta de propósito: a esta
+  /// altura o herói ocupa a dobra quase inteira num ecrã de 1000, que é o
+  /// que o torna um herói em vez de uma faixa. O preço é a premissa começar
+  /// abaixo da dobra — aceite, porque quem rola uma vez encontra-a e quem
+  /// não rola já leu a manchete, que diz a mesma coisa em sete palavras.
+  static double alturaPara(bool wide) => wide ? 750 : 470;
 
-  /// A classe que o herói veste nesta coleta.
+  /// A classe que o herói veste — **o Guerreiro, sempre**.
+  ///
+  /// **Era rotativa e deixou de ser, por decisão do dono.** A primeira versão
+  /// trocava de classe a cada coleta, como o `Cartaz` faz nas telas de
+  /// versão, e o argumento era bom: duas visitas não abrem a mesma página. O
+  /// dono pôs a maquete ao lado do que estava no ar e disse *«usa a mesma
+  /// imagem»* — e tem razão por uma razão que o argumento antigo não pesava.
+  ///
+  /// **A porta da frente não ganha nada em mudar de cara.** O `Cartaz` roda
+  /// dentro de um mercado, para quem já entrou; aqui é o primeiro ecrã de
+  /// quem nunca viu o site, e a arte é metade do que ele vai lembrar. Cinco
+  /// das seis classes dariam uma dobra diferente da que foi desenhada e
+  /// aprovada, e a arte fria do Arqueiro — que foi a que calhou ao comparar —
+  /// dá uma página visivelmente mais pobre do que a quente do Guerreiro.
+  ///
+  /// [classeDe] fica, e é o que a mantém rotativa a um parâmetro de
+  /// distância se isto se revelar errado.
+  static const classeDoHeroi = 'Guerreiro';
+
+  /// A classe que uma coleta escolheria, se o herói voltasse a rodar.
   static String classeDe(DateTime quando) {
     final dia = DateTime.utc(quando.year, quando.month, quando.day);
     final passo = quando.hour ~/ 6;
@@ -58,7 +83,7 @@ class HeroiDaRaiz extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => PalcoDeClasse(
-    classe: classeDe(quando),
+    classe: classeDoHeroi,
     altura: alturaPara(wide),
     margemHorizontal: margemHorizontal,
     // **Encostada só no largo.** A 390 px o painel 2:3 ocupa quase a largura

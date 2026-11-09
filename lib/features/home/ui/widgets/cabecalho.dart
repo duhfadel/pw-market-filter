@@ -143,12 +143,12 @@ class Cabecalho extends StatelessWidget {
             reverse: true,
             child: Row(
               children: [
-                if (!semMercado)
-                  for (final secao in secoesDaHome)
-                    if (toolsDe(secao, versao: versao).isNotEmpty) ...[
-                      _SectionPill(secao: secao, versao: versao),
-                      const SizedBox(width: 8),
-                    ],
+                for (final secao in secoesDaHome)
+                  if (toolsDe(secao, versao: versao).isNotEmpty &&
+                      (!semMercado || secaoServeSemMercado(secao))) ...[
+                    _SectionPill(secao: secao, versao: versao),
+                    const SizedBox(width: 8),
+                  ],
                 _NovidadesPill(memoria: memoriaDeNovidades),
               ],
             ),
@@ -630,28 +630,32 @@ class _OverflowMenu extends StatelessWidget {
       if (tool != null) abrirTool(context, tool);
     },
     itemBuilder: (context) => [
-      if (!semMercado)
-        for (final secao in secoesDaHome)
-          if (toolsDe(secao, versao: versao).isNotEmpty) ...[
-            PopupMenuItem<Tool?>(
-              enabled: false,
-              child: Text(
-                secao.toUpperCase(),
-                style: const TextStyle(
-                  color: PWColors.textMuted,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.2,
-                ),
+      // A mesma regra da fila larga, e é por isso que ela vive em
+      // `secaoServeSemMercado` em vez de ser escrita duas vezes: o menu
+      // estreito e a fila larga discordarem é como uma porta aparece num
+      // tamanho de ecrã e desaparece noutro.
+      for (final secao in secoesDaHome)
+        if (toolsDe(secao, versao: versao).isNotEmpty &&
+            (!semMercado || secaoServeSemMercado(secao))) ...[
+          PopupMenuItem<Tool?>(
+            enabled: false,
+            child: Text(
+              secao.toUpperCase(),
+              style: const TextStyle(
+                color: PWColors.textMuted,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.2,
               ),
             ),
-            for (final tool in toolsDe(secao, versao: versao))
-              PopupMenuItem<Tool?>(
-                value: tool,
-                enabled: tool.isReady,
-                child: GavetaItem(tool: tool),
-              ),
-          ],
+          ),
+          for (final tool in toolsDe(secao, versao: versao))
+            PopupMenuItem<Tool?>(
+              value: tool,
+              enabled: tool.isReady,
+              child: GavetaItem(tool: tool),
+            ),
+        ],
       PopupMenuItem<Tool?>(
         onTap: () => _abrirNovidades(context),
         child: const Text(

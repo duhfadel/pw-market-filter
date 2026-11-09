@@ -332,3 +332,44 @@ List<Tool> toolsDe(String secao, {String? versao}) => [
   for (final tool in tools)
     if (tool.secao == secao && tool.serveA(versao)) tool,
 ];
+
+/// Se abrir [tool] escolheria um mercado por quem clicou.
+///
+/// **A pergunta é sobre o destino e não sobre [Tool.versoes]**, e a primeira
+/// versão disto olhou para o campo errado. *Todos os guias* declara-se de
+/// 1.8.7 e é literalmente a lista das três versões; abri-lo leva a uma página
+/// HTML que não pertence a mercado nenhum. `versoes` diz em que menus a
+/// entrada aparece — outra pergunta.
+///
+/// O que escolhe mercado é uma rota que **nomeia uma versão**: a marca
+/// `{versao}`, que `rotaDaTool` preenche com o 1.8.7 quando não há nenhuma, ou
+/// um prefixo cravado como `/1.8.7/filtro`. Um `href` nunca escolhe: é uma
+/// página do site, servida igual a toda a gente.
+bool escolheMercado(Tool tool) {
+  final rota = tool.route;
+  if (rota == null) return false;
+  if (rota.contains('{versao}')) return true;
+  return _prefixosDeVersao.any((p) => rota.startsWith('/$p/'));
+}
+
+/// Os prefixos que `core/rotas.dart` conhece. Escritos aqui e não importados
+/// porque `domain/` não depende de `core/rotas.dart` — e o 1.4.4 entra na
+/// lista no dia em que ganhar rota, que é o mesmo dia em que ganha prefixo.
+const _prefixosDeVersao = ['1.8.7', '1.2.6', '1.4.4'];
+
+/// Se [secao] pode ser oferecida numa tela que ainda não escolheu mercado.
+///
+/// **A regra é derivada e não declarada**, e isso é o ponto. `Cabecalho`
+/// escondia as duas secções na raiz com uma bandeira — `semMercado` — posta à
+/// mão a 27/10/2026, porque `rotaDaTool` sem versão cai no 1.8.7 e clicar ali
+/// escolhia o mercado em silêncio. A bandeira resolvia o defeito e não sabia
+/// porque existia: no dia em que uma secção deixasse de ter entradas presas a
+/// um mercado, continuaria escondida.
+///
+/// Foi o que aconteceu. Os *Guias* são três entradas que nenhuma escolhe
+/// mercado — duas são endereços de páginas HTML e a terceira, as multi
+/// contas, perdeu o prefixo a 09/11/2026. *Ferramentas* tem o filtro cravado
+/// em `/1.8.7/filtro` e continua escondida, que é o defeito original a
+/// continuar tapado pela razão certa.
+bool secaoServeSemMercado(String secao) =>
+    toolsDe(secao).every((t) => !escolheMercado(t));

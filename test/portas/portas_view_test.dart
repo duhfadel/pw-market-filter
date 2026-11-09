@@ -419,16 +419,23 @@ void main() {
     await _montar(tester);
 
     for (final secao in secoesDaHome) {
+      final podeAparecer = secaoServeSemMercado(secao);
       expect(
         find.text(secao),
-        findsNothing,
-        reason:
-            'A secção $secao leva a uma rota com versão, e nesta tela a versão '
-            'ainda não foi escolhida — clicar escolheria por quem clicou.',
+        podeAparecer ? findsOneWidget : findsNothing,
+        reason: podeAparecer
+            ? 'A secção $secao não leva a rota com versão nenhuma: todas as '
+                  'entradas dela são páginas do site ou rotas sem prefixo.'
+            : 'A secção $secao leva a uma rota com versão, e nesta tela a '
+                  'versão ainda não foi escolhida — clicar escolheria por '
+                  'quem clicou.',
       );
     }
     // Novidades fica: lê as mesmas mensagens para os dois mercados.
     expect(find.text('Novidades'), findsOneWidget);
+    // E os *Guias* entraram a 09/11/2026, quando as multi contas perderam o
+    // prefixo e a secção deixou de ter uma única entrada presa a um mercado.
+    expect(find.text('Guias'), findsOneWidget);
   });
 
   // **Toda porta diz o que é aquele servidor, e isso e desenhado no ecra.**
@@ -662,7 +669,7 @@ void main() {
       // responde outra pergunta — *o que é isto que vou ver números sobre*.
       expect(find.text('Três versões, três mercados'), findsOneWidget);
       expect(
-        find.textContaining('um personagem pode ser vendido inteiro'),
+        find.textContaining('vender o personagem inteiro'),
         findsOneWidget,
       );
     });

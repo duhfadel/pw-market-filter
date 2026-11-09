@@ -121,22 +121,47 @@ void main() {
   //
   // *Novidades* fica, e é a única que pode: lê as mesmas mensagens para os
   // dois mercados.
-  testWidgets('o seletor só mostra Novidades, em qualquer largura', (
+  testWidgets('o seletor só oferece o que não escolhe mercado por ninguém', (
     tester,
   ) async {
+    // **Este teste dizia «só Novidades» e passou a nomear a razão**, a
+    // 09/11/2026. O defeito de 27/10 era `rotaDaTool` sem versão cair no
+    // 1.8.7, portanto clicar numa pílula ali escolhia o mercado em silêncio
+    // — e a correcção de então foi uma bandeira que escondia **tudo**.
+    //
+    // A bandeira resolvia o defeito sem saber porque existia: no dia em que
+    // uma secção deixasse de ter entradas presas a um mercado, continuaria
+    // escondida. Foi o que aconteceu com os *Guias* — dois `href` de páginas
+    // HTML e as multi contas, que perderam o prefixo no mesmo dia.
+    //
+    // *Ferramentas* continua fora, e por aritmética e não por bandeira: o
+    // filtro está cravado em `/1.8.7/filtro`.
     for (final wide in [true, false]) {
       await _montar(tester, semMercado: true, wide: wide);
 
       for (final secao in secoesDaHome) {
+        final podeAparecer = wide && secaoServeSemMercado(secao);
         expect(
           find.text(secao),
-          findsNothing,
-          reason: 'A secção $secao não pode aparecer antes de escolher mercado',
+          podeAparecer ? findsOneWidget : findsNothing,
+          reason: podeAparecer
+              ? 'A secção $secao não escolhe mercado e devia aparecer'
+              : 'A secção $secao escolheria o mercado por quem clicasse',
         );
       }
       expect(find.text('Novidades'), wide ? findsOneWidget : findsNothing);
       expect(find.byKey(const Key('cabecalho-marca')), findsOneWidget);
     }
+  });
+
+  test('o filtro é o que prende a secção de Ferramentas a um mercado', () {
+    // Nomeado, para que tirar o prefixo do filtro um dia seja uma decisão
+    // visível e não um efeito colateral de outra coisa.
+    expect(secaoServeSemMercado('Ferramentas'), isFalse);
+    expect(secaoServeSemMercado('Guias'), isTrue);
+    expect(toolsDe('Ferramentas').where(escolheMercado).map((t) => t.name), [
+      'Filtro do Marketplace',
+    ]);
   });
 
   // E o contrário, para o teste acima não passar por o cabeçalho ter deixado

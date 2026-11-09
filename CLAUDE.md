@@ -1112,6 +1112,50 @@ relógio.
 **A barra assenta sobre a arte** (`extendBodyBehindAppBar`), só na raiz: nas
 telas de versão o que fica por baixo dela é a página e não uma imagem.
 
+### O herói usa sempre o Guerreiro, e a rotação saiu
+
+Era rotativo como o `Cartaz`, e o argumento era bom: duas visitas não abrem a
+mesma página. O dono pôs a maquete ao lado do que estava no ar e disse **«usa
+a mesma imagem»** — e tem razão por uma razão que o argumento antigo não
+pesava.
+
+**A porta da frente não ganha nada em mudar de cara.** O `Cartaz` roda dentro
+de um mercado, para quem já entrou; a raiz é o primeiro ecrã de quem nunca viu
+o site, e a arte é metade do que ele vai lembrar. Cinco das seis classes dariam
+uma dobra diferente da que foi desenhada e aprovada — e a arte fria do Arqueiro,
+que foi a que calhou ao comparar, dá uma página visivelmente mais pobre do que
+a quente do Guerreiro. `classeDe` fica, e é o que mantém a rotação a um
+parâmetro de distância.
+
+**O painel da arte é uma fracção da largura e não o formato da fonte.** A
+primeira versão prendeu-o a 2:3, o que o deixava com um quarto da dobra e os
+outros três quartos vazios — era essa a diferença que o dono viu. A 58% com
+`cover`, a figura é cortada pelos pés em vez de espremida, que é o corte certo
+para artes com a cara no quinto superior. E a altura foi a 750 px, a da
+maquete: a esta altura o herói ocupa a dobra quase inteira, que é o que o torna
+um herói em vez de uma faixa.
+
+### A pílula *Guias* voltou à raiz, e a bandeira virou aritmética
+
+`Cabecalho` escondia as duas secções na raiz com `semMercado`, posto à mão a
+27/10/2026 porque `rotaDaTool` sem versão cai no 1.8.7 e clicar ali escolhia o
+mercado em silêncio. **A bandeira resolvia o defeito e não sabia porque
+existia**: no dia em que uma secção deixasse de ter entradas presas a um
+mercado, continuaria escondida.
+
+`secaoServeSemMercado` deriva-o agora, e a pergunta é **sobre o destino e não
+sobre `Tool.versoes`** — a primeira versão olhou para o campo errado e o
+exemplo que a desmente estava à vista: *Todos os guias* declara-se de 1.8.7 e é
+literalmente a lista das três versões. `versoes` diz em que menus a entrada
+aparece; o que escolhe mercado é uma rota que **nomeia uma versão**, pela marca
+`{versao}` ou por um prefixo cravado como `/1.8.7/filtro`. Um `href` nunca
+escolhe.
+
+Com isso os *Guias* passam: dois `href` e as multi contas, que perderam o
+prefixo no mesmo dia. *Ferramentas* continua fora por causa do filtro, e agora
+por aritmética em vez de por bandeira — `cabecalho_versao_test` nomeia-o, para
+que tirar aquele prefixo um dia seja decisão visível e não efeito colateral.
+
 ### As três portas perderam a arte, de propósito
 
 Cada uma vestia um retrato 2:3 da sua própria classe, e o raciocínio era bom

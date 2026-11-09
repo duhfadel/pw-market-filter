@@ -41,12 +41,30 @@ class Abertura extends StatelessWidget {
         ),
       ),
       SizedBox(height: wide ? 16 : 12),
-      // A prosa fica alinhada à esquerda numa coluna estreita e centrada.
-      // Centrar quatro parágrafos faria uma coluna com as duas margens
-      // irregulares — bonito numa frase, ilegível num texto.
+      // **A primeira frase é centrada e as outras não**, e é o que a maquete
+      // faz com o espaço: ali a secção abre com uma linha curta ao centro.
+      // Centrar as quatro faria uma coluna com as duas margens irregulares —
+      // bonito numa frase, ilegível num texto de doze linhas.
       Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 640),
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Text(
+            'No The Classic dá para vender o personagem inteiro — com o '
+            'equipamento, as cartas e tudo o que ele carrega. Cada versão '
+            'tem o seu mercado, e é neles que este site procura.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: PWColors.apagado,
+              fontSize: wide ? 14.5 : 13.5,
+              height: 1.6,
+            ),
+          ),
+        ),
+      ),
+      SizedBox(height: wide ? 20 : 16),
+      Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 620),
           child: _Premissa(wide: wide),
         ),
       ),
@@ -85,17 +103,14 @@ class _Premissa extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
+      // A frase de abertura mudou-se para a secção, centrada. O que fica
+      // aqui é o que ela não diz: o site do jogo deixa procurar por nível,
+      // classe e preço — e é o que **não** deixa que explica este site.
       Text(
-        'No The Classic, um personagem pode ser vendido inteiro: o nível, o '
-        'cultivo, o equipamento, as cartas e os mascotes vão com ele. O '
-        'site do jogo lista quem está à venda e deixa procurar por nível, '
-        'classe e preço.',
-        style: _corpo(wide),
-      ),
-      SizedBox(height: wide ? 10 : 8),
-      Text(
-        'O que ele não deixa procurar é pelos atributos do que o personagem '
-        'está usando — e é isso que decide se um anúncio vale o preço.',
+        'O site do jogo lista quem está à venda e deixa procurar por nível, '
+        'classe e preço. O que ele não deixa procurar é pelos atributos do '
+        'que o personagem está usando — e é isso que decide se um anúncio '
+        'vale o preço.',
         style: _corpo(wide),
       ),
       SizedBox(height: wide ? 10 : 8),

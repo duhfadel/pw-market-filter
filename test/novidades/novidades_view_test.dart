@@ -212,14 +212,22 @@ void main() {
   // Montado no ecrã real e não com um `Cabecalho` solto, pela razão que a
   // primeira tentativa do guard do seletor ensinou no mesmo dia: injectar a
   // flag prova que o widget obedece e nada diz sobre quem a passa.
-  testWidgets('não oferece porta nenhuma de mercado', (tester) async {
+  testWidgets('não oferece porta que escolha mercado por quem clica', (
+    tester,
+  ) async {
+    // `/novidades` serve as duas versões e não escolheu nenhuma, portanto
+    // vale aqui a mesma regra da raiz: uma pílula cuja rota nomeia uma
+    // versão escolheria o mercado em silêncio. As que não nomeiam podem
+    // aparecer — ver `secaoServeSemMercado`.
     await _montar(tester, novidades: [_nova(titulo: 'Qualquer')]);
 
     for (final secao in secoesDaHome) {
       expect(
         find.text(secao),
-        findsNothing,
-        reason: '$secao leva a uma rota com versão, e aqui não há versão',
+        secaoServeSemMercado(secao) ? findsOneWidget : findsNothing,
+        reason: secaoServeSemMercado(secao)
+            ? '$secao não escolhe mercado e devia aparecer'
+            : '$secao leva a uma rota com versão, e aqui não há versão',
       );
     }
   });

@@ -3,7 +3,6 @@ import 'package:flutter/services.dart' show FontLoader, rootBundle;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/core/theme/pw_theme.dart';
 import 'package:pw_market_filter/core/theme/pw_colors.dart';
-import 'package:pw_market_filter/features/home/domain/arte_da_classe.dart';
 import 'package:pw_market_filter/features/home/ui/widgets/destaques_view.dart';
 import 'package:pw_market_filter/features/search/domain/search_query.dart';
 import 'package:pw_market_filter/market/market_index.dart';

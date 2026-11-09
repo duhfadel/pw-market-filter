@@ -82,18 +82,6 @@ void main() {
     );
   });
 
-  test(
-    'o corte da arte é sempre cover',
-    () {
-      expect(
-        numerosDe('.arteheroi', r'(object-fit):\s*cover').isEmpty,
-        isTrue,
-        reason: 'sem grupos a capturar, só a presença importa',
-      );
-    },
-    skip: 'coberto pelo teste abaixo, que lê a palavra em vez de um número',
-  );
-
   test('a arte cobre, nunca encaixa', () {
     final regra = RegExp(r'\.arteheroi[^{]*\{([^}]*)\}').firstMatch(css)!;
     expect(

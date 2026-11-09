@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/rotas.dart' as rotas;
 import '../../../core/theme/pw_colors.dart';
+import '../../../core/theme/pw_theme.dart';
 import '../../ads/ad_slot.dart';
 import '../../home/domain/community.dart';
 import '../../home/ui/widgets/cabecalho.dart';
@@ -130,6 +131,22 @@ class _Pronto extends StatelessWidget {
             28,
           ),
           children: [
+            // **O título da página faltava.** A tela abria com um parágrafo
+            // explicativo e nada dizia o que ela era — quem chega de um link
+            // via uma grelha de ícones e um texto. A maquete abre com o nome
+            // em Marcellus, e é seguro: *Títulos* não tem algarismos.
+            Padding(
+              padding: EdgeInsets.only(bottom: compacto ? 10 : 14),
+              child: Text(
+                'Títulos',
+                style: TextStyle(
+                  fontFamily: PWTheme.display,
+                  fontSize: compacto ? 30 : 44,
+                  color: PWColors.papel,
+                  height: 1.1,
+                ),
+              ),
+            ),
             const _Explicacao(),
             const SizedBox(height: 18),
             _Abas(state: state, aoTrocar: vm.abrirAba),
@@ -208,6 +225,10 @@ class _Abas extends StatelessWidget {
         for (final aba in state.abas) ...[
           _Aba(
             nome: aba,
+            // **A conta vem na aba**, como na maquete: `Área 1 · 32`. Sem
+            // ela, seis abas iguais não dizem onde está o grosso das 126
+            // receitas, e a pessoa abre-as uma a uma para descobrir.
+            quantas: state.quantasNaAba(aba),
             aberta: aba == state.query.aba,
             aoTocar: () => aoTrocar(aba),
           ),
@@ -219,15 +240,25 @@ class _Abas extends StatelessWidget {
 }
 
 class _Aba extends StatelessWidget {
-  const _Aba({required this.nome, required this.aberta, required this.aoTocar});
+  const _Aba({
+    required this.nome,
+    required this.quantas,
+    required this.aberta,
+    required this.aoTocar,
+  });
 
   final String nome;
+  final int quantas;
   final bool aberta;
   final VoidCallback aoTocar;
 
   @override
   Widget build(BuildContext context) => Material(
-    color: aberta ? PWColors.surfaceRaised : Colors.transparent,
+    // A aba aberta é preenchida e não só contornada, como na maquete: entre
+    // seis contornos iguais, um a mais não se vê.
+    color: aberta
+        ? PWColors.accent.withValues(alpha: 0.14)
+        : Colors.transparent,
     borderRadius: BorderRadius.circular(9),
     child: InkWell(
       borderRadius: BorderRadius.circular(9),
@@ -238,12 +269,24 @@ class _Aba extends StatelessWidget {
           borderRadius: BorderRadius.circular(9),
           border: Border.all(color: aberta ? PWColors.accent : PWColors.border),
         ),
-        child: Text(
-          nome,
+        child: Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(text: nome),
+              TextSpan(
+                text: ' · $quantas',
+                style: TextStyle(
+                  color: aberta
+                      ? PWColors.accent.withValues(alpha: 0.75)
+                      : PWColors.apagado,
+                ),
+              ),
+            ],
+          ),
           style: TextStyle(
             fontSize: 13,
             color: aberta ? PWColors.accent : PWColors.textMuted,
-            fontWeight: aberta ? FontWeight.w700 : FontWeight.w400,
+            fontWeight: aberta ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
       ),

@@ -206,12 +206,19 @@ class _Lista extends StatelessWidget {
     alignment: Alignment.topCenter,
     child: ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 760),
+      // **A abertura é um item da lista e não um cabeçalho por cima dela**,
+      // para rolar com os recados em vez de ficar pregada: numa página de
+      // leitura, chrome fixo come a altura que o texto quer.
       child: ListView.separated(
         padding: const EdgeInsets.all(20),
-        itemCount: entradas.length,
-        separatorBuilder: (_, _) =>
-            const Divider(color: PWColors.border, height: 40),
-        itemBuilder: (context, i) => _Entrada(entrada: entradas[i]),
+        itemCount: entradas.length + 1,
+        separatorBuilder: (_, i) => i == 0
+            // Sem filete entre a abertura e o primeiro recado: ali não há
+            // duas coisas do mesmo tipo a separar.
+            ? const SizedBox(height: 26)
+            : const Divider(color: PWColors.border, height: 40),
+        itemBuilder: (context, i) =>
+            i == 0 ? const _Abertura() : _Entrada(entrada: entradas[i - 1]),
       ),
     ),
   );
@@ -312,6 +319,52 @@ class _Etiqueta extends StatelessWidget {
           letterSpacing: 0.3,
         ),
       ),
+    );
+  }
+}
+
+/// O título da página e a linha que diz de onde vêm os recados.
+///
+/// **A página não dizia o que era.** Abria no primeiro recado, portanto quem
+/// chegasse pela pílula via uma data e um parágrafo — e nada que explicasse
+/// porque é que aquilo se actualiza sozinho.
+class _Abertura extends StatelessWidget {
+  const _Abertura();
+
+  @override
+  Widget build(BuildContext context) {
+    final estreito = MediaQuery.sizeOf(context).width < 620;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Marcellus, e é seguro: não há algarismos nesta frase.
+        Text(
+          'Novidades do portal',
+          style: TextStyle(
+            fontFamily: PWTheme.display,
+            fontSize: estreito ? 30 : 44,
+            color: PWColors.papel,
+            height: 1.1,
+          ),
+        ),
+        const SizedBox(height: 14),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: const Text(
+            // **É verdade medida e não uma promessa.** O Worker lê o canal de
+            // cinco em cinco minutos, e é por isso que nada aqui espera por
+            // um deploy — o que também é o aviso de que quem escreve no
+            // Discord publica nesta página.
+            'Escritos no Discord e copiados para cá de cinco em cinco '
+            'minutos. Nada nesta página espera por um deploy.',
+            style: TextStyle(
+              color: PWColors.apagado,
+              fontSize: 14.5,
+              height: 1.6,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

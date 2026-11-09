@@ -15,6 +15,7 @@ import 'package:pw_market_filter/features/home/data/visit_repository.dart';
 import 'package:pw_market_filter/features/home/ui/novidades_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/visit_counter_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/home_view.dart';
+import 'package:pw_market_filter/features/home/ui/widgets/faixa_viva.dart';
 import 'package:pw_market_filter/features/search/ui/search_view_model.dart';
 import 'package:pw_market_filter/market/index_repository.dart';
 import 'package:pw_market_filter/market/market_index.dart';
@@ -225,5 +226,46 @@ void main() {
 
     expect(find.text('Sabia'), findsOneWidget);
     expect(find.text('90 TCC'), findsOneWidget);
+  });
+
+  testWidgets('a faixa viva diz o tamanho do mercado antes de mostrar '
+      'pessoas dele', (tester) async {
+    await _pumpHome(tester);
+
+    // Três personagens no índice, nenhum com histórico de preço: a faixa
+    // mostra 3, 0 e 0. **Os zeros ficam de propósito** — o mercado move-se
+    // sozinho a cada meia hora, e um número que desaparece num dia quieto lê
+    // como página partida em vez de dia quieto.
+    // Procurado **dentro da faixa**: um `3` nu aparece três vezes nesta
+    // página — nível, preço, contagem — e um achado solto apanharia o
+    // primeiro que calhasse.
+    Finder naFaixa(String texto) =>
+        find.descendant(of: find.byType(FaixaViva), matching: find.text(texto));
+
+    expect(naFaixa('3'), findsOneWidget);
+    expect(naFaixa('personagens à venda'), findsOneWidget);
+    expect(naFaixa('entraram hoje'), findsOneWidget);
+    expect(naFaixa('baixaram o preço'), findsOneWidget);
+    expect(naFaixa('0'), findsNWidgets(2));
+  });
+
+  testWidgets('o carimbo da coleta vem com os números', (tester) async {
+    await _pumpHome(tester);
+    // Um índice velho parece exactamente igual a um fresco, e um filtro
+    // perfeito sobre dados do mês passado é pior do que filtro nenhum.
+    expect(find.textContaining('coletado a 09/08'), findsOneWidget);
+  });
+
+  testWidgets('tocar uma figura abre o filtro com a pergunta já feita', (
+    tester,
+  ) async {
+    // A cadeia inteira, que nem o teste do widget isolado nem o do domínio
+    // alcançam: a figura, o `encodeQuery` e a rota que o `MaterialApp`
+    // recebe. É onde a faixa seria uma porta bonita para o lugar errado.
+    final pushed = await _pumpHome(tester);
+
+    await tester.tap(find.text('baixaram o preço'));
+    await tester.pumpAndSettle();
+    expect(pushed, ['/1.8.7/filtro?baixou=1']);
   });
 }

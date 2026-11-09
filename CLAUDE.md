@@ -1080,6 +1080,80 @@ exactamente o caso para que o carimbo deixou de ser um só. A conta contra o
 `timeout` foi refeita no mesmo commit, que é o momento em que ela tem de ser
 refeita e não o momento em que falha.
 
+## A camada visual da raiz, e o que ela custou
+
+A arquitectura da raiz foi construída primeiro e o visual depois, e isso foi
+uma decisão minha que não ficou dita na altura — o dono apontou-a com uma
+frase: *«Tá bem diferente da maquete, nao?»*. Estava: as secções certas
+enxertadas no invólucro antigo.
+
+**`PalcoDeClasse` saiu do `Cartaz`.** O dispositivo — arte de classe a sangrar,
+duas lavagens por cima, conteúdo no espaço vazio — é o mesmo na home de uma
+versão e no herói da raiz; o que muda é a altura e o texto. Era a quinta vez
+que uma cópia se ia justificar neste ficheiro.
+
+**A arte encosta-se à direita no herói, e isso veio de renderizar.** A fonte é
+um retrato 480×720. No `Cartaz`, de 1040×360, o `cover` ainda mostra figura; no
+herói, mais largo, ampliava uma fatia vertical até sobrar cabelo e pano **sem
+cara** — a mesma armadilha que o card de largura inteira já pagou na saia do
+sacerdote. Encostada, cortava a pique como uma imagem colada, e precisou de
+desvanecer à esquerda e nas bordas de cima e de baixo.
+
+**E no telemóvel a arte encostada é errada.** A 390 px o painel 2:3 ocupa quase
+a largura toda e a manchete caía em cima da figura. No estreito volta ao
+enquadramento que o `Cartaz` já prova a 340 px. **Os três defeitos deste bloco
+só apareceram no navegador**, nenhum deles numa suíte verde.
+
+**A classe do herói sai das seis clássicas**, o que fecha uma pergunta que a
+spec deixou aberta: elas existem nas três versões, portanto nenhuma promete em
+arte um mercado onde não se pode entrar. Deriva da data da coleta, nunca do
+relógio.
+
+**A barra assenta sobre a arte** (`extendBodyBehindAppBar`), só na raiz: nas
+telas de versão o que fica por baixo dela é a página e não uma imagem.
+
+### As três portas perderam a arte, de propósito
+
+Cada uma vestia um retrato 2:3 da sua própria classe, e o raciocínio era bom
+enquanto esta tela era só o garfo. Com o herói a abrir a página com um retrato
+a toda a altura, três retratos logo abaixo punham **quatro** peças de arte de
+classe no mesmo ecrã, e a que manda deixava de mandar.
+
+**Filete entre colunas e não moldura à volta de cada.** Três cartas com borda
+lêem-se como três coisas separadas a competir; três colunas de uma faixa
+lêem-se como uma comparação, que é o que são.
+
+**A descrição do servidor fica nas três, inclusive nas que têm números** — a
+maquete só a mostrava na fechada, e aqui o pedido do dono de 28/10 ganha: *a
+tela pergunta qual mercado e só respondia com números*.
+
+**`MaterialType.transparency` e não uma cor transparente.** Com o tipo por
+omissão o `Material` pinta um chão por baixo da ondulação, e as colunas
+clicáveis saíam com uma caixa mais clara que a terceira. Depois disso sobrou
+um realce na primeira coluna que parecia defeito e **era hover**: branco a 4%
+sobre `noite` dá exactamente (27,25,50), que foi o que a medição de píxeis
+mostrou. Mover o ponteiro provou-o — e é a lição de sempre, que uma medição
+vale mais do que três hipóteses.
+
+### A etiqueta diz o que difere do escopo da página
+
+Nos guias, numa tela de 1.8.7 escrever `1.8.7` em sete de oito cartas é ruído e
+o que vale dizer é qual serve **todas** as versões; na raiz é o contrário — ela
+não tem versão nenhuma, portanto a versão de cada guia é a informação que
+falta. A mesma regra decide o chip de versão no cartão do streamer: só na raiz.
+
+E o título da secção segue-a: `TODOS OS GUIAS` na raiz, `GUIAS` numa tela de
+versão. Chamar *todos* a um recorte afirmaria que o site tem oito guias de
+1.2.6 quando tem um.
+
+### As novidades voltaram, e não é a barra que saiu
+
+A barra fechada foi removida da home das versões a 01/10/2026 porque a pílula
+do cabeçalho era a mesma porta. Aqui não é o mesmo caso: a pílula é navegação e
+**só abre ao toque**; esta secção mostra o texto, que é a única coisa da página
+que muda sozinha. **Um só recado, e aberto** — três abertos corriam a mil
+píxeis na home antiga, e um fechado não diria nada que a pílula já não diga.
+
 ## A raiz deixou de ser torniquete
 
 Até 09/11/2026 `/` eram três cartas e **148 palavras**, e a doc de

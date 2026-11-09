@@ -298,6 +298,7 @@ class _AoVivoStripState extends State<AoVivoStrip> {
           if (i > 0) const SizedBox(width: 14),
           Expanded(
             child: CardDoStreamer(
+              versao: widget.versao,
               key: ValueKey('${cartoes[i].canal}-$pagina-$i'),
               canal: cartoes[i],
               wide: widget.wide,
@@ -623,10 +624,19 @@ class _Titulo extends StatelessWidget {
 }
 
 class CardDoStreamer extends StatefulWidget {
-  const CardDoStreamer({required this.canal, required this.wide, super.key});
+  const CardDoStreamer({
+    required this.canal,
+    required this.wide,
+    this.versao,
+    super.key,
+  });
 
   final CanalAoVivo canal;
   final bool wide;
+
+  /// A versão da **página**. Nula na raiz, e é lá que o chip da versão se
+  /// desenha — ver `_ChipDaVersao`.
+  final String? versao;
 
   @override
   State<CardDoStreamer> createState() => _CardDoStreamerState();
@@ -799,6 +809,16 @@ class _CardDoStreamerState extends State<CardDoStreamer> {
                 ),
               ),
             ),
+            // **A versão ao lado do nome, quando o título a diz.** Na raiz é
+            // a informação que falta — ali a faixa mostra toda a gente, de
+            // qualquer versão, e sem o chip um visitante do 1.2.6 não sabe
+            // que o canal aberto é de 1.4.4. Numa tela de versão todos os
+            // cartões a repetiriam, portanto ali não se desenha: a etiqueta
+            // diz o que difere do escopo da página, a mesma regra dos guias.
+            if (widget.versao == null) ...[
+              const SizedBox(width: 8),
+              ?_ChipDaVersao.para(canal.titulo),
+            ],
           ],
         ),
         if (abaixo.isNotEmpty) ...[
@@ -886,5 +906,38 @@ class _Placar extends StatelessWidget {
         ),
       ),
     ],
+  );
+}
+
+/// O chip que diz que versão a transmissão está a jogar.
+///
+/// `null` quando o título não a diz — e aí não se desenha nada, em vez de um
+/// *desconhecido* que ocuparia o mesmo espaço para não informar.
+class _ChipDaVersao extends StatelessWidget {
+  const _ChipDaVersao._(this.versao);
+
+  final String versao;
+
+  static Widget? para(String? titulo) {
+    final versao = versaoDaTransmissao(titulo);
+    return versao == null ? null : _ChipDaVersao._(versao);
+  }
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(5),
+      border: Border.all(color: PWColors.border),
+      color: PWColors.surfaceRaised,
+    ),
+    child: Text(
+      versao,
+      style: const TextStyle(
+        color: PWColors.textMuted,
+        fontSize: 10.5,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
   );
 }

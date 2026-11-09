@@ -280,7 +280,9 @@ void main() {
 
     expect(find.text('GUIAS'), findsOneWidget);
     expect(find.text('Cartas Nuema'), findsOneWidget);
-    expect(find.text('Todos os guias'), findsOneWidget);
+    // A porta para a lista inteira, na cabeça da secção — é ela que separa
+    // «os guias desta versão» de «os guias do site».
+    expect(find.text('os 8 →'), findsOneWidget);
     expect(
       find.textContaining('As seis cartas S do conjunto Portal de Nuema'),
       findsOneWidget,

@@ -60,8 +60,11 @@ void main() {
   ) async {
     for (final versao in ['1.8.7', '1.2.6']) {
       await montar(tester, versao);
+      // **A porta mudou de sítio e de palavra a 09/11/2026**: estava no fim
+      // da secção, depois de oito cartas, e só a encontrava quem rolasse até
+      // lá. Vive na cabeça agora, e diz o que a outra página acrescenta.
       expect(
-        find.text('Todos os guias'),
+        find.text('os ${guias.length} →'),
         findsOneWidget,
         reason: 'sem ela, $versao lê como se o site tivesse só estes',
       );
@@ -125,7 +128,9 @@ void main() {
     // é precisamente a informação que falta.
     await montar(tester, null);
 
-    expect(find.text('GUIAS'), findsOneWidget);
+    // Na raiz a secção é mesmo toda a lista; numa tela de versão é um
+    // recorte, e chamar-lhe «todos» afirmaria oito guias de 1.2.6.
+    expect(find.text('TODOS OS GUIAS'), findsOneWidget);
     expect(find.text('Cartas Nuema'), findsOneWidget);
     expect(find.text('Multi contas'), findsOneWidget);
     // Sete cartas de 1.8.7 e uma de todas as versões.

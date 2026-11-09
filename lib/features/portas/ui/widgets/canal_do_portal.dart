@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/pw_colors.dart';
+import '../../../../core/theme/pw_theme.dart';
 import '../../../guias/data/video_repository.dart';
 import '../../../guias/domain/video.dart';
 import '../../../guias/ui/widgets/cartao_de_video.dart';
@@ -77,47 +78,113 @@ class _CanalDoPortalState extends State<CanalDoPortal> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (widget.espacoAcima > 0) SizedBox(height: widget.espacoAcima),
-        _Cabeca(wide: widget.wide),
-        SizedBox(height: widget.wide ? 12 : 10),
-        GrelhaDeVideos(videos: _videos),
+        // **Um painel e não uma secção lisa**, e é a única coisa na raiz com
+        // chão próprio. O canal é o que o site está a começar agora: a
+        // moldura dá-lhe o peso de um anúncio sem precisar de o escrever.
+        Container(
+          padding: EdgeInsets.all(widget.wide ? 26 : 18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: PWColors.border),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                PWColors.glowViolet.withValues(alpha: 0.16),
+                PWColors.surface.withValues(alpha: 0.6),
+              ],
+            ),
+          ),
+          child: widget.wide
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 4, child: _Convite(wide: true)),
+                    const SizedBox(width: 26),
+                    Expanded(flex: 6, child: GrelhaDeVideos(videos: _videos)),
+                  ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _Convite(wide: false),
+                    const SizedBox(height: 18),
+                    GrelhaDeVideos(videos: _videos),
+                  ],
+                ),
+        ),
       ],
     );
   }
 }
 
-class _Cabeca extends StatelessWidget {
-  const _Cabeca({required this.wide});
+/// O que o painel diz, e a porta para o canal.
+class _Convite extends StatelessWidget {
+  const _Convite({required this.wide});
 
   final bool wide;
 
-  /// O canal, que é o único endereço que a secção publica — e vai no mesmo
-  /// separador, como todo link externo deste site.
-  static const _canal = 'https://www.youtube.com/@PortalPw';
-
   @override
-  Widget build(BuildContext context) => Row(
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       const Text(
         'O CANAL DO PORTAL',
         style: TextStyle(
-          color: PWColors.textMuted,
+          color: PWColors.apagado,
           fontSize: 11,
-          letterSpacing: 1.6,
-          fontWeight: FontWeight.w700,
+          letterSpacing: 2,
+          fontWeight: FontWeight.w600,
         ),
       ),
-      const SizedBox(width: 12),
-      const Expanded(child: Divider(color: PWColors.border, height: 1)),
-      const SizedBox(width: 12),
-      TextButton(
-        onPressed: () => unawaited(
-          launchUrl(Uri.parse(_canal), mode: LaunchMode.externalApplication),
-        ),
-        child: Text(
-          wide ? 'Ver no YouTube' : 'YouTube',
-          style: const TextStyle(fontSize: 12),
+      SizedBox(height: wide ? 14 : 10),
+      // Sem algarismos: a Marcellus desenha figuras romanas.
+      Text(
+        'Os primeiros já estão no ar',
+        style: TextStyle(
+          fontFamily: PWTheme.display,
+          fontSize: wide ? 27 : 22,
+          color: PWColors.papel,
+          height: 1.15,
         ),
       ),
+      SizedBox(height: wide ? 12 : 9),
+      Text(
+        'Os guias em vídeo, as contas que ninguém faz à mão e o que o '
+        'mercado anda dizendo.',
+        style: TextStyle(
+          color: PWColors.apagado,
+          fontSize: wide ? 13.5 : 12.5,
+          height: 1.5,
+        ),
+      ),
+      SizedBox(height: wide ? 18 : 14),
+      const _Botao(),
     ],
+  );
+}
+
+/// A porta para o canal, no mesmo separador como todo o link externo daqui.
+class _Botao extends StatelessWidget {
+  const _Botao();
+
+  static const _canal = 'https://www.youtube.com/@PortalPw';
+
+  @override
+  Widget build(BuildContext context) => Align(
+    alignment: Alignment.centerLeft,
+    child: OutlinedButton(
+      onPressed: () => unawaited(
+        launchUrl(Uri.parse(_canal), mode: LaunchMode.externalApplication),
+      ),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: PWColors.papel,
+        side: const BorderSide(color: PWColors.border),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        backgroundColor: PWColors.surface.withValues(alpha: 0.5),
+      ),
+      child: const Text('Inscrever no YouTube →'),
+    ),
   );
 }

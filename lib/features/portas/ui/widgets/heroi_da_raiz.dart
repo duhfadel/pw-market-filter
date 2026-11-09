@@ -42,7 +42,11 @@ class HeroiDaRaiz extends StatelessWidget {
   /// **Mais alto do que o `Cartaz`, e a diferença é o que está por baixo.**
   /// O Cartaz tem os Destaques a disputar a dobra logo a seguir; aqui a
   /// primeira coisa abaixo é a prosa, que pode esperar.
-  static double alturaPara(bool wide) => wide ? 480 : 420;
+  ///
+  /// **Inclui a altura da barra**, que desde 09/11/2026 assenta por cima: o
+  /// palco começa no topo do ecrã, portanto os ~56 px da barra saem do que
+  /// sobra para o texto e têm de ser devolvidos aqui.
+  static double alturaPara(bool wide) => wide ? 560 : 470;
 
   /// A classe que o herói veste nesta coleta.
   static String classeDe(DateTime quando) {
@@ -57,7 +61,12 @@ class HeroiDaRaiz extends StatelessWidget {
     classe: classeDe(quando),
     altura: alturaPara(wide),
     margemHorizontal: margemHorizontal,
-    arteADireita: true,
+    // **Encostada só no largo.** A 390 px o painel 2:3 ocupa quase a largura
+    // toda, portanto a manchete e a prosa caíam em cima da figura — visto a
+    // renderizar, não deduzido. No estreito volta ao enquadramento que o
+    // `Cartaz` já prova a 340 px: arte a cobrir a caixa, com as duas lavagens
+    // a segurar a legibilidade.
+    arteADireita: wide,
     child: _Texto(wide: wide),
   );
 }

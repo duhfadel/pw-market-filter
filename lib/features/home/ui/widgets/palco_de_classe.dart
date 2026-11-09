@@ -191,6 +191,26 @@ class _ArteEncostada extends StatelessWidget {
           ),
         ),
       ),
+      // **E as bordas de cima e de baixo, pela mesma razão.** A fonte tem
+      // fundo próprio, portanto onde ela acaba fica uma aresta horizontal
+      // recta — visível no topo, onde a arte encontra a barra. Curtas de
+      // propósito: a figura tem a cara no quinto superior e um desvanecer
+      // largo comê-la-ia.
+      const DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: [0, 0.14, 0.86, 1],
+            colors: [
+              PWColors.noite,
+              Color(0x0012102A),
+              Color(0x0012102A),
+              PWColors.noite,
+            ],
+          ),
+        ),
+      ),
     ],
   );
 }

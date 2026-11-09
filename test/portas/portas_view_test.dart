@@ -161,82 +161,87 @@ void main() {
 
       expect(_textoNaPorta('pw187', '1.8.7'), findsOneWidget);
       expect(_textoNaPorta('pw126', '1.2.6'), findsOneWidget);
-      expect(_contendoNaPorta('pw187', '1.715 personagens'), findsOneWidget);
-      expect(_contendoNaPorta('pw126', '1.293 personagens'), findsOneWidget);
+      // O número e o rótulo são dois `Text` desde 09/11/2026 — o número
+      // grande, a legenda pequena por baixo.
+      expect(_textoNaPorta('pw187', '1.715'), findsOneWidget);
+      expect(_textoNaPorta('pw126', '1.293'), findsOneWidget);
+      expect(_textoNaPorta('pw187', 'personagens à venda'), findsOneWidget);
       // The date is read in local time by `DateTime.toLocal()`, so the test
       // only pins the label — the exact day depends on where this suite runs.
       expect(_contendoNaPorta('pw187', 'coletado em'), findsOneWidget);
       expect(_contendoNaPorta('pw126', 'coletado em'), findsOneWidget);
       // Uma só: o 1.4.4 não lançou e a porta dele diz isso sempre, haja
       // coleta dos outros ou não.
-      expect(find.textContaining('em breve'), findsOneWidget);
+      // **O selo «em breve» saiu a 09/11/2026** junto com as cartas 2:3: na
+      // coluna, a descrição do dono já diz quando abre, portanto o selo
+      // repetia-a e gastava uma linha numa coluna feita de números. O que
+      // diz «ainda não» é o ponto vazado e o esmaecido.
+      expect(
+        _contendoNaPorta('pw144', 'Abre a 13 de novembro'),
+        findsOneWidget,
+      );
       expect(_textoNaPorta('pw144', '1.4.4'), findsOneWidget);
     });
 
-    testWidgets(
-      'a version with no index yet is dimmed, labelled em breve, and opens nothing',
-      (tester) async {
-        _registrarRepositorio(
-          _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
-        );
+    testWidgets('a version with no index yet is dimmed and opens nothing', (
+      tester,
+    ) async {
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
+      );
 
-        await _montar(tester);
+      await _montar(tester);
 
-        expect(_textoNaPorta('pw187', '1.8.7'), findsOneWidget);
-        expect(_textoNaPorta('pw126', '1.2.6'), findsOneWidget);
-        expect(_contendoNaPorta('pw126', 'em breve'), findsOneWidget);
-        // The ready door prints its facts; the dimmed one prints none of them.
-        expect(_contendoNaPorta('pw187', 'personagens'), findsOneWidget);
-        expect(_contendoNaPorta('pw126', 'personagens'), findsNothing);
+      expect(_textoNaPorta('pw187', '1.8.7'), findsOneWidget);
+      expect(_textoNaPorta('pw126', '1.2.6'), findsOneWidget);
+      expect(_contendoNaPorta('pw126', 'O mais antigo'), findsOneWidget);
+      // The ready door prints its facts; the dimmed one prints none of them.
+      expect(_contendoNaPorta('pw187', 'personagens'), findsOneWidget);
+      expect(_contendoNaPorta('pw126', 'personagens'), findsNothing);
 
-        final portaFechada = tester.widget<Opacity>(_porta('pw126'));
-        expect(portaFechada.opacity, lessThan(1));
+      final portaFechada = tester.widget<Opacity>(_porta('pw126'));
+      expect(portaFechada.opacity, lessThan(1));
 
-        final toqueFechado = tester.widget<InkWell>(
-          find.descendant(of: _porta('pw126'), matching: find.byType(InkWell)),
-        );
+      final toqueFechado = tester.widget<InkWell>(
+        find.descendant(of: _porta('pw126'), matching: find.byType(InkWell)),
+      );
+      expect(
+        toqueFechado.onTap,
+        isNull,
+        reason: 'a door with no market yet must not be enterable',
+      );
+
+      final portaAberta = tester.widget<Opacity>(_porta('pw187'));
+      expect(portaAberta.opacity, 1);
+    });
+
+    testWidgets('nenhuma coluna carrega arte, e isso é a troca feita', (
+      tester,
+    ) async {
+      // **Este teste afirmava o contrário até 09/11/2026**, e a mudança é
+      // decisão de produto e não conserto. Cada porta vestia um retrato 2:3
+      // da sua própria classe, e ele cravava que a arte esmaecia com a porta
+      // — nunca uma fotografia acesa sobre uma porta apagada.
+      //
+      // O raciocínio valia enquanto esta tela era só o garfo. Com o herói a
+      // abrir a página com um retrato a toda a altura, três retratos logo
+      // abaixo punham **quatro** peças de arte de classe no mesmo ecrã, e a
+      // que manda deixava de mandar. A arte saiu das colunas; o esmaecido
+      // ficou, e é o que outro caso aqui crava.
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
+      );
+
+      await _montar(tester);
+
+      for (final chave in const ['pw187', 'pw126', 'pw144']) {
         expect(
-          toqueFechado.onTap,
-          isNull,
-          reason: 'a door with no market yet must not be enterable',
+          find.descendant(of: _porta(chave), matching: find.byType(Image)),
+          findsNothing,
+          reason: 'a coluna $chave voltou a carregar arte',
         );
-
-        final portaAberta = tester.widget<Opacity>(_porta('pw187'));
-        expect(portaAberta.opacity, 1);
-      },
-    );
-
-    testWidgets(
-      "an unready door's art dims with it — never a bright picture over a "
-      'greyed-out door',
-      (tester) async {
-        _registrarRepositorio(
-          _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
-        );
-
-        await _montar(tester);
-
-        // The class art for the dimmed pw126 door is a descendant of its own
-        // `Opacity` (0.5, asserted above by another case) rather than a
-        // sibling painted outside it — the only arrangement that actually
-        // dims the picture along with the rest of the door.
-        final arteFechada = find.descendant(
-          of: _porta('pw126'),
-          matching: find.byType(Image),
-        );
-        expect(arteFechada, findsOneWidget);
-
-        final opacidadeFechada = tester.widget<Opacity>(_porta('pw126'));
-        expect(opacidadeFechada.opacity, 0.5);
-
-        // The ready door carries its own art too, at full strength.
-        final arteAberta = find.descendant(
-          of: _porta('pw187'),
-          matching: find.byType(Image),
-        );
-        expect(arteAberta, findsOneWidget);
-      },
-    );
+      }
+    });
 
     testWidgets("tapping a ready door opens that version's home", (
       tester,
@@ -276,8 +281,12 @@ void main() {
 
         expect(_textoNaPorta('pw187', '1.8.7'), findsOneWidget);
         expect(_textoNaPorta('pw126', '1.2.6'), findsOneWidget);
-        expect(_contendoNaPorta('pw187', 'em breve'), findsOneWidget);
-        expect(_contendoNaPorta('pw126', 'em breve'), findsOneWidget);
+        // Sem coleta nenhuma, as três ficam esmaecidas e com a descrição
+        // delas — que é o que a coluna tem para dizer quando não tem número.
+        expect(tester.widget<Opacity>(_porta('pw187')).opacity, 0.5);
+        expect(tester.widget<Opacity>(_porta('pw126')).opacity, 0.5);
+        expect(_contendoNaPorta('pw187', 'Aberto em junho'), findsOneWidget);
+        expect(_contendoNaPorta('pw126', 'O mais antigo'), findsOneWidget);
         expect(find.textContaining('Não deu para carregar'), findsNothing);
       },
     );
@@ -356,9 +365,8 @@ void main() {
             'barely an O',
       );
 
-      final contagem = tester.widget<Text>(
-        _contendoNaPorta('pw187', 'personagens à venda'),
-      );
+      // O número, que é o algarismo que mais importa não sair como `I.8.7`.
+      final contagem = tester.widget<Text>(_contendoNaPorta('pw187', '1.715'));
       expect(contagem.style?.fontFamily, isNot(PWTheme.display));
 
       final data = tester.widget<Text>(
@@ -475,7 +483,11 @@ void main() {
       );
       await _montar(tester);
 
-      expect(find.text('2.953 personagens à venda'), findsOneWidget);
+      // **O número e o rótulo são dois `Text` desde 09/11/2026**: na coluna
+      // o número é grande e a legenda pequena por baixo, portanto procurar a
+      // frase inteira não acha nada.
+      expect(find.text('2.953'), findsOneWidget);
+      expect(find.text('personagens à venda'), findsOneWidget);
       expect(find.text('197 entraram hoje'), findsOneWidget);
     });
 
@@ -494,7 +506,7 @@ void main() {
       expect(find.textContaining('ninguém novo'), findsNothing);
       // E o resto da porta continua lá: a ausência de um número não apaga os
       // outros.
-      expect(find.text('1.715 personagens à venda'), findsOneWidget);
+      expect(find.text('1.715'), findsOneWidget);
     });
 
     testWidgets('zero desenha, porque zero é notícia', (tester) async {
@@ -528,7 +540,7 @@ void main() {
       );
       await _montar(tester);
 
-      expect(find.text('em breve'), findsNWidgets(2));
+      expect(tester.widget<Opacity>(_porta('pw144')).opacity, 0.5);
       expect(find.textContaining('entraram hoje'), findsOneWidget);
     });
   });
@@ -716,7 +728,7 @@ void main() {
       );
       await _montar(tester);
 
-      expect(find.text('GUIAS'), findsOneWidget);
+      expect(find.text('TODOS OS GUIAS'), findsOneWidget);
       expect(find.text('todas as versões'), findsOneWidget);
     });
   });

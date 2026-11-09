@@ -112,6 +112,16 @@ void main() {
       }
     });
 
+    test('cada botão diz se está premido, e só um está', () {
+      // A moldura acesa diz qual está escolhido a quem vê, e nada o dizia a
+      // quem ouve — a mesma falta que `semanticLabel` tapa no glifo do sexo.
+      expect(RegExp('aria-pressed="true"').allMatches(emDisco).length, 1);
+      expect(
+        RegExp('aria-pressed="false"').allMatches(emDisco).length,
+        versoesOferecidas.length,
+      );
+    });
+
     test('«todos» é simplesmente não filtrar, e conta tudo', () {
       expect(emDisco, contains('data-ver="todos"'));
       expect(emDisco, contains('>${guias.length}</span>'));

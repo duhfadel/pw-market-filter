@@ -97,15 +97,19 @@ String listaHtml() {
     '    <div class="filtro-versao" role="group" '
     'aria-label="Filtrar guias por versão">',
   );
+  // `aria-pressed` e não só a classe: a moldura acesa diz qual está escolhido
+  // a quem vê, e nada o dizia a quem ouve. É a mesma razão pela qual o glifo
+  // do sexo no cartão carrega `semanticLabel` — quando a única pista é
+  // visual, falta a metade.
   out.writeln(
     '      <button type="button" class="chip-versao atual" '
-    'data-ver="todos">Todos <span class="conta">${guias.length}</span>'
-    '</button>',
+    'aria-pressed="true" data-ver="todos">Todos '
+    '<span class="conta">${guias.length}</span></button>',
   );
   for (final versao in versoesOferecidas) {
     final quantos = guiasDe(versao).length;
     out.writeln(
-      '      <button type="button" class="chip-versao" '
+      '      <button type="button" class="chip-versao" aria-pressed="false" '
       'data-ver="$versao"><span class="algarismos">$versao</span> '
       '<span class="conta">$quantos</span></button>',
     );

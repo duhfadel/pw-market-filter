@@ -92,10 +92,10 @@
   <div class="lista">
     <!-- INÍCIO DA LISTA -->
     <div class="filtro-versao" role="group" aria-label="Filtrar guias por versão">
-      <button type="button" class="chip-versao atual" data-ver="todos">Todos <span class="conta">8</span></button>
-      <button type="button" class="chip-versao" data-ver="1.8.7"><span class="algarismos">1.8.7</span> <span class="conta">8</span></button>
-      <button type="button" class="chip-versao" data-ver="1.2.6"><span class="algarismos">1.2.6</span> <span class="conta">1</span></button>
-      <button type="button" class="chip-versao" data-ver="1.4.4"><span class="algarismos">1.4.4</span> <span class="conta">1</span></button>
+      <button type="button" class="chip-versao atual" aria-pressed="true" data-ver="todos">Todos <span class="conta">8</span></button>
+      <button type="button" class="chip-versao" aria-pressed="false" data-ver="1.8.7"><span class="algarismos">1.8.7</span> <span class="conta">8</span></button>
+      <button type="button" class="chip-versao" aria-pressed="false" data-ver="1.2.6"><span class="algarismos">1.2.6</span> <span class="conta">1</span></button>
+      <button type="button" class="chip-versao" aria-pressed="false" data-ver="1.4.4"><span class="algarismos">1.4.4</span> <span class="conta">1</span></button>
     </div>
 
     <a class="guia" href="/guias/saga-do-heroi/" data-versoes="1.8.7" data-publicado="2026-10-29">
@@ -201,7 +201,9 @@
       chips[i].addEventListener('click', function (e) {
         var alvo = e.currentTarget;
         for (var j = 0; j < chips.length; j++) {
-          chips[j].classList.toggle('atual', chips[j] === alvo);
+          var escolhido = chips[j] === alvo;
+          chips[j].classList.toggle('atual', escolhido);
+          chips[j].setAttribute('aria-pressed', escolhido ? 'true' : 'false');
         }
         filtrar(alvo.dataset.ver);
       });

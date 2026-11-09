@@ -1731,6 +1731,24 @@ Each of these already cost something — measured on the live site, not guessed.
   `974` contra `lessThan(974)`, **sem uma linha de código ter mudado**, e o
   site ficou sem publicar.
 
+  **O gate saiu a 09/11/2026, e a terceira vez foi a última.** O `Até 100
+  TCC` chegou a **60,1%** — quatro personagens acima da linha — e travou
+  catorze corridas seguidas, seis horas sem publicar, sem uma linha de código
+  ter mudado. Subir o limiar outra vez só adiaria: o `Arma de 70` vive em
+  47% e vai bater lá pelo mesmo motivo.
+
+  **O que decidiu foi perguntar o que o gate conserta.** Se aquele chip passa
+  dos 60%, a correcção é mudá-lo para `Até 50 TCC` — decisão de produto do
+  dono, à vista dos números. Não é código partido. E **um gate de publicação
+  só deve disparar por coisa que se conserta mexendo no código**; este
+  disparava pelo mercado a mexer-se e deixava o site parado enquanto alguém
+  decidia.
+
+  A medição ficou, e mais alta: as fatias saem ordenadas da maior para a
+  menor, com aviso acima de 50%. Chips entram à mão e raramente, portanto
+  quem acrescentar um mau vê-o na saída da suíte. A protecção continua; o
+  cadeado é que saiu.
+
   O limiar duro passou a 60%, que continua a apanhar os 72% para que o teste
   nasceu, e a fatia de cada chip passou a ser **impressa sem reprovar**. A
   escolha é a que `confirmedCountedItems` já tinha feito: um defeito nosso põe

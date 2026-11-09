@@ -83,6 +83,17 @@ flutter:
     # deploy nao viram peso no navegador: o visitante baixa a do dia.
     - assets/images/classes-verticais/480/
     - assets/images/classes-verticais/960/
+    # Os recortes da arte de classe — a mesma arte que o marketplace deles
+    # publica, ja sem fundo, 51% a 81% transparente. Sao outra ilustracao e
+    # nao as verticais sem fundo: as verticais sao cenas pintadas, cujos
+    # quatro cantos discordam entre si ate 209 de 255, e em quinze das
+    # dezassete o efeito do proprio personagem *e* o fundo — o gelo do Bardo,
+    # o fogo da Feiticeira. Ali «so o personagem» nao tem fronteira definida.
+    #
+    # Esta pasta e a casa; `web/guias/saga-do-heroi/img/` e a copia que
+    # `tool/sagas/pagina.py` escreve para as paginas estaticas, e
+    # `recorte_da_classe_test` crava que as duas sao byte a byte iguais.
+    - assets/images/classes-recorte/
     - assets/icons/classes/
     - assets/icons/items/
     # As pedras do set sem moldura nem fundo, escritas por

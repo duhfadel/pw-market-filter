@@ -110,6 +110,31 @@ String? arteVerticalDaClasse(
             '${entrada.arquivo}.webp';
 }
 
+/// O recorte da arte de [classe] — a figura sem fundo nenhum.
+///
+/// **É outra ilustração, e não a vertical sem fundo.** As verticais são cenas
+/// pintadas: não têm canal alfa, os quatro cantos de cada uma discordam entre
+/// si até 209 de 255, e em quinze das dezassete o efeito do próprio
+/// personagem **é** o fundo — o gelo que envolve o Bardo, o fogo em volta da
+/// Feiticeira. Ali «só o personagem» não tem fronteira definida, e qualquer
+/// recorte ou come a magia dele ou traz um pedaço de céu junto. Estes vieram
+/// recortados de origem, do marketplace deles, com 51% a 81% de transparência.
+///
+/// **Um endereço derivado da mesma tabela**, pela razão que
+/// [arteVerticalDaClasse] já carrega: uma segunda lista de ficheiros é uma
+/// segunda lista para divergir. Daí também não haver [TamanhoDaArte] aqui —
+/// existe um tamanho só, 560 px, e o maior cartão que o desenha tem 330, pelo
+/// que ninguém o amplia. Um segundo tamanho seria pagar píxeis que ninguém vê.
+///
+/// `null` para uma classe que nunca existiu, como a arte vertical: o chão
+/// liso, nunca a cara de outra pessoa.
+String? recorteDaClasse(String classe) {
+  final entrada = _classes[classe];
+  return entrada == null
+      ? null
+      : 'assets/images/classes-recorte/${entrada.arquivo}.webp';
+}
+
 /// The accent the page wears while showing [classe].
 Color acentoDaClasse(String classe) =>
     (_classes[classe]?.magenta ?? false) ? PWColors.magenta : PWColors.violeta;

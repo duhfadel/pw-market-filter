@@ -18,7 +18,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/medidas_da_maquete.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../domain/arte_da_classe.dart';
-import 'brasas.dart';
 
 class PalcoDeClasse extends StatelessWidget {
   const PalcoDeClasse({
@@ -59,10 +58,6 @@ class PalcoDeClasse extends StatelessWidget {
         children: [
           if (arte != null)
             _Arte(caminho: arte, alinhamento: enquadramento.alinhamento),
-          // As brasas sobem **entre a arte e as lavagens**, para o véu as
-          // apagar na metade onde o texto vive — senão passavam por cima da
-          // manchete e disputavam-na.
-          if (enquadramento == EnquadramentoDaArte.heroi) const Brasas(),
           if (enquadramento == EnquadramentoDaArte.cartaz) ...[
             const _LavagemVertical(),
             const _LavagemHorizontal(),

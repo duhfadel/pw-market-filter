@@ -98,14 +98,36 @@ void main() {
     }
   });
 
-  testWidgets('no telemóvel a arte deixa de ser encostada', (tester) async {
-    // A 390 px o painel 2:3 ocupa quase a largura toda, portanto a manchete
-    // caía em cima da figura — visto a renderizar. No estreito volta ao
-    // enquadramento que o `Cartaz` já prova a 340 px.
-    await montar(tester, largura: 390);
-    expect(find.byType(FractionallySizedBox), findsNothing);
+  testWidgets('o enquadramento da arte é o que a maquete escreve', (
+    tester,
+  ) async {
+    // **Lido do CSS dela e não deduzido**: `object-fit: cover` na largura
+    // toda com `object-position: 76% 20%`, que em Flutter é
+    // `Alignment(0.52, -0.6)`.
+    //
+    // Houve uma volta errada no meio e vale cravá-la. Experimentei o `cover`
+    // com o Arqueiro, vi cabelo e pano sem cara, e concluí que ele não servia
+    // num herói largo — a conclusão certa teria sido que o enquadramento
+    // estava mal. Daí saiu um painel encostado à direita que o dono viu logo
+    // como errado.
+    await montar(tester);
 
-    await montar(tester, largura: 1440);
-    expect(find.byType(FractionallySizedBox), findsOneWidget);
+    final arte = tester.widget<Image>(
+      find.descendant(
+        of: find.byType(HeroiDaRaiz),
+        matching: find.byType(Image),
+      ),
+    );
+    expect(arte.fit, BoxFit.cover);
+    expect(arte.alignment, const Alignment(0.52, -0.6));
+  });
+
+  test('a altura é min(86vh, 760), a medida da maquete', () {
+    expect(HeroiDaRaiz.alturaPara(true, 1000), closeTo(860.0.clamp(0, 760), 1));
+    expect(HeroiDaRaiz.alturaPara(true, 800), closeTo(688, 1));
+    // O tecto, para não ficar absurda num monitor alto.
+    expect(HeroiDaRaiz.alturaPara(true, 1600), 760);
+    // E um chão, para não desaparecer numa janela baixa.
+    expect(HeroiDaRaiz.alturaPara(true, 400), 420);
   });
 }

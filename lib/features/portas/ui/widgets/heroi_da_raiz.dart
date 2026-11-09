@@ -43,16 +43,14 @@ class HeroiDaRaiz extends StatelessWidget {
   /// O Cartaz tem os Destaques a disputar a dobra logo a seguir; aqui a
   /// primeira coisa abaixo é a prosa, que pode esperar.
   ///
-  /// **Inclui a altura da barra**, que assenta por cima: o palco começa no
-  /// topo do ecrã, portanto os ~56 px da barra saem do que sobra para o
-  /// texto e têm de ser devolvidos aqui.
+  /// **`min(86vh, 760)`, lido do CSS da maquete.** Ela escreve
+  /// `min-height: min(86vh, 760px)` — a dobra quase inteira num ecrã normal,
+  /// e um tecto para não ficar absurda num monitor alto.
   ///
-  /// **750 no largo é a medida da maquete**, e é alta de propósito: a esta
-  /// altura o herói ocupa a dobra quase inteira num ecrã de 1000, que é o
-  /// que o torna um herói em vez de uma faixa. O preço é a premissa começar
-  /// abaixo da dobra — aceite, porque quem rola uma vez encontra-a e quem
-  /// não rola já leu a manchete, que diz a mesma coisa em sete palavras.
-  static double alturaPara(bool wide) => wide ? 750 : 470;
+  /// Inclui a altura da barra, que assenta por cima: o palco começa no topo
+  /// do ecrã, portanto os ~56 px da barra saem do que sobra para o texto.
+  static double alturaPara(bool wide, double alturaDaJanela) =>
+      wide ? (alturaDaJanela * 0.86).clamp(420, 760) : 470;
 
   /// A classe que o herói veste — **o Guerreiro, sempre**.
   ///
@@ -84,14 +82,9 @@ class HeroiDaRaiz extends StatelessWidget {
   @override
   Widget build(BuildContext context) => PalcoDeClasse(
     classe: classeDoHeroi,
-    altura: alturaPara(wide),
+    altura: alturaPara(wide, MediaQuery.sizeOf(context).height),
     margemHorizontal: margemHorizontal,
-    // **Encostada só no largo.** A 390 px o painel 2:3 ocupa quase a largura
-    // toda, portanto a manchete e a prosa caíam em cima da figura — visto a
-    // renderizar, não deduzido. No estreito volta ao enquadramento que o
-    // `Cartaz` já prova a 340 px: arte a cobrir a caixa, com as duas lavagens
-    // a segurar a legibilidade.
-    arteADireita: wide,
+    enquadramento: EnquadramentoDaArte.heroi,
     child: _Texto(wide: wide),
   );
 }
@@ -105,7 +98,12 @@ class _Texto extends StatelessWidget {
   Widget build(BuildContext context) => ConstrainedBox(
     // A manchete e a sub-linha param antes da figura começar. Sem tecto, a
     // linha corria por cima da cara da arte numa janela larga.
-    constraints: BoxConstraints(maxWidth: wide ? 540 : 420),
+    // **Cada bloco tem o seu tecto, como na maquete**: a manchete a 14
+    // caracteres e a sub-linha a 46. Um tecto único para os dois deixava a
+    // manchete correr até 15 caracteres — *«As contas que o»* em vez de
+    // *«As contas que»* — e essa sílaba a mais punha-a em cima da cara da
+    // figura, que é a única parte da dobra que não pode ter texto por cima.
+    constraints: BoxConstraints(maxWidth: wide ? 700 : 420),
     child: Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,24 +120,41 @@ class _Texto extends StatelessWidget {
         SizedBox(height: wide ? 16 : 12),
         // Sem algarismos, portanto a face de display é segura aqui — a
         // Marcellus desenha figuras romanas e o seu `1` não tem bandeira.
-        Text(
-          'As contas que o jogo não faz',
-          style: TextStyle(
-            fontFamily: PWTheme.display,
-            fontSize: wide ? 60 : 36,
-            color: PWColors.papel,
-            height: 1.08,
-          ),
+        Builder(
+          builder: (context) {
+            // `clamp(38px, 5.6vw, 68px)` — a escala da maquete, à letra.
+            final largura = MediaQuery.sizeOf(context).width;
+            final corpo = (largura * 0.056).clamp(38.0, 68.0);
+            final tamanho = wide ? corpo : 36.0;
+            return ConstrainedBox(
+              // `max-width: 14ch` da maquete. Um `ch` da Marcellus mede
+              // perto de meia em, medido contra a linha que ela quebra.
+              constraints: BoxConstraints(maxWidth: tamanho * 7),
+              child: Text(
+                'As contas que o jogo não faz',
+                style: TextStyle(
+                  fontFamily: PWTheme.display,
+                  fontSize: tamanho,
+                  color: PWColors.papel,
+                  height: 1.08,
+                ),
+              ),
+            );
+          },
         ),
         SizedBox(height: wide ? 16 : 12),
-        Text(
-          'Filtre o mercado pelo que cada personagem está usando, veja '
-          'quanto custa uma runa nível 10 e siga as missões da Saga do '
-          'Herói.',
-          style: TextStyle(
-            color: PWColors.apagado,
-            fontSize: wide ? 15 : 13.5,
-            height: 1.55,
+        ConstrainedBox(
+          // `max-width: 46ch`, o tecto que a maquete põe na sub-linha.
+          constraints: const BoxConstraints(maxWidth: 470),
+          child: Text(
+            'Filtre o mercado pelo que cada personagem está usando, veja '
+            'quanto custa uma runa nível 10 e siga as missões da Saga do '
+            'Herói.',
+            style: TextStyle(
+              color: PWColors.apagado,
+              fontSize: wide ? 16.5 : 13.5,
+              height: 1.55,
+            ),
           ),
         ),
         SizedBox(height: wide ? 24 : 18),

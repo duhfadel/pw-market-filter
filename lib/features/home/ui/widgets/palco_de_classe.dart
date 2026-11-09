@@ -24,7 +24,7 @@ class PalcoDeClasse extends StatelessWidget {
     required this.altura,
     required this.margemHorizontal,
     required this.child,
-    this.arteADireita = false,
+    this.enquadramento = EnquadramentoDaArte.cartaz,
     super.key,
   });
 
@@ -40,21 +40,8 @@ class PalcoDeClasse extends StatelessWidget {
   /// O que se escreve no espaço vazio da arte.
   final Widget child;
 
-  /// Se a arte fica encostada à direita no formato dela, em vez de cobrir a
-  /// caixa toda.
-  ///
-  /// **A diferença é a proporção da caixa contra a da fonte.** A arte é um
-  /// retrato 480×720; num `Cartaz` de 1040×360 o `cover` ainda mostra figura,
-  /// mas o herói da raiz é mais largo e mais alto e o mesmo `cover` amplia
-  /// uma fatia vertical até não restar figura nenhuma — cabelo e pano, sem
-  /// cara. É a armadilha que o cartão de largura inteira já pagou: *«o
-  /// primeiro card de largura inteira transformou a caixa numa letterbox
-  /// 600×110 e a faixa caiu na saia do sacerdote»*.
-  ///
-  /// Encostada, a arte ocupa a direita no formato em que foi desenhada e o
-  /// resto é o chão liso — que é o que a maquete mostra e o que deixa a
-  /// manchete ter espaço seu.
-  final bool arteADireita;
+  /// Como a arte é enquadrada e lavada. Ver [EnquadramentoDaArte].
+  final EnquadramentoDaArte enquadramento;
 
   @override
   Widget build(BuildContext context) {
@@ -69,29 +56,14 @@ class PalcoDeClasse extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (arte != null)
-            if (arteADireita)
-              Align(
-                alignment: Alignment.centerRight,
-                child: FractionallySizedBox(
-                  // **Pouco mais de metade da largura, com recorte.** A
-                  // primeira versão prendeu o painel ao formato da fonte
-                  // (2:3), o que o deixava estreito — um quarto da dobra — e
-                  // os outros três quartos vazios. O dono pôs a maquete ao
-                  // lado e a diferença era essa: ali a arte é cheia e quente,
-                  // aqui era um texto com uma ilustração ao canto.
-                  //
-                  // Largo, o `cover` corta a figura pelos pés em vez de a
-                  // espremer, e é o corte certo: estas artes têm a cara no
-                  // quinto superior — ver `arteVerticalDaClasse`.
-                  widthFactor: 0.58,
-                  alignment: Alignment.centerRight,
-                  child: _ArteEncostada(caminho: arte),
-                ),
-              )
-            else
-              _Arte(caminho: arte),
-          const _LavagemVertical(),
-          const _LavagemHorizontal(),
+            _Arte(caminho: arte, alinhamento: enquadramento.alinhamento),
+          if (enquadramento == EnquadramentoDaArte.cartaz) ...[
+            const _LavagemVertical(),
+            const _LavagemHorizontal(),
+          ] else ...[
+            const _VeuDoHeroi(),
+            const _VeuDeBaixo(),
+          ],
           Padding(
             padding: EdgeInsets.symmetric(
               horizontal: margemHorizontal,
@@ -107,19 +79,16 @@ class PalcoDeClasse extends StatelessWidget {
 
 /// The bottom layer: the class's own art, cropped to where its face is.
 class _Arte extends StatelessWidget {
-  const _Arte({required this.caminho});
+  const _Arte({required this.caminho, required this.alinhamento});
 
   final String caminho;
+  final Alignment alinhamento;
 
   @override
   Widget build(BuildContext context) => Image.asset(
     caminho,
     fit: BoxFit.cover,
-    // Not a guess: this is the 480x720 vertical crop, and its face sits much
-    // higher than the square's did — `-0.6` was tuned for that square and
-    // would land this art's face on its chest. `arteVerticalDaClasse`'s own
-    // doc has the full reasoning for the second folder.
-    alignment: const Alignment(0, -0.72),
+    alignment: alinhamento,
     // A missing file leaves the plain ground rather than a broken box — the
     // same silent fallback `arteVerticalDaClasse` itself makes for an
     // unmapped class.
@@ -170,56 +139,87 @@ class _LavagemHorizontal extends StatelessWidget {
   );
 }
 
-/// A arte encostada à direita, com a borda esquerda a desvanecer.
+/// Como a arte é enquadrada, e qual par de lavagens a segura.
 ///
-/// **Sem isto ela corta a pique** e lê-se como uma imagem colada em cima do
-/// fundo em vez do chão da página — foi o primeiro resultado ao encostá-la, e
-/// só se viu renderizando. A lavagem horizontal do palco não serve aqui:
-/// ela está medida para arte que cobre a caixa toda, portanto acaba muito
-/// antes de chegar a esta.
-class _ArteEncostada extends StatelessWidget {
-  const _ArteEncostada({required this.caminho});
+/// **Os dois casos são a mesma arte vista de duas distâncias.** O `Cartaz`
+/// mede 1040×360 e abre uma faixa; o herói da raiz mede a largura toda por
+/// 760 e abre uma dobra. A mesma fonte 480×720 precisa de recortes
+/// diferentes, e o par de lavagens vai junto porque uma lavagem medida para
+/// um recorte deixa o outro ilegível.
+enum EnquadramentoDaArte {
+  /// O recorte do `Cartaz`, medido contra a faixa dele.
+  cartaz(Alignment(0, -0.72)),
 
-  final String caminho;
+  /// **O recorte da maquete, lido do CSS dela**: `object-position: 76% 20%`.
+  ///
+  /// Em CSS, `20%` quer dizer *põe o ponto a 20% da imagem a 20% da caixa*; o
+  /// equivalente em Flutter é `2 × 0,20 − 1 = −0,6`. O `76%` só conta quando
+  /// a caixa é mais estreita do que a imagem escalada, o que acontece abaixo
+  /// de uma janela quadrada.
+  ///
+  /// **Houve uma volta errada no meio, e vale dizer qual.** Experimentei isto
+  /// com o Arqueiro, vi cabelo e pano sem cara, e concluí que o `cover` não
+  /// servia num herói largo — a conclusão certa teria sido que o
+  /// enquadramento estava mal. Daí saiu um painel encostado à direita que o
+  /// dono viu logo como errado. A maquete sempre fez `cover` na largura
+  /// toda; só faltava ler o CSS dela em vez de deduzir.
+  heroi(Alignment(0.52, -0.6));
+
+  const EnquadramentoDaArte(this.alinhamento);
+
+  final Alignment alinhamento;
+}
+
+/// A primeira lavagem do herói, copiada da maquete:
+/// `linear-gradient(100deg, #0B0B1A 4%, rgba(11,11,26,.86) 36%,
+/// rgba(11,11,26,.1) 66%, rgba(11,11,26,.5) 100%)`.
+///
+/// **`background` e não `noite`.** O `--noite` da maquete é `#0B0B1A`, que
+/// aqui se chama `PWColors.background`; `PWColors.noite` é `#12102A`, cinco
+/// pontos de luminância mais claro. Com o nome errado o herói inteiro saía
+/// uniformemente mais claro do que a maquete — a medição deu +4 a +12 em
+/// todos os pontos, que é a assinatura de um desvio constante e não de um
+/// gradiente mal montado.
+///
+/// **A última paragem sobe outra vez**, de 10% para 50%: escurece a borda
+/// direita para a figura não encostar acesa ao fim do ecrã. Era o que faltava
+/// à minha versão, que clareava até ao fim.
+class _VeuDoHeroi extends StatelessWidget {
+  const _VeuDoHeroi();
 
   @override
-  Widget build(BuildContext context) => Stack(
-    fit: StackFit.expand,
-    children: [
-      _Arte(caminho: caminho),
-      DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            // Opaco na borda e nada a partir de um terço: o suficiente para
-            // a junta desaparecer, pouco o bastante para a figura ficar
-            // inteira — que é a razão de a arte ter sido encostada.
-            stops: const [0, 0.34],
-            colors: [PWColors.noite, PWColors.noite.withValues(alpha: 0)],
-          ),
-        ),
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        // 100° em CSS é da esquerda para a direita, ligeiramente a descer.
+        begin: const Alignment(-1, -0.17),
+        end: const Alignment(1, 0.17),
+        stops: const [0.04, 0.36, 0.66, 1],
+        colors: [
+          PWColors.background,
+          PWColors.background.withValues(alpha: 0.86),
+          PWColors.background.withValues(alpha: 0.10),
+          PWColors.background.withValues(alpha: 0.50),
+        ],
       ),
-      // **E as bordas de cima e de baixo, pela mesma razão.** A fonte tem
-      // fundo próprio, portanto onde ela acaba fica uma aresta horizontal
-      // recta — visível no topo, onde a arte encontra a barra. Curtas de
-      // propósito: a figura tem a cara no quinto superior e um desvanecer
-      // largo comê-la-ia.
-      const DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            stops: [0, 0.14, 0.86, 1],
-            colors: [
-              PWColors.noite,
-              Color(0x0012102A),
-              Color(0x0012102A),
-              PWColors.noite,
-            ],
-          ),
-        ),
+    ),
+  );
+}
+
+/// A segunda: `linear-gradient(to top, noite, transparent 34%)` — o que
+/// assenta o herói na secção abaixo em vez de o cortar a direito.
+class _VeuDeBaixo extends StatelessWidget {
+  const _VeuDeBaixo();
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.bottomCenter,
+        end: Alignment.topCenter,
+        stops: const [0, 0.34],
+        colors: [PWColors.background, PWColors.background.withValues(alpha: 0)],
       ),
-    ],
+    ),
   );
 }

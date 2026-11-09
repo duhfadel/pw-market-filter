@@ -1112,6 +1112,50 @@ relógio.
 **A barra assenta sobre a arte** (`extendBodyBehindAppBar`), só na raiz: nas
 telas de versão o que fica por baixo dela é a página e não uma imagem.
 
+### Ler o CSS da maquete, em vez de o deduzir
+
+Houve três voltas no herói e duas foram erradas, pela mesma causa: eu
+**deduzi** o enquadramento em vez de o ler. A maquete está em disco e o CSS
+dela diz tudo em quatro linhas.
+
+```css
+.heroi     { min-height: min(86vh, 760px); display:flex; align-items:center }
+.arteheroi { inset:0; width:100%; height:100%; object-fit:cover;
+             object-position:76% 20% }
+.veu       { linear-gradient(100deg, #0B0B1A 4%, rgba(11,11,26,.86) 36%,
+                             rgba(11,11,26,.1) 66%, rgba(11,11,26,.5) 100%) }
+.veu2      { linear-gradient(to top, #0B0B1A, transparent 34%) }
+.heroi h1  { font-size: clamp(38px,5.6vw,68px); line-height:1.08 }
+.heroi p   { max-width:46ch; font-size:16.5px }
+```
+
+**A arte cobre a largura toda.** Eu tinha experimentado `cover` com o
+Arqueiro, visto cabelo e pano sem cara, e concluído que não servia num herói
+largo — a conclusão certa teria sido que o **enquadramento** estava mal.
+Daí saiu um painel encostado à direita, que o dono viu como errado à primeira.
+
+`object-position: 20%` traduz-se em `Alignment.y = 2 × 0,20 − 1 = −0,6`. A
+regra geral vale para qualquer porte futuro.
+
+**A manchete tem tecto e a sub-linha tem o dela.** Com um tecto único a
+manchete corria até *«As contas que o»* em vez de *«As contas que»*, e essa
+sílaba a mais punha-a em cima da cara da figura — a única parte da dobra que
+não pode ter texto por cima.
+
+**E o `--noite` da maquete é `#0B0B1A`, que aqui se chama `background`.**
+`PWColors.noite` é `#12102A`, cinco pontos de luminância mais claro. Com o
+nome errado o herói saía uniformemente mais claro: **+4 a +12 em todos os
+pontos medidos**, que é a assinatura de um desvio constante e não de um
+gradiente mal montado.
+
+**A medição que fechou isto, e o erro que ela apanhou primeiro.** Comparar
+píxel a píxel deu 32/255 de diferença média — e eram **os meus recortes que
+estavam desalinhados**, não as páginas. Pedindo ao DOM a caixa exacta do
+herói (`getBoundingClientRect`), a mesma comparação deu 14, e depois da cor
+**10,9 de média e 3,3 de mediana** — 1,3%. A lição é a de sempre neste
+ficheiro: *uma medição que contradiz o sistema é primeiro suspeita da
+medição.*
+
 ### O herói usa sempre o Guerreiro, e a rotação saiu
 
 Era rotativo como o `Cartaz`, e o argumento era bom: duas visitas não abrem a

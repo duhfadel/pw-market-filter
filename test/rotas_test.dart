@@ -182,6 +182,23 @@ void main() {
     });
   });
 
+  group('/multicontas is bare because it is about the game client', () {
+    // The guide serves all three versions, so a `/1.8.7` prefix would switch
+    // the visitor's marketplace underfoot — the very defect `Tool.versoes`
+    // exists to prevent. The prefixed spelling stays a reader forever: it was
+    // the only address this guide ever had.
+    test('bare opens the guide', () {
+      expect((resolverRota('/multicontas') as RotaTela).tela, Tela.multiContas);
+    });
+
+    test('the old prefixed address opens the same screen', () {
+      expect(
+        (resolverRota('/1.8.7/multicontas') as RotaTela).tela,
+        Tela.multiContas,
+      );
+    });
+  });
+
   group('an unknown path falls back rather than throwing', () {
     test('an unknown top-level path falls back to the choice', () {
       expect((resolverRota('/nada-aqui') as RotaTela).tela, Tela.escolha);

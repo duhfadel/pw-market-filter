@@ -21,7 +21,8 @@
 /// /1.8.7/runas         Runas
 /// /1.8.7/guerras       Guerras Territoriais
 /// /1.2.6/guerras       Guerras Territoriais do 1.2.6
-/// /1.8.7/multicontas   Guia de multi contas
+/// /multicontas         Guia de multi contas  (canónica: serve as três)
+/// /1.8.7/multicontas   o mesmo guia          (links já partilhados)
 /// /1.2.6               a home do 1.2.6
 /// /1.2.6/filtro        o filtro do 1.2.6
 /// /novidades           uma só, serve as duas
@@ -166,6 +167,17 @@ RotaResolvida resolverRota(String? name) {
   }
   if (segments.first == 'runas' && segments.length == 1) {
     return const RotaTela(Tela.runas);
+  }
+  // **Sem prefixo porque fala do cliente do jogo e não de um mercado** — a
+  // mesma razão pela qual `/novidades` não o tem. Serve as três versões, e
+  // era o único guia da app preso debaixo de `/1.8.7`: aberto da home do
+  // 1.2.6, trocava a versão debaixo dos pés de quem clicasse, que é o
+  // defeito para que `Tool.versoes` foi criado.
+  //
+  // A forma prefixada fica a funcionar logo abaixo, como `/registros` e
+  // `/runas` fazem: nenhum link que já exista pode passar a 404.
+  if (segments.first == 'multicontas' && segments.length == 1) {
+    return const RotaTela(Tela.multiContas);
   }
 
   if (segments.first == pw187) {

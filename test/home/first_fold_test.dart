@@ -268,4 +268,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(pushed, ['/1.8.7/filtro?baixou=1']);
   });
+
+  testWidgets('os guias do 1.8.7 estão na página, com a linha de cada um', (
+    tester,
+  ) async {
+    // Pedido do dono a 09/11/2026: guias em todas as versões. A pílula
+    // *Guias* do cabeçalho destaca três entradas e só abre ao toque; esta
+    // secção lista os oito que servem esta versão, e é o que torna as duas
+    // superfícies coisas diferentes em vez de uma duplicada.
+    await _pumpHome(tester);
+
+    expect(find.text('GUIAS'), findsOneWidget);
+    expect(find.text('Cartas Nuema'), findsOneWidget);
+    expect(find.text('Todos os guias'), findsOneWidget);
+    expect(
+      find.textContaining('As seis cartas S do conjunto Portal de Nuema'),
+      findsOneWidget,
+    );
+  });
 }

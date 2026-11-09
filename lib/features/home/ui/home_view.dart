@@ -15,6 +15,7 @@ import 'widgets/ao_vivo_strip.dart';
 import 'widgets/cabecalho.dart';
 import 'widgets/cartaz.dart';
 import 'widgets/destaques_view.dart';
+import '../../guias/ui/widgets/guias_secao.dart';
 import 'widgets/faixa_viva.dart';
 import 'widgets/ajuda_strip.dart';
 import 'widgets/discord_strip.dart';
@@ -286,6 +287,26 @@ class HomeView extends StatelessWidget {
                           // to `GavetaItem`, the drawer row each pill opens —
                           // the one place left that can still show it.
                           SizedBox(height: large ? 32 : (wide ? 26 : 20)),
+                          // **Os guias desta versão, e não os do site.**
+                          // Pedido do dono a 09/11/2026: guias em todas as
+                          // versões, cada uma com os seus. Hoje sete dos oito
+                          // são de 1.8.7 sem o dizerem, portanto o 1.2.6
+                          // recebe só o que fala do cliente do jogo — e a
+                          // porta *Todos os guias* dentro da secção é o que
+                          // o impede de ler como «este site tem um guia».
+                          //
+                          // A pílula *Guias* do cabeçalho continua a destacar
+                          // três entradas e não a listar isto: uma gaveta de
+                          // navegação diz nomes, esta secção vende o artigo
+                          // com a linha dele.
+                          _ComMargem(
+                            wide: wide,
+                            child: GuiasSecao(
+                              versao: pw126 ? rotas.pw126 : rotas.pw187,
+                              wide: wide,
+                            ),
+                          ),
+                          SizedBox(height: wide ? 26 : 20),
                           // The closed news bar used to sit here, between the
                           // tools and the streamers — see the class doc above
                           // for what left with it on 01/10/2026 and what it

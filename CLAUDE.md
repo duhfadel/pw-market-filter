@@ -144,6 +144,7 @@ both legendary pets and has renamed both).
 | `dart run tool/fetch_icons.dart` | Downloads class and item icons named by the index; skips what is already on disk |
 | `dart run tool/build_fixture_index.dart` | Builds an index from the saved fixtures — no network, for working on the screen |
 | `python3 tool/mapa/pagina.py` | Rebuilds both pages of `web/guerras/` from the map's SVG and the models in `tool/mapa/` |
+| `dart run tool/guias/pagina.dart` | Reescreve a lista de `web/guias/index.html` a partir da declaração dos guias |
 | `python3 tool/registros/semear.py` | Reads the registries spreadsheet and writes the SQL that seeds the table — one-off, already run |
 | `gh workflow run publish.yml` | Collects and publishes now, when the schedule has gone quiet |
 | `flutter run -d chrome` | Runs the app |
@@ -1078,6 +1079,91 @@ número gastaria setenta minutos da rede deles para não aprender nada — é
 exactamente o caso para que o carimbo deixou de ser um só. A conta contra o
 `timeout` foi refeita no mesmo commit, que é o momento em que ela tem de ser
 refeita e não o momento em que falha.
+
+## Os guias têm versão, e a versão não é um pedaço do endereço
+
+Até 09/11/2026 havia **duas listas de guias que não sabiam uma da outra**:
+os artigos em `web/guias/index.html`, à mão, e o menu em `tool.dart`. Custou
+uma vez — o guia das runas foi publicado e durante dias não havia caminho
+nenhum para ele a partir do site. `lib/features/guias/domain/guia.dart` é
+agora a fonte das duas: a página é gerada por `tool/guias/pagina.dart` e a
+app lê o mesmo objecto.
+
+**`/guias/runas` fica onde está, e essa é a decisão que custaria mais se
+fosse errada.** As 24 páginas de guia foram indexadas na semana de 02/11, e é
+disso que depende o pedido de revisão do AdSense. Passá-las a
+`/1.8.7/guias/runas` moveria 24 endereços recém-indexados no mês em que o
+Google está a decidir se o site tem valor — e o GitHub Pages não faz
+redirecionamento de servidor. A versão é um campo do guia; *todos os guias* é
+simplesmente não filtrar.
+
+**Medido: sete dos oito guias são de 1.8.7 e nenhum o dizia.** Runas,
+conduíte, astrolábio e cartas Nuema são conteúdo de 1.8.7; a Saga tem
+dezassete classes e o 1.2.6 tem seis. Quem chegava de uma busca não tinha como
+saber se o artigo servia a versão que joga.
+
+**As multi contas são o único que serve as três, e saíram de `/1.8.7`.**
+Jogar com dois clientes abertos é uma coisa do computador de quem joga, não de
+um mercado — a mesma razão pela qual `/novidades` não tem prefixo. Presas
+debaixo do 1.8.7, desapareciam da gaveta do 1.2.6: um guia que servia aquela
+versão, escondido dela. A forma prefixada continua a abrir, como `/registros`
+e `/runas`, porque era o único endereço que o guia já teve.
+
+**O selo *novo* é desenhado pelo browser e não pelo gerador**, e a primeira
+versão fez o contrário. Gravado no HTML, o ficheiro em disco passava a
+discordar da regeneração no dia em que o primeiro selo expirasse — e o
+`--conferir` que o teste usa ficaria vermelho **pelo calendário**, sem defeito
+nenhum. É a forma que já congelou este site duas vezes: um gate de publicação
+cuja entrada é o mundo. A data vai em `data-publicado` e trinta linhas de
+JavaScript decidem; numa página estática o relógio de quem visita é o único
+relógio que há.
+
+Antes disso o selo era HTML escrito à mão, **seis cartas com ele e nenhuma com
+data**. Nenhuma mentia ainda: a primeira passaria a mentir a 22/11 e nada o
+diria. O próprio comentário do CSS admitia o arranjo — *«não há relógio para o
+apagar, por isso tirar o selo é parte de publicar o guia seguinte»* — que é uma
+regra que depende de alguém se lembrar.
+
+**O tempo de leitura é medido do `<main>`, e só dele.** O cabeçalho, o rodapé
+e o bloco de publicidade repetem-se em todas as páginas: contados, davam a um
+guia de dois parágrafos o mesmo peso de base que a um de trinta. Os
+comentários HTML saem também — este repositório escreve-os longos, e contá-los
+mediria a conversa sobre o guia em vez do guia. Dá 2 a 6 minutos nos sete.
+
+**A Saga não mostra minutos.** Somadas, as dezoito páginas davam «81 min de
+leitura», que ninguém lê de uma vez e que se lê como avaria. Diz *17 classes,
+uma página cada* — um conjunto não tem duração, tem tamanho.
+
+**E a app não mostra minutos nenhuns.** Medir o ficheiro é `dart:io`, que
+`lib/` não importa, e guardar os minutos à mão na declaração seria o mesmo
+facto em dois sítios a divergir no dia em que alguém acrescentasse um
+parágrafo. A medida vive na página `/guias/`, que é onde alguém escolhe o que
+ler.
+
+### A secção de guias na home reverte metade da decisão de 01/10
+
+`home_ordem_test` cravava que `FERRAMENTAS` **e** `GUIAS` não aparecem na
+página — a decisão do dono de 01/10/2026, *«não acho que valha a pena
+duplicar»*, quando as pílulas do cabeçalho tornaram os cards um segundo menu
+para o mesmo conjunto.
+
+**`GUIAS` voltou a 09/11, pedido do dono nas palavras dele:** «Guias tem que
+estar em todas as paginas, (1.2.6, 1.4.4, 1.8.7) só que cada um terá
+(futuramente) seus guias próprios». O que fazia dos cards uma duplicação não
+vale aqui: a pílula *Guias* destaca **três** entradas e só abre ao toque, e a
+secção lista os **oito** que servem aquela versão, cada um com a linha que diz
+o que responde. Duas superfícies para o mesmo conjunto é duplicação; uma
+pílula com três nomes e uma secção com oito artigos não é.
+
+`FERRAMENTAS` continua fora, e é a metade da decisão que fica de pé.
+
+**A porta *Todos os guias* fica dentro da secção, mesmo com tudo à vista.** É
+ela que separa «os guias desta versão» de «os guias do site» — sem ela, o
+1.2.6 mostra uma carta e lê-se como um site que tem um guia.
+
+**A etiqueta de versão desenha-se só quando diz algo.** Numa tela de 1.8.7,
+escrever `1.8.7` em sete de oito cartas é ruído; o que vale dizer é qual serve
+*todas* as versões, porque essa é a que não é de cá.
 
 ## A licença, e por que ela existe
 

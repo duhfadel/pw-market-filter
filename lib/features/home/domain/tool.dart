@@ -272,8 +272,12 @@ final tools = <Tool>[
     // A Pedra do Teletransporte: o item de quem anda com dois personagens
     // em dois sítios ao mesmo tempo.
     emblem: 23040,
-    route: '/1.8.7/multicontas',
-    versoes: const {'1.8.7'},
+    // **Sem prefixo e sem versão, desde 09/11/2026.** Jogar com dois
+    // clientes abertos é uma coisa do computador de quem joga, não de um
+    // mercado, e o guia é o único que serve as três versões. Estava preso
+    // debaixo de `/1.8.7` e por isso desaparecia da gaveta do 1.2.6 — um
+    // guia que servia aquela versão, escondido dela.
+    route: '/multicontas',
   ),
   Tool(
     name: 'Guerras Territoriais',

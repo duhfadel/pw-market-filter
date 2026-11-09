@@ -239,18 +239,28 @@ void main() {
   });
 
   testWidgets(
-    'the tool cards and the guide line are gone — the header pills are the '
-    'only menu now',
+    'the tool cards are gone — the header pills are the only tool menu now',
     (tester) async {
       // Decision of 01/10: "não acho que valha a pena duplicar". The cards
       // sold the tools with art and a tagline; the header's pills (already
       // proven in `menu_everywhere_test.dart`) list the same set. Keeping
       // both put two navigation surfaces for one set of tools on the same
       // page, one above the other.
+      //
+      // **`GUIAS` came back on 09/11/2026, and this is the one half of that
+      // decision that was reversed — by the owner, in his own words:** «Guias
+      // tem que estar em todas as paginas, (1.2.6, 1.4.4, 1.8.7) só que cada
+      // um terá (futuramente) seus guias próprios». What made the tool cards
+      // a duplicate does not hold for the guides: the *Guias* pill shows
+      // three curated entries, and this section shows the eight that serve
+      // **this** version, each with the line that says what it answers. Two
+      // surfaces for the same set is duplication; a pill listing three names
+      // and a section selling eight articles is not.
+      //
+      // `FERRAMENTAS` stays out, and that is the half still standing.
       await _pumpHome(tester);
 
       expect(find.text('FERRAMENTAS'), findsNothing);
-      expect(find.text('GUIAS'), findsNothing);
       expect(find.text('GUIA'), findsNothing);
       // The tagline that used to sit on the card, in the open — it survives
       // only inside the header's drawer now, which `GavetaItem` renders on

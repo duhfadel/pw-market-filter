@@ -50,16 +50,21 @@ void main() {
     expect(find.text('Guias'), findsOneWidget);
   });
 
-  testWidgets('no 1.2.6 não aparece pílula de ferramentas do 1.8.7', (
-    tester,
-  ) async {
-    // Hoje nenhuma ferramenta serve o 1.2.6, portanto as duas pílulas somem.
-    // Quando houver uma, ela aparece sozinha — e este teste passa a cravar
-    // que só a dela aparece, que é a mesma pergunta.
+  testWidgets('no 1.2.6 aparece só a pílula que serve o 1.2.6', (tester) async {
+    // **Este teste mudou de forma a 09/11/2026, e era o que ele próprio
+    // mandava.** Dizia: «hoje nenhuma ferramenta serve o 1.2.6, portanto as
+    // duas pílulas somem — quando houver uma, ela aparece sozinha, e este
+    // teste passa a cravar que só a dela aparece». É agora: as multi contas
+    // deixaram de estar presas a `/1.8.7` e passaram a servir as três
+    // versões, por falarem do cliente do jogo e não de um mercado.
+    //
+    // Nenhuma *ferramenta* serve o 1.2.6 ainda, portanto essa pílula continua
+    // a sumir — e é isso que faz este teste continuar a ser sobre a pergunta
+    // certa, e não só sobre o número de pílulas.
     await _montar(tester, versao: '1.2.6');
 
     expect(find.text('Ferramentas'), findsNothing);
-    expect(find.text('Guias'), findsNothing);
+    expect(find.text('Guias'), findsOneWidget);
   });
 
   testWidgets('no seletor, que ainda não escolheu mercado, aparece tudo', (
@@ -73,10 +78,28 @@ void main() {
     expect(find.text('Guias'), findsOneWidget);
   });
 
-  test('toda ferramenta de hoje declara a versão a que serve', () {
-    // Uma entrada sem versões vale para todas, o que é certo para o que não
-    // depende de um mercado — e errado para tudo o que a lista tem hoje.
+  test('só o que não depende de um mercado fica sem versão', () {
+    // **A regra que estava aqui era «toda ferramenta declara a versão», e o
+    // comentário dela já dizia a excepção**: uma entrada sem versões vale
+    // para todas, «o que é certo para o que não depende de um mercado — e
+    // errado para tudo o que a lista tem hoje». A 09/11/2026 passou a haver
+    // um caso certo, portanto a regra é nomeada em vez de absoluta: jogar com
+    // dois clientes abertos é uma coisa do computador de quem joga.
+    //
+    // Nomeada e não aberta, de propósito. Uma entrada sem versão por
+    // distracção é o defeito de 05/10 outra vez — um menu a oferecer portas
+    // que não servem a versão onde o visitante está — e a lista aqui obriga
+    // a decidir em vez de deixar passar.
+    const semMercado = {'Multi contas'};
     for (final tool in tools) {
+      if (semMercado.contains(tool.name)) {
+        expect(
+          tool.versoes,
+          isEmpty,
+          reason: '${tool.name} serve as três e não deve declarar versão',
+        );
+        continue;
+      }
       expect(
         tool.versoes,
         isNotEmpty,

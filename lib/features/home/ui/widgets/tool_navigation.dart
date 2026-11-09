@@ -30,18 +30,36 @@ String rotaDaTool(Tool tool, String? versao) =>
 void abrirTool(BuildContext context, Tool tool, {String? versao}) {
   final href = tool.href;
   if (href != null) {
-    unawaited(launchUrl(Uri.parse(href), webOnlyWindowName: '_self'));
+    abrirEndereco(context, href, externo: true);
+    return;
+  }
+  abrirEndereco(context, rotaDaTool(tool, versao), externo: false);
+}
+
+/// A regra, sem o [Tool] à volta: uma página HTML deste site sai na mesma
+/// aba, uma rota da app é empurrada pelo `MaterialApp`.
+///
+/// Existe porque passou a haver um segundo tipo de coisa com endereço — os
+/// guias, que vivem metade em `web/guias/` e metade na app. Copiar o corpo
+/// de [abrirTool] para os servir era criar a segunda cópia que a nota acima
+/// diz que é um defeito duplicado à espera de divergir.
+void abrirEndereco(
+  BuildContext context,
+  String endereco, {
+  required bool externo,
+}) {
+  if (externo) {
+    unawaited(launchUrl(Uri.parse(endereco), webOnlyWindowName: '_self'));
     return;
   }
 
-  // The same hazard **M1** found in the Novidades pill: picking the tool
+  // The same hazard **M1** found in the Novidades pill: picking the entry
   // that names the screen already open would push a second, identical copy
   // on top of it, and the back button's first press would appear to do
   // nothing. Compared by path, not by the whole route name — `/filtro` can
-  // carry a query string this `route` never will.
-  final route = rotaDaTool(tool, versao);
+  // carry a query string these routes never will.
   final atual = ModalRoute.of(context)?.settings.name;
-  if (atual != null && Uri.parse(atual).path == route) return;
+  if (atual != null && Uri.parse(atual).path == endereco) return;
 
-  Navigator.of(context).pushNamed(route);
+  Navigator.of(context).pushNamed(endereco);
 }

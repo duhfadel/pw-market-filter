@@ -54,7 +54,7 @@ void main() {
   testWidgets('desenha os vídeos do canal, com cabeça própria', (tester) async {
     await montar(tester, reais);
 
-    expect(find.text('O CANAL DO PORTAL'), findsOneWidget);
+    expect(find.text('O CANAL DO PORTAL PW'), findsOneWidget);
     expect(find.byType(CartaoDeVideo), findsNWidgets(2));
     expect(find.text('PortalPW 01 — Apresentação!'), findsOneWidget);
   });
@@ -80,7 +80,7 @@ void main() {
     // espaço é desenhado por dentro precisamente para se ir com ela.
     await montar(tester, const []);
 
-    expect(find.text('O CANAL DO PORTAL'), findsNothing);
+    expect(find.text('O CANAL DO PORTAL PW'), findsNothing);
     // **Medido pela altura e não por contar widgets**: a secção devolve um
     // `SizedBox.shrink()`, portanto procurar `SizedBox` encontra-o sempre e
     // provava o contrário do que se quer. O que importa é não ocupar nada.
@@ -94,7 +94,7 @@ void main() {
     await montar(tester, const [], falhar: true);
 
     expect(tester.takeException(), isNull);
-    expect(find.text('O CANAL DO PORTAL'), findsNothing);
+    expect(find.text('O CANAL DO PORTAL PW'), findsNothing);
   });
 
   testWidgets('não transborda em nenhuma largura', (tester) async {

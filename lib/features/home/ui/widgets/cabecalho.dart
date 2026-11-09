@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -263,71 +265,116 @@ class _Marca extends StatelessWidget {
 /// quantity. No pill wears both [count] and [dot] today, but nothing stops
 /// one that did.
 class _Pill extends StatelessWidget {
-  const _Pill({required this.label, this.count, this.dot = false});
+  const _Pill({
+    required this.label,
+    this.count,
+    this.dot = false,
+    this.ouro = false,
+  });
 
   final String label;
   final int? count;
   final bool dot;
 
+  /// A variante `.pil.ouro` da maquete: moldura e letra na cor do acento.
+  ///
+  /// **É a que diz que ali muda algo.** *Novidades* é a única secção da barra
+  /// que se altera sozinha e que traz o ponto a avisar; destacá-la é a mesma
+  /// escolha que o `[todos]` dos recados faz contra as etiquetas de versão —
+  /// a que importa a toda a gente é a que vale pintar.
+  final bool ouro;
+
+  /// **Translúcida e com desfoque por trás, que é o que a maquete faz**:
+  ///
+  /// ```css
+  /// .pil { border:1px solid rgba(255,255,255,.18); border-radius:999px;
+  ///        padding:7px 16px; font-size:13px;
+  ///        background:rgba(11,11,26,.42); backdrop-filter:blur(8px) }
+  /// ```
+  ///
+  /// Opaca, a pílula era um botão colado em cima da arte do herói; a 42% com
+  /// o desfoque, ela assenta sobre a arte e deixa-a passar — que é a razão de
+  /// ela viver ali e não numa barra com chão próprio. Reparado pelo dono a
+  /// 09/11/2026: *«as pílulas não deveriam ter opacidade?»*.
+  static const _chao = 0.42;
+
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    decoration: BoxDecoration(
-      color: PWColors.surface,
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: PWColors.border),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: PWColors.papel,
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
+  Widget build(BuildContext context) => ClipRRect(
+    borderRadius: BorderRadius.circular(999),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+        decoration: BoxDecoration(
+          color: PWColors.background.withValues(alpha: _chao),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: ouro
+                ? PWColors.accent.withValues(alpha: 0.55)
+                : Colors.white.withValues(alpha: 0.18),
           ),
         ),
-        if (count != null) ...[
-          const SizedBox(width: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-            decoration: BoxDecoration(
-              color: PWColors.surfaceRaised,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            // The body face, never Marcellus: this is a count, and
-            // Marcellus's `0` barely reads as an `O` and its `1` carries no
-            // flag — a number nobody is deciding money on, but a number all
-            // the same, and every number on this site stays off that face.
-            child: Text(
-              '$count',
-              style: const TextStyle(
-                color: PWColors.apagado,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-        if (dot) ...[
-          const SizedBox(width: 6),
-          // Lit only while this browser has not opened `/novidades` since
-          // the newest entry was posted. A dot still on after it has been
-          // read teaches the reader to stop seeing it — the same failure
-          // the `novo` badge's own expiry date exists to avoid.
-          Container(
-            key: const Key('novidade-nao-lida'),
-            width: 7,
-            height: 7,
-            decoration: const BoxDecoration(
-              color: PWColors.accent,
-              shape: BoxShape.circle,
-            ),
-          ),
-        ],
-      ],
+        child: _Dentro(label: label, count: count, dot: dot, ouro: ouro),
+      ),
     ),
+  );
+}
+
+class _Dentro extends StatelessWidget {
+  const _Dentro({
+    required this.label,
+    required this.count,
+    required this.dot,
+    required this.ouro,
+  });
+
+  final String label;
+  final int? count;
+  final bool dot;
+  final bool ouro;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        label,
+        style: TextStyle(
+          color: ouro ? PWColors.accent : PWColors.papel,
+          fontSize: 13,
+        ),
+      ),
+      if (count != null) ...[
+        // `.pil { gap: 8px }` e `.pil i { color: apagado; font-size: 11px }`
+        // — a conta é texto nu ao lado do nome, sem cápsula própria. A
+        // cápsula fazia dela um segundo objecto dentro da pílula.
+        const SizedBox(width: 8),
+        // The body face, never Marcellus: this is a count, and
+        // Marcellus's `0` barely reads as an `O` and its `1` carries no
+        // flag — a number nobody is deciding money on, but a number all
+        // the same, and every number on this site stays off that face.
+        Text(
+          '$count',
+          style: const TextStyle(color: PWColors.apagado, fontSize: 11),
+        ),
+      ],
+      if (dot) ...[
+        const SizedBox(width: 6),
+        // Lit only while this browser has not opened `/novidades` since
+        // the newest entry was posted. A dot still on after it has been
+        // read teaches the reader to stop seeing it — the same failure
+        // the `novo` badge's own expiry date exists to avoid.
+        Container(
+          key: const Key('novidade-nao-lida'),
+          width: 7,
+          height: 7,
+          decoration: const BoxDecoration(
+            color: PWColors.accent,
+            shape: BoxShape.circle,
+          ),
+        ),
+      ],
+    ],
   );
 }
 
@@ -460,6 +507,8 @@ class _NovidadesPill extends StatelessWidget {
         onTap: () => _abrirNovidades(context),
         child: _Pill(
           label: 'Novidades',
+          // `.pil.ouro` — a única da barra, e é a que muda sozinha.
+          ouro: true,
           dot: NovidadeLida(memoria).existeNaoLida(entradas),
         ),
       ),

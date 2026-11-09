@@ -232,14 +232,23 @@ class _Portas extends StatelessWidget {
     final largura = MediaQuery.sizeOf(context).width;
     final ladoALado = largura >= _lado;
 
-    final linha = FaixaDasVersoes(portas: portas, wide: ladoALado);
-
     // **760 px era a medida de três cartas e um rodapé.** Com abertura,
     // guias, canal e streamers a página passou a ser um documento, e a
-    // maquete mede 1130 — a mesma ordem de grandeza do degrau `large` da
-    // home das versões, que é 1040 de conteúdo numa janela de 1280.
-    const colunaDeLeitura = 1130.0;
+    // maquete mede 1180 (`--col: 1180px`), lido do CSS dela.
+    const colunaDeLeitura = 1180.0;
     final margem = ladoALado ? 24.0 : 16.0;
+
+    final abertura = Padding(
+      // `.intro { padding: 46px 24px 30px }`.
+      padding: const EdgeInsets.fromLTRB(24, 46, 24, 30),
+      child: Abertura(wide: ladoALado),
+    );
+
+    final linha = FaixaDasVersoes(
+      portas: portas,
+      wide: ladoALado,
+      larguraDaColuna: colunaDeLeitura,
+    );
 
     final grade = Center(
       child: Padding(
@@ -249,12 +258,9 @@ class _Portas extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // **O que o site faz, antes de dizer o nome dele.** Ver
-              // `Abertura`: esta tela eram 148 palavras e um torniquete, e é
-              // a página que o AdSense viu como vazia a 31/10/2026.
-              Abertura(wide: ladoALado),
-              SizedBox(height: ladoALado ? 34 : 26),
-              linha,
+              // `section { padding: 58px 0 }`.
+              // `section { padding: 58px 0 }`.
+              SizedBox(height: ladoALado ? 58 : 40),
               // Os guias das três versões, cada um com a sua à vista — aqui a
               // etiqueta é a informação que falta, ao contrário de uma tela de
               // versão onde seria ruído. Ver `GuiasSecao`.
@@ -320,7 +326,12 @@ class _Portas extends StatelessWidget {
             quando: _coletaMaisRecente(),
             margemHorizontal: recuoDoHeroi,
           ),
-          SizedBox(height: ladoALado ? 44 : 32),
+          // A abertura e a faixa vêm antes do resto porque a faixa **sangra
+          // de margem a margem** — é o `border-top`/`border-bottom` da
+          // maquete a atravessar o ecrã — e por isso não cabe dentro da
+          // coluna de leitura.
+          abertura,
+          linha,
           grade,
         ],
       ),

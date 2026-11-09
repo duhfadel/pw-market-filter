@@ -89,6 +89,12 @@ class _Arte extends StatelessWidget {
     caminho,
     fit: BoxFit.cover,
     alignment: alinhamento,
+    // **A fonte e 960x1440 e o heroi pede 1440x2160** -- uma ampliacao
+    // de 1,5x, e 3x num ecra Retina. Com a filtragem por omissao o
+    // resultado amolece; `high` usa reamostragem cubica, que e o melhor
+    // que se pode fazer sem arte maior. Nao inventa detalhe nenhum: so
+    // deixa de o destruir.
+    filterQuality: FilterQuality.high,
     // A missing file leaves the plain ground rather than a broken box — the
     // same silent fallback `arteVerticalDaClasse` itself makes for an
     // unmapped class.

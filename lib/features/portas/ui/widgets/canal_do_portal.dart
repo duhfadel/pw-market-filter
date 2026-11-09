@@ -82,16 +82,20 @@ class _CanalDoPortalState extends State<CanalDoPortal> {
         // chão próprio. O canal é o que o site está a começar agora: a
         // moldura dá-lhe o peso de um anúncio sem precisar de o escrever.
         Container(
-          padding: EdgeInsets.all(widget.wide ? 26 : 18),
+          padding: EdgeInsets.all(widget.wide ? 32 : 26),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(color: PWColors.border),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
+              // `linear-gradient(135deg, rgba(120,90,220,.16), chao 62%)`.
+              // O roxo é exactamente `PWColors.glowViolet` (#785ADC) e o
+              // chão é `surface` (#13132A) — os dois já existiam na paleta.
+              stops: const [0, 0.62],
               colors: [
                 PWColors.glowViolet.withValues(alpha: 0.16),
-                PWColors.surface.withValues(alpha: 0.6),
+                PWColors.surface,
               ],
             ),
           ),
@@ -99,9 +103,10 @@ class _CanalDoPortalState extends State<CanalDoPortal> {
               ? Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(flex: 4, child: _Convite(wide: true)),
-                    const SizedBox(width: 26),
-                    Expanded(flex: 6, child: GrelhaDeVideos(videos: _videos)),
+                    // `grid-template-columns: 1fr 1.15fr; gap: 30px`.
+                    const Expanded(flex: 100, child: _Convite(wide: true)),
+                    const SizedBox(width: 30),
+                    Expanded(flex: 115, child: GrelhaDeVideos(videos: _videos)),
                   ],
                 )
               : Column(
@@ -130,33 +135,42 @@ class _Convite extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       const Text(
-        'O CANAL DO PORTAL',
+        'O CANAL DO PORTAL PW',
         style: TextStyle(
+          fontFamily: PWTheme.display,
           color: PWColors.apagado,
-          fontSize: 11,
-          letterSpacing: 2,
-          fontWeight: FontWeight.w600,
+          fontSize: 13,
+          letterSpacing: 2.6,
         ),
       ),
       SizedBox(height: wide ? 14 : 10),
       // Sem algarismos: a Marcellus desenha figuras romanas.
-      Text(
-        'Os primeiros já estão no ar',
-        style: TextStyle(
-          fontFamily: PWTheme.display,
-          fontSize: wide ? 27 : 22,
-          color: PWColors.papel,
-          height: 1.15,
+      ConstrainedBox(
+        // `.canal.larga h3 { max-width: 16ch }` — duas linhas, como na
+        // maquete, em vez de uma que corre até ao fim da coluna.
+        constraints: BoxConstraints(maxWidth: wide ? 340 : double.infinity),
+        child: Text(
+          'Os primeiros já estão no ar',
+          style: TextStyle(
+            fontFamily: PWTheme.display,
+            fontSize: wide ? 28 : 26,
+            color: PWColors.papel,
+            height: 1.15,
+          ),
         ),
       ),
       SizedBox(height: wide ? 12 : 9),
-      Text(
-        'Os guias em vídeo, as contas que ninguém faz à mão e o que o '
-        'mercado anda dizendo.',
-        style: TextStyle(
-          color: PWColors.apagado,
-          fontSize: wide ? 13.5 : 12.5,
-          height: 1.5,
+      ConstrainedBox(
+        // `.canal p { max-width: 44ch }`.
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Text(
+          'Os guias em vídeo, as contas que ninguém faz à mão e o que o '
+          'mercado anda dizendo.',
+          style: TextStyle(
+            color: PWColors.apagado,
+            fontSize: wide ? 14 : 13,
+            height: 1.5,
+          ),
         ),
       ),
       SizedBox(height: wide ? 18 : 14),

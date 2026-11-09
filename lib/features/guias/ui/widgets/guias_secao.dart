@@ -59,7 +59,8 @@ class GuiasSecao extends StatelessWidget {
               : 'os ${guias.length} →',
           aoVerTodos: () => abrirEndereco(context, '/guias/', externo: true),
         ),
-        SizedBox(height: wide ? 16 : 12),
+        // `.cab { margin-bottom: 22px }`.
+        const SizedBox(height: 22),
         LayoutBuilder(
           builder: (context, limites) {
             // Pela largura disponível e não pelo `wide` da página — o mesmo
@@ -106,29 +107,36 @@ class _Cabeca extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
+    // `.cab { align-items: baseline }` — o filete alinha pela base do texto
+    // e não pelo meio da caixa, que é o que o faz parecer uma régua debaixo
+    // da palavra em vez de uma linha a cortá-la.
+    crossAxisAlignment: CrossAxisAlignment.end,
     children: [
+      // **Marcellus aqui**, e é seguro: nenhum destes títulos tem algarismo.
       Text(
         titulo,
         style: const TextStyle(
+          fontFamily: PWTheme.display,
           color: PWColors.apagado,
-          fontSize: 11,
-          letterSpacing: 2,
-          fontWeight: FontWeight.w600,
+          fontSize: 13,
+          letterSpacing: 2.6,
         ),
       ),
-      const SizedBox(width: 14),
-      const Expanded(child: Divider(color: PWColors.border, height: 1)),
-      const SizedBox(width: 14),
-      // **A porta para a lista vive na cabeça e não no fim.** Em baixo, ela
-      // aparecia depois de oito cartas e só a encontrava quem rolasse até
-      // lá; aqui está onde alguém olha para decidir se vale a pena rolar.
+      const SizedBox(width: 16),
+      const Expanded(
+        child: Padding(
+          padding: EdgeInsets.only(bottom: 5),
+          child: Divider(color: PWColors.border, height: 1),
+        ),
+      ),
+      const SizedBox(width: 16),
       InkWell(
         onTap: aoVerTodos,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
           child: Text(
             porta,
-            style: const TextStyle(color: PWColors.accent, fontSize: 12.5),
+            style: const TextStyle(color: PWColors.accent, fontSize: 13),
           ),
         ),
       ),
@@ -167,7 +175,7 @@ class _Carta extends StatelessWidget {
         onTap: () =>
             abrirEndereco(context, guia.endereco, externo: !guia.noApp),
         child: Container(
-          padding: EdgeInsets.all(wide ? 18 : 14),
+          padding: EdgeInsets.all(wide ? 20 : 15),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: PWColors.border),
@@ -181,7 +189,8 @@ class _Carta extends StatelessWidget {
               // título fica com a sua inteira.
               if (etiqueta != null) ...[
                 _Etiqueta(texto: etiqueta, destacada: guia.versoes.isEmpty),
-                SizedBox(height: wide ? 12 : 10),
+                // `.gc { gap: 7px }`.
+                const SizedBox(height: 7),
               ],
               // **Marcellus no título, e é seguro aqui**: nenhum título de
               // guia tem algarismos — *Quanto custa uma runa nível 10* é a
@@ -200,12 +209,12 @@ class _Carta extends StatelessWidget {
                   height: 1.2,
                 ),
               ),
-              SizedBox(height: wide ? 8 : 6),
+              const SizedBox(height: 7),
               Text(
                 guia.linha,
                 style: TextStyle(
                   color: PWColors.apagado,
-                  fontSize: wide ? 13 : 12.5,
+                  fontSize: wide ? 13.5 : 12.5,
                   height: 1.45,
                 ),
               ),
@@ -236,12 +245,11 @@ class _Etiqueta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
     decoration: BoxDecoration(
-      color: destacada
-          ? PWColors.accent.withValues(alpha: 0.12)
-          : PWColors.surfaceRaised,
-      borderRadius: BorderRadius.circular(6),
+      // `.vtag` não tem fundo na maquete: é só moldura sobre o chão da carta.
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(5),
       border: Border.all(color: destacada ? PWColors.accent : PWColors.border),
     ),
     child: Text(
@@ -249,8 +257,7 @@ class _Etiqueta extends StatelessWidget {
       style: TextStyle(
         color: destacada ? PWColors.accent : PWColors.textMuted,
         fontSize: 10.5,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.3,
+        letterSpacing: 0.63,
       ),
     ),
   );

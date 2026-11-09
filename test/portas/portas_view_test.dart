@@ -168,8 +168,8 @@ void main() {
       expect(_textoNaPorta('pw187', 'personagens à venda'), findsOneWidget);
       // The date is read in local time by `DateTime.toLocal()`, so the test
       // only pins the label — the exact day depends on where this suite runs.
-      expect(_contendoNaPorta('pw187', 'coletado em'), findsOneWidget);
-      expect(_contendoNaPorta('pw126', 'coletado em'), findsOneWidget);
+      expect(_contendoNaPorta('pw187', 'colhido em'), findsOneWidget);
+      expect(_contendoNaPorta('pw126', 'colhido em'), findsOneWidget);
       // Uma só: o 1.4.4 não lançou e a porta dele diz isso sempre, haja
       // coleta dos outros ou não.
       // **O selo «em breve» saiu a 09/11/2026** junto com as cartas 2:3: na
@@ -202,8 +202,16 @@ void main() {
       final portaFechada = tester.widget<Opacity>(_porta('pw126'));
       expect(portaFechada.opacity, lessThan(1));
 
-      final toqueFechado = tester.widget<InkWell>(
-        find.descendant(of: _porta('pw126'), matching: find.byType(InkWell)),
+      // **`GestureDetector` e nao `InkWell` desde 09/11/2026.** O realce da
+      // coluna passou a ser `rgba(255,180,84,.045)` por baixo do rato, que e
+      // o que a maquete faz; a ondulacao do Material desenhava um chao
+      // proprio e partia a faixa em tres cartas. `onTap` nulo continua a ser
+      // o que impede uma porta sem mercado de se abrir.
+      final toqueFechado = tester.widget<GestureDetector>(
+        find.descendant(
+          of: _porta('pw126'),
+          matching: find.byType(GestureDetector),
+        ),
       );
       expect(
         toqueFechado.onTap,
@@ -283,8 +291,8 @@ void main() {
         expect(_textoNaPorta('pw126', '1.2.6'), findsOneWidget);
         // Sem coleta nenhuma, as três ficam esmaecidas e com a descrição
         // delas — que é o que a coluna tem para dizer quando não tem número.
-        expect(tester.widget<Opacity>(_porta('pw187')).opacity, 0.5);
-        expect(tester.widget<Opacity>(_porta('pw126')).opacity, 0.5);
+        expect(tester.widget<Opacity>(_porta('pw187')).opacity, 0.62);
+        expect(tester.widget<Opacity>(_porta('pw126')).opacity, 0.62);
         expect(_contendoNaPorta('pw187', 'Aberto em junho'), findsOneWidget);
         expect(_contendoNaPorta('pw126', 'O mais antigo'), findsOneWidget);
         expect(find.textContaining('Não deu para carregar'), findsNothing);
@@ -356,22 +364,24 @@ void main() {
 
       await _montar(tester);
 
+      // **Marcellus no rotulo da versao, e isto inverteu-se a 09/11/2026.**
+      // A regra do projecto e que nenhum numero use a face de display --
+      // `150 TCC` sai `I5O`. Um rotulo de versao e outro caso: tres glifos
+      // com pontos a separa-los, a 30 px, e o `1` da Marcellus tem serifa em
+      // cima e base inteira. Conferido ampliando a maquete antes de copiar,
+      // e e o que ela faz: `.vz .v { font-family: var(--display) }`.
+      //
+      // O que **nao** mudou e a regra para os numeros, e as duas asercoes
+      // abaixo continuam a crava-la -- a maquete concorda, com
+      // `.num { font-family: var(--corpo) }`.
       final nomeDaPorta = tester.widget<Text>(_textoNaPorta('pw187', '1.8.7'));
-      expect(
-        nomeDaPorta.style?.fontFamily,
-        isNot(PWTheme.display),
-        reason:
-            'Marcellus draws Roman figures: its 1 has no flag and its 0 is '
-            'barely an O',
-      );
+      expect(nomeDaPorta.style?.fontFamily, PWTheme.display);
 
       // O número, que é o algarismo que mais importa não sair como `I.8.7`.
       final contagem = tester.widget<Text>(_contendoNaPorta('pw187', '1.715'));
       expect(contagem.style?.fontFamily, isNot(PWTheme.display));
 
-      final data = tester.widget<Text>(
-        _contendoNaPorta('pw187', 'coletado em'),
-      );
+      final data = tester.widget<Text>(_contendoNaPorta('pw187', 'colhido em'));
       expect(data.style?.fontFamily, isNot(PWTheme.display));
     });
   });
@@ -467,7 +477,12 @@ void main() {
       // O começo da frase, e nao ela inteira: o card corta em quatro linhas,
       // e cravar o texto todo faria este teste reprovar uma frase mais longa
       // que continua a desenhar bem.
-      final comeco = porta.descricao.split(',').first;
+      //
+      // **Corta tambem no ponto final desde 09/11/2026.** Uma versao fechada
+      // desenha a descricao em duas linhas de pesos diferentes — a abertura
+      // grande, o resto pequeno, como a maquete faz — portanto um trecho que
+      // atravesse o ponto nao existe em `Text` nenhum.
+      final comeco = porta.descricao.split(RegExp(r'[,.]')).first;
       expect(
         find.textContaining(comeco, findRichText: true),
         findsOneWidget,
@@ -547,7 +562,7 @@ void main() {
       );
       await _montar(tester);
 
-      expect(tester.widget<Opacity>(_porta('pw144')).opacity, 0.5);
+      expect(tester.widget<Opacity>(_porta('pw144')).opacity, 0.62);
       expect(find.textContaining('entraram hoje'), findsOneWidget);
     });
   });

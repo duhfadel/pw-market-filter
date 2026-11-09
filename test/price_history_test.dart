@@ -93,4 +93,36 @@ void main() {
       reason: 'zero is the default, not a row',
     );
   });
+
+  group('baixouPara', () {
+    // **A regra da queda vive aqui e é chamada pelos dois lados.** O card
+    // desenha o preço riscado e o filtro aceita o personagem; se cada um
+    // decidisse por sua conta, um card podia mostrar queda que o filtro não
+    // aceita, ou o contrário — que é o defeito que `bestMatchFor` já existe
+    // para impedir no equipamento.
+    PriceHistory com(int? antes) => PriceHistory(
+      firstSeen: DateTime.utc(2026, 10, 1),
+      previousPrice: antes,
+      lowestPrice: 100,
+    );
+
+    test('baixou quando o preço de antes era maior', () {
+      expect(com(500).baixouPara(400), isTrue);
+    });
+
+    test('subir não é queda', () {
+      // `previousPrice` é escrito em **qualquer** movimento, portanto sozinho
+      // não distingue uma subida de uma descida. É a comparação com o preço
+      // de agora que o faz.
+      expect(com(300).baixouPara(400), isFalse);
+    });
+
+    test('preço igual não é queda', () {
+      expect(com(400).baixouPara(400), isFalse);
+    });
+
+    test('quem nunca se moveu não baixou', () {
+      expect(com(null).baixouPara(400), isFalse);
+    });
+  });
 }

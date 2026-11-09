@@ -15,6 +15,7 @@ import 'widgets/ao_vivo_strip.dart';
 import 'widgets/cabecalho.dart';
 import 'widgets/cartaz.dart';
 import 'widgets/destaques_view.dart';
+import 'widgets/faixa_viva.dart';
 import 'widgets/ajuda_strip.dart';
 import 'widgets/discord_strip.dart';
 import 'widgets/rodape.dart';
@@ -226,7 +227,33 @@ class HomeView extends StatelessWidget {
                                         : _subtituloPw187,
                                   ),
                                   if (ready != null) ...[
-                                    SizedBox(height: wide ? 8 : 4),
+                                    SizedBox(height: wide ? 14 : 10),
+                                    // **Antes dos Destaques, e isso é a
+                                    // ordem da pergunta.** A faixa diz o
+                                    // tamanho e o movimento do mercado; os
+                                    // Destaques mostram seis pessoas dele.
+                                    // Invertido, as seis cartas chegariam
+                                    // antes de haver um mercado para elas
+                                    // pertencerem — e é o que a maquete
+                                    // tinha, que foi exactamente a falta
+                                    // que o dono apontou: «talvez falte a
+                                    // informaçao antes do market para que o
+                                    // pessoal entenda o que sao aqueles
+                                    // numeros».
+                                    _ComMargem(
+                                      wide: wide,
+                                      child: FaixaViva(
+                                        index: ready.index,
+                                        wide: wide,
+                                        onAbrir: (query) => _abrirBusca(
+                                          context,
+                                          ready.index,
+                                          query,
+                                          pw126: pw126,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: wide ? 14 : 10),
                                     _ComMargem(
                                       wide: wide,
                                       child: DestaquesView(

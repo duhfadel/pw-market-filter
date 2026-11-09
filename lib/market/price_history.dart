@@ -32,6 +32,24 @@ class PriceHistory {
   /// why this is counted rather than derived from the two prices.
   final int cuts;
 
+  /// Whether the price **fell** to [precoAgora].
+  ///
+  /// **A regra da queda vive aqui porque dois lados a leem**: o card desenha
+  /// o preço antigo riscado e o filtro aceita o personagem. Cada um a decidir
+  /// por sua conta é como um card passa a mostrar uma queda que o filtro não
+  /// aceita — o mesmo defeito que `bestMatchFor` existe para impedir no
+  /// equipamento.
+  ///
+  /// **Não é `cuts > 0`**, e a diferença morde: [cuts] conta quedas passadas,
+  /// portanto quem baixou e voltou a subir tem `cuts` positivo e preço acima
+  /// do que pedia. [previousPrice] também não chega sozinho — ele é escrito
+  /// em **qualquer** movimento, subida inclusive. É a comparação com o preço
+  /// de agora que confina isto à descida.
+  bool baixouPara(int precoAgora) {
+    final antes = previousPrice;
+    return antes != null && antes > precoAgora;
+  }
+
   Map<String, dynamic> toJson() => {
     'firstSeen': firstSeen.toUtc().toIso8601String(),
     if (previousPrice != null) 'previousPrice': previousPrice,

@@ -180,6 +180,23 @@ bool _matchesInventory(
   // em +2 e uma em +1 vale +1, e não aparece no filtro de +2 — é o que o
   // dono pediu, e a razão é que ali ele não cumpre o requisito. Faltar a
   // pedra numa peça derruba tudo, em vez de valer zero.
+  // **O mercado vivo: entrou há pouco, ou baixou o preço.**
+  //
+  // A idade conta-se contra `index.collectedAt` e não contra o relógio de
+  // quem abre a página — o índice descreve um momento, e medir por outro
+  // relógio faria a resposta mudar sem a coleta mudar.
+  final memoria = character.history;
+  final desdeQuando = query.novosEmDias;
+  if (desdeQuando != null) {
+    // Sem registo, nunca passa por novo: ninguém mediu quando ele entrou.
+    if (memoria == null) return false;
+    final dias = index.collectedAt.difference(memoria.firstSeen).inDays;
+    if (dias >= desdeQuando) return false;
+  }
+  if (query.soComQueda) {
+    if (memoria == null || !memoria.baixouPara(character.price)) return false;
+  }
+
   final conjunto = query.stoneSet;
   if (conjunto != null) {
     final nivel = stoneSetLevel(character, conjunto.kind);

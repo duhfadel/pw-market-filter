@@ -48,6 +48,8 @@ const _nameParam = 'nome';
 const _itemParam = 'item';
 const _comboParam = 'carta';
 const _comboRebirthParam = 'renasc';
+const _novosParam = 'novos';
+const _quedaParam = 'baixou';
 const _rarityParam = 'raridade';
 const _maxedParam = 'maximas';
 const _criterionParam = 'c';
@@ -112,6 +114,10 @@ String encodeQuery(SearchQuery query, [MarketIndex? index]) {
   put(_cultivationParam, query.cultivation);
   put(_levelParam, _encodeRange(query.minLevel, query.maxLevel));
   put(_priceParam, _encodeRange(query.minPrice, query.maxPrice));
+  final novos = query.novosEmDias;
+  if (novos != null) put(_novosParam, '$novos');
+  if (query.soComQueda) put(_quedaParam, '1');
+
   put(_comboParam, query.comboName);
   final renascimento = query.comboMinRebirth;
   // Só com o combo escrito, que é a mesma regra que o view-model impõe: um
@@ -275,6 +281,10 @@ SearchQuery decodeQuery(
   // does nothing, because the count on screen looks like an answer.
   final minFounderTier = grauDoRomano(first(_founderParam)?.trim() ?? '');
   final forjaMinima = int.tryParse(first(_forjaParam)?.trim() ?? '');
+  // Zero ou negativo não é pergunta nenhuma — «entrou há menos de zero dias»
+  // não tem resposta, e deixá-lo passar esvaziaria a grelha sem dizer porquê.
+  final novosCru = int.tryParse(first(_novosParam)?.trim() ?? '');
+  final novosEmDias = (novosCru != null && novosCru > 0) ? novosCru : null;
   // Um renascimento sem combo é descartado em vez de ficar à espera: o
   // matcher nunca o leria e ele continuaria a viajar no link, invisível — a
   // mesma razão por que um atributo que esta colecta já não tem deixa cair o
@@ -341,6 +351,8 @@ SearchQuery decodeQuery(
     maxPrice: maxPrice,
     name: first(_nameParam),
     itemBySlot: itemBySlot,
+    novosEmDias: novosEmDias,
+    soComQueda: first(_quedaParam) == '1',
     comboName: first(_comboParam),
     comboMinRebirth: comboMinRebirth,
     cardRarity: first(_rarityParam),

@@ -767,11 +767,12 @@ class _Queda extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final antes = history.previousPrice;
-    if (antes == null || antes <= price) return const SizedBox.shrink();
+    // A regra vive em `PriceHistory.baixouPara`, e o filtro chama a mesma:
+    // repeti-la aqui era como o card e o filtro vinham a discordar.
+    if (!history.baixouPara(price)) return const SizedBox.shrink();
 
     return Text(
-      '$antes',
+      '${history.previousPrice}',
       key: const ValueKey('queda'),
       style: const TextStyle(
         color: PWColors.textMuted,

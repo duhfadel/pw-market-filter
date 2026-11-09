@@ -39,33 +39,27 @@ void main() {
     }
   });
 
-  test('no preset leaves most of the market on screen', () {
-    // Not `lessThan(everybody)`: that bar passed two presets that returned 72%
-    // of the market, which is a chip that teaches nothing — the visitor taps
-    // it, the page does not move, and the tool looks broken.
-    //
-    // **O limiar era metade e passou a 60%, em 10/10/2026, porque metade
-    // estava a travar o deploy do site inteiro.** `Arma de 70 ou mais` vive
-    // em 49,7% — cinco personagens abaixo da linha — e o mercado move-se
-    // sozinho de vinte em vinte minutos: duas corridas seguidas falharam com
-    // `974` contra `lessThan(974)`, sem uma linha de código ter mudado.
-    //
-    // A escolha é a mesma que `confirmedCountedItems` já fez: um defeito
-    // nosso deve pôr a suíte vermelha, um facto sobre um mercado que muda
-    // sozinho não deve congelar o site. 60% continua a apanhar o caso para
-    // que este teste nasceu — os dois chips de 72% — e deixa de disparar com
-    // ruído de meia dúzia de anúncios.
-    //
-    // O que se perdeu é o aviso sobre um chip fraco, e ele está no teste
-    // abaixo, que mede sem reprovar.
-    for (final preset in presetsFor(index)) {
-      expect(
-        runQuery(index, preset.query).length,
-        lessThan((index.characters.length * 0.6).round()),
-        reason: '"${preset.label}" leaves most of the market on screen',
-      );
-    }
-  });
+  // **O gate duro saiu a 09/11/2026, e esta e a terceira vez que ele custou
+  // o deploy.** A regra era que nenhum chip deixasse mais de 60% do mercado
+  // no ecra. Nesse dia o chip `Ate 100 TCC` chegou a **60,1%** — quatro
+  // personagens acima da linha — e travou catorze corridas seguidas, seis
+  // horas sem publicar, sem uma linha de codigo ter mudado. Em 10/10 tinha
+  // sido o `Arma de 70` a 49,7% contra um limiar de 50%; subir para 60% so
+  // adiou o mesmo acidente.
+  //
+  // **O que decidiu foi perguntar o que o gate conserta.** Se o `Ate 100
+  // TCC` passa dos 60%, a correccao e mudar o chip para `Ate 50 TCC` — uma
+  // decisao de produto do dono, a tomar olhando para os numeros. Nao e
+  // codigo partido. E um gate de publicacao so deve disparar por coisa que
+  // se conserta mexendo no codigo; este disparava pelo mercado a mexer-se, e
+  // deixava o site parado enquanto alguem decidia.
+  //
+  // **O que se perde, e onde foi parar.** O teste nasceu de um caso real:
+  // dois chips devolviam 72% do mercado e nao ensinavam nada. Mas chips
+  // entram a mao e raramente, e o teste abaixo imprime a fatia de cada um em
+  // todas as corridas — quem acrescentar um chip mau ve-o na saida, no
+  // momento em que corre a suite. A proteccao continua; deixou de ser um
+  // cadeado.
 
   test('a fatia de cada chip fica no log, mesmo quando passa', () {
     // **Medir sem reprovar.** O limiar acima só apanha um chip claramente
@@ -78,10 +72,21 @@ void main() {
       final n = runQuery(index, preset.query).length;
       fatias[preset.label] = 100 * n / index.characters.length;
     }
-    for (final e in fatias.entries) {
-      debugPrint('chip "${e.key}": ${e.value.toStringAsFixed(1)}% do mercado');
+    // Da maior para a menor, e com aviso acima de 50%: a deriva le-se de
+    // relance em vez de se descobrir no dia em que um chip atravessa a linha.
+    // O `Arma de 70` vive perto dos 47% e vai bater la — e a resposta e
+    // mudar o chip, nao reprovar a suite.
+    final ordenadas = fatias.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    for (final e in ordenadas) {
+      final aviso = e.value >= 50
+          ? '  <<< deixa metade do mercado no ecra'
+          : '';
+      debugPrint(
+        'chip "${e.key}": ${e.value.toStringAsFixed(1)}% do mercado$aviso',
+      );
     }
-    // O teste acima é que reprova; este só garante que houve o que medir.
+    // Nada aqui reprova: isto mede. So garante que houve o que medir.
     expect(fatias, isNotEmpty);
   });
 

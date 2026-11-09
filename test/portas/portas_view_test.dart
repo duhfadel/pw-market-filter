@@ -41,11 +41,13 @@ VersaoResumo _resumo({
   String nome = '1.8.7',
   int personagens = 1715,
   DateTime? coletadoEm,
+  int? novosHoje,
 }) => VersaoResumo(
   chave: chave,
   nome: nome,
   personagens: personagens,
   coletadoEm: coletadoEm ?? DateTime.utc(2026, 10, 2, 7, 30),
+  novosHoje: novosHoje,
 );
 
 /// Every request the fake `versoes.json` endpoint received, so a test can
@@ -434,5 +436,77 @@ void main() {
         reason: 'A descrição da porta ${porta.nome} não chegou à tela',
       );
     }
+  });
+
+  group('o número que muda sozinho', () {
+    testWidgets('a porta diz quantos entraram hoje', (tester) async {
+      // Até 09/11/2026 a porta dizia o tamanho da loja e a data da coleta —
+      // dois números que mudam de semana a semana. Escolher mercado era um
+      // clique que não informava.
+      _registrarRepositorio(
+        _cliente(
+          (_) => _corpo({
+            'pw187': _resumo(personagens: 2953, novosHoje: 197).toJson(),
+          }),
+        ),
+      );
+      await _montar(tester);
+
+      expect(find.text('2.953 personagens à venda'), findsOneWidget);
+      expect(find.text('197 entraram hoje'), findsOneWidget);
+    });
+
+    testWidgets('um ficheiro anterior ao campo não desenha linha nenhuma', (
+      tester,
+    ) async {
+      // Os `versoes.json` já publicados não têm a chave. Lida como zero, a
+      // porta anunciaria um mercado parado onde o que há é um ficheiro velho.
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
+      );
+      await _montar(tester);
+
+      expect(find.textContaining('entraram hoje'), findsNothing);
+      expect(find.textContaining('entrou hoje'), findsNothing);
+      expect(find.textContaining('ninguém novo'), findsNothing);
+      // E o resto da porta continua lá: a ausência de um número não apaga os
+      // outros.
+      expect(find.text('1.715 personagens à venda'), findsOneWidget);
+    });
+
+    testWidgets('zero desenha, porque zero é notícia', (tester) async {
+      // Num mercado que se move de meia em meia hora, um dia sem ninguém
+      // novo é informação — e é o oposto de uma linha velha.
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo(novosHoje: 0).toJson()})),
+      );
+      await _montar(tester);
+
+      expect(find.text('ninguém novo hoje'), findsOneWidget);
+    });
+
+    testWidgets('um só não diz «1 entraram»', (tester) async {
+      // Com o mercado a crescer 17% em duas semanas, o dia de um só anúncio
+      // novo existe — e `1 entraram` lê-se como avaria.
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo(novosHoje: 1).toJson()})),
+      );
+      await _montar(tester);
+
+      expect(find.text('1 entrou hoje'), findsOneWidget);
+    });
+
+    testWidgets('a porta que ainda não abriu não ganha número', (tester) async {
+      // O 1.4.4 não tem índice nenhum, portanto não tem linha em
+      // `versoes.json` — e `em breve` é o que a porta diz em vez de um zero
+      // que leria como mercado vazio.
+      _registrarRepositorio(
+        _cliente((_) => _corpo({'pw187': _resumo(novosHoje: 197).toJson()})),
+      );
+      await _montar(tester);
+
+      expect(find.text('em breve'), findsNWidgets(2));
+      expect(find.textContaining('entraram hoje'), findsOneWidget);
+    });
   });
 }

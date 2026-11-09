@@ -50,6 +50,21 @@ class PriceHistory {
     return antes != null && antes > precoAgora;
   }
 
+  /// Se entrou no mercado há menos de [dias], medido contra [coletadoEm].
+  ///
+  /// **Contra a data da coleta e nunca contra o relógio de quem lê.** O índice
+  /// é servido por horas e um `DateTime.now()` aqui faria «entrou hoje» mudar
+  /// de resposta durante a leitura da mesma página — e à meia-noite o número
+  /// cairia para zero sem nada ter acontecido no mercado.
+  ///
+  /// **A regra vive aqui porque tem dois leitores**: o filtro, que a usa para
+  /// cortar a grelha, e o coletor, que conta quantos são para escrever o
+  /// número na porta da versão. Duas contagens da mesma pergunta é como a
+  /// porta e a grelha passam a discordar — a forma que já custou o pulso da
+  /// home a 30/09/2026.
+  bool entrouNosUltimos(int dias, DateTime coletadoEm) =>
+      coletadoEm.difference(firstSeen).inDays < dias;
+
   Map<String, dynamic> toJson() => {
     'firstSeen': firstSeen.toUtc().toIso8601String(),
     if (previousPrice != null) 'previousPrice': previousPrice,

@@ -525,6 +525,23 @@ class _Resumo extends StatelessWidget {
         // already uses over the same wash.
         style: const TextStyle(fontSize: 14, color: PWColors.apagado),
       ),
+      // **O número que muda sozinho, e é o que torna a porta informativa.**
+      // Até 09/11/2026 as duas portas diziam o tamanho da loja e a data — dois
+      // números que mudam de semana a semana — portanto escolher mercado era
+      // um clique que não informava. Quantos entraram *hoje* é a única coisa
+      // aqui que é diferente amanhã.
+      //
+      // **Ausente não desenha linha; zero desenha.** Um `versoes.json`
+      // anterior ao campo não pode fazer a porta anunciar um mercado parado,
+      // e um dia em que ninguém entrou é notícia num mercado que se move de
+      // meia em meia hora.
+      if (resumo.novosHoje != null) ...[
+        const SizedBox(height: 4),
+        Text(
+          _novos(resumo.novosHoje!),
+          style: const TextStyle(fontSize: 13, color: PWColors.accent),
+        ),
+      ],
       const SizedBox(height: 4),
       Text(
         'coletado em ${_data(resumo.coletadoEm.toLocal())}',
@@ -532,6 +549,15 @@ class _Resumo extends StatelessWidget {
       ),
     ],
   );
+
+  /// Singular e plural à mão, porque `1 entraram` lê-se como avaria — e com
+  /// um mercado a crescer 17% em duas semanas, o dia de um só anúncio novo
+  /// existe.
+  static String _novos(int quantos) => switch (quantos) {
+    0 => 'ninguém novo hoje',
+    1 => '1 entrou hoje',
+    _ => '${groupThousands(quantos)} entraram hoje',
+  };
 
   static String _data(DateTime d) {
     String two(int n) => n.toString().padLeft(2, '0');

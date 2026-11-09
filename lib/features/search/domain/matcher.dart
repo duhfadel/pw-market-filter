@@ -190,8 +190,7 @@ bool _matchesInventory(
   if (desdeQuando != null) {
     // Sem registo, nunca passa por novo: ninguém mediu quando ele entrou.
     if (memoria == null) return false;
-    final dias = index.collectedAt.difference(memoria.firstSeen).inDays;
-    if (dias >= desdeQuando) return false;
+    if (!memoria.entrouNosUltimos(desdeQuando, index.collectedAt)) return false;
   }
   if (query.soComQueda) {
     if (memoria == null || !memoria.baixouPara(character.price)) return false;

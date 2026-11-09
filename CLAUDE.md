@@ -1080,6 +1080,41 @@ exactamente o caso para que o carimbo deixou de ser um só. A conta contra o
 `timeout` foi refeita no mesmo commit, que é o momento em que ela tem de ser
 refeita e não o momento em que falha.
 
+## A porta da versão diz quantos entraram hoje
+
+Até 09/11/2026 as duas portas da raiz diziam o tamanho da loja e a data da
+coleta — **dois números que mudam de semana a semana** — portanto escolher
+mercado era um clique que não informava. `VersaoResumo.novosHoje` é a única
+coisa ali que é diferente amanhã: medido a 09/11, 380 no 1.8.7 e 189 no 1.2.6.
+
+**A regra vive em `PriceHistory.entrouNosUltimos` e tem dois leitores.** O
+filtro usa-a para cortar a grelha; o coletor usa-a para contar o número que
+escreve na porta. Duas contagens da mesma pergunta é como a porta anuncia um
+número e a grelha, ao abrir, mostra outro — a forma que já custou o pulso da
+home a 30/09/2026, e `novos_hoje_test` crava que os dois dão o mesmo.
+
+**Conta contra a data da coleta e nunca contra o relógio de quem lê.** O
+índice é servido por horas: um `DateTime.now()` ali faria «entrou hoje» mudar
+de resposta durante a leitura da mesma página, e à meia-noite o número cairia
+para zero sem nada ter acontecido no mercado.
+
+**Nulo e zero são coisas diferentes, e a porta desenha-os diferentes.** Zero
+quer dizer *ninguém entrou hoje*, que é notícia num mercado que se move de
+meia em meia hora, e sai como `ninguém novo hoje`. Ausente quer dizer *esta
+linha é anterior ao campo* — os `versoes.json` já publicados não a têm — e não
+desenha linha nenhuma. Escritos iguais, a porta anunciaria um mercado parado
+onde o que há é um ficheiro velho; é a mesma razão pela qual um conduíte sem
+atributo não desenha zero.
+
+**`VersaoResumo.doIndice` existe porque há dois escritores do ficheiro** — a
+coleta de uma versão e o `--escrever-versoes` que o refaz a partir do disco —
+e um campo acrescentado à mão nos dois é um campo esquecido num. Foi assim que
+o `require_level` morreu na travessia, e o `sexo`, e a `escada`.
+
+**E o número sai no log do coletor.** Ele desenha na porta, portanto um zero
+por defeito de contagem apareceria como *ninguém novo hoje* — uma frase
+credível — e passaria semanas sem ninguém reparar.
+
 ## Os guias têm versão, e a versão não é um pedaço do endereço
 
 Até 09/11/2026 havia **duas listas de guias que não sabiam uma da outra**:

@@ -754,7 +754,7 @@ void main() {
       await _montar(tester);
 
       expect(find.text('GUIAS'), findsOneWidget);
-      expect(find.text('ir para todos os guias →'), findsOneWidget);
+      expect(find.text('ver todos os guias →'), findsOneWidget);
       expect(find.text('1.8.7'), findsWidgets);
     });
   });

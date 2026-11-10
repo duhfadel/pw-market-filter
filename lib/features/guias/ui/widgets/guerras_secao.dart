@@ -111,7 +111,12 @@ class _GuerrasSecaoState extends State<GuerrasSecao> {
           // conta que já tirou a porta à cabeça dos Destaques no estreito, e
           // o que se perde é pouco: a secção inteira é a lista, e tocar numa
           // linha abre o vídeo.
-          porta: _videos == 0 || !widget.wide ? null : 'os $_videos →',
+          // **Com o número, ao contrário dos guias**, e a diferença é que
+          // aqui ele é verdade: os 47 são todos deste mercado, portanto
+          // dizê-lo é informação. Nos guias o total era do site inteiro.
+          porta: _videos == 0 || !widget.wide
+              ? null
+              : 'ver todos os $_videos →',
           // `/{versao}/guerras`, a mesma forma que `Tool.route` declara —
           // montada aqui a partir da versão em vez de passar pelo `Tool`,
           // porque o que esta porta tem na mão é o mercado e não a entrada

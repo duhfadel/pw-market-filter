@@ -219,7 +219,7 @@ class _Mercado extends StatelessWidget {
             onTap: () =>
                 abrirEndereco(context, '/$versao/guerras', externo: false),
             child: Text(
-              'os $quantos →',
+              'ver todos os $quantos →',
               style: const TextStyle(
                 color: PWColors.accent,
                 fontSize: 13,

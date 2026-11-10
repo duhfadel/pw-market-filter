@@ -149,7 +149,11 @@ void main() {
     // prometeria o que já está no ecrã.
     await _montar(tester, carregar: () async => _comoHoje());
 
-    expect(find.text('os 3 →'), findsNothing, reason: 'três e três é tudo');
+    expect(
+      find.text('ver todos os 3 →'),
+      findsNothing,
+      reason: 'três e três é tudo',
+    );
   });
 
   testWidgets('sem vídeo nenhum em lado nenhum não desenha nada', (

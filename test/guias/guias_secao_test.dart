@@ -70,11 +70,16 @@ void main() {
   ) async {
     for (final versao in ['1.8.7', '1.2.6']) {
       await montar(tester, versao);
-      // **A porta mudou de sítio e de palavra a 09/11/2026**: estava no fim
-      // da secção, depois de oito cartas, e só a encontrava quem rolasse até
-      // lá. Vive na cabeça agora, e diz o que a outra página acrescenta.
+      // **A porta mudou de sítio a 09/11/2026 e de palavra a 10/11**:
+      // estava no fim da secção, depois de oito cartas, e só a encontrava
+      // quem rolasse até lá. Vive na cabeça agora.
+      //
+      // E diz *todos* em vez de um número, porque o número mentia: era `os
+      // 8 →` numa tela de versão — o total do site, não o resto desta
+      // versão —, e no 1.2.6 prometia oito guias quando sete não servem
+      // aquele mercado.
       expect(
-        find.text('os ${guias.length} →'),
+        find.text('ver todos os guias →'),
         findsOneWidget,
         reason: 'sem ela, $versao lê como se o site tivesse só estes',
       );
@@ -168,7 +173,7 @@ void main() {
     // vez de cravar *Seis*. A porta é que passa a dizer que há mais.
     expect(find.text('GUIAS'), findsOneWidget);
     expect(find.text('TODOS OS GUIAS'), findsNothing);
-    expect(find.text('ir para todos os guias →'), findsOneWidget);
+    expect(find.text('ver todos os guias →'), findsOneWidget);
 
     expect(find.text('Cartas Nuema'), findsOneWidget);
     // Cinco de 1.8.7 e o das três versões, que subiu ao sexto lugar para

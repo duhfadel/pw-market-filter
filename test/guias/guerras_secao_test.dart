@@ -102,7 +102,7 @@ void main() {
     );
 
     expect(find.textContaining('Guerra '), findsNWidgets(4));
-    expect(find.text('os 7 →'), findsOneWidget);
+    expect(find.text('ver todos os 7 →'), findsOneWidget);
     expect(
       find.text('VÍDEOS DE GUERRAS TERRITORIAIS'),
       findsOneWidget,

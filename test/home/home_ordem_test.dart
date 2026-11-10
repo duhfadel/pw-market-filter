@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show FontLoader, rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -21,6 +20,8 @@ import 'package:pw_market_filter/market/index_repository.dart';
 import 'package:pw_market_filter/market/market_index.dart';
 import 'package:pw_market_filter/market/slot_names.dart';
 
+import '../support/load_fonts.dart';
+
 /// Where the assembled front page puts each section, top to bottom.
 ///
 /// One of these positions already cost an error and is recorded in
@@ -30,27 +31,17 @@ import 'package:pw_market_filter/market/slot_names.dart';
 /// from `Cabecalho`'s pill, so there is no longer a news position to pin
 /// here.
 
-/// Loads the real Marcellus and Inter files `pubspec.yaml` already declares,
-/// so this file measures text the way a browser does. Without this, the
-/// Cartaz's own headline overflows under `flutter_test`'s fake square-glyph
-/// metrics — a failure about the harness, not about the page.
-/// `cartaz_test.dart` is where this pattern was learned.
-Future<void> _carregarFontesReais() async {
-  Future<void> carregar(String familia, List<String> arquivos) async {
-    final carregador = FontLoader(familia);
-    for (final arquivo in arquivos) {
-      carregador.addFont(rootBundle.load(arquivo));
-    }
-    await carregador.load();
-  }
-
-  await carregar('Marcellus', ['assets/fonts/Marcellus-Regular.ttf']);
-  await carregar('Inter', [
-    'assets/fonts/Inter-Regular.ttf',
-    'assets/fonts/Inter-SemiBold.ttf',
-    'assets/fonts/Inter-Bold.ttf',
-  ]);
-}
+/// Este ficheiro tinha uma cópia própria do carregador de fontes, e **ela
+/// registava Marcellus e Inter mas não o Roboto** — que é a face que um
+/// `Text` sem família herda do tema. O resultado era um teste que media
+/// metade da página com as fontes verdadeiras e a outra metade com os
+/// quadrados do harness, sem nada o dizer.
+///
+/// Custou um falso transbordo de **128 px** a 10/11/2026, quando a porta dos
+/// guias passou a dizer `ver todos os guias →`: ela mede 120 px em Inter e
+/// 260 em quadrados, e o teste acusou a página de partir quando o que estava
+/// partido era a medição. `test/support/load_fonts.dart` carrega as três e
+/// explica porque o Roboto vem de fora do bundle.
 
 final _index = MarketIndex(
   server: 'pw187',
@@ -206,7 +197,7 @@ Future<void> _rolarAte(WidgetTester tester, Finder alvo) async {
 }
 
 void main() {
-  setUpAll(_carregarFontesReais);
+  setUpAll(loadAppFonts);
 
   testWidgets('the sections come in the order the spec fixed', (tester) async {
     // A market with real characters, so Destaques actually draws a section

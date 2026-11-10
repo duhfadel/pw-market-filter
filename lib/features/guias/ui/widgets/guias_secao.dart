@@ -87,13 +87,17 @@ class GuiasSecao extends StatelessWidget {
               : cortou
               ? 'Guias'
               : 'Todos os guias',
-          // E a porta diz o que a outra página acrescenta, em vez de repetir
-          // o que esta já mostra.
-          porta: versao != null
-              ? 'os ${guias.length} →'
-              : cortou
-              ? 'ir para todos os guias →'
-              : 'com tempo de leitura →',
+          // **A porta diz *todos* e não um número, e aqui o número mentia.**
+          // Era `os 8 →` numa tela de versão — o total do site, não o resto
+          // desta versão —, e no 1.2.6 isso ficava a prometer oito guias
+          // quando sete deles não servem aquele mercado. *Ver todos os
+          // guias* é exactamente o que a outra página tem, em qualquer tela.
+          //
+          // É a razão pela qual a secção das guerras mantém o número: lá os
+          // 47 são mesmo daquele mercado, portanto dizê-lo é informação e
+          // não ruído. Pedido do dono a 10/11/2026, nas palavras dele —
+          // *«Ver todos ao invés de Ver X»*.
+          porta: 'ver todos os guias →',
           aoTocarNaPorta: () =>
               abrirEndereco(context, '/guias/', externo: true),
         ),

@@ -74,6 +74,13 @@ class Cartaz extends StatelessWidget {
       altura: alturaDoHeroi(wide, MediaQuery.sizeOf(context).height),
       margemHorizontal: margemHorizontal,
       enquadramento: EnquadramentoDaArte.heroi,
+      // **A arte à altura em vez de esticada pela largura**, pedido do dono a
+      // 10/11/2026 depois de ver as três saídas lado a lado. Troca presença
+      // por nitidez: 1,06× em vez de 1,48×, e 507 px de arte em vez da caixa
+      // toda. A raiz não faz isto — lá a capa das dezassete resolve a
+      // nitidez sem abrir mão da arte a encher, e aqui não serviria porque
+      // mataria a rotação de classe por coleta.
+      semAmpliar: true,
       child: _Conteudo(
         acento: acento,
         wide: wide,

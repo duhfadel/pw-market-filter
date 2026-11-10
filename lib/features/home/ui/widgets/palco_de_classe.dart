@@ -27,6 +27,7 @@ class PalcoDeClasse extends StatelessWidget {
     required this.child,
     this.enquadramento = EnquadramentoDaArte.cartaz,
     this.capa = false,
+    this.semAmpliar = false,
     super.key,
   });
 
@@ -59,6 +60,24 @@ class PalcoDeClasse extends StatelessWidget {
   /// decisão do dono — *«usa a mesma imagem»*. Ali não há rotação a perder.
   final bool capa;
 
+  /// Desenhar a arte à altura da caixa, encostada à direita, em vez de a
+  /// esticar até encher a largura.
+  ///
+  /// **Troca presença por nitidez, e é uma decisão e não um ajuste.** Com
+  /// `cover` a arte de 960×1440 é esticada *pela largura* — 1,48× numa janela
+  /// de 1420 — e é isso que amolece o rosto. À altura ela fica a **1,06×**,
+  /// praticamente 1:1, e passa a ocupar 507 px fixos: a 1420 são 36% da
+  /// dobra, e num monitor de 1920 sobram 1400 px de chão à esquerda.
+  ///
+  /// O negro a perder opacidade da esquerda para a direita é o que impede o
+  /// corte a pique — foi o defeito que matou o painel encostado à direita na
+  /// raiz, e aqui o degradê resolve-o.
+  ///
+  /// A raiz não usa isto: ali a capa das dezassete já resolve a nitidez sem
+  /// abrir mão da arte a encher. Aqui não serve, porque mataria a rotação de
+  /// classe por coleta, que é o que faz a tela de versão mudar de cara.
+  final bool semAmpliar;
+
   @override
   Widget build(BuildContext context) {
     final arte = capa ? capaDasClasses : arteVerticalDaClasse(classe);
@@ -71,7 +90,9 @@ class PalcoDeClasse extends StatelessWidget {
         // over it, and the text sit in one stack of full-size layers.
         fit: StackFit.expand,
         children: [
-          if (arte != null)
+          if (arte != null && semAmpliar)
+            _ArteAAltura(caminho: arte)
+          else if (arte != null)
             _Arte(
               caminho: arte,
               // **A capa encosta à esquerda, e no desktop isso não muda
@@ -128,6 +149,75 @@ class _Arte extends StatelessWidget {
     // same silent fallback `arteVerticalDaClasse` itself makes for an
     // unmapped class.
     errorBuilder: (_, _, _) => const SizedBox.shrink(),
+  );
+}
+
+/// A arte à altura da caixa, encostada à direita, com o chão a desvanecer.
+///
+/// **Nunca esticada pela largura**, que é a diferença toda: `fitHeight` faz a
+/// arte caber na altura e sobrar à esquerda, em vez de a ampliar até tapar a
+/// caixa. A 760 px de caixa a arte dá 507 px de largura — a razão 960/1440 —
+/// e o que sobra é chão.
+///
+/// **O degradê é calculado a partir da borda da arte e não da caixa.** Posto
+/// em fracções fixas, ele desalinhava a cada largura de janela: a arte tem
+/// largura constante e a caixa não, portanto a fronteira entre as duas anda.
+/// `LayoutBuilder` é o que permite perguntar onde ela está.
+class _ArteAAltura extends StatelessWidget {
+  const _ArteAAltura({required this.caminho});
+
+  final String caminho;
+
+  /// A razão da arte vertical — 960 por 1440.
+  static const _razao = 2 / 3;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, limites) {
+      final larguraDaArte = limites.maxHeight * _razao;
+      final bordaDaArte = (limites.maxWidth - larguraDaArte).clamp(
+        0.0,
+        limites.maxWidth,
+      );
+      // O negro acaba de desvanecer a meio da arte: antes disso corta a
+      // figura, depois disso deixa a borda esquerda dela a pique.
+      final fim = ((bordaDaArte + larguraDaArte * 0.55) / limites.maxWidth)
+          .clamp(0.05, 1.0);
+
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          FittedBox(
+            fit: BoxFit.fitHeight,
+            alignment: Alignment.centerRight,
+            clipBehavior: Clip.hardEdge,
+            child: Image.asset(
+              caminho,
+              filterQuality: FilterQuality.high,
+              errorBuilder: (_, _, _) => const SizedBox.shrink(),
+            ),
+          ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: const [
+                  PWColors.background,
+                  PWColors.background,
+                  Colors.transparent,
+                ],
+                stops: [
+                  0,
+                  (bordaDaArte / limites.maxWidth).clamp(0.0, 1.0),
+                  fim,
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    },
   );
 }
 

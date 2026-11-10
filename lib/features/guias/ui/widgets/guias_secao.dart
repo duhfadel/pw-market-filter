@@ -27,7 +27,12 @@ import '../../domain/guia.dart';
 /// portanto a versão de cada guia é precisamente a informação que falta, e
 /// todas as cartas a levam.
 class GuiasSecao extends StatelessWidget {
-  const GuiasSecao({required this.versao, required this.wide, super.key});
+  const GuiasSecao({
+    required this.versao,
+    required this.wide,
+    this.limite = 6,
+    super.key,
+  });
 
   /// `1.8.7`, `1.2.6`, `1.4.4` — ou **nulo na raiz**, que serve as três e por
   /// isso lista todos.
@@ -39,10 +44,26 @@ class GuiasSecao extends StatelessWidget {
 
   final bool wide;
 
+  /// Quantos cabem na secção antes de a porta levar ao resto.
+  ///
+  /// **Seis e não oito, pedido do dono a 10/11/2026.** A grelha é de três
+  /// colunas no largo, portanto seis são duas filas cheias e oito deixam uma
+  /// fila coxa com duas cartas e um buraco de uma.
+  ///
+  /// A consequência a saber: o corte leva os **últimos** da declaração, e o
+  /// último é *Multi contas* — o único guia que serve as três versões, e
+  /// portanto o único que na raiz traz a etiqueta *todas as versões*. Movê-lo
+  /// para cima em `guia.dart` é o que o põe de volta à vista; a porta leva
+  /// lá de qualquer maneira.
+  final int limite;
+
   @override
   Widget build(BuildContext context) {
     final deCa = guiasDe(versao);
     if (deCa.isEmpty) return const SizedBox.shrink();
+
+    final mostrados = deCa.take(limite).toList();
+    final cortou = mostrados.length < deCa.length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -57,12 +78,22 @@ class GuiasSecao extends StatelessWidget {
           // escreve: a secção é um recorte e o título é o único sítio onde
           // isso se diz. Sem ele, quem chega ao 1.2.6 e vê uma carta lê um
           // site que tem um guia, em vez de uma versão que tem um.
-          titulo: versao == null ? 'Todos os guias' : 'Guias desta versão',
+          // **E `Todos os guias` deixa de ser verdade quando a secção corta.**
+          // Com seis de oito à vista, o título que diz *todos* mente — a
+          // mesma razão pela qual a cabeça dos Destaques conta por extenso
+          // em vez de cravar *Seis*.
+          titulo: versao != null
+              ? 'Guias desta versão'
+              : cortou
+              ? 'Guias'
+              : 'Todos os guias',
           // E a porta diz o que a outra página acrescenta, em vez de repetir
           // o que esta já mostra.
-          porta: versao == null
-              ? 'com tempo de leitura →'
-              : 'os ${guias.length} →',
+          porta: versao != null
+              ? 'os ${guias.length} →'
+              : cortou
+              ? 'ir para todos os guias →'
+              : 'com tempo de leitura →',
           aoTocarNaPorta: () =>
               abrirEndereco(context, '/guias/', externo: true),
         ),
@@ -87,7 +118,7 @@ class GuiasSecao extends StatelessWidget {
               spacing: espaco,
               runSpacing: espaco,
               children: [
-                for (final guia in deCa)
+                for (final guia in mostrados)
                   SizedBox(
                     width: largura,
                     child: _Carta(guia: guia, versao: versao, wide: wide),

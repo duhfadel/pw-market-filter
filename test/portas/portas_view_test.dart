@@ -744,14 +744,20 @@ void main() {
       tester,
     ) async {
       // Aqui a etiqueta de versão é a informação que falta — ao contrário de
-      // uma tela de versão, onde seria ruído em sete de oito cartas.
+      // uma tela de versão, onde seria ruído.
+      //
+      // **A secção corta em seis desde 10/11/2026**, portanto o título deixou
+      // de poder dizer *todos* e a porta passou a ser quem o diz. O guia das
+      // três versões é o último da declaração e fica fora do corte, o que
+      // `guias_secao_test` crava com a razão.
       _registrarRepositorio(
         _cliente((_) => _corpo({'pw187': _resumo().toJson()})),
       );
       await _montar(tester);
 
-      expect(find.text('TODOS OS GUIAS'), findsOneWidget);
-      expect(find.text('todas as versões'), findsOneWidget);
+      expect(find.text('GUIAS'), findsOneWidget);
+      expect(find.text('ir para todos os guias →'), findsOneWidget);
+      expect(find.text('1.8.7'), findsWidgets);
     });
   });
 }

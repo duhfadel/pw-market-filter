@@ -81,13 +81,31 @@ void main() {
     }
   });
 
-  testWidgets('só o guia de todas as versões ganha etiqueta', (tester) async {
-    // Escrever `1.8.7` em sete de oito cartas numa tela de 1.8.7 é ruído. O
-    // que vale dizer é qual delas não é de cá.
+  testWidgets('numa tela de versão nenhuma carta repete a versão', (
+    tester,
+  ) async {
+    // Escrever `1.8.7` em cartas de uma tela de 1.8.7 é ruído. O que vale
+    // dizer é qual delas não é de cá.
     await montar(tester, '1.8.7');
 
-    expect(find.text('todas as versões'), findsOneWidget);
     expect(find.text('1.8.7'), findsNothing);
+  });
+
+  testWidgets('o corte de seis leva o guia das três versões, e isso é sabido', (
+    tester,
+  ) async {
+    // **Consequência do limite pedido pelo dono a 10/11/2026**, cravada aqui
+    // para não passar despercebida: *Multi contas* é o último da declaração e
+    // o único que serve as três versões, portanto é o primeiro a cair — e com
+    // ele some a etiqueta *todas as versões*, que era o que a secção tinha
+    // para dizer sobre o escopo de cada guia.
+    //
+    // A porta leva lá de qualquer maneira. Pô-lo de volta à vista é movê-lo
+    // para cima em `guia.dart`, e é decisão de quem escreve os guias.
+    await montar(tester, '1.8.7');
+
+    expect(find.text('Multi contas'), findsNothing);
+    expect(find.text('todas as versões'), findsNothing);
   });
 
   testWidgets('nenhum minuto de leitura aqui', (tester) async {
@@ -138,13 +156,17 @@ void main() {
     // é precisamente a informação que falta.
     await montar(tester, null);
 
-    // Na raiz a secção é mesmo toda a lista; numa tela de versão é um
-    // recorte, e chamar-lhe «todos» afirmaria oito guias de 1.2.6.
-    expect(find.text('TODOS OS GUIAS'), findsOneWidget);
+    // **`Todos os guias` deixou de ser verdade** quando a secção passou a
+    // cortar em seis: um título que diz *todos* sobre seis de oito mente, que
+    // é a mesma razão pela qual a cabeça dos Destaques conta por extenso em
+    // vez de cravar *Seis*. A porta é que passa a dizer que há mais.
+    expect(find.text('GUIAS'), findsOneWidget);
+    expect(find.text('TODOS OS GUIAS'), findsNothing);
+    expect(find.text('ir para todos os guias →'), findsOneWidget);
+
     expect(find.text('Cartas Nuema'), findsOneWidget);
-    expect(find.text('Multi contas'), findsOneWidget);
-    // Sete cartas de 1.8.7 e uma de todas as versões.
-    expect(find.text('1.8.7'), findsNWidgets(guiasDe('1.8.7').length - 1));
-    expect(find.text('todas as versões'), findsOneWidget);
+    // Seis cartas, todas de 1.8.7 — o guia das três versões fica fora do
+    // corte. Ver o teste acima.
+    expect(find.text('1.8.7'), findsNWidgets(6));
   });
 }

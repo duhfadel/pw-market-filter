@@ -144,6 +144,25 @@ final guias = <Guia>[
     publicado: DateTime.utc(2026, 10, 28),
     versoes: const {'1.8.7'},
   ),
+  // **O sexto, e por isso no último lugar que a secção mostra.** Ela corta em
+  // seis e ele era o oitavo, portanto caía sempre fora — e é o único guia que
+  // serve as três versões, logo o único que traz a etiqueta *todas as
+  // versões*. Sem ele à vista, a secção perdia o que tinha para dizer sobre o
+  // escopo de cada guia, e o 1.2.6 ficava com uma carta na home e nenhuma na
+  // lista curta.
+  //
+  // Decisão do dono a 10/11/2026 — *«acho que vale a pena colocar o multi
+  // contas em todos»*. O preço é o conduíte passar a ser o primeiro de fora;
+  // com um tecto de seis, pôr um à vista tira outro.
+  Guia(
+    titulo: 'Multi contas',
+    linha:
+        'Jogar com mais de um cliente aberto: para que serve um segundo '
+        'personagem e o que é preciso para o aguentar.',
+    endereco: '/multicontas',
+    publicado: DateTime.utc(2026, 10, 5),
+    noApp: true,
+  ),
   Guia(
     titulo: 'O conduíte, do começo ao nível máximo',
     linha:
@@ -164,15 +183,6 @@ final guias = <Guia>[
   ),
   // **Serve as três, e é o único.** Fala do cliente do jogo e não de um
   // mercado — a mesma razão pela qual `/novidades` não tem prefixo de versão.
-  Guia(
-    titulo: 'Multi contas',
-    linha:
-        'Jogar com mais de um cliente aberto: para que serve um segundo '
-        'personagem e o que é preciso para o aguentar.',
-    endereco: '/multicontas',
-    publicado: DateTime.utc(2026, 10, 5),
-    noApp: true,
-  ),
 ];
 
 /// Os guias que servem [versao], na ordem da lista. `null` devolve todos.

@@ -91,21 +91,27 @@ void main() {
     expect(find.text('1.8.7'), findsNothing);
   });
 
-  testWidgets('o corte de seis leva o guia das três versões, e isso é sabido', (
-    tester,
-  ) async {
-    // **Consequência do limite pedido pelo dono a 10/11/2026**, cravada aqui
-    // para não passar despercebida: *Multi contas* é o último da declaração e
-    // o único que serve as três versões, portanto é o primeiro a cair — e com
-    // ele some a etiqueta *todas as versões*, que era o que a secção tinha
-    // para dizer sobre o escopo de cada guia.
+  testWidgets('o guia das três versões está sempre à vista', (tester) async {
+    // **Ele era o oitavo e o corte é de seis, portanto caía sempre fora** —
+    // e é o único que serve as três versões, logo o único que traz a etiqueta
+    // *todas as versões*. Sem ele, a secção perdia o que tinha para dizer
+    // sobre o escopo de cada guia.
     //
-    // A porta leva lá de qualquer maneira. Pô-lo de volta à vista é movê-lo
-    // para cima em `guia.dart`, e é decisão de quem escreve os guias.
+    // Subiu ao sexto lugar a 10/11/2026, por decisão do dono. O preço está
+    // no teste abaixo: com um tecto de seis, pôr um à vista tira outro.
     await montar(tester, '1.8.7');
 
-    expect(find.text('Multi contas'), findsNothing);
-    expect(find.text('todas as versões'), findsNothing);
+    expect(find.text('Multi contas'), findsOneWidget);
+    expect(find.text('todas as versões'), findsOneWidget);
+  });
+
+  testWidgets('e quem paga por isso é o conduíte', (tester) async {
+    // Cravado para a troca ser visível a quem mexer na ordem outra vez: não
+    // há seis cartas que caibam oito guias, e quem sobe empurra alguém.
+    await montar(tester, '1.8.7');
+
+    expect(find.text('O conduíte, do começo ao nível máximo'), findsNothing);
+    expect(find.text('Quests diárias'), findsNothing);
   });
 
   testWidgets('nenhum minuto de leitura aqui', (tester) async {
@@ -165,8 +171,9 @@ void main() {
     expect(find.text('ir para todos os guias →'), findsOneWidget);
 
     expect(find.text('Cartas Nuema'), findsOneWidget);
-    // Seis cartas, todas de 1.8.7 — o guia das três versões fica fora do
-    // corte. Ver o teste acima.
-    expect(find.text('1.8.7'), findsNWidgets(6));
+    // Cinco de 1.8.7 e o das três versões, que subiu ao sexto lugar para
+    // estar sempre à vista. Ver o teste acima.
+    expect(find.text('1.8.7'), findsNWidgets(5));
+    expect(find.text('todas as versões'), findsOneWidget);
   });
 }

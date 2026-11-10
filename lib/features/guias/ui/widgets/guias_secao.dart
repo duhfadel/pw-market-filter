@@ -52,7 +52,12 @@ class GuiasSecao extends StatelessWidget {
           // raiz ela é mesmo toda a lista; numa tela de versão é um recorte,
           // e chamar-lhe *todos* seria afirmar que o site tem oito guias de
           // 1.2.6 quando tem um.
-          titulo: versao == null ? 'Todos os guias' : 'Guias',
+          //
+          // E *desta versão* em vez de um `Guias` seco, que é o que a maquete
+          // escreve: a secção é um recorte e o título é o único sítio onde
+          // isso se diz. Sem ele, quem chega ao 1.2.6 e vê uma carta lê um
+          // site que tem um guia, em vez de uma versão que tem um.
+          titulo: versao == null ? 'Todos os guias' : 'Guias desta versão',
           // E a porta diz o que a outra página acrescenta, em vez de repetir
           // o que esta já mostra.
           porta: versao == null

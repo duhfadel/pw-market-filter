@@ -294,9 +294,9 @@ void main() {
     // secção lista os oito que servem esta versão, e é o que torna as duas
     // superfícies coisas diferentes em vez de uma duplicada.
     await _pumpHome(tester);
-    await _rolarAte(tester, find.text('GUIAS'));
+    await _rolarAte(tester, find.text('GUIAS DESTA VERSÃO'));
 
-    expect(find.text('GUIAS'), findsOneWidget);
+    expect(find.text('GUIAS DESTA VERSÃO'), findsOneWidget);
     expect(find.text('Cartas Nuema'), findsOneWidget);
     // A porta para a lista inteira, na cabeça da secção — é ela que separa
     // «os guias desta versão» de «os guias do site».

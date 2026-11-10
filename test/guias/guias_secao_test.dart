@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/features/guias/domain/guia.dart';
 import 'package:pw_market_filter/features/guias/ui/widgets/guias_secao.dart';
 
+import '../support/load_fonts.dart';
+
 /// The guides section on a version's screen.
 ///
 /// Runs on **both** marketplaces, because the two vocabularies are not the
@@ -11,6 +13,14 @@ import 'package:pw_market_filter/features/guias/ui/widgets/guias_secao.dart';
 /// only reachable from the 1.2.6 side. This repository has lost three defects
 /// to a test that only ever loaded one version.
 void main() {
+  // **Com as fontes reais, e isso não é zelo.** Sem elas o harness desenha
+  // cada glifo como um quadrado do tamanho da fonte, e os três testes de
+  // transbordo abaixo passam a medir a fonte falsa: `GUIAS DESTA VERSÃO` dava
+  // 281 px em quadrados contra os **177** que Marcellus desenha, e fabricava
+  // um transbordo de 6,3 px a 390 que nenhum navegador mostra. Um teste de
+  // largura sobre a fonte do harness mede o harness.
+  setUpAll(loadAppFonts);
+
   Future<void> montar(
     WidgetTester tester,
     String? versao, {
@@ -33,7 +43,7 @@ void main() {
   testWidgets('o 1.8.7 mostra os seus, com a linha de cada um', (tester) async {
     await montar(tester, '1.8.7');
 
-    expect(find.text('GUIAS'), findsOneWidget);
+    expect(find.text('GUIAS DESTA VERSÃO'), findsOneWidget);
     expect(find.text('Cartas Nuema'), findsOneWidget);
     expect(find.text('Quanto custa uma runa nível 10'), findsOneWidget);
     // A linha é o que separa um nome numa gaveta de um artigo vendido.
@@ -52,7 +62,7 @@ void main() {
     expect(find.text('Cartas Nuema'), findsNothing);
     // E a secção não nasce vazia, que era o risco de filtrar por versão numa
     // versão que ainda não tem guias próprios.
-    expect(find.text('GUIAS'), findsOneWidget);
+    expect(find.text('GUIAS DESTA VERSÃO'), findsOneWidget);
   });
 
   testWidgets('a porta para a lista inteira fica, nas duas versões', (

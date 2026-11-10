@@ -215,7 +215,7 @@ void main() {
     // de «vazio quer dizer todas» estivesse ao contrário.
     await _pumpHomePw126(tester);
 
-    expect(find.text('GUIAS'), findsOneWidget);
+    expect(find.text('GUIAS DESTA VERSÃO'), findsOneWidget);
     expect(find.text('Multi contas'), findsOneWidget);
     expect(find.text('Cartas Nuema'), findsNothing);
     expect(find.text('Quanto custa uma runa nível 10'), findsNothing);

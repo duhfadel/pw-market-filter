@@ -45,6 +45,13 @@ Future<void> _montar(
 /// O mercado real a 10/11/2026: tudo no 1.8.7, nada nos outros dois.
 List<Video> _comoHoje() => [
   _video(
+    youtube: 'z',
+    versao: '1.8.7',
+    detalhes: 'Nexus x Ragnarok',
+    personagem: 'COMECU',
+    data: DateTime.utc(2026, 10, 31),
+  ),
+  _video(
     youtube: 'a',
     versao: '1.8.7',
     detalhes: 'Sync x Genesys',
@@ -76,34 +83,53 @@ void main() {
     expect(find.text('1.4.4'), findsOneWidget);
     expect(find.text('1.8.7'), findsOneWidget);
     expect(find.textContaining('Ainda sem vídeos'), findsNWidgets(2));
-  });
-
-  testWidgets('cada mercado mostra a sua guerra mais recente, não a do site', (
-    tester,
-  ) async {
-    // Sem o agrupamento por versão, o 1.2.6 herdaria a guerra do 1.8.7 só por
-    // ela ser a mais recente de todas — que é o site a afirmar que houve uma
-    // guerra num mercado onde não houve.
-    await _montar(
-      tester,
-      carregar: () async => [
-        ..._comoHoje(),
-        _video(
-          youtube: 'c',
-          versao: '1.2.6',
-          detalhes: 'Antigos x Novos',
-          personagem: 'Baekchu',
-          data: DateTime.utc(2026, 10, 30),
-        ),
-      ],
-    );
-
+    // **Três de cada, não as três do site.** Sem a cota o 1.8.7 — 47 vídeos
+    // contra zero e zero — encheria a secção sozinho.
     expect(find.text('Sync x Genesys'), findsOneWidget);
-    expect(find.text('Antigos x Novos'), findsOneWidget);
-    expect(find.textContaining('Ainda sem vídeos'), findsOneWidget);
-    // A mais recente do 1.8.7 é a de 07/11, não a de 01/11.
-    expect(find.text('Ragnarok x BUDOKAI'), findsNothing);
+    expect(find.text('Ragnarok x BUDOKAI'), findsOneWidget);
   });
+
+  testWidgets(
+    'cada mercado lista as suas, da mais recente para a mais antiga',
+    (tester) async {
+      // Sem o agrupamento por versão, o 1.2.6 herdaria a guerra do 1.8.7 só por
+      // ela ser a mais recente de todas — que é o site a afirmar que houve uma
+      // guerra num mercado onde não houve.
+      await _montar(
+        tester,
+        carregar: () async => [
+          ..._comoHoje(),
+          _video(
+            youtube: 'c',
+            versao: '1.2.6',
+            detalhes: 'Antigos x Novos',
+            personagem: 'Baekchu',
+            data: DateTime.utc(2026, 10, 30),
+          ),
+        ],
+      );
+
+      expect(find.text('Sync x Genesys'), findsOneWidget);
+      expect(find.text('Antigos x Novos'), findsOneWidget);
+      expect(find.textContaining('Ainda sem vídeos'), findsOneWidget);
+      // O 1.8.7 lista as três dele, da mais recente para a mais antiga.
+      expect(find.text('Ragnarok x BUDOKAI'), findsOneWidget);
+      expect(find.text('Nexus x Ragnarok'), findsOneWidget);
+      final dy = [
+        for (final t in [
+          'Sync x Genesys',
+          'Ragnarok x BUDOKAI',
+          'Nexus x Ragnarok',
+        ])
+          tester.getTopLeft(find.text(t)).dy,
+      ];
+      expect(
+        dy,
+        orderedEquals([...dy]..sort()),
+        reason: 'a mais recente em cima',
+      );
+    },
+  );
 
   testWidgets('a etiqueta do mercado é a ouro', (tester) async {
     // Decisão do dono a 10/11/2026. O ouro é a cor do dinheiro nesta casa, e
@@ -115,12 +141,15 @@ void main() {
     expect(etiqueta.style?.color, PWColors.accent);
   });
 
-  testWidgets('a porta de cada coluna leva ao mercado dela', (tester) async {
+  testWidgets('a porta só aparece quando há mais do que o que se vê', (
+    tester,
+  ) async {
     // Uma porta só na régua teria de escolher um mercado, e a secção existe
-    // para não escolher.
+    // para não escolher. E uma porta a dizer «os 3 →» ao lado de três linhas
+    // prometeria o que já está no ecrã.
     await _montar(tester, carregar: () async => _comoHoje());
 
-    expect(find.text('os 2 →'), findsOneWidget);
+    expect(find.text('os 3 →'), findsNothing, reason: 'três e três é tudo');
   });
 
   testWidgets('sem vídeo nenhum em lado nenhum não desenha nada', (

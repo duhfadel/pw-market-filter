@@ -57,6 +57,14 @@ class UltimosVideosDeGuerra extends StatefulWidget {
   /// Injectável só para o teste; a secção monta o repositório ela própria.
   final Future<List<Video>> Function()? carregar;
 
+  /// Quantas guerras cada mercado lista.
+  ///
+  /// **Três e não uma, pedido do dono a 10/11/2026**, e a cota por mercado é
+  /// o que torna isso possível sem a secção virar a lista do 1.8.7: três de
+  /// *cada*, não as três mais recentes do site. Com 47 vídeos num mercado e
+  /// zero nos outros dois, uma lista sem cota seria sempre a mesma coluna.
+  static const porCada = 3;
+
   @override
   State<UltimosVideosDeGuerra> createState() => _UltimosVideosDeGuerraState();
 }
@@ -66,8 +74,8 @@ enum _Estado { aCarregar, falhou, pronto }
 class _UltimosVideosDeGuerraState extends State<UltimosVideosDeGuerra> {
   _Estado _estado = _Estado.aCarregar;
 
-  /// A guerra mais recente de cada mercado, pelo nome da versão.
-  Map<String, GuerraRecente> _porMercado = const {};
+  /// As guerras mais recentes de cada mercado, pelo nome da versão.
+  Map<String, List<GuerraRecente>> _porMercado = const {};
 
   /// Quantos vídeos cada mercado tem, para a porta de cada coluna.
   Map<String, int> _quantos = const {};
@@ -87,7 +95,7 @@ class _UltimosVideosDeGuerraState extends State<UltimosVideosDeGuerra> {
       final videos = await buscar();
       if (!mounted) return;
 
-      final porMercado = <String, GuerraRecente>{};
+      final porMercado = <String, List<GuerraRecente>>{};
       final quantos = <String, int>{};
       for (final porta in portasDe(const {})) {
         final dali = [
@@ -96,7 +104,11 @@ class _UltimosVideosDeGuerraState extends State<UltimosVideosDeGuerra> {
         ];
         quantos[porta.nome] = dali.length;
         final guerras = guerrasRecentes(dali);
-        if (guerras.isNotEmpty) porMercado[porta.nome] = guerras.first;
+        if (guerras.isNotEmpty) {
+          porMercado[porta.nome] = guerras
+              .take(UltimosVideosDeGuerra.porCada)
+              .toList();
+        }
       }
 
       setState(() {
@@ -143,7 +155,7 @@ class _UltimosVideosDeGuerraState extends State<UltimosVideosDeGuerra> {
                   Expanded(
                     child: _Mercado(
                       versao: porta.nome,
-                      guerra: _porMercado[porta.nome],
+                      guerras: _porMercado[porta.nome] ?? const [],
                       quantos: _quantos[porta.nome] ?? 0,
                     ),
                   ),
@@ -162,7 +174,7 @@ class _UltimosVideosDeGuerraState extends State<UltimosVideosDeGuerra> {
                 if (i > 0) const SizedBox(height: 18),
                 _Mercado(
                   versao: porta.nome,
-                  guerra: _porMercado[porta.nome],
+                  guerras: _porMercado[porta.nome] ?? const [],
                   quantos: _quantos[porta.nome] ?? 0,
                 ),
               ],
@@ -177,28 +189,48 @@ class _UltimosVideosDeGuerraState extends State<UltimosVideosDeGuerra> {
 class _Mercado extends StatelessWidget {
   const _Mercado({
     required this.versao,
-    required this.guerra,
+    required this.guerras,
     required this.quantos,
   });
 
   final String versao;
-  final GuerraRecente? guerra;
+  final List<GuerraRecente> guerras;
   final int quantos;
 
   @override
-  Widget build(BuildContext context) {
-    final guerra = this.guerra;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _Etiqueta(versao),
-        const SizedBox(height: 12),
-        if (guerra == null) ..._semVideos else ..._comGuerra(context, guerra),
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      _Etiqueta(versao),
+      const SizedBox(height: 12),
+      if (guerras.isEmpty)
+        ..._semVideos
+      else ...[
+        for (final (i, guerra) in guerras.indexed) ...[
+          if (i > 0) const SizedBox(height: 14),
+          _Guerra(guerra),
+        ],
+        if (quantos > guerras.length) ...[
+          const SizedBox(height: 12),
+          // A porta é de cada coluna e não da secção, porque cada mercado tem
+          // a sua página de guerras.
+          InkWell(
+            onTap: () =>
+                abrirEndereco(context, '/$versao/guerras', externo: false),
+            child: Text(
+              'os $quantos →',
+              style: const TextStyle(
+                color: PWColors.accent,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ],
-    );
-  }
+    ],
+  );
 
   /// **O convite em vez de um vazio**, que é a decisão do dono de 10/11/2026
   /// sobre a secção da home de versão, aplicada aqui pela mesma razão: um
@@ -221,66 +253,56 @@ class _Mercado extends StatelessWidget {
       style: TextStyle(color: PWColors.textMuted, fontSize: 13, height: 1.45),
     ),
   ];
+}
 
-  List<Widget> _comGuerra(BuildContext context, GuerraRecente guerra) => [
-    InkWell(
-      onTap: () => unawaited(
-        launchUrl(
-          Uri.parse(guerra.primeira.endereco),
-          mode: LaunchMode.externalApplication,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (guerra.manchete case final manchete?)
-            Text(
-              manchete,
-              style: const TextStyle(
-                color: PWColors.papel,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          if (guerra.quem case final quem?) ...[
-            const SizedBox(height: 4),
-            Text(
-              quem,
-              style: const TextStyle(color: PWColors.textMuted, fontSize: 12.5),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-          if (guerra.dataEscrita case final data?) ...[
-            const SizedBox(height: 2),
-            Text(
-              data,
-              style: const TextStyle(color: PWColors.textMuted, fontSize: 12.5),
-            ),
-          ],
-        ],
+/// Uma guerra da lista: o que foi, quem filmou, quando.
+class _Guerra extends StatelessWidget {
+  const _Guerra(this.guerra);
+
+  final GuerraRecente guerra;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: () => unawaited(
+      launchUrl(
+        Uri.parse(guerra.primeira.endereco),
+        mode: LaunchMode.externalApplication,
       ),
     ),
-    if (quantos > 1) ...[
-      const SizedBox(height: 10),
-      // A porta é de cada coluna e não da secção, porque cada mercado tem a
-      // sua página de guerras.
-      InkWell(
-        onTap: () => abrirEndereco(context, '/$versao/guerras', externo: false),
-        child: Text(
-          'os $quantos →',
-          style: const TextStyle(
-            color: PWColors.accent,
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (guerra.manchete case final manchete?)
+          Text(
+            manchete,
+            style: const TextStyle(
+              color: PWColors.papel,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-        ),
-      ),
-    ],
-  ];
+        if (guerra.quem case final quem?) ...[
+          const SizedBox(height: 3),
+          Text(
+            quem,
+            style: const TextStyle(color: PWColors.textMuted, fontSize: 12.5),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+        if (guerra.dataEscrita case final data?) ...[
+          const SizedBox(height: 2),
+          Text(
+            data,
+            style: const TextStyle(color: PWColors.textMuted, fontSize: 12.5),
+          ),
+        ],
+      ],
+    ),
+  );
 }
 
 /// A etiqueta do mercado, a ouro.

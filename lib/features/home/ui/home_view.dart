@@ -15,6 +15,7 @@ import 'widgets/ao_vivo_strip.dart';
 import 'widgets/cabecalho.dart';
 import 'widgets/cartaz.dart';
 import 'widgets/destaques_view.dart';
+import '../../guias/ui/widgets/guerras_secao.dart';
 import '../../guias/ui/widgets/guias_secao.dart';
 import 'widgets/faixa_viva.dart';
 import 'widgets/tool_navigation.dart';
@@ -341,6 +342,24 @@ class HomeView extends StatelessWidget {
                           _ComMargem(
                             wide: wide,
                             child: GuiasSecao(
+                              versao: pw126 ? rotas.pw126 : rotas.pw187,
+                              wide: wide,
+                            ),
+                          ),
+                          SizedBox(height: wide ? 26 : 20),
+                          // **As guerras, e os vídeos sem o mapa.** A maquete
+                          // desenhava os dois lado a lado; o painel do mapa
+                          // saiu por duas razões medidas a 10/11/2026 — os
+                          // territórios não mudam desde 18/08, e `/guerras/`
+                          // está `noindex` e foi retirada do site de
+                          // propósito a 29/09. Ver `GuerrasSecao`.
+                          //
+                          // Depois dos Guias e antes dos streamers: é
+                          // comunidade a mostrar o que fez, e pertence a esse
+                          // lado da página.
+                          _ComMargem(
+                            wide: wide,
+                            child: GuerrasSecao(
                               versao: pw126 ? rotas.pw126 : rotas.pw187,
                               wide: wide,
                             ),

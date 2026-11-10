@@ -2,12 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/rotas.dart' as rotas;
 import '../../../core/theme/pw_colors.dart';
 import '../../../core/widgets/game_icon.dart';
-import '../../home/domain/community.dart';
 import '../../home/ui/widgets/cabecalho.dart';
 import '../../home/ui/widgets/rodape.dart';
 import '../../search/ui/search_state.dart';
@@ -15,6 +13,7 @@ import '../../search/ui/search_view_model.dart';
 import '../data/video_repository.dart';
 import '../domain/video.dart';
 import 'widgets/cartao_de_video.dart';
+import 'widgets/convite_de_video.dart';
 
 /// A tela de uma seção de vídeos: busca, filtro por classe, grelha e convite.
 ///
@@ -205,7 +204,7 @@ class _Conteudo extends StatelessWidget {
                 else
                   GrelhaDeVideos(videos: mostrados),
                 const SizedBox(height: 28),
-                const _Convite(),
+                const ConviteDeVideo(chamada: 'Quer o seu vídeo aqui?'),
                 const SizedBox(height: 28),
                 const Rodape(),
               ],
@@ -389,61 +388,6 @@ class _SemVideos extends StatelessWidget {
             : 'Ainda não há vídeos aqui.',
         style: const TextStyle(color: PWColors.textMuted, fontSize: 14),
       ),
-    ),
-  );
-}
-
-/// O convite, sempre visível.
-///
-/// **Não só quando a grelha está vazia**, e a razão é a própria política da
-/// página: como nada é garimpado, ela depende de alguém se oferecer.
-/// Escondê-lo depois de entrar o primeiro vídeo fecharia a porta por onde a
-/// página se enche.
-class _Convite extends StatelessWidget {
-  const _Convite();
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: PWColors.surface,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: PWColors.border),
-    ),
-    child: Wrap(
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 6,
-      runSpacing: 4,
-      children: [
-        const Text(
-          'Quer o seu vídeo aqui?',
-          style: TextStyle(
-            color: PWColors.papel,
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        InkWell(
-          onTap: () => unawaited(
-            launchUrl(
-              Uri.parse(discordInvite),
-              mode: LaunchMode.externalApplication,
-            ),
-          ),
-          child: const Text(
-            'Fale comigo no Discord',
-            style: TextStyle(
-              color: PWColors.accent,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        const Text(
-          'ou me procure no jogo, nick duhit.',
-          style: TextStyle(color: PWColors.textMuted, fontSize: 14),
-        ),
-      ],
     ),
   );
 }

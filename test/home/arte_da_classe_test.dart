@@ -100,54 +100,55 @@ void main() {
       // invisível: a mesma razão por que `paginas_html_test` passou a exigir
       // que toda a imagem que uma página pede exista em disco.
       //
-      // Pega o caso que importa: as 480 foram movidas para a sua pasta e as
-      // 960 chegaram com nomes `pw-01..17`. Um emparelhamento errado entre as
-      // duas listas não se vê de outra forma.
+      // Pega o caso que importa: as 960 chegaram com nomes `pw-01..17` e
+      // foram emparelhadas por assinatura antes de serem renomeadas. Um
+      // emparelhamento errado não se vê de outra forma.
       for (final classe in classesComArte) {
-        for (final tamanho in TamanhoDaArte.values) {
-          final caminho = arteVerticalDaClasse(classe, tamanho: tamanho)!;
-          expect(
-            File(caminho).existsSync(),
-            isTrue,
-            reason: '$classe em ${tamanho.largura}: falta $caminho',
-          );
-        }
+        final caminho = arteVerticalDaClasse(classe)!;
+        expect(
+          File(caminho).existsSync(),
+          isTrue,
+          reason: '$classe: falta $caminho',
+        );
       }
     },
   );
 
-  test('cada tamanho tem a largura que o nome promete', () {
+  test('a pasta tem a largura que o nome promete', () {
     // Um ficheiro de 480 guardado na pasta 960 serviria metade dos píxeis
     // sob um nome que promete o dobro — e nada na página diria, porque
     // `BoxFit.cover` estica o que lhe derem. O cabeçalho WebP é a prova.
+    //
+    // **Isto ficou mais importante depois de os 480 saírem**, não menos:
+    // agora não há um segundo tamanho a desmentir um ficheiro trocado, e
+    // o caminho leva o número em cima.
     for (final classe in classesComArte) {
-      for (final tamanho in TamanhoDaArte.values) {
-        final caminho = arteVerticalDaClasse(classe, tamanho: tamanho)!;
-        expect(
-          _larguraWebp(File(caminho).readAsBytesSync()),
-          tamanho.largura,
-          reason: '$classe em ${tamanho.largura}',
-        );
-      }
+      final caminho = arteVerticalDaClasse(classe)!;
+      expect(
+        _larguraWebp(File(caminho).readAsBytesSync()),
+        larguraDaArteVertical,
+        reason: classe,
+      );
     }
   });
 
-  test('só o palco pede o tamanho grande, e ele é um só', () {
-    // Servir 960 a todos custaria 600 KB a mais em cada abertura da home, e
-    // seis dos sete ficheiros que a visita busca já recebem mais píxeis do
-    // que desenham. Se um segundo chamador passar a pedir `cartaz`, que seja
-    // uma decisão e não um descuido.
+  test('a arte vertical tem um chamador só, e é o palco', () {
+    // **Um tamanho só desde 10/11/2026**, quando os 480 saíram por não terem
+    // chamador — os Destaques passaram ao recorte. O que este teste guardava
+    // era que só um sítio pedia a arte grande; agora guarda que só um sítio
+    // pede a arte vertical, que é o mesmo facto com a escolha já feita.
     //
-    // **E foi decisão, a 09/11/2026.** O ficheiro mudou de `cartaz.dart`
-    // para `palco_de_classe.dart` porque a raiz ganhou um herói e as duas
-    // telas passaram a partilhar o dispositivo em vez de o copiar. O número
-    // de chamadores não subiu: continua a ser **um**, e é esse o facto que
-    // este teste guarda. Dois sítios a pedir 960 seria o descuido.
+    // O palco desenha-a no Cartaz e no herói da raiz, e é o único lugar do
+    // site que a **amplia**: a caixa é da largura da página. Um segundo
+    // chamador tem de ser uma decisão e não um descuido — qualquer cartão
+    // que a queira está a pedir quatro vezes os píxeis que mostra, e o que
+    // lhe serve é `recorteDaClasse`.
     final pedem = Directory('lib')
         .listSync(recursive: true)
         .whereType<File>()
         .where((f) => f.path.endsWith('.dart'))
-        .where((f) => f.readAsStringSync().contains('TamanhoDaArte.cartaz'))
+        .where((f) => f.uri.pathSegments.last != 'arte_da_classe.dart')
+        .where((f) => f.readAsStringSync().contains('arteVerticalDaClasse('))
         .map((f) => f.uri.pathSegments.last)
         .toList();
 

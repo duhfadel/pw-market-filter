@@ -94,10 +94,7 @@ void main() {
     // Lido da função e não cravado à mão: um caminho escrito aqui divergiria
     // no dia em que a função mudasse de pasta, que é precisamente o que
     // aconteceu a 06/11/2026 ao entrarem os dois tamanhos.
-    expect(
-      imagens,
-      contains(arteVerticalDaClasse('Bárbaro', tamanho: TamanhoDaArte.cartaz)),
-    );
+    expect(imagens, contains(arteVerticalDaClasse('Bárbaro')));
     // E é o tamanho grande que ele pede, porque o Cartaz é o único sítio que
     // amplia a arte — a caixa é da largura da página.
     expect(imagens.single, contains('/960/'));

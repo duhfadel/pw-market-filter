@@ -46,7 +46,7 @@ class PalcoDeClasse extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final arte = arteVerticalDaClasse(classe, tamanho: TamanhoDaArte.cartaz);
+    final arte = arteVerticalDaClasse(classe);
 
     return SizedBox(
       width: double.infinity,

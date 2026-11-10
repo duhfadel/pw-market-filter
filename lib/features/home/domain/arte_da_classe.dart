@@ -56,39 +56,24 @@ const classesComArte = [
   'Tormentador',
 ];
 
-/// Os dois tamanhos em que a arte vertical existe, em píxeis de largura.
+/// A largura em que a arte vertical existe, em píxeis.
 ///
-/// **São duas pastas e uma regra de endereço, não duas listas de ficheiros.**
-/// A classe é o facto; a pasta é escolhida por quem desenha, conforme a caixa
-/// que vai preencher. É o mesmo arranjo do ícone de item, derivado do id, e é
-/// por isso que acrescentar um terceiro tamanho não toca em [_classes].
-enum TamanhoDaArte {
-  /// **Sem chamador desde 09/11/2026, e mantida por decisão do dono.**
-  ///
-  /// Servia os Destaques, que a largaram quando o fundo do card passou a ser
-  /// o degradê do patamar e a figura passou a ser o recorte — ver
-  /// [recorteDaClasse]. São 906 KB em disco que a app não desenha, e a regra
-  /// desta casa apagá-los-ia: foi o que aconteceu à irmã quadrada
-  /// `arteDaClasse` a 01/10/2026, viva só pelo próprio teste.
-  ///
-  /// Fica porque foi pedido que ficasse. O raciocínio original continua
-  /// válido para quem a voltar a usar: num cartão de ~120 px, 480 já é
-  /// quatro vezes o que o ecrã mostra, e servir 960 seria pagar píxeis que
-  /// ninguém vê.
-  cartao(480),
-
-  /// Para o Cartaz, que é o único sítio que **amplia** a arte: a caixa é da
-  /// largura da página por 360 px de altura, com `BoxFit.cover`, portanto numa
-  /// página de 1280 px uma fonte de 480 é esticada 2,67× — 5,3× em `DPR 2`.
-  /// Medido a 06/11/2026: as artes de 960 trazem **1,94×** mais energia de
-  /// borda do que as de 480 ampliadas para o mesmo tamanho, o que as prova
-  /// fonte verdadeira e não um upscale, que daria 1,00×.
-  cartaz(960);
-
-  const TamanhoDaArte(this.largura);
-
-  final int largura;
-}
+/// **Era um par — 480 para cartões, 960 para o Cartaz — e os 480 saíram a
+/// 10/11/2026, por decisão do dono.** Ficaram sem chamador quando os
+/// Destaques passaram a desenhar [recorteDaClasse] sobre o degradê do
+/// patamar, e eram 906 KB de ficheiros que a app não desenhava.
+///
+/// **Não se perdeu arte: eram a mesma cena, em metade do tamanho.** Medido
+/// antes de apagar — reduzindo cada 960 para 480 e comparando píxel a píxel,
+/// a diferença média é de **5,2 em 255**, com o pior caso no espiritualista
+/// a 9,5. Isso é compressão, não um desenho diferente. Se um cartão voltar a
+/// querer a cena pintada em pequeno, sai daqui com um `cwebp` e sem rede.
+///
+/// Fica como constante e não como enum de um valor só: o número é o que o
+/// `arte_da_classe_test` lê do cabeçalho WebP de cada ficheiro, para que um
+/// 480 guardado nesta pasta não sirva metade dos píxeis sob um nome que
+/// promete o dobro.
+const larguraDaArteVertical = 960;
 
 /// The art for [classe] at the 2:3 crop, or `null` where none was ever
 /// supplied.
@@ -97,26 +82,24 @@ enum TamanhoDaArte {
 /// A hero showing somebody else's face would be worse than a hero showing no
 /// face at all.
 ///
-/// **[tamanho] existe porque só um chamador amplia.** Servir 960 a todos
-/// custaria 600 KB a mais em cada abertura da home — a visita busca sete
-/// ficheiros, uma classe para o Cartaz e seis para os Destaques — e seis
-/// desses sete já recebem mais píxeis do que desenham. O valor por omissão é
-/// o do cartão, que é o caso comum.
+/// **Um tamanho só, e um chamador só.** O [PalcoDeClasse] é quem a desenha —
+/// no Cartaz e no herói da raiz — e é o único sítio do site que **amplia** a
+/// arte: a caixa é da largura da página, portanto numa página de 1280 px uma
+/// fonte de 480 seria esticada 2,67×, e 5,3× em `DPR 2`. É por isso que os
+/// 960 ficaram e os 480 saíram, e não ao contrário.
 ///
 /// This used to have a square 560 sibling, `arteDaClasse`, cropped to put the
 /// face a fifth from the top for a half-width card. It was deleted on
 /// 2026-10-01 once the Cartaz moved to this tall crop and nothing else ever
 /// called the square one — kept alive only by its own test, which is the
 /// inverse of the failure CLAUDE.md names when it says "a codec with no test
-/// is where a field goes to die". `assets/images/classes/` went with it.
-String? arteVerticalDaClasse(
-  String classe, {
-  TamanhoDaArte tamanho = TamanhoDaArte.cartao,
-}) {
+/// is where a field goes to die". `assets/images/classes/` went with it, and
+/// `classes-verticais/480/` followed it a month later, for the same reason.
+String? arteVerticalDaClasse(String classe) {
   final entrada = _classes[classe];
   return entrada == null
       ? null
-      : 'assets/images/classes-verticais/${tamanho.largura}/'
+      : 'assets/images/classes-verticais/$larguraDaArteVertical/'
             '${entrada.arquivo}.webp';
 }
 
@@ -132,9 +115,9 @@ String? arteVerticalDaClasse(
 ///
 /// **Um endereço derivado da mesma tabela**, pela razão que
 /// [arteVerticalDaClasse] já carrega: uma segunda lista de ficheiros é uma
-/// segunda lista para divergir. Daí também não haver [TamanhoDaArte] aqui —
-/// existe um tamanho só, 560 px, e o maior cartão que o desenha tem 330, pelo
-/// que ninguém o amplia. Um segundo tamanho seria pagar píxeis que ninguém vê.
+/// segunda lista para divergir. Um tamanho só, 560 px: o maior cartão que o
+/// desenha tem 330, pelo que ninguém o amplia, e um segundo tamanho seria
+/// pagar píxeis que ninguém vê.
 ///
 /// `null` para uma classe que nunca existiu, como a arte vertical: o chão
 /// liso, nunca a cara de outra pessoa.

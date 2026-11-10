@@ -1024,48 +1024,61 @@ mais abaixo nesta mesma página — e virou um link direto que rola a página at
 lá (`Scrollable.ensureVisible`), em vez de um menu que abriria para mostrar
 uma entrada só.
 
-## A arte das classes existe em dois tamanhos, e só o Cartaz pede o grande
+## A arte das classes: uma cena pintada e um recorte
 
-`arteVerticalDaClasse` resolve `classes-verticais/480/` ou `/960/` conforme
-quem desenha — **duas pastas e uma regra de endereço, não duas listas de
-ficheiros**, o mesmo arranjo do ícone de item derivado do id. Acrescentar um
-terceiro tamanho não toca na tabela de classes.
+São **duas ilustrações por classe e não duas cópias da mesma**, e confundi-las
+é como alguém as "arruma" apagando uma:
 
-**O Cartaz é o único chamador que amplia a arte, e é por isso que o parâmetro
-existe.** A caixa dele é da largura da página por 360 px, com `BoxFit.cover`,
-portanto numa página de 1280 px uma fonte de 480 é esticada **2,67×** — 5,3×
-em `DPR 2`. Os Destaques a seis colunas dão ~120 px por carta e as Portas
-menos: ali 480 já é quatro vezes o que o ecrã mostra, e servir 960 seria
-pagar por píxeis que ninguém vê.
+| pasta | o que é | quem a desenha |
+|---|---|---|
+| `classes-verticais/960/` | a cena pintada, 960×1440 | o `PalcoDeClasse` — o Cartaz e o herói da raiz |
+| `classes-recorte/` | a arte do marketplace deles, já sem fundo, 560×~540 | os seis Destaques |
 
-**A conta que decidiu, por visita de home** — uma classe para o Cartaz e seis
-para os Destaques, sete ficheiros:
+**As verticais não dão recorte, e isso foi medido a 09/11/2026.** Não têm
+canal alfa e não têm fundo chapado: os quatro cantos de cada uma discordam
+entre si até **209 de 255**. Só o Bárbaro e o Paladino têm fundo liso. E há
+pior do que técnica — **em quinze das dezassete o efeito do próprio
+personagem *é* o fundo**: o gelo que envolve o Bardo, o fogo em volta da
+Feiticeira. Ali «só o personagem» não tem fronteira definida, e qualquer
+recorte ou come a magia dele ou traz um pedaço de céu junto.
 
-| | por visita |
-|---|---|
-| tudo a 480, como estava | 373 KB |
-| tudo a 960 | 1009 KB |
-| 1×960 + 6×480, o que ficou | **464 KB** |
+Os recortes vieram de outro lado: são a arte que o marketplace deles publica
+em `marketplace.theclassic.games/assets/img/<ocupacao>.png`, buscada em
+Novembro para as páginas da Saga do Herói, com 51% a 81% de transparência. A
+casa é `assets/images/classes-recorte/` e `tool/sagas/pagina.py` escreve a
+cópia que as páginas estáticas servem; `recorte_da_classe_test` crava que as
+duas pastas são byte a byte iguais. Substituir só uma delas deixava a página
+da Saga e o card a mostrar artes diferentes da mesma classe, sem erro nenhum
+— que é a forma com que a arte do Ceifador já se perdeu uma vez.
 
-**As artes novas são fonte verdadeira e isso foi medido, não suposto.**
-Energia de borda das de 960 contra as nossas de 480 ampliadas para o mesmo
-tamanho: **1,94× de média** sobre as dezassete. Um upscale daria 1,00×. E são
-a mesma arte, não outra — o espiritualista, que mais se destacou, tem 9,5/255
-de diferença média por canal à mesma escala.
+**O tamanho de 480 saiu a 10/11/2026.** Havia duas pastas de verticais e um
+parâmetro a escolher entre elas, porque só o Cartaz ampliava; quando os
+Destaques passaram ao recorte, a de 480 ficou sem chamador — 906 KB que a app
+não desenhava. **Não se perdeu arte: era a mesma cena em metade do tamanho.**
+Medido antes de apagar, reduzindo cada 960 a 480 e comparando píxel a píxel,
+a diferença média é **5,2 em 255**, com o pior caso no espiritualista a 9,5 —
+compressão, não desenho diferente. Se um cartão voltar a querer a cena
+pintada em pequeno, sai das de 960 com um `cwebp` e sem rede.
+
+**As de 960 são fonte verdadeira e isso também foi medido, não suposto.**
+Energia de borda contra as de 480 ampliadas ao mesmo tamanho: **1,94× de
+média** sobre as dezassete. Um upscale daria 1,00×.
 
 **Chegaram como `pw-01..17` e o emparelhamento é por ordem alfabética**, o
 que foi confirmado por assinatura de 16×16 antes de renomear: distância 1 a 6
 contra a classe certa, 45 a 85 contra a segunda melhor. Não se adivinhou.
 
 **Três testes guardam isto, e o segundo é o que não é óbvio.** Que toda a arte
-declarada existe em disco nos dois tamanhos — `errorBuilder` engole o 404 de
-propósito, para uma classe sem arte desenhar o chão em vez de uma caixa
-partida, e é isso mesmo que torna a falta invisível. Que **cada ficheiro tem a
-largura que o nome da pasta promete**, lida do cabeçalho WebP: um 480 guardado
-em `960/` serviria metade dos píxeis sob um nome que promete o dobro, e nada na
-página diria, porque `BoxFit.cover` estica o que lhe derem. E que o Cartaz
-continua a ser o único a pedir o tamanho grande, para um segundo chamador ser
-uma decisão e não um descuido.
+declarada existe em disco — `errorBuilder` engole o 404 de propósito, para
+uma classe sem arte desenhar o chão em vez de uma caixa partida, e é isso
+mesmo que torna a falta invisível. Que **o ficheiro tem a largura que o nome
+da pasta promete**, lida do cabeçalho WebP: um 480 guardado em `960/` serviria
+metade dos píxeis sob um nome que promete o dobro, e nada na página diria,
+porque `BoxFit.cover` estica o que lhe derem — e isto ficou *mais* importante
+depois de o segundo tamanho sair, porque já não há outro a desmentir um
+ficheiro trocado. E que a vertical tem **um chamador só**, para um segundo ser
+uma decisão e não um descuido: qualquer cartão que a queira está a pedir
+quatro vezes os píxeis que mostra, e o que lhe serve é o recorte.
 
 **E o teste do Cartaz cravava o caminho à mão**, portanto quebrou no dia em
 que a pasta mudou. Lê da função agora — um caminho escrito num teste é o

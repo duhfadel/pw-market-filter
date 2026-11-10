@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/rotas.dart' as rotas;
+
 import '../../../core/theme/pw_colors.dart';
 
 /// The seventeen classes the market lists, mapped to the art that stands for
@@ -166,28 +168,29 @@ const classesClassicasPw126 = [
   'Sacerdote',
 ];
 
-/// Which class the Cartaz wears for a collection made at [collectedAt].
+/// Que classe o Cartaz veste em cada mercado.
 ///
-/// Derived from the collection's own timestamp — never `Random()`, never the
-/// wall clock. The same collection has to draw the same page, or a rebuild
-/// reads as a slot machine instead of a site. `null` (no collection loaded
-/// yet) opens on the first class of [classes] rather than waiting to show any
-/// art at all.
+/// **Fixa por versão desde 10/11/2026, e era sorteada pela data da coleta.**
+/// O argumento antigo era bom — duas visitas não abriam a mesma página — e o
+/// dono trocou-o pelo mesmo que já tinha decidido para o herói da raiz: *«usa
+/// a mesma imagem»*. Uma tela de mercado tem a cara dela, e quem volta
+/// reconhece-a.
 ///
-/// [classes] defaults to [classesComArte], the 1.8.7 pool of seventeen. The
-/// 1.2.6 home passes [classesClassicasPw126] instead — the smaller pool is
-/// what keeps the hero honest about which game it is rotating through.
+/// O que se perde é a rotação; o que se ganha é cada mercado passar a ser
+/// reconhecível pela arte. E some junto a classe de pergunta que a rotação
+/// obrigava a fazer — se a coleta muda a cara, um `--rebuild` muda a página
+/// sem nada ter mudado no mercado.
 ///
-/// Lifted out of `home_view.dart` so a test can call it directly rather than
-/// only through the assembled page — a regression to `DateTime.now()` here
-/// would otherwise stay invisible to every widget test, since none of them
-/// pump the same index twice in the same run.
-String classeDoCartaz(
-  DateTime? collectedAt, {
-  List<String> classes = classesComArte,
-}) {
-  if (classes.isEmpty) return classesComArte.first;
-  if (collectedAt == null) return classes.first;
-  final posicao = collectedAt.millisecondsSinceEpoch % classes.length;
-  return classes[posicao];
-}
+/// **A escolha respeita o que cada jogo tem.** O 1.2.6 só tem as seis
+/// clássicas, portanto leva o Guerreiro; pôr-lhe um Andarilho seria o herói
+/// da página a prometer uma classe que aquele servidor não serve. Ver
+/// [classesClassicasPw126].
+///
+/// Uma versão sem linha aqui cai no Guerreiro, que existe nas três — nunca
+/// numa classe que possa não existir no mercado que a página apresenta.
+String classeDoCartaz(String versao) => switch (versao) {
+  rotas.pw187 => 'Andarilho',
+  rotas.pw126 => 'Guerreiro',
+  rotas.pw144 => 'Mercenário',
+  _ => 'Guerreiro',
+};

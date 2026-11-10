@@ -247,4 +247,22 @@ void main() {
       expect(Navigator.of(context).canPop(), isTrue);
     });
   });
+
+  test('o 1.4.4 abre uma espreitadela, e nada mais', () {
+    // **Temporária**, pedida pelo dono a 10/11/2026 para ver o Cartaz daquela
+    // versão antes de o mercado abrir. Não se chega lá a clicar — a porta da
+    // raiz continua apagada —, é preciso escrever o endereço.
+    expect((resolverRota('/$pw144') as RotaTela).tela, Tela.espreitar144);
+
+    // **E só o endereço nu.** Nada debaixo do 1.4.4 existe: um `/1.4.4/filtro`
+    // tem de cair na escolha e não inventar um mercado, que é a mesma recusa
+    // que mantém a porta sem rota.
+    for (final sob in ['filtro', 'guerras', 'registros']) {
+      expect(
+        (resolverRota('/$pw144/$sob') as RotaTela).tela,
+        Tela.escolha,
+        reason: '/1.4.4/$sob não pode existir enquanto o mercado não existir',
+      );
+    }
+  });
 }

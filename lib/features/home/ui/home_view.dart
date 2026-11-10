@@ -203,11 +203,11 @@ class HomeView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Cartaz(
+                          // **Fixa por mercado desde 10/11/2026**, e era
+                          // sorteada pela data da coleta. Decisão do dono:
+                          // cada tela tem a cara dela, como a raiz já tem.
                           classe: classeDoCartaz(
-                            ready?.index.collectedAt,
-                            classes: pw126
-                                ? classesClassicasPw126
-                                : classesComArte,
+                            pw126 ? rotas.pw126 : rotas.pw187,
                           ),
                           // `large`, not `wide`. Both were built and
                           // measured at 1200 px — close to this

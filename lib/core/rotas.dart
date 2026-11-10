@@ -39,6 +39,14 @@ const pw187 = '1.8.7';
 /// The 1.2.6 marketplace's prefix.
 const pw126 = '1.2.6';
 
+/// O 1.4.4, que ainda não abriu.
+///
+/// **É só o número e não uma rota**: não há índice, não há mercado, e a porta
+/// da raiz leva a lado nenhum de propósito — ver `Porta.pronta`. Existe aqui
+/// porque o Cartaz já escolhe uma classe por versão, e essa escolha tem de
+/// poder nomear as três sem inventar a grafia em cada sítio.
+const pw144 = '1.4.4';
+
 /// [pw187] or [pw126] — the readable label `Cabecalho.versao` draws — from
 /// `MarketIndex.server`/`IndexRepository.server` (`'pw187'`, `'pw126'`), the
 /// file key rather than the number a visitor reads.
@@ -85,6 +93,9 @@ enum Tela {
   /// parâmetro porque a rota é o que diz a versão — e é dela que a tela tira
   /// quais vídeos pedir.
   guerras126,
+
+  /// A espreitadela ao Cartaz do 1.4.4 — temporária, ver `rotaDe`.
+  espreitar144,
 
   /// O guia de multi contas — `MultiContasView`. **Sem gémea do 1.2.6**, ao
   /// contrário das guerras: um guia escrito uma vez não existe duas, e o que
@@ -190,6 +201,17 @@ RotaResolvida resolverRota(String? name) {
     if (segments[1] == 'guerras') return const RotaTela(Tela.guerras);
     if (segments[1] == 'multicontas') return const RotaTela(Tela.multiContas);
     return const RotaTela(Tela.home187);
+  }
+
+  // **Temporária, e tem data para sair.** O 1.4.4 não tem mercado, não tem
+  // índice e a porta da raiz continua a não levar a lado nenhum — isto existe
+  // só para o dono ver o Cartaz daquela versão antes de ela abrir, pedido a
+  // 10/11/2026. Não se chega aqui a clicar: é preciso escrever o endereço.
+  //
+  // Desenha o Cartaz e mais nada, de propósito: uma home com os números do
+  // 1.8.7 por baixo seria o site a afirmar um mercado que não existe.
+  if (segments.first == pw144 && segments.length == 1) {
+    return const RotaTela(Tela.espreitar144);
   }
 
   if (segments.first == pw126) {

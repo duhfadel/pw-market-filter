@@ -99,6 +99,67 @@ ROSTO_EM = {
     'tormentador': 0.58,
 }
 
+# **A que altura cai o rosto de cada uma, em fracção da altura da tira.**
+#
+# Lido à mão de uma folha com linhas de 10%, como o [ROSTO_EM]. Tentou-se
+# medir: procurar a banda mais densa de pele dentro da janela já escolhida
+# acerta em quinze das dezassete e falha nas duas que decidem — dá 48% ao
+# espiritualista, cujo rosto está a 21%, porque o peito dele é maior do que a
+# cara. A regra de pele em RGB não sabe o que é um rosto, e aqui o que se
+# pergunta é justamente isso.
+ROSTO_ALTURA = {
+    'mercenario': 0.12,
+    'andarilho': 0.15,
+    'atiradora': 0.16,
+    'paladino': 0.17,
+    'ceifador': 0.19,
+    'bardo': 0.21,
+    'espiritualista': 0.21,
+    'feiticeira': 0.21,
+    'retalhador': 0.21,
+    'arcano': 0.22,
+    'tormentador': 0.22,
+    'mago': 0.24,
+    'guerreiro': 0.25,
+    'mistico': 0.25,
+    'arqueiro': 0.26,
+    'barbaro': 0.33,
+    'sacerdote': 0.45,
+}
+
+
+def _emArco(fs):
+    """Ordena as tiras numa curva: rostos altos ao centro, baixos nas pontas.
+
+    **Pedido do dono a 10/11/2026, e resolve um problema real.** Dezassete
+    artes diferentes não têm o rosto à mesma altura — vão de 12% no Mercenário
+    a 45% no Sacerdote —, e postas por qualquer outra ordem as cabeças sobem e
+    descem ao acaso, o que se lê como descuido. Numa curva lê-se como forma.
+
+    **Isto substitui a ordem por luminosidade, e as duas eram incompatíveis.**
+    As escuras à esquerda existia para o texto do herói assentar sobre arte
+    escura; mas os dois rostos mais baixos são o Sacerdote (116) e o Bárbaro
+    (118), dos mais claros que há. Não se pode ter as duas, e quem compensa é
+    o véu — ver `_VeuDoHeroi`, que ficou mais forte no estreito.
+
+    O que sobra da ordem antiga é o desempate: dentro de cada par da curva, a
+    mais escura vai para a esquerda, que é o lado onde o texto fica.
+    """
+    porAltura = sorted(fs, key=lambda f: -ROSTO_ALTURA[os.path.basename(f)[:-5]])
+
+    esquerda, direita = [], []
+    while porAltura:
+        par = [porAltura.pop(0)]
+        if porAltura:
+            par.append(porAltura.pop(0))
+        # A mais escura do par para a esquerda.
+        par.sort(key=_luz)
+        esquerda.append(par[0])
+        if len(par) > 1:
+            direita.append(par[1])
+
+    return esquerda + list(reversed(direita))
+
 
 def _foco(cena, janela):
     """Onde cortar a tira de [janela] píxeis de largura, em píxeis de origem.
@@ -173,17 +234,9 @@ def montar():
     if not fs:
         raise SystemExit(f'nenhuma arte em {FONTE}')
 
-    # **As escuras à esquerda, e não por gosto.** O texto do herói ocupa o
-    # primeiro terço, e o véu que o assenta foi medido na maquete contra uma
-    # pintura cujo lado esquerdo já era escuro. Com as dezassete por ordem
-    # alfabética calhava ali o Andarilho a 116 e o Arcano a 134, e a manchete
-    # ficava a competir com arte clara — via-se logo no telemóvel, onde a
-    # faixa é mais estreita e o texto ocupa quase tudo.
+    # **Em curva: rostos altos ao centro, baixos nas pontas.** Ver [_emArco].
     #
-    # Por luz crescente, o Tormentador (51) e o Mercenário (60) abrem, e o
-    # Bardo (174) e o Ceifador (156) ficam no fim, onde não há letra nenhuma.
-    # Custa zero e evita mexer no véu, que é número da maquete.
-    fs.sort(key=_luz)
+    fs = _emArco(fs)
 
     tela = Image.new('RGB', (LARGURA, ALTURA), NOITE)
     larg = LARGURA / len(fs)

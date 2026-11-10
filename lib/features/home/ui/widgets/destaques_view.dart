@@ -384,23 +384,35 @@ class _Selo extends StatelessWidget {
 
   final String texto;
 
+  /// `.etq { top:10px; left:10px; font-size:9.5px; letter-spacing:.09em;
+  /// background:rgba(11,11,26,.8); border:1px solid filete; border-radius:5px;
+  /// padding:3px 7px; color:apagado }`.
+  ///
+  /// **O texto recua para apagado e ganha a borda fininha**, que é a
+  /// diferença entre um selo e um rótulo gritado. Estava em [PWColors.papel]
+  /// a `w700` e sem borda: sobre o recorte da classe lia-se como a coisa mais
+  /// clara da carta, acima do nome e do preço — e o que o selo diz (*ARMA
+  /// 70*) já está escrito por extenso na categoria três linhas abaixo. Ele
+  /// existe para a grelha se arrumar de relance, não para ser lido primeiro.
   @override
   Widget build(BuildContext context) => Positioned(
-    left: 8,
-    top: 8,
+    left: 10,
+    top: 10,
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: PWColors.noite.withValues(alpha: 0.78),
-        borderRadius: BorderRadius.circular(6),
+        color: PWColors.background.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: PWColors.filete),
       ),
       child: Text(
         texto,
         style: const TextStyle(
-          color: PWColors.papel,
+          color: PWColors.apagado,
           fontSize: 9.5,
           fontWeight: FontWeight.w700,
-          letterSpacing: 0.6,
+          // `letter-spacing: .09em` sobre 9,5 px.
+          letterSpacing: 0.86,
         ),
       ),
     ),
@@ -428,47 +440,63 @@ class _Rodape extends StatelessWidget {
       left: 0,
       right: 0,
       bottom: 0,
+      // `.carta { padding: 13px }` — eram 10 px, e com o preço a 16 o número
+      // ficava quase a tocar a moldura.
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+        padding: const EdgeInsets.fromLTRB(13, 0, 13, 13),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // `.cat { font-size: 10.5px; color: apagado; margin-bottom: 3px }`
+            // — e **sem peso**, que a maquete deixa em 400. Estava a `w700`,
+            // o que punha a pergunta a competir com o nome logo abaixo: numa
+            // carta onde o que interessa é *quem* e *quanto*, a etiqueta da
+            // categoria é a linha que deve recuar.
             Text(
               destaque.rotulo,
               style: const TextStyle(
                 color: PWColors.apagado,
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
+                fontSize: 10.5,
                 letterSpacing: 0.3,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 3),
+            // `.nm { font-size: 15px; font-weight: 600; line-height: 1.15 }`.
             Text(
               personagem.name,
               style: const TextStyle(
                 color: PWColors.papel,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                height: 1.15,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
+            // `.sub { font-size: 11px; color: apagado; margin-top: 2px }`.
+            const SizedBox(height: 2),
             Text(
               'nv ${personagem.level} · ${personagem.characterClass}',
               style: const TextStyle(color: PWColors.apagado, fontSize: 11),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 2),
+            // `.pr { font-size: 16px; font-weight: 600; margin-top: 7px }`.
+            //
+            // **Era 13 e é o número sobre que alguém decide.** Três pontos
+            // abaixo do desenho no item mais importante da carta, enquanto a
+            // etiqueta da categoria acima estava a negrito — a hierarquia
+            // saía ao contrário do que a página quer dizer.
+            const SizedBox(height: 7),
             Text(
               '${personagem.price} TCC',
               style: const TextStyle(
                 color: PWColors.accent,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

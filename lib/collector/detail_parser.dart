@@ -967,19 +967,33 @@ ParsedTitles? parseTitles(String html) {
   );
 }
 
-/// The title whose name is a founder pack's.
+/// O título de fundador mais alto que o personagem tem.
+///
+/// **O mais alto e não o primeiro, e a diferença custou um defeito.** Um
+/// personagem pode ter mais do que um pacote decodificado — a Madara, a
+/// 10/11/2026, tinha `Fundador X` e `Fundador VII` no mesmo painel —, e a
+/// primeira versão devolvia o primeiro card do documento. Isso fazia a
+/// resposta depender da ordem em que a página os desenha, que é por
+/// equipado primeiro: enquanto ela usava o VII o índice dizia 7, e procurar
+/// por *Fundador X* não a encontrava, apesar de ela ter o X.
+///
+/// O mais alto é o que a pergunta quer. O filtro é *Fundador N ou mais* —
+/// uma pergunta sobre o que a pessoa comprou, não sobre o que está a vestir
+/// hoje — e o que está vestido muda sem o mercado mudar, portanto seria a
+/// pior das duas coisas a guardar: o coletor não relê quem fica anunciado.
 ///
 /// Matched on the whole name against the ten figures, never on a prefix:
 /// `Fundador Ilustre` would otherwise read as `Fundador I`, and a tier
 /// invented out of a different title is worse than no tier at all.
 String _founderIn(Element panel) {
+  var melhor = 0;
   for (final card in panel.querySelectorAll('.pw187-title-card')) {
     final nome = card.querySelector('h4')?.text.trim() ?? '';
-    for (final romano in romanosAteDez) {
-      if (nome == 'Fundador $romano') return nome;
-    }
+    if (!nome.startsWith('Fundador ')) continue;
+    final grau = grauDoRomano(nome.substring('Fundador '.length));
+    if (grau != null && grau > melhor) melhor = grau;
   }
-  return '';
+  return melhor == 0 ? '' : 'Fundador ${romanoDe(melhor)}';
 }
 
 /// The `<li><span>label</span><strong>value</strong></li>` rows of a block,

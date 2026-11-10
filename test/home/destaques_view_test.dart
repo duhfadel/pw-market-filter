@@ -133,12 +133,21 @@ void main() {
     SearchQuery? pedida;
     await _montar(tester, index: index, onAbrir: (q) => pedida = q);
 
-    await tester.tap(find.byType(InkWell).at(0));
+    // **Dentro da grelha, nunca `InkWell` da tela inteira.** A cabeça da
+    // secção tem a sua própria porta — `ver todos →` — e ela é o primeiro
+    // `InkWell` a ser montado, portanto um índice absoluto passou a apontar
+    // para o sítio errado no dia em que a cabeça entrou.
+    final cartas = find.descendant(
+      of: find.byType(GridView),
+      matching: find.byType(InkWell),
+    );
+
+    await tester.tap(cartas.at(0));
     final primeira = pedida;
     expect(primeira, isNotNull);
     expect(primeira!.criteria, isEmpty);
 
-    await tester.tap(find.byType(InkWell).at(1));
+    await tester.tap(cartas.at(1));
     final segunda = pedida;
     expect(segunda, isNotNull);
     expect(segunda!.criteria, hasLength(1));
@@ -357,6 +366,44 @@ void main() {
           'the label sits at ${(ondeOTextoComeca * 100).round()}% of the card '
           'and the veil is barely there — it will land on the artwork',
     );
+  });
+
+  testWidgets('a cabeça diz o que a grelha é, e a porta abre o mercado todo', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    SearchQuery? pedida;
+    await _montar(tester, index: indiceDeTeste(), onAbrir: (q) => pedida = q);
+
+    // Cinco categorias respondem neste índice, e o título conta — não crava
+    // «Seis», que seria falso aqui e no 1.2.6, onde são duas.
+    expect(find.text('CINCO PORTAS PARA O MERCADO'), findsOneWidget);
+
+    await tester.tap(find.text('ver todos →'));
+    expect(pedida, isNotNull);
+    expect(pedida!.isEmpty, isTrue, reason: 'ver todos não pede nada');
+  });
+
+  testWidgets('no telemóvel a cabeça fica sem porta, e não transborda', (
+    tester,
+  ) async {
+    // Medido com as fontes reais: `SEIS PORTAS PARA O MERCADO` são 258 px e
+    // `ver todos →` são 143, o que com os dois vãos dá 441 contra os ~350 de
+    // um ecrã de 390. Transbordava 72 px — e o que se perde no estreito é
+    // pouco, porque a fila rola de lado com a última carta cortada a dizer
+    // que há mais.
+    tester.view.physicalSize = const Size(390, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await _montar(tester, index: indiceDeTeste(), wide: false);
+
+    expect(find.textContaining('PORTAS PARA O MERCADO'), findsOneWidget);
+    expect(find.text('ver todos →'), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 }
 

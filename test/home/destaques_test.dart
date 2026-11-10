@@ -362,4 +362,25 @@ void main() {
       expect(cartao.rotulo, 'Arma de 80 mais barata');
     },
   );
+
+  test('o título conta por extenso, e conta mesmo', () {
+    // **Marcellus desenha algarismos romanos**, portanto a cabeça de secção
+    // não pode levar um dígito — e cravar «Seis» mentiria no 1.2.6, que
+    // responde a duas categorias: não tem arma de nível, nem UP5, nem
+    // relíquias contadas.
+    expect(tituloDosDestaques(6), 'Seis portas para o mercado');
+    expect(tituloDosDestaques(2), 'Duas portas para o mercado');
+    expect(tituloDosDestaques(1), 'Uma porta para o mercado');
+
+    for (var quantas = 1; quantas <= 6; quantas++) {
+      expect(
+        tituloDosDestaques(quantas),
+        isNot(contains(RegExp(r'[0-9]'))),
+        reason: 'um dígito em Marcellus sai ilegível',
+      );
+    }
+
+    // Uma categoria nova não pode fazer o título imprimir um número.
+    expect(tituloDosDestaques(7), 'Portas para o mercado');
+  });
 }

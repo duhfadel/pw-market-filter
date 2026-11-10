@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/pw_colors.dart';
+import '../../../../core/ui/cabeca_de_seccao.dart';
 import '../../../../market/market_index.dart';
 import '../../../search/domain/search_query.dart';
 import '../../../search/ui/widgets/character_card.dart' show PatamarDaArma;
@@ -78,33 +79,63 @@ class DestaquesView extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // The phone case: three rows of two columns ate ~800 px of height,
-        // roughly three screens before the next section even started. One
-        // row that scrolls sideways is the owner's own call, 01/10/2026 —
-        // wide screens keep the grid untouched below.
-        if (_columnsFor(constraints.maxWidth) == 2) {
-          return _Carrossel(
-            destaques: destaques,
-            onAbrir: onAbrir,
-            spacing: spacing,
-            largura: constraints.maxWidth,
-          );
-        }
+        final colunas = DestaquesView._columnsFor(constraints.maxWidth);
 
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.zero,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: _columnsFor(constraints.maxWidth),
-            crossAxisSpacing: spacing,
-            mainAxisSpacing: spacing,
-            // The proportion the brief sets: the art is the card.
-            childAspectRatio: 2 / 3,
-          ),
-          itemCount: destaques.length,
-          itemBuilder: (context, i) =>
-              _Carta(destaque: destaques[i], onAbrir: onAbrir),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // **A cabeça que faltava.** A grelha começava do nada: seis
+            // cartas soltas por baixo da faixa de números, sem nada a dizer
+            // o que eram. A maquete abre-a com a régua e uma porta — e a
+            // porta aqui é a busca vazia, que é literalmente *o mercado
+            // todo*, a mesma função que cada carta já chama com a sua
+            // pergunta dentro.
+            CabecaDeSeccao(
+              titulo: tituloDosDestaques(destaques.length),
+              // **A porta cai no telemóvel, e é medida.** Com as fontes
+              // reais, `SEIS PORTAS PARA O MERCADO` são 258 px e
+              // `ver todos →` são 143: com os dois vãos de 16 dá 441 contra
+              // os ~350 que um ecrã de 390 deixa. Transbordava 72 px, e não
+              // era artefacto do harness.
+              //
+              // O que se perde ali é pouco: no estreito a fila rola de lado
+              // com a última carta cortada de propósito a dizer que há mais,
+              // e cada carta já é uma porta para o filtro.
+              porta: colunas == 2 ? null : 'ver todos →',
+              aoTocarNaPorta: colunas == 2
+                  ? null
+                  : () => onAbrir(const SearchQuery()),
+            ),
+            SizedBox(height: wide ? 14 : 11),
+            if (colunas == 2)
+              // The phone case: three rows of two columns ate ~800 px of
+              // height, roughly three screens before the next section even
+              // started. One row that scrolls sideways is the owner's own
+              // call, 01/10/2026 — wide screens keep the grid untouched
+              // below.
+              _Carrossel(
+                destaques: destaques,
+                onAbrir: onAbrir,
+                spacing: spacing,
+                largura: constraints.maxWidth,
+              )
+            else
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: colunas,
+                  crossAxisSpacing: spacing,
+                  mainAxisSpacing: spacing,
+                  // The proportion the brief sets: the art is the card.
+                  childAspectRatio: 2 / 3,
+                ),
+                itemCount: destaques.length,
+                itemBuilder: (context, i) =>
+                    _Carta(destaque: destaques[i], onAbrir: onAbrir),
+              ),
+          ],
         );
       },
     );

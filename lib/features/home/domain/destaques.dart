@@ -10,6 +10,34 @@ import '../../search/ui/widgets/character_card.dart'
     show PatamarDaArma, patamarDaArma;
 import 'visit_label.dart' show groupThousands;
 
+/// O título da secção, com a contagem por extenso.
+///
+/// **Por extenso porque a cabeça de secção é Marcellus**, e Marcellus desenha
+/// algarismos romanos: o `1` não tem bandeira e o `0` é um `O`, portanto
+/// `6 portas` sairia ilegível. É a mesma regra que mantém todo o preço desta
+/// casa em Roboto.
+///
+/// **E conta em vez de cravar «seis».** A maquete escreve *Seis portas para o
+/// mercado* porque foi desenhada sobre o 1.8.7, onde há seis categorias. O
+/// 1.2.6 responde a **duas** — não tem arma de nível, nem UP5, nem relíquias
+/// contadas — e uma cabeça a prometer seis sobre duas cartas é o tipo de
+/// mentira que esta casa não deixa passar num rótulo. Uma categoria sem
+/// classe sobrando também cai, portanto nem o 1.8.7 garante seis para sempre.
+String tituloDosDestaques(int quantas) {
+  const porExtenso = {
+    1: 'Uma porta',
+    2: 'Duas portas',
+    3: 'Três portas',
+    4: 'Quatro portas',
+    5: 'Cinco portas',
+    6: 'Seis portas',
+  };
+  // Acima do que a tabela conhece, o título deixa de contar em vez de
+  // imprimir um dígito: uma categoria nova é mais provável do que alguém se
+  // lembrar de acrescentar a palavra aqui.
+  return '${porExtenso[quantas] ?? 'Portas'} para o mercado';
+}
+
 /// One card of the front page's six: a question about the market, already
 /// answered by somebody real.
 class Destaque {

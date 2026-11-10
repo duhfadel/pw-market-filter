@@ -147,6 +147,7 @@ both legendary pets and has renamed both).
 | `dart run tool/guias/pagina.dart` | Reescreve a lista de `web/guias/index.html` a partir da declaração dos guias |
 | `python3 tool/registros/semear.py` | Reads the registries spreadsheet and writes the SQL that seeds the table — one-off, already run |
 | `gh workflow run publish.yml` | Collects and publishes now, when the schedule has gone quiet |
+| `python3 tool/servir.py` | Serve `build/web` como o GitHub Pages serve — endereços sem extensão incluídos |
 | `flutter run -d chrome` | Runs the app |
 | `flutter test` | Runs every test |
 | `flutter analyze` | Static analysis |
@@ -3121,6 +3122,15 @@ Each of these already cost something — measured on the live site, not guessed.
   like a broken link while editing locally. The dangerous move is "fixing" the
   href to silence that local 404: the fix would be guided by a server nobody
   visits the site through, and it would break the one that matters.
+
+  **`tool/servir.py` existe para o engano não chegar a acontecer**, e foi
+  escrito a 10/11/2026 depois de o dono perguntar se as URLs dos guias tinham
+  ficado por ligar — tinham sido ligadas, e o que respondia 404 era o módulo
+  do Python. Ele copia as três resoluções do Pages — o ficheiro exacto,
+  `caminho.html`, `caminho/index.html` — e serve sem cache, que é a outra
+  razão para não usar o módulo simples. Medido no dia: **dezassete endereços,
+  zero diferenças** entre ele e `portalpw.net`, contra sete 404 do
+  `http.server` nos mesmos guias.
 - **A rebuilt Flutter web app keeps serving the previous bundle, and it looks
   exactly like a change that did not compile.** The file on disk is new, the
   md5 served matches the md5 on disk, and the browser still runs yesterday's

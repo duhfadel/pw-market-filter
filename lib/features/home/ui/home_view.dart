@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/rotas.dart' as rotas;
+import '../../../core/theme/medidas_da_maquete.dart';
 import '../../../core/theme/pw_colors.dart';
 import '../../../market/market_index.dart';
 import '../../ads/ad_slot.dart';
@@ -112,10 +113,26 @@ class HomeView extends StatelessWidget {
     // overflow menu. One breakpoint, read from the one place it is defined.
     final wide = width >= Cabecalho.larguraMinima;
     final large = width >= _largeWidth;
-    // 1040 and not 900 at the top step, and the reason is one line of type:
-    // at 900 the old headline broke with "usando" alone on a second line at
-    // every desktop size measured — 1366 and 1920 both.
-    final maxWidth = large ? 1040.0 : 780.0;
+    // **1180 no degrau de cima, que é a coluna da maquete** — `--col: 1180px`,
+    // lida do CSS dela e já usada pela raiz. Esteve em 1040 até 10/11/2026,
+    // por uma razão que continua verdadeira e que deixou de ser o limite: a
+    // 900 a manchete antiga partia com *«usando»* sozinho numa segunda linha,
+    // a 1366 e a 1920. 1040 era o mínimo que a resolvia, e ficou a valer como
+    // se fosse o máximo.
+    //
+    // O que o denunciou foram os Destaques: a seis colunas, 1040 menos as
+    // margens dá 960 de conteúdo e cartas de 148 px, onde a maquete lhes dá
+    // 1132 e 177. Era isso que fazia a página inteira parecer um degrau
+    // abaixo do desenho.
+    //
+    // **A faixa de tablet fica nos 780**, e isso é separado: aquele tecto não
+    // é folga a mais, é o ponto em que a tipografia do Cartaz deixa de caber
+    // — a 780 px o título dele já estourava a própria caixa em 36 px.
+    final maxWidth = large ? Maquete.colunaDeLeitura : 780.0;
+    // `.env { padding: 0 24px }` no degrau da maquete. Nos outros dois fica o
+    // respiro que esta tela já tinha: ali a coluna é estreita e 24 px
+    // colariam o texto à borda do ecrã.
+    final margem = large ? 24.0 : (wide ? 40.0 : 20.0);
 
     return Scaffold(
       // **A barra assenta sobre a arte do herói**, como na raiz e como a
@@ -131,7 +148,7 @@ class HomeView extends StatelessWidget {
         scrolledUnderElevation: 0,
         titleSpacing: 0,
         title: _ComMargem(
-          wide: wide,
+          margem: margem,
           child: Cabecalho(
             wide: wide,
             versao: pw126 ? rotas.pw126 : rotas.pw187,
@@ -298,7 +315,7 @@ class HomeView extends StatelessWidget {
                                   bottom: wide ? 14 : 10,
                                 ),
                                 child: _ComMargem(
-                                  wide: wide,
+                                  margem: margem,
                                   child: DestaquesView(
                                     index: state.index,
                                     wide: large,
@@ -340,7 +357,7 @@ class HomeView extends StatelessWidget {
                           // navegação diz nomes, esta secção vende o artigo
                           // com a linha dele.
                           _ComMargem(
-                            wide: wide,
+                            margem: margem,
                             child: GuiasSecao(
                               versao: pw126 ? rotas.pw126 : rotas.pw187,
                               wide: wide,
@@ -358,7 +375,7 @@ class HomeView extends StatelessWidget {
                           // comunidade a mostrar o que fez, e pertence a esse
                           // lado da página.
                           _ComMargem(
-                            wide: wide,
+                            margem: margem,
                             child: GuerrasSecao(
                               versao: pw126 ? rotas.pw126 : rotas.pw187,
                               wide: wide,
@@ -375,7 +392,7 @@ class HomeView extends StatelessWidget {
                           // Em cima disputaria com as ferramentas; no rodapé
                           // ninguém veria.
                           _ComMargem(
-                            wide: wide,
+                            margem: margem,
                             // **Só quem joga esta versão**, pedido do dono
                             // a 09/11/2026. A versão vem do título da
                             // transmissão e não de uma coluna: a Twitch só
@@ -389,7 +406,7 @@ class HomeView extends StatelessWidget {
                           ),
                           SizedBox(height: wide ? 26 : 20),
                           _ComMargem(
-                            wide: wide,
+                            margem: margem,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
@@ -429,9 +446,9 @@ class HomeView extends StatelessWidget {
                           // page. It is the one block here nobody came for, so
                           // it goes last — but it is not hidden, because a
                           // hidden advert is a dishonest one.
-                          _ComMargem(wide: wide, child: const AdSlot()),
+                          _ComMargem(margem: margem, child: const AdSlot()),
                           SizedBox(height: wide ? 28 : 22),
-                          _ComMargem(wide: wide, child: const Rodape()),
+                          _ComMargem(margem: margem, child: const Rodape()),
                         ],
                       ),
                     ),
@@ -532,14 +549,20 @@ double _recuoDoHeroi(double largura, double maxWidth, bool wide) {
 /// Cartaz along with the rest; wrapping each section individually is what
 /// lets the hero opt out.
 class _ComMargem extends StatelessWidget {
-  const _ComMargem({required this.wide, required this.child});
+  const _ComMargem({required this.margem, required this.child});
 
-  final bool wide;
+  /// **A margem vem de fora e não de uma bandeira.** Era `wide ? 40 : 20`, o
+  /// que juntava dois degraus de largura num só booleano — e quando o degrau
+  /// de cima passou a 1180 com os 24 px da maquete, um terceiro valor não
+  /// tinha por onde entrar. Quem conhece os três degraus é o `build` da
+  /// página; este widget só os aplica.
+  final double margem;
+
   final Widget child;
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.symmetric(horizontal: wide ? 40 : 20),
+    padding: EdgeInsets.symmetric(horizontal: margem),
     child: child,
   );
 }

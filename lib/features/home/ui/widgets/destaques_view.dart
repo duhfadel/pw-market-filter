@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../market/market_index.dart';
 import '../../../search/domain/search_query.dart';
+import '../../../search/ui/widgets/character_card.dart' show PatamarDaArma;
 import '../../domain/arte_da_classe.dart';
 import '../../domain/destaques.dart';
 
@@ -208,7 +209,7 @@ class _Carta extends StatelessWidget {
           // varrer uma fila de seis. Agora o patamar é o fundo inteiro e lê-se
           // de relance, que é a mesma razão por que a grelha do filtro ganhou
           // moldura colorida em 29/09.
-          _FundoDoPatamar(cor: cor),
+          _FundoDoPatamar(patamar: destaque.patamar),
           // A class with no art draws the plain ground, never a borrowed
           // face — the same silent fallback `recorteDaClasse` itself makes by
           // returning null.
@@ -249,14 +250,19 @@ class _Carta extends StatelessWidget {
 /// comum do mercado, portanto o fundo mais frequente desta grelha é a cor do
 /// dinheiro. O preço, a ouro, cai na zona onde já não há cor nenhuma.
 class _FundoDoPatamar extends StatelessWidget {
-  const _FundoDoPatamar({required this.cor});
+  const _FundoDoPatamar({required this.patamar});
 
-  final Color? cor;
+  final PatamarDaArma? patamar;
 
   @override
   Widget build(BuildContext context) {
-    final cor = this.cor;
-    if (cor == null) return const SizedBox.shrink();
+    final patamar = this.patamar;
+    // **`baixo` desenha a borda e não o fundo**, e é a mesma linha que a
+    // grelha do filtro usa. Metade do mercado está nesse degrau; tingir-lhe o
+    // fundo poria cor em 51,8% dos cards e deixaria os 3,7% que são 80 sem
+    // nada por onde se distinguirem.
+    if (patamar == null || !patamar.pinta) return const SizedBox.shrink();
+    final cor = patamar.cor;
 
     return DecoratedBox(
       decoration: BoxDecoration(

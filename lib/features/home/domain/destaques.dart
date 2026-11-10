@@ -6,7 +6,8 @@ import '../../../market/slot_names.dart';
 import '../../search/domain/matcher.dart';
 import '../../search/domain/presets.dart';
 import '../../search/domain/search_query.dart';
-import '../../search/ui/widgets/character_card.dart' show weaponTierColor;
+import '../../search/ui/widgets/character_card.dart'
+    show PatamarDaArma, patamarDaArma;
 import 'visit_label.dart' show groupThousands;
 
 /// One card of the front page's six: a question about the market, already
@@ -16,7 +17,7 @@ class Destaque {
     required this.rotulo,
     required this.personagem,
     required this.nota,
-    required this.cor,
+    required this.patamar,
     required this.busca,
     this.selo,
   });
@@ -31,23 +32,31 @@ class Destaque {
   /// The line under the price, and it must be derivable from this collection.
   final String nota;
 
-  /// The frame: exactly `weaponTierColor(index, personagem)`, the same
-  /// ladder the results grid already paints — called, never restated.
+  /// O degrau da arma: exactamente `patamarDaArma(index, personagem)`, a
+  /// mesma escada que a grelha de resultados já pinta — chamada, nunca
+  /// restatada.
   ///
   /// **This is the one colour the front page is allowed to show about a
   /// character, and it is a fact about that character's weapon, not about
   /// which of the six questions the card answers.** A parallel ladder here
   /// would be two copies of one fact, free to drift the day either one is
-  /// edited — the exact failure this repo's `weaponTierColor` doc already
-  /// warns about. `null` when the character carries no tier at all, which
-  /// draws the plain border: a colour on somebody with no tier would be the
-  /// lie, not the omission.
+  /// edited — the exact failure this repo's [patamarDaArma] doc already
+  /// warns about. `null` quando não há arma nenhuma para ler, ou quando esta
+  /// coleta nem conhece o atributo — que é o 1.2.6 inteiro.
+  ///
+  /// **Guarda o degrau e não a cor, porque são dois factos e não um.** O card
+  /// precisa de saber se pinta o fundo além da borda, e um segundo campo
+  /// `pinta` ao lado de `cor` seria o mesmo facto escrito duas vezes, livre
+  /// de divergir. [cor] continua a existir como leitura, não como campo.
   ///
   /// Two cards can land on the same colour — the dearest character and the
   /// Atq UP5 carrier can both genuinely wear an 80 — and that is correct.
   /// The label and the badge are what say which question a card answers; the
   /// frame only ever says what the person is actually wearing.
-  final Color? cor;
+  final PatamarDaArma? patamar;
+
+  /// A cor da moldura, derivada de [patamar].
+  Color? get cor => patamar?.cor;
 
   /// Where tapping leads. Every card is a door into the filter.
   final SearchQuery busca;
@@ -299,8 +308,8 @@ List<Destaque> _resolver(MarketIndex index, List<_Pedido> pedidos) {
 /// The winner of one category: the best on the measure, and among those tied
 /// with it, one whose class is still free.
 ///
-/// The frame colour is never a parameter: it is always
-/// `weaponTierColor(index, vencedor)`, read off whichever character actually
+/// The frame is never a parameter: it is always
+/// `patamarDaArma(index, vencedor)`, read off whichever character actually
 /// won, so the colour is a fact about that person and not a label the
 /// category hands out.
 Destaque? _escolher(MarketIndex index, _Pedido pedido, Set<String> usadas) {
@@ -323,7 +332,7 @@ Destaque? _escolher(MarketIndex index, _Pedido pedido, Set<String> usadas) {
     rotulo: pedido.rotulo(vencedor),
     personagem: vencedor,
     nota: pedido.nota(vencedor),
-    cor: weaponTierColor(index, vencedor),
+    patamar: patamarDaArma(index, vencedor),
     busca: pedido.busca,
     selo: pedido.selo?.call(vencedor),
   );
@@ -332,7 +341,7 @@ Destaque? _escolher(MarketIndex index, _Pedido pedido, Set<String> usadas) {
 /// The attack level actually worn on [character]'s weapon, 0 when this
 /// collection never met the attribute or the slot carries none.
 ///
-/// Read off the weapon slot alone, the same rule `weaponTierColor` follows: a
+/// Read off the weapon slot alone, the same rule `patamarDaArma` follows: a
 /// criterion may ask about any piece, but a statement about "the dearest
 /// character's weapon" has to be read off the weapon, not off whichever item
 /// happens to carry the attribute.

@@ -749,11 +749,11 @@ entre 31 e 79**, e 80 em oito pessoas.
 
 Daí as duas correções de 29/09, as duas na mão do dono:
 
-**O 30 não desenha nada.** Era um degrau e era o pior lugar para gastar uma
-cor: 212 personagens no patamar mais barato que o jogo imprime. Moldura serve
-para distinguir a grade, e o fundo do mercado não precisa de um selo dizendo
-que é o fundo — a borda cinza já diz. O bloco cinza vai de 16% a 30% da grade,
-e é isso mesmo que se quer.
+**O 30 não desenhava nada** — e isto foi revertido a 09/11/2026, ver
+*A escada remedida* abaixo. O argumento de então: era o pior lugar para gastar
+uma cor, 212 personagens no patamar mais barato que o jogo imprime, e o fundo
+do mercado não precisa de um selo dizendo que é o fundo. O que o derrubou não
+foi o argumento ter envelhecido mal — foi o fundo ter deixado de ser um canto.
 
 **A UP5 defensiva tem cor própria, `PWColors.defenceTier`.** Não é um degrau:
 é o mesmo topo comprado na outra moeda, e quem caça arma defensiva não está
@@ -772,15 +772,76 @@ A defesa é perguntada **primeiro**, para que as oito nunca caiam na escada de
 ataque. São disjuntas hoje; uma ordem que só funciona enquanto isso valer é
 uma ordem esperando para quebrar.
 
-E a moldura ganhou o teste que nunca teve. `weapon_tier_test` crava os quatro
-degraus, o degrau defensivo, o 30 que não pinta, o ruído de defesa até 30, que
-só a arma fala pela moldura, e uma coleta que nunca viu o atributo. Oito
-pessoas em 1519 é um caso que ninguém encontra rolando a página.
+E a moldura ganhou o teste que nunca teve. `weapon_tier_test` crava os
+degraus, o degrau defensivo, o ruído de defesa até 30, que só a arma fala pela
+moldura, e uma coleta que nunca viu o atributo. Oito pessoas em 1519 é um caso
+que ninguém encontra rolando a página.
 
 **Os degraus são espalhados pela paleta, não tomados em ordem.** A primeira
 versão usou os graus 5 e 4 — laranja e âmbar, vizinhos — e na grade **o UP5 e
 o 70 saíram da mesma cor**, justamente a distinção que mais importa aqui. Só
 apareceu renderizando. O vermelho encabeça a escada do jogo e ficou com o topo.
+
+### A escada remedida, a 09/11/2026: o âmbar saiu e o fundo ganhou azul
+
+**A escada mudou de forma debaixo de nós.** Sobre os 2.486 anúncios de 23/10,
+contra os 1519 de Setembro:
+
+| o que a arma dá | quantos | fatia |
+|---|---|---|
+| 70 a 79 | 1107 | **44,5%** |
+| 40 a 69 | 511 | 20,6% |
+| nível de ataque nenhum | 409 | 16,5% |
+| 30 | 337 | 13,6% |
+| 80 de ataque | 52 | 2,1% |
+| 80 de defesa | 40 | 1,6% |
+
+**O 70 é hoje o card mais vulgar da grelha, e perdeu o âmbar por isso.** Dar a
+cor mais quente da paleta à coisa mais comum que ali existe é dizer *raro*
+sobre o normal, e o dono tinha previsto a mudança: *«cada vez mais, as armas
+do 70 serao mais normais»*. Ficou com o roxo que era do 40-69.
+
+**E o âmbar tinha um defeito que só se vê medindo: era a cor do dinheiro.**
+`PWColors.accent` é `#FFB454` e `gradeColors` grau 4 é `#FFB454` — **o mesmo
+byte**. A moldura de 44,5% da grelha era a mesma cor do preço que ela tinha ao
+lado, e isso esteve no ar seis semanas sem ninguém dar por ele, porque nada
+compara duas constantes que nunca aparecem na mesma linha.
+
+**O fundo da escada passou a pintar de azul, e os três degraus de baixo
+fundiram-se num.** O 30, o 40-69 e a arma que não publica nível nenhum são
+agora `PatamarDaArma.baixo`. Isto reverte a decisão de 29/09 e reverte-a
+porque o fundo deixou de ser um canto: juntos são **51,8%** da grelha.
+
+**Os 412 sem nível entram no azul por decisão do dono, contra a
+recomendação.** Eu propus deixá-los sem cor: a `★★★Geada Tardia` é rank 4 e
+não dá nível de ataque, portanto o azul ali afirma *fundo da escada* sobre uma
+coisa que ninguém mediu — a regra pela qual um conduíte sem atributo não
+desenha zero. O argumento dele ganha e vale guardar: **numa grelha em que
+alguma cor é a norma, a ausência de cor lê-se como card partido e não como
+reserva.**
+
+**`null` e `baixo` continuam a ser coisas diferentes**, e é isso que salva a
+honestidade do resto. `baixo` quer dizer *lemos a arma e ela não chega aos
+70*; `null` quer dizer *não há arma, ou esta coleta nem conhece o atributo* —
+que é o 1.2.6 inteiro, cujo índice não publica `Nível de Ataque`. Juntá-los
+poria borda azul em 1.426 personagens a afirmar um degrau que aquele mercado
+nunca mediu.
+
+**Só `baixo` não tinge o fundo.** Um degrau que metade do mercado ocupa não
+pode falar tão alto como os 3,7% que são 80: a borda diz *isto foi lido e é o
+fundo*, e o fundo liso diz *não há mais nada a acrescentar*. É por isso que o
+patamar passou a ser um tipo com dois campos em vez de uma cor solta — e
+`Destaque` guarda o degrau, nunca a cor, porque um segundo campo `pinta` ao
+lado de `cor` seria o mesmo facto escrito duas vezes.
+
+**O azul é o par mais apertado da paleta, e isso entrou de olhos abertos.** A
+medição de 29/09 continua verdadeira: composto a 55% sobre `surface`, o azul
+`#56A8F5` fica a **27,9 ΔE** do roxo, a menor distância de toda a escada — e
+agora esses dois cobrem 96% da grelha. O que o desmede é a renderização: são
+matizes diferentes e num filete de 2 px separam-se bem. **Foi desenhado antes
+de ser escolhido**, que é a correção da armadilha que pegou a primeira versão
+da escada — e é também a lição ao contrário, de que um ΔE pequeno entre
+matizes distintos subestima o que o olho faz num traço fino.
 
 O degradê entra a 10% pelo canto superior esquerdo e morre antes do texto: o
 bastante para a grade se organizar de relance, não o bastante para brigar com

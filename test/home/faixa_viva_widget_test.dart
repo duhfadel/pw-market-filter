@@ -65,8 +65,22 @@ void main() {
     );
   }
 
+  /// Hoje, à hora pedida — **nunca uma data escrita à mão**.
+  ///
+  /// A primeira versão cravava `DateTime(2026, 11, 9, 14, 30)` e afirmava
+  /// *«colhido hoje às 14:30»*. Passou no dia em que foi escrita e ficou
+  /// vermelha à meia-noite seguinte, sem uma linha de código ter mudado: é um
+  /// teste cuja entrada é o relógio do mundo, que é a forma que este
+  /// repositório já apanhou no selo *novo* dos guias e no gate do
+  /// `presets_test`. O que se quer afirmar é *«a coleta de hoje imprime a
+  /// hora e não os dias»*, e isso precisa de hoje, não de uma data.
+  DateTime hojeAs(int hora, int minuto) {
+    final hoje = DateTime.now();
+    return DateTime(hoje.year, hoje.month, hoje.day, hora, minuto);
+  }
+
   MarketIndex comMovimento() {
-    final agora = DateTime(2026, 11, 9, 14, 30);
+    final agora = hojeAs(14, 30);
     return mercadoDe(agora, [
       // Entrou hoje e baixou — uma pessoa responde às duas perguntas, que é o
       // caso que um teste com uma figura por pessoa nunca exercita.
@@ -95,7 +109,7 @@ void main() {
   testWidgets('desenha os três números com separador de milhar', (
     tester,
   ) async {
-    final agora = DateTime(2026, 11, 9, 14, 30);
+    final agora = hojeAs(14, 30);
     await montar(
       tester,
       mercadoDe(agora, [

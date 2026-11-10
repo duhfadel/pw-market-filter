@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../../core/rotas.dart' as rotas;
 import '../../../core/theme/pw_colors.dart';
+import '../../../core/theme/medidas_da_maquete.dart';
 import '../domain/arte_da_classe.dart';
+import 'widgets/cabecalho.dart';
 import 'widgets/cartaz.dart';
+import 'widgets/palco_de_classe.dart';
 
 /// O Cartaz do 1.4.4, sozinho — uma espreitadela, não uma tela.
 ///
@@ -28,7 +31,13 @@ class Espreitar144View extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final largura = MediaQuery.sizeOf(context).width;
-    final wide = largura >= 772;
+    final wide = largura >= Cabecalho.larguraMinima;
+    // Os mesmos degraus da home de um mercado, para esta tela não ter uma
+    // conta própria a divergir da outra — que foi o defeito que o dono
+    // apanhou: uma margem fixa de 24 deixava o texto colado à esquerda
+    // enquanto as outras telas o põem na coluna de leitura.
+    final large = largura >= 1280;
+    final maxWidth = large ? Maquete.colunaDeLeitura : 780.0;
 
     return Scaffold(
       backgroundColor: PWColors.background,
@@ -37,7 +46,7 @@ class Espreitar144View extends StatelessWidget {
           Cartaz(
             classe: classeDoCartaz(rotas.pw144),
             wide: wide,
-            margemHorizontal: wide ? 24 : 20,
+            margemHorizontal: recuoDoHeroi(largura, maxWidth, wide),
             subtitulo:
                 'O mercado ainda não abriu. Esta tela existe para ver a arte '
                 'da capa, e sai no dia em que o 1.4.4 entrar.',

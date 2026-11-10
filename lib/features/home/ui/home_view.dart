@@ -15,6 +15,7 @@ import '../domain/arte_da_classe.dart';
 import 'widgets/ao_vivo_strip.dart';
 import 'widgets/cabecalho.dart';
 import 'widgets/cartaz.dart';
+import 'widgets/palco_de_classe.dart';
 import 'widgets/destaques_view.dart';
 import '../../guias/ui/widgets/guerras_secao.dart';
 import '../../guias/ui/widgets/guias_secao.dart';
@@ -244,11 +245,7 @@ class HomeView extends StatelessWidget {
                           // O texto do herói alinha com a coluna de leitura,
                           // calculado da mesma largura — a arte sangra, o
                           // texto não.
-                          margemHorizontal: _recuoDoHeroi(
-                            width,
-                            maxWidth,
-                            wide,
-                          ),
+                          margemHorizontal: recuoDoHeroi(width, maxWidth, wide),
                         ),
                         if (ready != null) ...[
                           SizedBox(height: wide ? 14 : 10),
@@ -533,16 +530,6 @@ class _Aurora extends StatelessWidget {
 
 /// The page's ordinary side margin, applied one section at a time.
 ///
-/// O recuo lateral do texto do herói, para alinhar com a coluna de leitura.
-///
-/// A arte sangra de margem a margem e o texto não — a mesma conta que a raiz
-/// faz. Sem isto a manchete começaria no bordo do ecrã numa janela larga.
-double _recuoDoHeroi(double largura, double maxWidth, bool wide) {
-  final sobra = (largura - maxWidth) / 2;
-  final margem = wide ? 24.0 : 16.0;
-  return sobra > 0 ? sobra + margem : margem;
-}
-
 /// Everything on the page carries it except the Cartaz, which bleeds to the
 /// reading column's own edges on purpose — see the comment at its call site.
 /// A margin shared by every child of one `Column` would have pinched the

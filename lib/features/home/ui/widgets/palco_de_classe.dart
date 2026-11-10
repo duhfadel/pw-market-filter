@@ -352,3 +352,19 @@ class _VeuDeBaixo extends StatelessWidget {
     ),
   );
 }
+
+/// Onde o texto do herói começa, para alinhar com o conteúdo abaixo.
+///
+/// **A arte sangra e o texto não**: a arte enche a janela inteira e o texto
+/// tem de cair na mesma coluna das secções seguintes, senão a primeira dobra
+/// parece desalinhada do resto da página.
+///
+/// Partilhada porque há dois chamadores — a home de cada mercado e a
+/// espreitadela do 1.4.4 —, e uma margem fixa no segundo foi exactamente o
+/// que o dono apanhou a 10/11/2026: o texto colado à esquerda enquanto as
+/// outras telas o têm a 144 px.
+double recuoDoHeroi(double largura, double maxWidth, bool wide) {
+  final sobra = (largura - maxWidth) / 2;
+  final margem = wide ? 24.0 : 16.0;
+  return sobra > 0 ? sobra + margem : margem;
+}

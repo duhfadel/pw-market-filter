@@ -110,13 +110,28 @@ class _Texto extends StatelessWidget {
     // manchete correr até 15 caracteres — *«As contas que o»* em vez de
     // *«As contas que»* — e essa sílaba a mais punha-a em cima da cara da
     // figura, que é a única parte da dobra que não pode ter texto por cima.
+    //
+    // **A manchete passou a ser o nome do jogo a 10/11/2026, por decisão do
+    // dono.** Era *«As contas que o jogo não faz»*, que dizia o que o site
+    // faz e não para que jogo — e quem escreve `portalpw.net` às cegas chega
+    // aqui sem saber se é do jogo que joga.
+    //
+    // Eu levantei o risco e ele decidiu, e o risco fica escrito: estas duas
+    // palavras saíram da arte da capa nesta mesma tarde, porque o logótipo da
+    // Perfect World na primeira dobra contradiz o que o rodapé diz em todas
+    // as páginas sobre ser projecto de fã sem vínculo. A distinção que
+    // sustenta a decisão é real — **o logótipo é marca deles, o nome dito
+    // para identificar o jogo é uso nominativo**, e é o mesmo que o site já
+    // faz ao escrever *The Classic PW 1.8.7* por toda a parte. O que a
+    // sobrelinha garante é que ninguém leia isto como o site oficial: ela diz
+    // *ferramentas, guias e vídeos do* antes de o nome aparecer.
     constraints: BoxConstraints(maxWidth: wide ? 700 : 420),
     child: Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'FERRAMENTAS E GUIAS · THE CLASSIC PW',
+          'FERRAMENTAS, GUIAS E VÍDEOS DO THE CLASSIC PW',
           style: TextStyle(
             color: PWColors.apagado,
             fontSize: wide ? 12 : 10.5,
@@ -141,7 +156,7 @@ class _Texto extends StatelessWidget {
               // perto de meia em, medido contra a linha que ela quebra.
               constraints: BoxConstraints(maxWidth: tamanho * 7),
               child: Text(
-                'As contas que o jogo não faz',
+                'Perfect World',
                 style: TextStyle(
                   fontFamily: PWTheme.display,
                   fontSize: tamanho,
@@ -157,9 +172,8 @@ class _Texto extends StatelessWidget {
           // `max-width: 46ch`, o tecto que a maquete põe na sub-linha.
           constraints: const BoxConstraints(maxWidth: 470),
           child: Text(
-            'Filtre o mercado pelo que cada personagem está usando, veja '
-            'quanto custa uma runa nível 10 e siga as missões da Saga do '
-            'Herói.',
+            'Filtre o mercado e encontre o personagem certo para você, e '
+            'veja como fazer a linha de quest Saga do Herói.',
             style: TextStyle(
               color: PWColors.apagado,
               fontSize: wide ? 16.5 : 13.5,

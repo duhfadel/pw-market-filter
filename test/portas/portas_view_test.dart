@@ -679,7 +679,7 @@ void main() {
       );
       await _montar(tester);
 
-      expect(find.text('As contas que o jogo não faz'), findsOneWidget);
+      expect(find.text('Perfect World'), findsOneWidget);
       // A manchete é do herói, em Marcellus sobre a arte; a secção abaixo
       // responde outra pergunta — *o que é isto que vou ver números sobre*.
       expect(find.text('Três versões, três mercados'), findsOneWidget);
@@ -720,9 +720,7 @@ void main() {
       );
       await _montar(tester);
 
-      final heroi = tester.getTopLeft(
-        find.text('As contas que o jogo não faz'),
-      );
+      final heroi = tester.getTopLeft(find.text('Perfect World'));
       final porta = tester.getTopLeft(_porta('pw126'));
       expect(heroi.dy, lessThan(porta.dy));
     });

@@ -32,15 +32,36 @@ void main() {
     );
   }
 
-  testWidgets('diz o que o site faz, e abre uma porta só', (tester) async {
+  testWidgets('diz o que o site faz antes de dizer o nome do jogo', (
+    tester,
+  ) async {
+    // **A ordem é o que mantém isto honesto.** A manchete passou a ser o nome
+    // do jogo a 10/11/2026, por decisão do dono, e estas mesmas duas palavras
+    // tinham saído da arte da capa nessa tarde — o logótipo da Perfect World
+    // na primeira dobra contradiz o que o rodapé diz em todas as páginas
+    // sobre ser projecto de fã sem vínculo.
+    //
+    // O que sustenta a decisão é a distinção entre marca e nome: o logótipo é
+    // deles, o nome dito para identificar o jogo é uso nominativo — o mesmo
+    // que o site já faz ao escrever *The Classic PW 1.8.7* por toda a parte.
+    // E o que impede a leitura errada é a sobrelinha vir **antes**, a dizer
+    // de quem é o site. Por isso a posição é cravada aqui e não só o texto.
     await montar(tester);
 
-    expect(find.text('FERRAMENTAS E GUIAS · THE CLASSIC PW'), findsOneWidget);
-    expect(find.text('As contas que o jogo não faz'), findsOneWidget);
+    expect(
+      find.text('FERRAMENTAS, GUIAS E VÍDEOS DO THE CLASSIC PW'),
+      findsOneWidget,
+    );
+    expect(find.text('Perfect World'), findsOneWidget);
     // **Uma porta, e para os guias.** «Ver o mercado» responderia em silêncio
     // a pergunta *qual mercado* que as portas abaixo existem para fazer — o
     // defeito de 27/10/2026, quando o seletor oferecia pílulas que escolhiam
     // o 1.8.7 sem dizer.
+    expect(
+      tester.getTopLeft(find.textContaining('FERRAMENTAS')).dy,
+      lessThan(tester.getTopLeft(find.text('Perfect World')).dy),
+      reason: 'o nome do jogo nunca abre a página sozinho',
+    );
     expect(find.text('Ver todos os guias'), findsOneWidget);
     // Uma só, e é esta: nenhum botão aqui abre um mercado. A sub-linha fala
     // do mercado, que é diferente — descrever não é escolher por alguém.
@@ -51,9 +72,7 @@ void main() {
     tester,
   ) async {
     await montar(tester);
-    final manchete = tester.widget<Text>(
-      find.text('As contas que o jogo não faz'),
-    );
+    final manchete = tester.widget<Text>(find.text('Perfect World'));
     expect(manchete.style?.fontFamily, PWTheme.display);
     // Marcellus desenha figuras romanas: um dígito aqui sairia como `I`.
     expect(RegExp(r'\d').hasMatch(manchete.data!), isFalse);

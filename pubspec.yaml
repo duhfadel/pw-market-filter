@@ -93,6 +93,10 @@ flutter:
     # `tool/sagas/pagina.py` escreve para as paginas estaticas, e
     # `recorte_da_classe_test` crava que as duas sao byte a byte iguais.
     - assets/images/classes-recorte/
+    # A capa do heroi: as dezassete artes de classe numa so imagem, de pe.
+    # Escrita por `tool/artes/capa.py`. Fica em `images/` e nao numa pasta
+    # propria porque e um ficheiro so e nao uma familia derivada de um id.
+    - assets/images/capa-classes.webp
     - assets/icons/classes/
     - assets/icons/items/
     # As pedras do set sem moldura nem fundo, escritas por

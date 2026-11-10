@@ -90,6 +90,8 @@ class HeroiDaRaiz extends StatelessWidget {
     altura: alturaPara(wide, MediaQuery.sizeOf(context).height),
     margemHorizontal: margemHorizontal,
     enquadramento: EnquadramentoDaArte.heroi,
+    // As dezassete de pé, em vez do Guerreiro deitado e esticado.
+    capa: true,
     child: _Texto(wide: wide),
   );
 }

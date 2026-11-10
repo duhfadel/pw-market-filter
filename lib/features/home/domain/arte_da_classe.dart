@@ -103,6 +103,22 @@ String? arteVerticalDaClasse(String classe) {
             '${entrada.arquivo}.webp';
 }
 
+/// A capa: as dezassete artes de classe numa só imagem, de pé.
+///
+/// **Existe porque o herói deitava a arte e isso amolecia o rosto.** Uma cena
+/// 960×1440 a cobrir uma faixa da largura da página é esticada *pela largura*
+/// — 1,48× a 1420 e 2× a 1920, o que em píxeis de ecrã retina são 2,96× e 4×.
+/// Não há arte maior publicada: procurou-se no oficial brasileiro (952×880,
+/// menos do que já temos), no oficial chinês (outra arte, 800 px) e no site do
+/// servidor (ícones de 36×36).
+///
+/// De pé, a mesma arte enche os 1520 px de altura da faixa a **1,06×**.
+/// Dezassete lado a lado enchem a largura sem que nenhuma seja esticada — a
+/// nitidez vem de usar a arte na orientação em que foi pintada.
+///
+/// Escrita por `tool/artes/capa.py`, que guarda o porquê de cada número.
+const capaDasClasses = 'assets/images/capa-classes.webp';
+
 /// O recorte da arte de [classe] — a figura sem fundo nenhum.
 ///
 /// **É outra ilustração, e não a vertical sem fundo.** As verticais são cenas

@@ -26,6 +26,7 @@ class PalcoDeClasse extends StatelessWidget {
     required this.margemHorizontal,
     required this.child,
     this.enquadramento = EnquadramentoDaArte.cartaz,
+    this.capa = false,
     super.key,
   });
 
@@ -44,9 +45,23 @@ class PalcoDeClasse extends StatelessWidget {
   /// Como a arte é enquadrada e lavada. Ver [EnquadramentoDaArte].
   final EnquadramentoDaArte enquadramento;
 
+  /// Desenhar [capaDasClasses] — as dezassete de pé — em vez da arte de
+  /// [classe].
+  ///
+  /// **Um parâmetro e não uma dedução do enquadramento**, porque os dois
+  /// chamadores passam o mesmo enquadramento e só um quer isto. A primeira
+  /// versão inferiu-o de `EnquadramentoDaArte.heroi` e apanhou o `Cartaz`
+  /// junto — matando-lhe a rotação por coleta, que é o que faz a tela de
+  /// versão mudar de cara entre visitas. Uma bandeira explícita faz essa
+  /// escolha ser visível na chamada.
+  ///
+  /// A raiz pode porque já não roda: o herói dela é sempre o Guerreiro, por
+  /// decisão do dono — *«usa a mesma imagem»*. Ali não há rotação a perder.
+  final bool capa;
+
   @override
   Widget build(BuildContext context) {
-    final arte = arteVerticalDaClasse(classe);
+    final arte = capa ? capaDasClasses : arteVerticalDaClasse(classe);
 
     return SizedBox(
       width: double.infinity,
@@ -57,7 +72,20 @@ class PalcoDeClasse extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (arte != null)
-            _Arte(caminho: arte, alinhamento: enquadramento.alinhamento),
+            _Arte(
+              caminho: arte,
+              // **A capa encosta à esquerda, e no desktop isso não muda
+              // nada.** A 1420 px ela encaixa exacta — 2840×1520 a meia
+              // escala é a caixa inteira — portanto não há corte nenhum para
+              // alinhar. Só importa no estreito, onde o `cover` corta pelos
+              // lados: com o alinhamento da maquete (0,52) o telemóvel
+              // mostrava as tiras do meio, que são as claras, e a manchete
+              // ficava a competir com elas. À esquerda mostra as escuras, que
+              // é para onde `capa.py` as ordenou de propósito.
+              alinhamento: capa
+                  ? Alignment(-1, enquadramento.alinhamento.y)
+                  : enquadramento.alinhamento,
+            ),
           if (enquadramento == EnquadramentoDaArte.cartaz) ...[
             const _LavagemVertical(),
             const _LavagemHorizontal(),
@@ -90,10 +118,10 @@ class _Arte extends StatelessWidget {
     caminho,
     fit: BoxFit.cover,
     alignment: alinhamento,
-    // **A fonte e 960x1440 e o heroi pede 1440x2160** -- uma ampliacao
-    // de 1,5x, e 3x num ecra Retina. Com a filtragem por omissao o
-    // resultado amolece; `high` usa reamostragem cubica, que e o melhor
-    // que se pode fazer sem arte maior. Nao inventa detalhe nenhum: so
+    // **`high` fica, e agora é a rede e não o remédio.** Com a capa de pé a
+    // ampliação é 1,06×, mas o `Cartaz` continua a deitar uma arte só e a
+    // esticá-la; e acima de 1420 px de janela a própria capa passa a ser
+    // ampliada. `high` usa reamostragem cúbica — não inventa detalhe, só
     // deixa de o destruir.
     filterQuality: FilterQuality.high,
     // A missing file leaves the plain ground rather than a broken box — the

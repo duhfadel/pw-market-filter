@@ -389,16 +389,23 @@ class CharacterCard extends StatelessWidget {
                 ..._lines.map(_highlightLine),
                 ..._facts.map(_factLine),
               ],
-              if (character.runes.isNotEmpty) ..._runeStrip,
-              // **No fim, e depois das peças que responderam ao filtro.** As
-              // linhas acima dizem *porque é que este apareceu*; a fita diz
+              // **Depois das peças que responderam ao filtro.** As linhas
+              // acima dizem *porque é que este apareceu*; as duas tiras dizem
               // *o que ele está a usar*, que é a pergunta de quem varre a
               // grelha em vez de ler um card. A ordem põe a resposta antes do
               // retrato, que é como a página inteira já está arrumada.
+              //
+              // **E o equipamento vem antes das runas, que é o contrário do
+              // que estava.** As duas tiras separam-se pela forma — catorze
+              // quadrados e depois seis círculos — e a separação só funciona
+              // com elas adjacentes e nesta ordem, que é a da maquete e a da
+              // janela do jogo. Com as runas no meio, as peças ficavam
+              // partidas em dois blocos pelo bloco redondo.
               if (character.equipped.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 FitaDoSet(character: character, index: index),
               ],
+              if (character.runes.isNotEmpty) ..._runeStrip,
             ],
           ),
         ),
@@ -475,6 +482,23 @@ class CharacterCard extends StatelessWidget {
     ),
   ];
 
+  /// **Redonda, e é a separação inteira entre as duas tiras.**
+  ///
+  /// Escolha do dono entre três saídas desenhadas: um fio de 1 px entre elas,
+  /// formas diferentes, ou empurrar as runas para o lado oposto. Ganhou a
+  /// segunda — *«equipamento quadrado, runas redondas»* — porque separa sem
+  /// acrescentar vocabulário nenhum ao card, e porque as runas já têm cor
+  /// própria por nível.
+  ///
+  /// **O recorte não come a arte, e isso foi medido antes.** Os ícones são
+  /// 32×32 inteiramente opacos e 20,7% da imagem cai fora do círculo
+  /// inscrito — mas essa fatia são os cantos da moldura escura que o jogo
+  /// desenha à volta da pedra, não a pedra. As seis do índice foram
+  /// renderizadas lado a lado, quadradas e redondas, antes de isto ser
+  /// escrito.
+  ///
+  /// O anel é [PWColors.border], o mesmo que `_Peca` dá ao quadrado: as duas
+  /// tiras diferem na forma e em mais nada.
   Widget _rune(int itemId) {
     final level = index.runes[itemId]?.level;
 
@@ -484,7 +508,16 @@ class CharacterCard extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          ItemIcon(itemId, size: 24),
+          Container(
+            width: 24,
+            height: 24,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: PWColors.border),
+            ),
+            child: ItemIcon(itemId, size: 24),
+          ),
           if (level != null)
             Positioned(
               right: -2,

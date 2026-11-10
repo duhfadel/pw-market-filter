@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/core/theme/pw_colors.dart';
 import 'package:pw_market_filter/features/search/domain/search_query.dart';
 import 'package:pw_market_filter/features/search/ui/widgets/character_card.dart';
+import 'package:pw_market_filter/features/search/ui/widgets/fita_do_set.dart';
 import 'package:pw_market_filter/market/market_index.dart';
 import 'package:pw_market_filter/market/price_history.dart';
 
@@ -321,5 +322,42 @@ void main() {
     await _pump(tester, _character());
 
     expect(find.byKey(const ValueKey('queda')), findsNothing);
+  });
+
+  /// As runas, e **não** o ponto de raridade do item.
+  ///
+  /// O card já tinha um círculo antes de isto existir: o ponto de 7 px que
+  /// diz o grau da peça nomeada. A primeira versão deste matcher apanhou-o e
+  /// afirmou que as runas vinham antes do equipamento — o ponto está lá em
+  /// cima, na linha do item. O anel é o que as separa.
+  final runasRedondas = find.byWidgetPredicate((w) {
+    if (w is! Container) return false;
+    final enfeite = w.decoration;
+    return enfeite is BoxDecoration &&
+        enfeite.shape == BoxShape.circle &&
+        enfeite.border != null;
+  });
+
+  testWidgets('as runas são redondas e o equipamento é quadrado', (
+    tester,
+  ) async {
+    // **A separação das duas tiras é a forma, e mais nada** — escolha do dono
+    // entre três saídas desenhadas, contra um fio de 1 px e contra empurrar
+    // as runas para o lado oposto. Se alguém devolver a runa ao quadrado, as
+    // duas tiras voltam a ler-se como um bloco só e nada no ecrã o diz.
+    await _pump(tester, _character(runes: const [52220, 52183]));
+
+    expect(runasRedondas, findsNWidgets(2));
+  });
+
+  testWidgets('o equipamento vem antes das runas', (tester) async {
+    // A ordem é a da maquete e a da janela do jogo: os quadrados e depois os
+    // círculos. Com as runas no meio — que é onde estavam — as peças ficavam
+    // partidas em dois blocos pelo bloco redondo, e a separação por forma
+    // deixa de separar coisa nenhuma.
+    await _pump(tester, _character(runes: const [52220, 52183]));
+
+    final fita = tester.getTopLeft(find.byType(FitaDoSet)).dy;
+    expect(tester.getTopLeft(runasRedondas.first).dy, greaterThan(fita));
   });
 }

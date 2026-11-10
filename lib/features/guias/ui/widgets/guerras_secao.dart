@@ -101,15 +101,22 @@ class _GuerrasSecaoState extends State<GuerrasSecao> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         CabecaDeSeccao(
-          titulo: 'Guerras territoriais',
-          // A porta só aparece quando há o que abrir: num mercado sem vídeo
-          // nenhum ela prometeria uma página vazia.
-          porta: _videos == 0 ? null : 'os $_videos →',
+          titulo: 'Vídeos de guerras territoriais',
+          // A porta só aparece quando há o que abrir — num mercado sem vídeo
+          // nenhum ela prometeria uma página vazia — e **só no largo**.
+          //
+          // Medido com as fontes reais a 10/11/2026: a cabeça passou de 191
+          // px para **285** ao ganhar o *Vídeos de*, e com os dois vãos e a
+          // porta dá 408 contra os ~350 que um ecrã de 390 deixa. É a mesma
+          // conta que já tirou a porta à cabeça dos Destaques no estreito, e
+          // o que se perde é pouco: a secção inteira é a lista, e tocar numa
+          // linha abre o vídeo.
+          porta: _videos == 0 || !widget.wide ? null : 'os $_videos →',
           // `/{versao}/guerras`, a mesma forma que `Tool.route` declara —
           // montada aqui a partir da versão em vez de passar pelo `Tool`,
           // porque o que esta porta tem na mão é o mercado e não a entrada
           // de menu.
-          aoTocarNaPorta: _videos == 0
+          aoTocarNaPorta: _videos == 0 || !widget.wide
               ? null
               : () => abrirEndereco(
                   context,

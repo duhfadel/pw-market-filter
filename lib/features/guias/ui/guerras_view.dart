@@ -43,8 +43,14 @@ class _Cabecalho extends StatelessWidget {
     children: [
       // Sem algarismos, portanto a face de display é segura aqui: Marcellus
       // desenha figuras romanas e o seu `1` não tem bandeira.
+      // **«Vídeos de» à frente, pedido do dono a 10/11/2026.** O nome antigo
+      // prometia as guerras e entregava gravações delas — e desde que a home
+      // de cada versão ganhou uma secção com as quatro mais recentes, havia
+      // dois sítios a dizer *Guerras Territoriais* e nenhum a dizer que são
+      // vídeos. A 32 px isto mede 427 px e quebra em duas linhas num
+      // telemóvel, o que num título de página é o que se quer.
       const Text(
-        'Guerras Territoriais',
+        'Vídeos de Guerras Territoriais',
         style: TextStyle(
           fontFamily: PWTheme.display,
           fontSize: 32,

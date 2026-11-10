@@ -4,6 +4,8 @@ import 'package:pw_market_filter/core/rotas.dart' as rotas;
 import 'package:pw_market_filter/features/guias/domain/video.dart';
 import 'package:pw_market_filter/features/guias/ui/widgets/guerras_secao.dart';
 
+import '../support/load_fonts.dart';
+
 Video _video({
   required String youtube,
   String? detalhes,
@@ -23,11 +25,12 @@ Future<void> _montar(
   WidgetTester tester, {
   required Future<List<Video>> Function() carregar,
   String versao = rotas.pw187,
+  bool wide = true,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
-        body: GuerrasSecao(versao: versao, wide: true, carregar: carregar),
+        body: GuerrasSecao(versao: versao, wide: wide, carregar: carregar),
       ),
     ),
   );
@@ -35,6 +38,10 @@ Future<void> _montar(
 }
 
 void main() {
+  // Com as fontes reais: sem elas o harness desenha cada glifo como um
+  // quadrado do tamanho da fonte e o teste de transbordo mede o harness.
+  setUpAll(loadAppFonts);
+
   testWidgets('as gravações da mesma guerra saem numa linha só', (
     tester,
   ) async {
@@ -96,6 +103,11 @@ void main() {
 
     expect(find.textContaining('Guerra '), findsNWidgets(4));
     expect(find.text('os 7 →'), findsOneWidget);
+    expect(
+      find.text('VÍDEOS DE GUERRAS TERRITORIAIS'),
+      findsOneWidget,
+      reason: 'o nome diz que são gravações e não as guerras',
+    );
   });
 
   testWidgets('um mercado sem vídeo nenhum convida, e diz qual é', (
@@ -125,7 +137,37 @@ void main() {
     // Worker de marcar toda a gente offline quando a Twitch não responde.
     await _montar(tester, carregar: () async => throw Exception('sem rede'));
 
-    expect(find.text('Guerras territoriais'.toUpperCase()), findsNothing);
+    expect(
+      find.text('Vídeos de guerras territoriais'.toUpperCase()),
+      findsNothing,
+    );
     expect(find.textContaining('Ainda não temos'), findsNothing);
+  });
+
+  testWidgets('no telemóvel a cabeça fica sem porta, e não transborda', (
+    tester,
+  ) async {
+    // Medido com as fontes reais a 10/11/2026: a cabeça passou de 191 px
+    // para 285 ao ganhar o *Vídeos de*, e com os dois vãos e a porta dá 408
+    // contra os ~350 que um ecrã de 390 deixa.
+    tester.view.physicalSize = const Size(390, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await _montar(
+      tester,
+      wide: false,
+      carregar: () async => [
+        _video(
+          youtube: 'a',
+          detalhes: 'Sync x Genesys',
+          data: DateTime.utc(2026, 11, 7),
+        ),
+      ],
+    );
+
+    expect(find.text('VÍDEOS DE GUERRAS TERRITORIAIS'), findsOneWidget);
+    expect(find.textContaining('os 1 →'), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 }

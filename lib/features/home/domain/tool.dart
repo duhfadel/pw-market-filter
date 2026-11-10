@@ -232,7 +232,7 @@ final tools = <Tool>[
   // próximo. Volta com `route` e não com `href` porque agora é uma tela do
   // site e não uma página estática em `web/guerras/`.
   Tool(
-    name: 'Guerras Territoriais',
+    name: 'Vídeos de Guerras Territoriais',
     tagline:
         'Vídeos de guerra gravados pela comunidade, por classe — e todos '
         'com permissão de quem gravou.',
@@ -240,10 +240,11 @@ final tools = <Tool>[
     // **Secção própria, não os Guias** — decisão do dono em 05/10/2026, e tem
     // razão: um vídeo de guerra não explica nada, mostra. Com uma entrada só,
     // a pílula leva direto à tela em vez de abrir uma gaveta de um item.
-    // **A pílula diz `Guerras` e a tela diz `Guerras Territoriais`**, e isso
-    // é medido e não preferência: com o nome inteiro a barra transbordava
-    // 70 px ao lado de *Ferramentas*, *Guias* e *Novidades*, com as fontes
-    // reais. Uma pílula é um rótulo, não um título — o nome completo está no
+    // **A pílula diz `Guerras` e a entrada diz o nome inteiro**, e isso é
+    // medido e não preferência: já com `Guerras Territoriais` a barra
+    // transbordava 70 px ao lado de *Ferramentas*, *Guias* e *Novidades*,
+    // com as fontes reais, e o nome ficou ainda mais longo a 10/11/2026.
+    // Uma pílula é um rótulo, não um título — o nome completo está no
     // cabeçalho da tela e na dica da própria pílula.
     secao: 'Guerras',
     // `{versao}` é substituído pela versão em que o visitante está — as

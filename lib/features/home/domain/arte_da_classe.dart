@@ -63,8 +63,18 @@ const classesComArte = [
 /// que vai preencher. É o mesmo arranjo do ícone de item, derivado do id, e é
 /// por isso que acrescentar um terceiro tamanho não toca em [_classes].
 enum TamanhoDaArte {
-  /// Para cartões: os Destaques a seis colunas dão ~120 px cada, e as Portas
-  /// menos ainda. Aqui 480 já é quatro vezes o que o ecrã mostra.
+  /// **Sem chamador desde 09/11/2026, e mantida por decisão do dono.**
+  ///
+  /// Servia os Destaques, que a largaram quando o fundo do card passou a ser
+  /// o degradê do patamar e a figura passou a ser o recorte — ver
+  /// [recorteDaClasse]. São 906 KB em disco que a app não desenha, e a regra
+  /// desta casa apagá-los-ia: foi o que aconteceu à irmã quadrada
+  /// `arteDaClasse` a 01/10/2026, viva só pelo próprio teste.
+  ///
+  /// Fica porque foi pedido que ficasse. O raciocínio original continua
+  /// válido para quem a voltar a usar: num cartão de ~120 px, 480 já é
+  /// quatro vezes o que o ecrã mostra, e servir 960 seria pagar píxeis que
+  /// ninguém vê.
   cartao(480),
 
   /// Para o Cartaz, que é o único sítio que **amplia** a arte: a caixa é da

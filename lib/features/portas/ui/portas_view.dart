@@ -8,6 +8,7 @@ import '../../../core/theme/medidas_da_maquete.dart';
 import '../../../core/theme/pw_colors.dart';
 import '../../../market/versoes_repository.dart';
 import '../../guias/ui/widgets/guias_secao.dart';
+import '../../guias/ui/widgets/ultimos_videos_de_guerra.dart';
 import '../../home/ui/widgets/cabecalho.dart';
 import '../../home/ui/widgets/ao_vivo_strip.dart';
 import '../../home/ui/widgets/rodape.dart';
@@ -279,6 +280,17 @@ class _Portas extends StatelessWidget {
               // nenhuma, logo não afirma nada ao mostrar quem não escreveu a
               // sua. É o contrário de uma página de versão, onde mostrar
               // alguém sem versão seria o site a dizer o que não sabe.
+              // **A guerra mais recente de cada mercado**, pedido do dono a
+              // 10/11/2026. Não é a secção da home de versão outra vez: lá
+              // são as quatro mais recentes *daquele* mercado, aqui é a mais
+              // recente *de cada um dos três*. Com 47 vídeos no 1.8.7 contra
+              // zero nos outros dois, uma lista sem cota por mercado seria
+              // sempre 1.8.7 e nunca mostraria os três.
+              //
+              // Antes do canal e depois dos guias: os guias são o que o site
+              // explica, isto é o que a comunidade fez em cada mercado, e o
+              // canal é o que o site filma.
+              UltimosVideosDeGuerra(wide: ladoALado, espacoAcima: 34),
               // **O canal é do site e não de uma versão**, portanto vive
               // aqui e não se repete na tela de cada mercado.
               CanalDoPortal(wide: ladoALado, espacoAcima: 34),

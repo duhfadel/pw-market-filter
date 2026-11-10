@@ -119,7 +119,13 @@ void main() {
       ),
     );
     expect(arte.fit, BoxFit.cover);
-    expect(arte.alignment, const Alignment(0.52, -0.6));
+    // **A capa encosta à esquerda e o `y` da maquete fica.** A 1420 px ela
+    // encaixa exacta — 2840×1520 a meia escala é a caixa inteira — portanto
+    // aqui o `x` não corta nada. Só pesa no estreito, onde o `cover` corta
+    // pelos lados: com o 0,52 da maquete o telemóvel mostrava as tiras do
+    // meio, que `capa.py` ordenou para serem as claras, e a manchete ficava
+    // a competir com elas.
+    expect(arte.alignment, const Alignment(-1, -0.6));
   });
 
   test('a altura é min(86vh, 760), a medida da maquete', () {

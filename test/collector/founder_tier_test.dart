@@ -87,4 +87,35 @@ void main() {
 
     expect(tierOf(restored.titles), 10);
   });
+
+  test('com dois pacotes decodificados, vale o mais alto', () {
+    // **O defeito que o dono apanhou a 10/11/2026.** A Madara tinha
+    // `Fundador X` e `Fundador VII` no mesmo painel, e a primeira versão
+    // devolvia o primeiro card do documento — que a página ordena por
+    // equipado primeiro. Enquanto ela usava o VII, o índice dizia 7 e
+    // procurar por *Fundador X* não a encontrava, apesar de ela ter o X.
+    //
+    // A fixture é o painel dela, recortado, **com o VII à frente** — que é
+    // exactamente a ordem que produziu o erro. Posto o X primeiro, o teste
+    // passaria com o código antigo e não provaria nada.
+    final html = File(
+      'test/fixtures/titulos_fundador_duplo.html',
+    ).readAsStringSync();
+
+    expect(parseTitles(html)!.founder, 'Fundador X');
+  });
+
+  test('e o equipado não é o que decide', () {
+    // O filtro pergunta *Fundador N ou mais* — o que a pessoa comprou, não o
+    // que está a vestir hoje. E o que está vestido muda sem o mercado mudar,
+    // portanto seria a pior das duas coisas a guardar: o coletor não relê
+    // quem fica anunciado, logo a leitura tem de ser a que não envelhece.
+    final html = File(
+      'test/fixtures/titulos_fundador_duplo.html',
+    ).readAsStringSync();
+    final titulos = parseTitles(html)!;
+
+    expect(titulos.equipped, 'Fundador X');
+    expect(titulos.founder, 'Fundador X');
+  });
 }

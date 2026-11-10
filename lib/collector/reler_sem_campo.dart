@@ -28,7 +28,14 @@ const releiturasPorCorrida = 200;
 /// Subir este número esquece tudo, uma vez. É o carimbo do `CollectedPage`
 /// em pequeno, e pela mesma razão: um número é uma decisão explícita, e
 /// «falta esta chave?» não é.
-const motivoDaReleitura = 2;
+///
+/// **Foi a 3 a 10/11/2026, e o motivo é outro.** A reparação do sexo e do
+/// reino acabou — zero personagens sem um ou sem outro no índice daquela
+/// manhã —, e o lugar passou a servir os títulos de fundador: o parser lia o
+/// primeiro card do documento em vez do mais alto, portanto quem tivesse dois
+/// pacotes ficou com o grau errado guardado. A memória tinha de ser esquecida
+/// para eles voltarem à fila.
+const motivoDaReleitura = 3;
 
 /// Os personagens a reler por lhes faltar o que a página tem.
 ///
@@ -42,6 +49,20 @@ const motivoDaReleitura = 2;
 /// o reino vieram vazios em 2.879 personagens, e o arrasto da última leitura
 /// boa salvou 2.785 deles no índice — mas o **estado** continuou vazio, e o
 /// estado é de onde a próxima recolha parte.
+///
+/// **A 10/11/2026 passou a servir outro campo, e isso é o normal e não uma
+/// excepção.** O sexo e o reino estão reparados — zero em falta no índice
+/// daquela manhã — e o critério passou a ser o título de fundador: o parser
+/// devolvia o primeiro card do documento em vez do mais alto, portanto quem
+/// tem dois pacotes decodificados ficou com o grau errado guardado. A Madara
+/// tinha `Fundador X` e `Fundador VII`, e o índice dizia 7.
+///
+/// **São 186 de 2.961 — dez minutos**, contra as duas horas e meia que subir
+/// o carimbo custaria. É exactamente a diferença para que este ficheiro
+/// existe: reparar aos poucos sem deitar fora o estado.
+///
+/// Quem não tem título nenhum fica de fora: nestes a leitura não pode estar
+/// errada, porque não há card nenhum para o parser escolher mal.
 Set<int> aReler(
   Map<int, CollectedPage> estado,
   Set<int> jaRelidos, {
@@ -51,18 +72,19 @@ Set<int> aReler(
   for (final entry in estado.entries) {
     if (alvos.length >= tecto) break;
     if (jaRelidos.contains(entry.key)) continue;
-    // **Os dois vazios, não um.** Uma página pode legitimamente não dizer o
-    // sexo; não dizer nem o sexo nem o reino é a assinatura da leitura que
-    // falhou, porque os dois saem da mesma lista de três linhas da ficha.
-    // **Um dos dois basta desde 07/11**, e a mudança vem de se saber a
-    // causa. Enquanto ela era desconhecida, exigir os dois vazios era a
-    // assinatura prudente de uma leitura falhada; agora sabe-se que a ficha
-    // se lê inteira com a língua fixa, portanto faltar **um** já é motivo.
-    // Foi exactamente o caso que o critério antigo deixava passar: o reino
-    // vinha do painel `Alma Celeste` e o sexo ficava vazio, e esses nunca
-    // entravam na fila.
+    // **Quem tem título de fundador, e só esses.** Sem card nenhum o parser
+    // não teve nada para escolher mal, portanto a leitura não pode estar
+    // errada — e pô-los na fila gastaria duas horas e meia da rede deles
+    // para confirmar o que já se sabe.
+    //
+    // O critério anterior era *sem sexo ou sem reino*, e vale guardar o que
+    // ele ensinou: começou por exigir **os dois** vazios, porque enquanto a
+    // causa era desconhecida essa era a assinatura prudente de uma leitura
+    // falhada. Com a causa encontrada — a língua era sorteada por pedido —
+    // faltar **um** passou a bastar, e foi exactamente o caso que escapava:
+    // o reino vinha do painel `Alma Celeste` e o sexo ficava vazio.
     final p = entry.value;
-    if (p.sex.isEmpty || p.realm.isEmpty) alvos.add(entry.key);
+    if ((p.titles?.founder ?? '').isNotEmpty) alvos.add(entry.key);
   }
   return alvos;
 }

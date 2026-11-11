@@ -14,6 +14,10 @@ import '../../domain/plano_de_instancias.dart';
 const _colunaDeNumero = 62.0;
 const _colunaEstreita = 52.0;
 
+/// A coluna do botão de tirar. Uma medida só, para o cabeçalho, as linhas e a
+/// soma de baixo não poderem desalinhar-se.
+double _colunaDoBotao(bool compacto) => compacto ? 34 : 40;
+
 /// A tabela: uma linha por personagem, quatro números cada, soma em baixo.
 class TabelaDeInstancias extends StatelessWidget {
   const TabelaDeInstancias({
@@ -105,7 +109,7 @@ class _Cabecalho extends StatelessWidget {
               aoTocar: () => aoOrdenar(entrada),
             ),
           ),
-        SizedBox(width: compacto ? 30 : 36),
+        SizedBox(width: _colunaDoBotao(compacto)),
       ],
     ),
   );
@@ -213,14 +217,32 @@ class _Linha extends StatelessWidget {
             ),
           ),
         SizedBox(
-          width: compacto ? 30 : 36,
-          child: IconButton(
-            onPressed: () => aoRemover(indice),
-            iconSize: compacto ? 16 : 18,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            tooltip: 'Tirar ${quem.nome} da lista',
-            icon: const Icon(Icons.close, color: PWColors.textMuted),
+          width: _colunaDoBotao(compacto),
+          // **Um × de 18 px em cinzento passou despercebido ao próprio dono**,
+          // que pediu a opção de tirar personagens enquanto ela já lá estava.
+          // É a lição do card do streamer outra vez: pedido *discreto*, saiu
+          // **invisível**. Com moldura e chão próprios lê-se como um botão,
+          // e continua a ser a coisa mais calada da linha.
+          child: Center(
+            child: Tooltip(
+              message: 'Tirar ${quem.nome} da lista',
+              child: InkWell(
+                onTap: () => aoRemover(indice),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: EdgeInsets.all(compacto ? 5 : 6),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: PWColors.border),
+                  ),
+                  child: Icon(
+                    Icons.person_remove_outlined,
+                    size: compacto ? 15 : 17,
+                    color: PWColors.textMuted,
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ],
@@ -428,7 +450,7 @@ class _Soma extends StatelessWidget {
                 ),
               ),
             ),
-          SizedBox(width: compacto ? 30 : 36),
+          SizedBox(width: _colunaDoBotao(compacto)),
         ],
       ),
     );

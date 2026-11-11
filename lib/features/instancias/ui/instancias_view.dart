@@ -89,6 +89,35 @@ class _Conteudo extends StatelessWidget {
     );
   }
 
+  /// Tirar alguém, com volta.
+  ///
+  /// **Sem isto, tirar é definitivo e sem aviso.** Uma linha com quatro
+  /// números que alguém manteve durante semanas não pode desaparecer por um
+  /// toque ao lado — e um diálogo a perguntar *tem a certeza?* a cada
+  /// remoção seria pior: ensina a carregar em *sim* sem ler, e aí o aviso
+  /// deixa de avisar. Desfazer é a forma barata de ser seguro.
+  void _remover(BuildContext context, int indice) {
+    final vm = context.read<InstanciasViewModel>();
+    final quem = vm.state.personagens[indice];
+    final mensageiro = ScaffoldMessenger.of(context);
+
+    vm.remover(indice);
+
+    mensageiro
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('${quem.nome} saiu da lista.'),
+          action: SnackBarAction(
+            label: 'Desfazer',
+            // O índice vai junto: repor no fim devolveria o personagem e
+            // perderia a ordem que o dono lhe tinha dado.
+            onPressed: () => vm.repor(indice, quem),
+          ),
+        ),
+      );
+  }
+
   Future<void> _copiarLink(BuildContext context) async {
     final vm = context.read<InstanciasViewModel>();
     final mensageiro = ScaffoldMessenger.of(context);
@@ -131,7 +160,7 @@ class _Conteudo extends StatelessWidget {
               aoOrdenar: context.read<InstanciasViewModel>().ordenarPor,
               aoContar: context.read<InstanciasViewModel>().contar,
               aoRenomear: context.read<InstanciasViewModel>().renomear,
-              aoRemover: context.read<InstanciasViewModel>().remover,
+              aoRemover: (indice) => _remover(context, indice),
             ),
           const SizedBox(height: 22),
           const _OndeFica(),

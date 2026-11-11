@@ -75,6 +75,20 @@ class PlanoDeInstancias {
   PlanoDeInstancias maisUm(PersonagemDeInstancia quem) =>
       comPersonagens([...personagens, quem]);
 
+  /// Põe alguém de volta no lugar de onde saiu.
+  ///
+  /// **Existe para o desfazer, e o lugar é metade do trabalho.** Repor no fim
+  /// devolveria o personagem e perderia a ordem que o dono lhe tinha dado —
+  /// que é, ela própria, informação que ninguém mais tem.
+  PlanoDeInstancias inserindo(int indice, PersonagemDeInstancia quem) {
+    final onde = indice.clamp(0, personagens.length);
+    return comPersonagens([
+      ...personagens.take(onde),
+      quem,
+      ...personagens.skip(onde),
+    ]);
+  }
+
   PlanoDeInstancias semO(int indice) => comPersonagens([
     for (var i = 0; i < personagens.length; i++)
       if (i != indice) personagens[i],

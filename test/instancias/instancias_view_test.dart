@@ -96,6 +96,54 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('adicionar põe o personagem na tabela', (tester) async {
+    // **O caminho que todo o visitante faz**, e o único que vale testar
+    // montado: a folha vem de um `showModalBottomSheet`, que é rota, e uma
+    // rota que não abre é uma ferramenta que não se usa.
+    await _montar(tester);
+
+    await tester.tap(find.text('Personagem'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'novato');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Adicionar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('novato'), findsOneWidget);
+    expect(find.text('1 personagem'), findsOneWidget);
+  });
+
+  testWidgets('tirar alguém dá para desfazer, e volta ao lugar', (
+    tester,
+  ) async {
+    // **Uma linha que alguém manteve semanas não pode sumir por um toque ao
+    // lado.** E o lugar é metade do desfazer: repor no fim devolveria o
+    // personagem e perderia a ordem que o dono lhe deu.
+    await _montar(
+      tester,
+      query: const {
+        'p': [
+          'Bardo~0~0~0~1~primeiro',
+          'Mago~0~0~0~2~meio',
+          'Arqueiro~0~0~0~3~ultimo',
+        ],
+      },
+    );
+
+    await tester.tap(find.byIcon(Icons.person_remove_outlined).at(1));
+    await tester.pumpAndSettle();
+    expect(find.text('meio'), findsNothing);
+    expect(find.text('2 personagens'), findsOneWidget);
+
+    await tester.tap(find.text('Desfazer'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('3 personagens'), findsOneWidget);
+    double y(String nome) => tester.getTopLeft(find.text(nome)).dy;
+    expect(y('primeiro'), lessThan(y('meio')));
+    expect(y('meio'), lessThan(y('ultimo')));
+  });
+
   testWidgets('tocar no cabeçalho ordena e tocar outra vez desfaz', (
     tester,
   ) async {

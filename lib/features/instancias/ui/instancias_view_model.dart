@@ -52,6 +52,11 @@ class InstanciasViewModel extends Cubit<PlanoDeInstancias> {
 
   void remover(int indice) => _emitirEGravar(state.semO(indice));
 
+  /// O desfazer de um [remover]. Ver `PlanoDeInstancias.inserindo` para
+  /// porque o índice viaja junto.
+  void repor(int indice, PersonagemDeInstancia quem) =>
+      _emitirEGravar(state.inserindo(indice, quem));
+
   void contar(int indice, EntradaDeInstancia entrada, int quantos) =>
       _emitirEGravar(
         state.trocando(indice, state.personagens[indice].com(entrada, quantos)),

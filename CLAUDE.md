@@ -380,7 +380,7 @@ existe.
 #### The streamers: a third table, and the Worker as the only writer
 
 `canais_twitch (canal, nome, ativo, ao_vivo, titulo, jogo, espectadores,
-thumb, visto_em)` holds who from the community is streaming. The browser
+thumb, avatar, visto_em)` holds who from the community is streaming. The browser
 cannot ask Twitch this — the Helix API needs a secret, and a secret compiled
 into the bundle is not a secret — so the Cloudflare Worker asks every five
 minutes on its own cron and writes the answer here.
@@ -441,6 +441,42 @@ and still no thumbnail and no animation beyond a slow swap, because nobody
 paid for it and it must not read as bought placement. The stream title is
 deliberately dropped — written for Twitch, full of emoji and coupon codes, it
 reads as spam pasted onto somebody else's site.
+
+**A foto de perfil enche o card de quem não enviou arte — sete dos dez.**
+Pedida a 11/11/2026. O `/helix/users` devolve `profile_image_url` ao lado do
+`display_name`, portanto o Worker já a tinha na mão e deitava-a fora: entra
+em `batizarOsNovos`, no mesmo pedido, e **custa zero requisição**.
+
+**Avatar e `thumb` são coisas diferentes e é por isso que há duas colunas.**
+A `thumb` é a miniatura da transmissão, do `/helix/streams`, e só existe
+enquanto alguém está no ar — continua guardada e **continua a não ser
+desenhada**, porque um card com preview de live lê-se como anúncio pago. O
+avatar é a cara do canal e responde sempre.
+
+**Só desenha avatar quem não tem arte no balde, e os dois nunca aparecem
+juntos.** O emblema é uma peça 3:1 desenhada para esta caixa; o avatar é
+redondo e pequeno ao lado do nome. Desenhar ambos poria duas imagens da mesma
+pessoa a 90 px uma da outra, e a autoral perderia para a redonda só por estar
+mais perto do nome.
+
+**Guardado como endereço e não como ficheiro**, ao contrário da arte do balde:
+aquela é do streamer e vive connosco, esta é da Twitch e muda quando ele a
+trocar lá. Copiá-la seria uma segunda cópia a envelhecer sozinha. Em troca,
+**uma foto trocada não é relida** — reler custaria uma chamada por rodada para
+sempre, e o conserto, se um dia incomodar, é limpar a coluna daquele canal,
+que volta à fila sozinho.
+
+**A condição é *falta o nome **ou** a foto*, e essa é a parte que não é
+óbvia.** `batizarOsNovos` filtrava por nome em falta; quando a coluna nasceu,
+os dez canais já tinham nome, portanto um filtro só pelo nome nunca lhes
+pediria o avatar e o campo ficaria eternamente vazio para todos os que já
+existiam. E o lote manda **sempre as duas chaves**, porque mistura quem só
+precisa de nome com quem só precisa de foto — o `PGRST102` que já custou um
+dia aqui.
+
+**A Twitch devolve `""` para quem nunca pôs foto**, e vazio é guardado como
+ausente: um `Image.network('')` desenha a caixa partida que o `errorBuilder`
+existe para evitar.
 
 **A streamer's own art lives in a Supabase bucket, not in `assets/`, and it is
 found by the login.** `streamers` is public, images only, capped at **512 KB** —

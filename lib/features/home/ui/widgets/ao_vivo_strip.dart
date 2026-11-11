@@ -362,6 +362,45 @@ class _Emblema extends StatelessWidget {
   );
 }
 
+/// A foto de perfil do canal, redonda, à esquerda do nome.
+///
+/// **Existe para o card de quem não enviou arte**, que hoje são sete dos dez:
+/// esses desenham texto sobre um fundo liso, e a faixa é uma cortesia a quem
+/// transmite — uma cortesia sem cara é metade da cortesia. Ver `_linha`, que
+/// decide entre isto e o emblema.
+///
+/// **Redonda e pequena de propósito.** O emblema é uma peça de 3:1 que
+/// ocupa uma coluna; isto tem de ler-se como identidade ao lado do nome e
+/// não como uma segunda ilustração a competir com ele. A moldura é o acento
+/// do próprio streamer, o mesmo que a borda, o brilho e o ponto já usam.
+///
+/// **Falha calada, como tudo nesta faixa.** Um canal cuja foto não carrega
+/// desenha o card de sempre em vez de uma caixa partida — a mesma regra do
+/// `ItemIcon` e do emblema.
+class _Avatar extends StatelessWidget {
+  const _Avatar({required this.url, required this.wide});
+
+  final String url;
+  final bool wide;
+
+  @override
+  Widget build(BuildContext context) {
+    final lado = wide ? 56.0 : 44.0;
+
+    return ClipOval(
+      child: SizedBox(
+        width: lado,
+        height: lado,
+        child: Image.network(
+          url,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => const SizedBox.shrink(),
+        ),
+      ),
+    );
+  }
+}
+
 /// Learns whether this streamer has art at all — with **zero footprint**:
 /// it paints nothing and reserves no space while it waits for an answer.
 /// `SizedBox.shrink` wrapping the image is enough on its own, because this
@@ -716,7 +755,16 @@ class _CardDoStreamerState extends State<CardDoStreamer> {
           width:
               (widget.wide ? _larguraEmblemaWide : _larguraEmblemaEstreita) +
               (widget.wide ? 0 : 12),
-        ),
+        )
+      // **Só para quem não enviou arte, e é essa a divisão toda.** O emblema
+      // é uma peça desenhada para esta caixa; o avatar é a cara que a Twitch
+      // publica. Desenhar os dois poria duas imagens da mesma pessoa a 90 px
+      // uma da outra, e a autoral perderia para a redonda só por ser mais
+      // próxima do nome. Onde há arte, a arte manda.
+      else if (canal.avatar != null) ...[
+        _Avatar(url: canal.avatar!, wide: widget.wide),
+        SizedBox(width: widget.wide ? 14 : 11),
+      ],
       Expanded(child: _fatos()),
     ],
   );

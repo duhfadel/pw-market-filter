@@ -202,11 +202,25 @@ class _Slot extends StatelessWidget {
                 textAlign: TextAlign.center,
                 maxLines: compacto ? 3 : 2,
                 overflow: TextOverflow.ellipsis,
+                // **O nome é a identidade do slot, e o ícone não é.** As
+                // 126 receitas desenham a mesma arte, portanto o que
+                // distingue uma da outra está escrito aqui e em mais lado
+                // nenhum — o que o põe fora do que uma legenda pode ser. A
+                // 10,5 px em `textMuted` lia-se como rodapé do ícone; a
+                // medição diz que o contraste nunca foi o problema (7,0:1
+                // sobre `background`), o tamanho era.
+                //
+                // **O estreito fica nos 8 px e a cor é o que ele ganha.**
+                // Oito colunas a 390 px dão ~40 px de largura, e subir o
+                // corpo para 9 partia os nomes a meio da palavra —
+                // `Montanh/a das Formigas`, medido no navegador. Um nome
+                // cortado a meio não nomeia nada, que é a razão pela qual o
+                // `childAspectRatio` já é desenhado para o nome mais longo.
                 style: TextStyle(
-                  fontSize: compacto ? 8 : 10.5,
+                  fontSize: compacto ? 8 : 12,
                   height: 1.2,
-                  color: escolhido ? PWColors.accent : PWColors.textMuted,
-                  fontWeight: escolhido ? FontWeight.w700 : FontWeight.w400,
+                  color: escolhido ? PWColors.accent : PWColors.text,
+                  fontWeight: escolhido ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
             ),

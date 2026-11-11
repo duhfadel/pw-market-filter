@@ -814,13 +814,17 @@ sem conta que parece ter conta é uma promessa que o site não fez.
 precisamente na máquina nova, que é o único sítio onde ele serve para alguma
 coisa.
 
-**O nome vai no fim do parâmetro, e é isso que o torna à prova de til.** Um
-personagem é `p=Bardo~3~1~2~14~duhit`: tudo antes do nome tem aridade fixa —
-uma classe e quatro números — portanto o que sobra depois da quinta separação
-*é* o nome, com tis lá dentro e tudo. Um apelido com `~` partiria qualquer
-formato que o pusesse no meio. O til e não os dois pontos pela razão que o
-link do filtro já registou, e a classe vai **pelo nome e nunca por um
-índice**, que é uma posição.
+**O link leva os grupos primeiro e cada personagem diz a que grupo pertence
+pelo índice.** `g=Principal&g=Mula&p=0~Bardo~3~1~2~14~duhit&p=1~Mago~…` — e
+aqui um índice de grupo **é** seguro, ao contrário da classe: ele resolve-se
+*dentro do próprio link*, contra a lista de `g` que viaja ao lado, não contra
+uma recolha que mudou noutro dia. `queryParametersAll` preserva a ordem dentro
+de cada chave, portanto a lista de `g` chega ordenada. O nome do personagem vai
+no fim — tudo antes dele tem aridade fixa (índice, classe, quatro números),
+portanto o que sobra depois da sexta separação *é* o nome, com tis dentro; o
+nome do grupo tem o seu próprio parâmetro e nunca precisa de ser separado de
+nada. A classe continua a viajar **pelo nome e nunca por índice**, pela razão
+oposta à do grupo: ela resolve-se contra o jogo, que é externo ao link.
 
 **Guardado como JSON e não como o link**, apesar de os dois saberem escrever a
 mesma coisa: o link é para um humano ver e colar, portanto tem tecto (cem) e
@@ -834,10 +838,42 @@ ausência significa *não foi lido* e por isso não desenha linha nenhuma; aqui
 quem escreve é o dono da conta, e um campo apagado quer dizer que ele tem
 zero. Não há terceira hipótese.
 
-**Quatro colunas no telemóvel também.** Empilhá-las daria quatro linhas por
-personagem e acabava-se a comparação, que é a razão de a ferramenta existir —
-a mesma decisão das oito colunas da grelha dos Títulos. O que encolhe é a
-folga e o corpo.
+**Os personagens arrumam-se em grupos de nome livre, e arrastam-se entre
+eles.** Pedido do dono a 11/11/2026: *grupo é um container* — ele cria «Conta
+principal» e «Mulas» e troca personagens de um para outro quando quer. O
+modelo passou a ter dois níveis — `GrupoDeInstancias` dentro de
+`PlanoDeInstancias` — com **subtotal por grupo e um total geral** no fim; o
+total é a única resposta a *quantas chaves tenho ao todo*, e o subtotal a
+*quantas tem esta conta*.
+
+**Há sempre pelo menos um grupo.** Um plano sem grupo não teria onde pôr o
+primeiro personagem, e uma tela que pede *crie um grupo antes de criar um
+personagem* faz o visitante trabalhar para a ferramenta. O primeiro nasce com
+a lista (`nomeInicial`), e tirar o último devolve um inicial em vez de zero —
+`semOGrupo` nunca deixa a lista sem casa.
+
+**O arrastar pega-se pela pega e não pela linha, e isso é desenho e não só o
+teste.** Um toque longo sobre o nome é seleção de texto — o campo ganha o
+gesto —, portanto a zona fiável é o `drag_indicator` à esquerda. Isto custou
+uma hora no harness: o arrasto *começava* (o fantasma aparecia) e a largada
+não registava, até perceber que o gesto nascia dentro do `TextField`.
+`LongPressDraggable` e não `Draggable` porque a página rola com o dedo no
+telemóvel, e um arrasto imediato roubaria todos os deslizes verticais. O
+grupo inteiro é o `DragTarget` — larga-se na gaveta, não numa linha de 44 px —
+e `movendoPersonagem` tira antes de calcular o destino, senão mover dentro do
+mesmo grupo erraria por um.
+
+**Cada número ganhou `−` e `+`, e o campo fica.** Tocar é *usei uma chave* /
+*ganhei uma entrada*; escrever direto é para saltos grandes. O `−` desliga no
+zero — um botão que não faz nada ensina a desconfiar dos que fazem.
+
+**Quatro colunas no telemóvel também, mas o ícone de classe sai lá.** Empilhar
+os números daria quatro linhas por personagem e acabava-se a comparação, que é
+a razão de a ferramenta existir — a mesma decisão das oito colunas da grelha
+dos Títulos. Mas os quatro `− [n] +` ao lado do ícone de classe transbordavam
+390 px por 39, portanto no estreito o ícone sai: a classe já está escrita
+debaixo do nome, logo ali ele era redundante. O que encolhe mais é a folga e
+o corpo.
 
 **Os campos não levam o chão que o tema dá a todo o `TextField`.** Ali ele diz
 *aqui escreve-se*; numa tabela de quarenta campos são quarenta caixas claras a

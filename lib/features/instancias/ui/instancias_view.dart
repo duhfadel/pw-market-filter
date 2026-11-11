@@ -14,7 +14,8 @@ import 'instancias_view_model.dart';
 import 'widgets/escolher_classe.dart';
 import 'widgets/tabela_de_instancias.dart';
 
-/// O organizador de instâncias: quantas entradas e chaves cada personagem tem.
+/// O organizador de instâncias: grupos de personagens, e quantas entradas e
+/// chaves cada um tem.
 ///
 /// **É a primeira ferramenta deste site que escreve em vez de ler.** Tudo o
 /// resto parte de uma recolha — o mercado, os registos, os vídeos — e
@@ -23,19 +24,20 @@ import 'widgets/tabela_de_instancias.dart';
 ///
 /// **Por isso ela vive no navegador de quem escreve.** Não há conta, não há
 /// servidor nosso no meio e não guardamos dados de ninguém. O preço é que é
-/// por aparelho — e é por isso que existe o botão de link, que é a única rede
+/// por aparelho — e é por isso que existe o botão de link, a única rede
 /// contra trocar de telemóvel ou limpar o navegador.
+///
+/// Os personagens arrumam-se em grupos de nome livre — *Conta principal*,
+/// *Mulas* — e arrastam-se de um para outro. Ver `TabelaDeInstancias`.
 class InstanciasView extends StatelessWidget {
   const InstanciasView({super.key, this.query = const {}});
 
-  /// O que o endereço trouxe. Uma lista no link ganha ao que está gravado —
-  /// ver `InstanciasViewModel.carregar`.
   final Map<String, List<String>> query;
 
   /// Abaixo disto a tabela aperta — mas nunca perde uma coluna. São quatro
   /// números e eles são a tabela; empilhá-los daria quatro linhas por
   /// personagem e acabava-se a comparação, que é a razão de isto existir.
-  static const _telaEstreita = 560.0;
+  static const _telaEstreita = 620.0;
 
   @override
   Widget build(BuildContext context) => BlocProvider(
@@ -74,7 +76,7 @@ class _Conteudo extends StatelessWidget {
   final PlanoDeInstancias plano;
   final bool compacto;
 
-  Future<void> _adicionar(BuildContext context) async {
+  Future<void> _adicionar(BuildContext context, int grupo) async {
     final vm = context.read<InstanciasViewModel>();
     await showModalBottomSheet<void>(
       context: context,
@@ -82,27 +84,48 @@ class _Conteudo extends StatelessWidget {
       isScrollControlled: true,
       builder: (folha) => EscolherClasse(
         aoConfirmar: (nome, classe) {
-          vm.adicionar(nome, classe);
+          vm.adicionar(grupo, nome, classe);
           Navigator.of(folha).pop();
         },
       ),
     );
   }
 
-  /// Tirar alguém, com volta.
-  ///
-  /// **Sem isto, tirar é definitivo e sem aviso.** Uma linha com quatro
-  /// números que alguém manteve durante semanas não pode desaparecer por um
-  /// toque ao lado — e um diálogo a perguntar *tem a certeza?* a cada
-  /// remoção seria pior: ensina a carregar em *sim* sem ler, e aí o aviso
-  /// deixa de avisar. Desfazer é a forma barata de ser seguro.
-  void _remover(BuildContext context, int indice) {
+  Future<void> _novoGrupo(BuildContext context) async {
     final vm = context.read<InstanciasViewModel>();
-    final quem = vm.state.personagens[indice];
+    final nome = await _perguntarNome(context);
+    if (nome != null && nome.trim().isNotEmpty) vm.adicionarGrupo(nome);
+  }
+
+  void _removerGrupo(BuildContext context, int grupo) {
+    final vm = context.read<InstanciasViewModel>();
+    final g = vm.state.grupos[grupo];
     final mensageiro = ScaffoldMessenger.of(context);
 
-    vm.remover(indice);
+    vm.removerGrupo(grupo);
+    mensageiro
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            g.personagens.isEmpty
+                ? 'Grupo "${g.nome}" apagado.'
+                : 'Grupo "${g.nome}" e ${g.personagens.length} personagens apagados.',
+          ),
+          action: SnackBarAction(
+            label: 'Desfazer',
+            onPressed: () => vm.reporGrupo(grupo, g),
+          ),
+        ),
+      );
+  }
 
+  void _removerPersonagem(BuildContext context, Morada onde) {
+    final vm = context.read<InstanciasViewModel>();
+    final quem = vm.state.grupos[onde.grupo].personagens[onde.personagem];
+    final mensageiro = ScaffoldMessenger.of(context);
+
+    vm.remover(onde);
     mensageiro
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -110,9 +133,7 @@ class _Conteudo extends StatelessWidget {
           content: Text('${quem.nome} saiu da lista.'),
           action: SnackBarAction(
             label: 'Desfazer',
-            // O índice vai junto: repor no fim devolveria o personagem e
-            // perderia a ordem que o dono lhe tinha dado.
-            onPressed: () => vm.repor(indice, quem),
+            onPressed: () => vm.repor(onde, quem),
           ),
         ),
       );
@@ -132,49 +153,86 @@ class _Conteudo extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => Center(
-    child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 900),
-      child: ListView(
-        padding: EdgeInsets.fromLTRB(
-          compacto ? 12 : 18,
-          10,
-          compacto ? 12 : 18,
-          28,
-        ),
-        children: [
-          const _Explicacao(),
-          const SizedBox(height: 16),
-          _Acoes(
-            plano: plano,
-            aoAdicionar: () => unawaited(_adicionar(context)),
-            aoCopiar: () => unawaited(_copiarLink(context)),
+  Widget build(BuildContext context) {
+    final vm = context.read<InstanciasViewModel>();
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 900),
+        child: ListView(
+          padding: EdgeInsets.fromLTRB(
+            compacto ? 12 : 18,
+            10,
+            compacto ? 12 : 18,
+            28,
           ),
-          const SizedBox(height: 14),
-          if (plano.vazio)
-            const _Vazio()
-          else
+          children: [
+            const _Explicacao(),
+            const SizedBox(height: 16),
+            _Acoes(
+              plano: plano,
+              aoNovoGrupo: () => unawaited(_novoGrupo(context)),
+              aoCopiar: () => unawaited(_copiarLink(context)),
+            ),
+            const SizedBox(height: 14),
             TabelaDeInstancias(
               plano: plano,
               compacto: compacto,
-              aoOrdenar: context.read<InstanciasViewModel>().ordenarPor,
-              aoContar: context.read<InstanciasViewModel>().contar,
-              aoRenomear: context.read<InstanciasViewModel>().renomear,
-              aoRemover: (indice) => _remover(context, indice),
+              aoOrdenar: vm.ordenarPor,
+              aoSomar: vm.somar,
+              aoContar: vm.contar,
+              aoRenomear: vm.renomear,
+              aoRemover: (onde) => _removerPersonagem(context, onde),
+              aoMover: vm.mover,
+              aoRenomearGrupo: vm.renomearGrupo,
+              aoRemoverGrupo: (grupo) => _removerGrupo(context, grupo),
+              aoAdicionarNoGrupo: (grupo) =>
+                  unawaited(_adicionar(context, grupo)),
             ),
-          const SizedBox(height: 22),
-          const _OndeFica(),
-          const SizedBox(height: 22),
-          const AdSlot(),
-        ],
+            const SizedBox(height: 22),
+            const _OndeFica(),
+            const SizedBox(height: 22),
+            const AdSlot(),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+/// Pergunta um nome de grupo num diálogo curto.
+Future<String?> _perguntarNome(BuildContext context) {
+  final c = TextEditingController();
+  return showDialog<String>(
+    context: context,
+    builder: (d) => AlertDialog(
+      backgroundColor: PWColors.surface,
+      title: const Text('Novo grupo'),
+      content: TextField(
+        controller: c,
+        autofocus: true,
+        textInputAction: TextInputAction.done,
+        onSubmitted: (v) => Navigator.of(d).pop(v),
+        decoration: const InputDecoration(
+          labelText: 'Nome do grupo',
+          hintText: 'Conta principal, Mulas, …',
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(d).pop(),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(d).pop(c.text),
+          child: const Text('Criar'),
+        ),
+      ],
     ),
   );
 }
 
 class _Explicacao extends StatelessWidget {
   const _Explicacao();
-
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,9 +243,9 @@ class _Explicacao extends StatelessWidget {
       ),
       const SizedBox(height: 8),
       const Text(
-        'Escreva os seus personagens e quantas Relíquias Maravilha e Chaves '
-        'da Sorte cada um tem. Toque no cabeçalho de uma coluna para ver '
-        'quem tem mais e quem tem menos.',
+        'Arrume os seus personagens em grupos — conta principal, mulas, o que '
+        'quiser — e escreva quantas Relíquias Maravilha e Chaves da Sorte cada '
+        'um tem. Arraste um personagem para o levar de um grupo a outro.',
         style: TextStyle(color: PWColors.textMuted, fontSize: 14, height: 1.5),
       ),
     ],
@@ -197,25 +255,23 @@ class _Explicacao extends StatelessWidget {
 class _Acoes extends StatelessWidget {
   const _Acoes({
     required this.plano,
-    required this.aoAdicionar,
+    required this.aoNovoGrupo,
     required this.aoCopiar,
   });
 
   final PlanoDeInstancias plano;
-  final VoidCallback aoAdicionar;
+  final VoidCallback aoNovoGrupo;
   final VoidCallback aoCopiar;
 
   @override
   Widget build(BuildContext context) => Row(
     children: [
       FilledButton.icon(
-        onPressed: aoAdicionar,
-        icon: const Icon(Icons.add, size: 18),
-        label: const Text('Personagem'),
+        onPressed: aoNovoGrupo,
+        icon: const Icon(Icons.create_new_folder_outlined, size: 18),
+        label: const Text('Grupo'),
       ),
       const Spacer(),
-      // Só com alguém na lista: um botão que copia um link vazio promete
-      // guardar o que ainda não existe.
       if (!plano.vazio)
         TextButton.icon(
           onPressed: aoCopiar,
@@ -226,50 +282,13 @@ class _Acoes extends StatelessWidget {
   );
 }
 
-class _Vazio extends StatelessWidget {
-  const _Vazio();
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.symmetric(vertical: 34, horizontal: 20),
-    decoration: BoxDecoration(
-      color: PWColors.surface,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: PWColors.border),
-    ),
-    child: const Column(
-      children: [
-        Icon(Icons.group_add_outlined, size: 34, color: PWColors.textMuted),
-        SizedBox(height: 12),
-        Text(
-          'Nenhum personagem ainda.',
-          style: TextStyle(
-            color: PWColors.text,
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: 5),
-        Text(
-          'Toque em Personagem para escrever o primeiro.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: PWColors.textMuted, fontSize: 13),
-        ),
-      ],
-    ),
-  );
-}
-
 /// Diz onde a lista está guardada, e isto não é um detalhe técnico.
 ///
 /// **Quem não sabe que é por aparelho descobre a perder tudo.** Uma
 /// ferramenta sem conta que parece ter conta é uma promessa que o site não
-/// fez e não pode cumprir — por isso está escrito na tela, ao lado do botão
-/// que resolve o problema, e não num rodapé.
+/// fez — por isso está escrito na tela, ao lado do botão que resolve.
 class _OndeFica extends StatelessWidget {
   const _OndeFica();
-
   @override
   Widget build(BuildContext context) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,

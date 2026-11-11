@@ -12,6 +12,7 @@ class CanalAoVivo {
     required this.jogo,
     required this.espectadores,
     required this.vistoEm,
+    this.avatar,
   });
 
   /// The login, which is what the address uses: `twitch.tv/<canal>`.
@@ -31,6 +32,21 @@ class CanalAoVivo {
   /// When the Worker last looked.
   final DateTime? vistoEm;
 
+  /// A foto de perfil do canal, como a Twitch a publica — ou `null` para
+  /// quem ainda não foi batizado.
+  ///
+  /// **Vem do `/helix/users` e não do `/helix/streams`**, que é o que a torna
+  /// diferente da `thumb`: aquela é a miniatura da transmissão e só existe
+  /// enquanto alguém está no ar; esta é a cara do canal e responde sempre.
+  /// É também a razão de não custar pedido nenhum — o Worker já chama o
+  /// `/users` para descobrir o nome de quem entra.
+  ///
+  /// Guardada como endereço e não como ficheiro, ao contrário da arte que o
+  /// streamer envia: aquela é dele e vive no nosso balde, esta é da Twitch e
+  /// muda quando ele a trocar lá. Copiá-la seria uma segunda cópia a
+  /// envelhecer sozinha.
+  final String? avatar;
+
   factory CanalAoVivo.fromJson(Map<String, dynamic> json) {
     final canal = (json['canal'] as String?) ?? '';
     final nome = (json['nome'] as String?) ?? '';
@@ -46,6 +62,13 @@ class CanalAoVivo {
       jogo: json['jogo'] as String?,
       espectadores: (json['espectadores'] as num?)?.toInt(),
       vistoEm: DateTime.tryParse((json['visto_em'] as String?) ?? ''),
+      // Vazio é ausente: uma coluna que existe e não foi preenchida não é
+      // um endereço de imagem, e um `Image.network('')` desenha a caixa
+      // partida que o `errorBuilder` existe para evitar.
+      avatar: switch (json['avatar']) {
+        final String a when a.trim().isNotEmpty => a,
+        _ => null,
+      },
     );
   }
 

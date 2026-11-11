@@ -480,8 +480,8 @@ async function atualizarQuemEstaAoVivo(env) {
   await batizarOsNovos(env, token, canais);
 }
 
-// Descobre o nome próprio de quem ainda não tem, e denuncia canal que não
-// existe.
+// Descobre o nome próprio e a foto de quem ainda não tem, e denuncia canal
+// que não existe.
 //
 // **É o detector de erro de digitação.** O nome só chegaria pelo `/streams`,
 // que só responde por quem está ao vivo — então um canal escrito errado
@@ -489,10 +489,23 @@ async function atualizarQuemEstaAoVivo(env) {
 // entre "não transmite" e "não existe". O `/users` responde sempre, e o login
 // que ele não devolve é um login que não existe.
 //
+// **O avatar entra por aqui e não numa passagem própria.** É o mesmo
+// endpoint, a mesma resposta e o mesmo pedido: pedi-lo noutro sítio seria
+// uma segunda chamada ao `/users` por rodada para ler um campo que já vinha
+// dentro da primeira. E é também a razão pela qual a condição é *falta o
+// nome **ou** a foto*: quando a coluna nasceu, os dez canais já tinham nome,
+// portanto um filtro só pelo nome nunca lhes pediria o avatar e o campo
+// ficaria eternamente vazio para todos os que já existiam.
+//
 // Só para quem falta, então custa zero requisição no dia a dia: é uma chamada
 // a mais na primeira rodada depois de alguém ser adicionado, e nunca mais.
+//
+// **Uma foto trocada na Twitch não é relida**, e isso é deliberado: o custo
+// de reler seria uma chamada por rodada para sempre, e o de não reler é um
+// retrato antigo num card de 56 px. Se um dia incomodar, o conserto é
+// limpar a coluna daquele canal — ele volta a esta fila sozinho.
 async function batizarOsNovos(env, token, canais) {
-  const semNome = canais.filter(({ nome }) => !nome);
+  const semNome = canais.filter(({ nome, avatar }) => !nome || !avatar);
   if (!semNome.length) return;
 
   const busca = semNome
@@ -512,7 +525,16 @@ async function batizarOsNovos(env, token, canais) {
 
   const { data = [] } = await resposta.json();
   const achados = new Map(
-    data.map((u) => [String(u.login).toLowerCase(), u.display_name]),
+    data.map((u) => [
+      String(u.login).toLowerCase(),
+      {
+        nome: u.display_name,
+        // Vazio é ausente. A Twitch devolve `""` para quem nunca pôs foto, e
+        // gravar isso daria um endereço que o navegador pede e falha — o
+        // card desenharia o buraco em vez de simplesmente não ter avatar.
+        avatar: u.profile_image_url || null,
+      },
+    ]),
   );
 
   const inexistentes = semNome
@@ -527,31 +549,40 @@ async function batizarOsNovos(env, token, canais) {
 
   if (!achados.size) return;
 
+  // As duas chaves sempre presentes, nunca uma só. O PostgREST exige que
+  // todos os objetos de um lote tenham as mesmas chaves — `PGRST102` — e
+  // aqui o lote mistura quem só precisa de nome com quem só precisa de foto.
+  // É a mesma armadilha que o lote de `atualizarQuemEstaAoVivo` já pagou.
   await gravarNoSupabase(
     env,
-    [...achados].map(([canal, nome]) => ({ canal, nome })),
+    [...achados].map(([canal, { nome, avatar }]) => ({ canal, nome, avatar })),
   );
-  console.log(`nomes descobertos: ${[...achados.values()].join(', ')}`);
+  console.log(
+    `batizados: ${[...achados.values()].map(({ nome }) => nome).join(', ')} ` +
+      `(${[...achados.values()].filter(({ avatar }) => avatar).length} com foto)`,
+  );
 }
 
-// Os canais ligados, com o nome que já se sabe deles.
+// Os canais ligados, com o nome e a foto que já se sabem deles.
 //
 // O nome vem junto porque a gravação precisa mandá-lo mesmo para quem está
-// offline — ver o comentário em `nome` acima.
+// offline — ver o comentário em `nome` acima. O avatar vem por outra razão:
+// é o que diz a `batizarOsNovos` quem ainda falta pedir ao `/users`.
 async function canaisAtivos(env) {
   const resposta = await supabase(
     env,
-    '/canais_twitch?select=canal,nome&ativo=is.true',
+    '/canais_twitch?select=canal,nome,avatar&ativo=is.true',
   );
   if (!resposta.ok) {
     console.error(`não deu para ler os canais: ${resposta.status}`);
     return [];
   }
-  return (await resposta.json()).map(({ canal, nome }) => ({
+  return (await resposta.json()).map(({ canal, nome, avatar }) => ({
     canal,
     // `null` viraria a string "null" em nada, mas deixa a chave presente, que
     // é o que o lote exige.
     nome: nome ?? null,
+    avatar: avatar ?? null,
   }));
 }
 

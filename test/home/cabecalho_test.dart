@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:pw_market_filter/features/home/data/browser_memory.dart';
+import 'package:pw_market_filter/core/memoria/browser_memory.dart';
 import 'package:pw_market_filter/features/home/data/novidade_repository.dart';
 import 'package:pw_market_filter/features/home/domain/tool.dart';
 import 'package:pw_market_filter/features/home/ui/novidades_view_model.dart';

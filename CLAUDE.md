@@ -768,6 +768,85 @@ pattern — centre 3 and centre 6 both give 20% at the top and then 10% and 8%
 respectively — and the cheapest path never needs them, because same-level fuel
 alone reproduces the game's own cost lists exactly.
 
+## O organizador de instâncias
+
+A primeira ferramenta deste site que **escreve em vez de ler**. Tudo o resto
+parte de uma recolha e responde sobre o jogo; esta não sabe nada — a lista é
+de quem está a ler, escrita à mão, e o site nunca a viu nem a pode verificar.
+Pedido do dono a 11/11/2026: quem tem seis personagens não sabe em qual é que
+ainda há chave.
+
+Uma linha por personagem, quatro números cada — as três **Relíquias
+Maravilha** (Artefato `54687`, Arma `50410`, Armadura `70020`) e a **Chave da
+Sorte** `56274` — e a soma de todos em baixo, que é a única resposta que
+nenhuma linha sozinha dá.
+
+**Não lê o índice do mercado, de propósito.** Seriam 3 MB para saber quatro
+ids que não mudam, e tornaria um planeador pessoal refém de uma recolha — que,
+no dia em que isto nasceu, estava parada atrás do login deles. Os ids foram
+lidos do índice uma vez e estão cravados, como `countedItemIcons` já faz.
+
+**`ocupacaoDaClasse` existe pela mesma razão e não duplica `occupationOf`.**
+Aquele mapa diz *que classes apareceram neste índice*, portanto encolhe com o
+mercado; este diz *como se chama o ícone do Bardo*, que é verdade com ou sem
+mercado. Medido sobre os 2.977 personagens de 11/11: as dezassete casam com
+exactamente uma ocupação cada, zero ambiguidades, e `ocupacoes_test` repete a
+conferência contra o índice que estiver em `web/` — uma ocupação errada
+desenha o ícone de outra classe sem falhar nem avisar, que é a forma que já
+custou a arte do Ceifador nas Sagas.
+
+**Ordenar é uma vista e nunca uma mudança na lista.** `PlanoDeInstancias.emOrdem`
+ordena; `personagens` guarda a ordem em que o dono os escreveu, e é essa que é
+gravada e que viaja no link. Tocar num cabeçalho e recarregar a página não
+pode deixar alguém com a lista baralhada para sempre. **Só decrescente**: um
+segundo toque volta à ordem de entrada em vez de inverter, porque *quem tem
+menos chaves* lê-se no fim da mesma lista. E **empate fica na ordem de
+entrada** — dez personagens com zero chaves não podem saltar de sítio.
+
+**A lista vive no `localStorage` e o link é a única rede.** Não há conta, não
+há servidor nosso e não guardamos dados de ninguém; o preço é que é por
+aparelho. `_OndeFica` diz isso **na tela**, ao lado do botão que resolve —
+quem não sabe que é por aparelho descobre-o a perder tudo, e uma ferramenta
+sem conta que parece ter conta é uma promessa que o site não fez.
+
+**Um link ganha sempre ao que está gravado.** Quem abre um link está a dizer
+*quero esta lista*; respeitar a do aparelho faria o link não funcionar
+precisamente na máquina nova, que é o único sítio onde ele serve para alguma
+coisa.
+
+**O nome vai no fim do parâmetro, e é isso que o torna à prova de til.** Um
+personagem é `p=Bardo~3~1~2~14~duhit`: tudo antes do nome tem aridade fixa —
+uma classe e quatro números — portanto o que sobra depois da quinta separação
+*é* o nome, com tis lá dentro e tudo. Um apelido com `~` partiria qualquer
+formato que o pusesse no meio. O til e não os dois pontos pela razão que o
+link do filtro já registou, e a classe vai **pelo nome e nunca por um
+índice**, que é uma posição.
+
+**Guardado como JSON e não como o link**, apesar de os dois saberem escrever a
+mesma coisa: o link é para um humano ver e colar, portanto tem tecto (cem) e
+abrevia; o ficheiro não tem tecto e pode ganhar campos sem ter de caber num
+endereço. E as contagens são gravadas **pelo nome do valor do enum** — um enum
+reordenado trocaria as chaves pelas relíquias de toda a gente, em silêncio, no
+ficheiro que já estava gravado.
+
+**Vazio é zero, e aqui isso é o contrário da regra do card.** No mercado uma
+ausência significa *não foi lido* e por isso não desenha linha nenhuma; aqui
+quem escreve é o dono da conta, e um campo apagado quer dizer que ele tem
+zero. Não há terceira hipótese.
+
+**Quatro colunas no telemóvel também.** Empilhá-las daria quatro linhas por
+personagem e acabava-se a comparação, que é a razão de a ferramenta existir —
+a mesma decisão das oito colunas da grelha dos Títulos. O que encolhe é a
+folga e o corpo.
+
+**Os campos não levam o chão que o tema dá a todo o `TextField`.** Ali ele diz
+*aqui escreve-se*; numa tabela de quarenta campos são quarenta caixas claras a
+desenhar uma grelha por cima da grelha. Só se viu renderizando.
+
+**`BrowserMemory` mudou-se para `core/memoria/`** quando ganhou o terceiro
+consumidor. Estava em `features/home/data/` desde que só contava visitas, e o
+nome já tinha deixado de ser verdade antes do sítio.
+
 ## A moldura do card diz o patamar da arma
 
 Uma grade de quarenta cards é **varrida antes de ser lida**, e até 29/09/2026

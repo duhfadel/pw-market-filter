@@ -931,7 +931,7 @@ class _Cartao extends StatelessWidget {
                 // sem ele o `+` de uma relíquia encostava ao `−` da seguinte,
                 // e os dois liam-se como um controlo só.
                 if (entrada != EntradaDeInstancia.entradas.first)
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 24),
                 Expanded(
                   child: _CelulaEstreita(
                     entrada: entrada,

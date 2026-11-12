@@ -11,7 +11,7 @@ import '../../domain/plano_de_instancias.dart';
 
 /// A largura de uma coluna de número — o par `−`/`+` mais o campo. Uma só
 /// medida, para o cabeçalho, as linhas e as somas não poderem desalinhar-se.
-const _colunaDeNumero = 106.0;
+const _colunaDeNumero = 128.0;
 const _colunaEstreita = 64.0;
 
 /// A coluna do botão de tirar. Uma medida só, pela mesma razão.

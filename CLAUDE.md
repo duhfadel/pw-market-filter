@@ -884,6 +884,14 @@ que se compara com a janela do jogo; aqui a comparação é dentro da própria
 tabela, e um cartão por pessoa não a perde — os quatro números ficam na mesma
 posição em todos.
 
+**E dentro do cartão a chave desceu para uma linha só dela**, a pedido do dono
+— quatro steppers numa fila a 390 px ainda saíam estreitos. As três entradas
+(Relíquia Maravilha) ficam numa fila e a `Chave da Sorte` numa caixa por
+baixo, com o nome por extenso. Não é só espaço: uma entrada abre a instância e
+a chave abre o baú lá dentro — são coisas diferentes, a chave é a que se conta
+mais, e separá-la dá-lhe os botões maiores que ela merece. `EntradaDeInstancia.entradas`
+é a lista das três sem a chave, para o cartão não a repetir à mão.
+
 **Os campos não levam o chão que o tema dá a todo o `TextField`.** Ali ele diz
 *aqui escreve-se*; numa tabela de quarenta campos são quarenta caixas claras a
 desenhar uma grelha por cima da grelha. Só se viu renderizando.

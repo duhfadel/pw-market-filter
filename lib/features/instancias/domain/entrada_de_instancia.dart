@@ -31,4 +31,9 @@ enum EntradaDeInstancia {
 
   /// O id da arte, em `assets/icons/items/`.
   final int itemId;
+
+  /// As três que abrem a instância — as Relíquia Maravilha. A [chave] fica de
+  /// fora: ela não é uma entrada, é o que se gasta lá dentro, e o telemóvel
+  /// desenha-a numa linha à parte por isso.
+  static const entradas = [artefato, arma, armadura];
 }

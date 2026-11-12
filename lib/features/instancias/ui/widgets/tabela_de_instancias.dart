@@ -916,10 +916,15 @@ class _Cartao extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
+          // As três entradas numa fila, a chave sozinha na de baixo. São
+          // coisas diferentes — a entrada abre a instância, a chave abre o
+          // baú lá dentro —, e separá-las dá a cada botão o dobro da largura:
+          // numa fila de quatro a 390 px, os `−`/`+` ficavam bicos de agulha.
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              for (final entrada in EntradaDeInstancia.values)
+              for (final entrada in EntradaDeInstancia.entradas)
                 Expanded(
                   child: _CelulaEstreita(
                     entrada: entrada,
@@ -930,6 +935,15 @@ class _Cartao extends StatelessWidget {
                   ),
                 ),
             ],
+          ),
+          const SizedBox(height: 12),
+          _CelulaEstreita(
+            entrada: EntradaDeInstancia.chave,
+            valor: quem.de(EntradaDeInstancia.chave),
+            rotulo: 'Chave da Sorte de ${quem.nome}',
+            aoMudar: (n) => aoContar(onde, EntradaDeInstancia.chave, n),
+            aoSomar: (d) => aoSomar(onde, EntradaDeInstancia.chave, d),
+            comRotulo: true,
           ),
         ],
       ),
@@ -956,6 +970,7 @@ class _CelulaEstreita extends StatefulWidget {
     required this.rotulo,
     required this.aoMudar,
     required this.aoSomar,
+    this.comRotulo = false,
   });
 
   final EntradaDeInstancia entrada;
@@ -963,6 +978,11 @@ class _CelulaEstreita extends StatefulWidget {
   final String rotulo;
   final void Function(int) aoMudar;
   final void Function(int) aoSomar;
+
+  /// Desenha o nome do item ao lado, numa linha horizontal, em vez do ícone
+  /// por cima. É o formato da chave no cartão: sozinha na sua linha, há espaço
+  /// para a nomear por extenso e dar aos botões mais largura.
+  final bool comRotulo;
 
   @override
   State<_CelulaEstreita> createState() => _CelulaEstreitaState();
@@ -988,62 +1008,107 @@ class _CelulaEstreitaState extends State<_CelulaEstreita> {
     super.dispose();
   }
 
+  Widget _campo({double tamanho = 15}) => Semantics(
+    label: widget.rotulo,
+    child: TextField(
+      controller: _c,
+      textAlign: TextAlign.center,
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      onChanged: (t) => widget.aoMudar(int.tryParse(t) ?? 0),
+      style: TextStyle(
+        color: PWColors.text,
+        fontSize: tamanho,
+        fontWeight: FontWeight.w700,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      ),
+      decoration: InputDecoration(
+        isDense: true,
+        filled: false,
+        hintText: '0',
+        hintStyle: TextStyle(color: PWColors.border, fontSize: tamanho),
+        contentPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
+        border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
+      ),
+    ),
+  );
+
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      ItemIcon(widget.entrada.itemId, size: 22),
-      const SizedBox(height: 5),
-      Row(
-        children: [
-          _Passo(
-            icone: Icons.remove,
-            ligado: widget.valor > 0,
-            lado: 24,
-            rotulo: 'menos um — ${widget.rotulo}',
-            aoTocar: () => widget.aoSomar(-1),
-          ),
-          Expanded(
-            child: Semantics(
-              label: widget.rotulo,
-              child: TextField(
-                controller: _c,
-                textAlign: TextAlign.center,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                onChanged: (t) => widget.aoMudar(int.tryParse(t) ?? 0),
+  Widget build(BuildContext context) {
+    // A chave, sozinha na sua linha: ícone, nome por extenso, e os botões à
+    // direita com o campo de largura fixa — esticá-lo de ponta a ponta
+    // afastaria o − do + até não parecerem o mesmo controlo.
+    if (widget.comRotulo) {
+      return Container(
+        margin: const EdgeInsets.only(top: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: PWColors.surface,
+          border: Border.all(color: PWColors.border),
+        ),
+        child: Row(
+          children: [
+            ItemIcon(widget.entrada.itemId, size: 24),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                widget.entrada.nome,
                 style: const TextStyle(
                   color: PWColors.text,
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  fontFeatures: [FontFeature.tabularFigures()],
-                ),
-                decoration: const InputDecoration(
-                  isDense: true,
-                  filled: false,
-                  hintText: '0',
-                  hintStyle: TextStyle(color: PWColors.border, fontSize: 15),
-                  contentPadding: EdgeInsets.symmetric(
-                    vertical: 6,
-                    horizontal: 0,
-                  ),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
                 ),
               ),
             ),
-          ),
-          _Passo(
-            icone: Icons.add,
-            ligado: true,
-            lado: 24,
-            rotulo: 'mais um — ${widget.rotulo}',
-            aoTocar: () => widget.aoSomar(1),
-          ),
-        ],
-      ),
-    ],
-  );
+            _Passo(
+              icone: Icons.remove,
+              ligado: widget.valor > 0,
+              lado: 30,
+              rotulo: 'menos um — ${widget.rotulo}',
+              aoTocar: () => widget.aoSomar(-1),
+            ),
+            SizedBox(width: 54, child: _campo(tamanho: 16)),
+            _Passo(
+              icone: Icons.add,
+              ligado: true,
+              lado: 30,
+              rotulo: 'mais um — ${widget.rotulo}',
+              aoTocar: () => widget.aoSomar(1),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        ItemIcon(widget.entrada.itemId, size: 22),
+        const SizedBox(height: 5),
+        Row(
+          children: [
+            _Passo(
+              icone: Icons.remove,
+              ligado: widget.valor > 0,
+              lado: 26,
+              rotulo: 'menos um — ${widget.rotulo}',
+              aoTocar: () => widget.aoSomar(-1),
+            ),
+            Expanded(child: _campo()),
+            _Passo(
+              icone: Icons.add,
+              ligado: true,
+              lado: 26,
+              rotulo: 'mais um — ${widget.rotulo}',
+              aoTocar: () => widget.aoSomar(1),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }
 
 /// O subtotal de um grupo, no estreito: ícone do item e número, por célula.

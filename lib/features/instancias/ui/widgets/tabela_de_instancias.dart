@@ -926,7 +926,12 @@ class _Cartao extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              for (final entrada in EntradaDeInstancia.entradas)
+              for (final entrada in EntradaDeInstancia.entradas) ...[
+                // O espaço entre colunas, antes de cada uma menos a primeira:
+                // sem ele o `+` de uma relíquia encostava ao `−` da seguinte,
+                // e os dois liam-se como um controlo só.
+                if (entrada != EntradaDeInstancia.entradas.first)
+                  const SizedBox(width: 14),
                 Expanded(
                   child: _CelulaEstreita(
                     entrada: entrada,
@@ -936,6 +941,7 @@ class _Cartao extends StatelessWidget {
                     aoSomar: (d) => aoSomar(onde, entrada, d),
                   ),
                 ),
+              ],
             ],
           ),
           const SizedBox(height: 12),

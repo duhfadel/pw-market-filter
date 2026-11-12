@@ -4,10 +4,12 @@ import 'package:flutter/services.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/widgets/game_icon.dart';
 import '../../../../market/ocupacoes.dart';
+import '../../domain/campo_personalizado.dart';
 import '../../domain/entrada_de_instancia.dart';
 import '../../domain/grupo_de_instancias.dart';
 import '../../domain/personagem_de_instancia.dart';
 import '../../domain/plano_de_instancias.dart';
+import 'campos_do_personagem.dart';
 
 /// A largura de uma coluna de número — o par `−`/`+` mais o campo. Uma só
 /// medida, para o cabeçalho, as linhas e as somas não poderem desalinhar-se.
@@ -39,6 +41,7 @@ class TabelaDeInstancias extends StatelessWidget {
     required this.hoje,
     required this.aoPegarDiaria,
     required this.aoPegarGrupo,
+    required this.aoDefinirExtra,
     super.key,
   });
 
@@ -64,6 +67,9 @@ class TabelaDeInstancias extends StatelessWidget {
   /// Pegar as três entradas de hoje de um personagem, e do grupo inteiro.
   final void Function(Morada) aoPegarDiaria;
   final void Function(int grupo) aoPegarGrupo;
+
+  /// Definir (ou limpar) o valor de um campo personalizado num personagem.
+  final void Function(Morada, String campoId, String? valor) aoDefinirExtra;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -96,6 +102,8 @@ class TabelaDeInstancias extends StatelessWidget {
           hoje: hoje,
           aoPegarDiaria: aoPegarDiaria,
           aoPegarGrupo: aoPegarGrupo,
+          campos: plano.campos,
+          aoDefinirExtra: aoDefinirExtra,
         ),
       const SizedBox(height: 6),
       if (compacto)
@@ -218,6 +226,8 @@ class _Grupo extends StatelessWidget {
     required this.hoje,
     required this.aoPegarDiaria,
     required this.aoPegarGrupo,
+    required this.campos,
+    required this.aoDefinirExtra,
   });
 
   final PlanoDeInstancias plano;
@@ -235,6 +245,8 @@ class _Grupo extends StatelessWidget {
   final String hoje;
   final void Function(Morada) aoPegarDiaria;
   final void Function(int) aoPegarGrupo;
+  final List<CampoPersonalizado> campos;
+  final void Function(Morada, String, String?) aoDefinirExtra;
 
   @override
   Widget build(BuildContext context) {
@@ -296,6 +308,8 @@ class _Grupo extends StatelessWidget {
                       aoRenomear: aoRenomear,
                       aoRemover: aoRemover,
                       aoPegarDiaria: aoPegarDiaria,
+                      campos: campos,
+                      aoDefinirExtra: aoDefinirExtra,
                     )
                   else
                     _Linha(
@@ -311,6 +325,8 @@ class _Grupo extends StatelessWidget {
                       aoRenomear: aoRenomear,
                       aoRemover: aoRemover,
                       aoPegarDiaria: aoPegarDiaria,
+                      campos: campos,
+                      aoDefinirExtra: aoDefinirExtra,
                     ),
                 ],
               const Divider(height: 1),
@@ -594,6 +610,8 @@ class _Linha extends StatelessWidget {
     required this.aoRenomear,
     required this.aoRemover,
     required this.aoPegarDiaria,
+    required this.campos,
+    required this.aoDefinirExtra,
   });
 
   final PersonagemDeInstancia quem;
@@ -605,73 +623,92 @@ class _Linha extends StatelessWidget {
   final void Function(Morada, String) aoRenomear;
   final void Function(Morada) aoRemover;
   final void Function(Morada) aoPegarDiaria;
+  final List<CampoPersonalizado> campos;
+  final void Function(Morada, String, String?) aoDefinirExtra;
 
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 4),
-    child: Row(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _PegaArrasto(onde: onde, quem: quem, compacto: compacto),
-        // O ícone de classe sai no estreito: a classe já está escrita debaixo
-        // do nome, e a 390 px os quatro steppers não cabem com ele ao lado.
-        if (!compacto) ...[
-          ClassIcon(ocupacaoDaClasse[quem.classe] ?? -1, size: 26),
-          const SizedBox(width: 9),
-        ],
-        Expanded(
-          child: _Nome(
-            nome: quem.nome,
-            classe: quem.classe,
-            compacto: compacto,
-            aoRenomear: (novo) => aoRenomear(onde, novo),
-          ),
-        ),
-        for (final entrada in EntradaDeInstancia.values)
-          SizedBox(
-            width: _coluna(compacto),
-            child: _Campo(
-              valor: quem.de(entrada),
-              rotulo: '${entrada.nome} de ${quem.nome}',
-              compacto: compacto,
-              destaque: entrada == EntradaDeInstancia.chave,
-              aoMudar: (n) => aoContar(onde, entrada, n),
-              aoSomar: (d) => aoSomar(onde, entrada, d),
+        Row(
+          children: [
+            _PegaArrasto(onde: onde, quem: quem, compacto: compacto),
+            // O ícone de classe sai no estreito: a classe já está escrita debaixo
+            // do nome, e a 390 px os quatro steppers não cabem com ele ao lado.
+            if (!compacto) ...[
+              ClassIcon(ocupacaoDaClasse[quem.classe] ?? -1, size: 26),
+              const SizedBox(width: 9),
+            ],
+            Expanded(
+              child: _Nome(
+                nome: quem.nome,
+                classe: quem.classe,
+                compacto: compacto,
+                aoRenomear: (novo) => aoRenomear(onde, novo),
+              ),
             ),
-          ),
-        SizedBox(
-          width: _colunaDoBotao(compacto),
-          child: Center(
-            child: _BotaoDaDiaria(
-              nome: quem.nome,
-              pegouHoje: pegouHoje,
-              aoPegar: () => aoPegarDiaria(onde),
+            for (final entrada in EntradaDeInstancia.values)
+              SizedBox(
+                width: _coluna(compacto),
+                child: _Campo(
+                  valor: quem.de(entrada),
+                  rotulo: '${entrada.nome} de ${quem.nome}',
+                  compacto: compacto,
+                  destaque: entrada == EntradaDeInstancia.chave,
+                  aoMudar: (n) => aoContar(onde, entrada, n),
+                  aoSomar: (d) => aoSomar(onde, entrada, d),
+                ),
+              ),
+            SizedBox(
+              width: _colunaDoBotao(compacto),
+              child: Center(
+                child: _BotaoDaDiaria(
+                  nome: quem.nome,
+                  pegouHoje: pegouHoje,
+                  aoPegar: () => aoPegarDiaria(onde),
+                ),
+              ),
             ),
-          ),
-        ),
-        SizedBox(
-          width: _colunaDoBotao(compacto),
-          child: Center(
-            child: Tooltip(
-              message: 'Tirar ${quem.nome} da lista',
-              child: InkWell(
-                onTap: () => aoRemover(onde),
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: EdgeInsets.all(compacto ? 5 : 6),
-                  decoration: BoxDecoration(
+            SizedBox(
+              width: _colunaDoBotao(compacto),
+              child: Center(
+                child: Tooltip(
+                  message: 'Tirar ${quem.nome} da lista',
+                  child: InkWell(
+                    onTap: () => aoRemover(onde),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: PWColors.border),
-                  ),
-                  child: Icon(
-                    Icons.person_remove_outlined,
-                    size: compacto ? 15 : 17,
-                    color: PWColors.textMuted,
+                    child: Container(
+                      padding: EdgeInsets.all(compacto ? 5 : 6),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: PWColors.border),
+                      ),
+                      child: Icon(
+                        Icons.person_remove_outlined,
+                        size: compacto ? 15 : 17,
+                        color: PWColors.textMuted,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
+        // As fichas dos campos personalizados, debaixo da linha de números.
+        // Indentadas para alinhar com o nome, não com a pega.
+        if (campos.isNotEmpty)
+          Padding(
+            padding: EdgeInsets.only(left: compacto ? 24 : 37),
+            child: CamposDoPersonagem(
+              campos: campos,
+              quem: quem,
+              onde: onde,
+              aoDefinir: aoDefinirExtra,
+            ),
+          ),
       ],
     ),
   );
@@ -1111,6 +1148,8 @@ class _Cartao extends StatelessWidget {
     required this.aoRenomear,
     required this.aoRemover,
     required this.aoPegarDiaria,
+    required this.campos,
+    required this.aoDefinirExtra,
   });
 
   final PersonagemDeInstancia quem;
@@ -1121,6 +1160,8 @@ class _Cartao extends StatelessWidget {
   final void Function(Morada, String) aoRenomear;
   final void Function(Morada) aoRemover;
   final void Function(Morada) aoPegarDiaria;
+  final List<CampoPersonalizado> campos;
+  final void Function(Morada, String, String?) aoDefinirExtra;
 
   @override
   Widget build(BuildContext context) {
@@ -1205,6 +1246,13 @@ class _Cartao extends StatelessWidget {
             aoSomar: (d) => aoSomar(onde, EntradaDeInstancia.chave, d),
             comRotulo: true,
           ),
+          if (campos.isNotEmpty)
+            CamposDoPersonagem(
+              campos: campos,
+              quem: quem,
+              onde: onde,
+              aoDefinir: aoDefinirExtra,
+            ),
         ],
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../market/ocupacoes.dart';
 import '../data/instancias_memoria.dart';
+import '../domain/campo_personalizado.dart';
 import '../domain/entrada_de_instancia.dart';
 import '../domain/grupo_de_instancias.dart';
 import '../domain/instancias_url.dart';
@@ -125,6 +126,23 @@ class InstanciasViewModel extends Cubit<PlanoDeInstancias> {
 
   void renomear(Morada onde, String nome) =>
       _emitirEGravar(state.renomeandoPersonagem(onde, nome));
+
+  // --- campos personalizados ---
+
+  void adicionarCampo(
+    String nome,
+    CampoTipo tipo, {
+    List<String> opcoes = const [],
+  }) => _emitirEGravar(state.maisUmCampo(nome, tipo, opcoes: opcoes));
+
+  void renomearCampo(String campoId, String nome) =>
+      _emitirEGravar(state.renomeandoCampo(campoId, nome));
+
+  void removerCampo(String campoId) => _emitirEGravar(state.semOCampo(campoId));
+
+  /// Define (ou limpa, com `null`) o valor de um campo num personagem.
+  void definirExtra(Morada onde, String campoId, String? valor) =>
+      _emitirEGravar(state.comExtra(onde, campoId, valor));
 
   /// Ordenar **não grava**: é uma vista de quem está a olhar, não um facto
   /// sobre a lista. Ver `PlanoDeInstancias.emOrdem`.

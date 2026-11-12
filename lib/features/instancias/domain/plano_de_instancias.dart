@@ -1,3 +1,4 @@
+import 'campo_personalizado.dart';
 import 'entrada_de_instancia.dart';
 import 'grupo_de_instancias.dart';
 import 'personagem_de_instancia.dart';
@@ -58,10 +59,16 @@ class PlanoDeInstancias {
   const PlanoDeInstancias({
     required this.grupos,
     this.ordem = const OrdemDeEntrada(),
+    this.campos = const [],
   });
 
   final List<GrupoDeInstancias> grupos;
   final OrdemDoPlano ordem;
+
+  /// Os campos personalizados que o dono criou — as colunas de informação que
+  /// a ferramenta não previu. Globais ao plano: cada um aparece em todos os
+  /// personagens. Ver [CampoPersonalizado].
+  final List<CampoPersonalizado> campos;
 
   /// O nome do grupo que nasce sozinho com uma lista nova. Genérico de
   /// propósito: a pessoa renomeia-o se quiser, e quem nunca criar um segundo
@@ -108,7 +115,86 @@ class PlanoDeInstancias {
       grupos.fold(0, (soma, g) => soma + g.total(entrada));
 
   PlanoDeInstancias _com(List<GrupoDeInstancias> novos) =>
-      PlanoDeInstancias(grupos: novos, ordem: ordem);
+      PlanoDeInstancias(grupos: novos, ordem: ordem, campos: campos);
+
+  // --- campos personalizados ---
+
+  /// Cria um campo novo. A [id] é gerada aqui — curta, estável e única entre
+  /// os campos que já existem, para o link não gastar texto e para o valor
+  /// nunca apontar para o campo errado.
+  PlanoDeInstancias maisUmCampo(
+    String nome,
+    CampoTipo tipo, {
+    List<String> opcoes = const [],
+  }) {
+    final limpo = nome.trim();
+    if (limpo.isEmpty) return this;
+    final usadas = campos.map((c) => c.id).toSet();
+    var n = campos.length;
+    var id = _idDeCampo(n);
+    while (usadas.contains(id)) {
+      id = _idDeCampo(++n);
+    }
+    return PlanoDeInstancias(
+      grupos: grupos,
+      ordem: ordem,
+      campos: [
+        ...campos,
+        CampoPersonalizado(id: id, nome: limpo, tipo: tipo, opcoes: opcoes),
+      ],
+    );
+  }
+
+  PlanoDeInstancias renomeandoCampo(String campoId, String nome) {
+    final limpo = nome.trim();
+    if (limpo.isEmpty) return this;
+    return PlanoDeInstancias(
+      grupos: grupos,
+      ordem: ordem,
+      campos: [
+        for (final c in campos)
+          if (c.id == campoId) c.renomeado(limpo) else c,
+      ],
+    );
+  }
+
+  /// Apaga um campo **e limpa o valor dele em todos os personagens** — senão
+  /// ficariam valores órfãos de um campo que já não existe, a pesar no link
+  /// e no ficheiro sem nada os mostrar.
+  PlanoDeInstancias semOCampo(String campoId) => PlanoDeInstancias(
+    grupos: [
+      for (final g in grupos)
+        g.com([for (final p in g.personagens) p.semOCampo(campoId)]),
+    ],
+    ordem: ordem,
+    campos: [
+      for (final c in campos)
+        if (c.id != campoId) c,
+    ],
+  );
+
+  /// Define (ou limpa) o valor de um campo num personagem.
+  PlanoDeInstancias comExtra(Morada onde, String campoId, String? valor) =>
+      trocandoPersonagem(
+        onde,
+        grupos[onde.grupo].personagens[onde.personagem].comExtra(
+          campoId,
+          valor,
+        ),
+      );
+
+  /// Quantos personagens têm uma marcação ligada — o *marcados: N* de uma
+  /// coluna de marcação.
+  int marcados(String campoId) => grupos.fold(
+    0,
+    (soma, g) => soma + g.personagens.where((p) => p.marcado(campoId)).length,
+  );
+
+  static String _idDeCampo(int n) {
+    // base36, curto: 0..9a..z, depois dois dígitos. Chega e sobra.
+    const alfabeto = '0123456789abcdefghijklmnopqrstuvwxyz';
+    return n < 36 ? alfabeto[n] : 'z${alfabeto[n % 36]}';
+  }
 
   // --- grupos ---
 

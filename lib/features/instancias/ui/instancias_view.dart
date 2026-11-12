@@ -12,6 +12,7 @@ import '../../home/ui/widgets/cabecalho.dart';
 import '../domain/plano_de_instancias.dart';
 import 'instancias_view_model.dart';
 import 'widgets/escolher_classe.dart';
+import 'widgets/gerir_campos.dart';
 import 'widgets/tabela_de_instancias.dart';
 
 /// O organizador de instâncias: grupos de personagens, e quantas entradas e
@@ -95,6 +96,19 @@ class _Conteudo extends StatelessWidget {
     final vm = context.read<InstanciasViewModel>();
     final nome = await _perguntarNome(context);
     if (nome != null && nome.trim().isNotEmpty) vm.adicionarGrupo(nome);
+  }
+
+  /// A folha de gerir campos: lista os que existem (para apagar) e tem o botão
+  /// de criar um novo.
+  Future<void> _gerirCampos(BuildContext context) async {
+    final vm = context.read<InstanciasViewModel>();
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: PWColors.surface,
+      isScrollControlled: true,
+      builder: (folha) =>
+          BlocProvider.value(value: vm, child: const GerirCampos()),
+    );
   }
 
   void _removerGrupo(BuildContext context, int grupo) {
@@ -223,6 +237,7 @@ class _Conteudo extends StatelessWidget {
             _Acoes(
               plano: plano,
               aoNovoGrupo: () => unawaited(_novoGrupo(context)),
+              aoNovoCampo: () => unawaited(_gerirCampos(context)),
               aoCopiar: () => unawaited(_copiarLink(context)),
             ),
             const SizedBox(height: 14),
@@ -242,6 +257,7 @@ class _Conteudo extends StatelessWidget {
               hoje: InstanciasViewModel.hoje(),
               aoPegarDiaria: (onde) => _pegarDiaria(context, onde),
               aoPegarGrupo: (grupo) => _pegarGrupo(context, grupo),
+              aoDefinirExtra: vm.definirExtra,
             ),
             const SizedBox(height: 22),
             const _OndeFica(),
@@ -311,22 +327,35 @@ class _Acoes extends StatelessWidget {
   const _Acoes({
     required this.plano,
     required this.aoNovoGrupo,
+    required this.aoNovoCampo,
     required this.aoCopiar,
   });
 
   final PlanoDeInstancias plano;
   final VoidCallback aoNovoGrupo;
+  final VoidCallback aoNovoCampo;
   final VoidCallback aoCopiar;
 
   @override
-  Widget build(BuildContext context) => Row(
+  Widget build(BuildContext context) => Wrap(
+    spacing: 10,
+    runSpacing: 10,
+    crossAxisAlignment: WrapCrossAlignment.center,
     children: [
       FilledButton.icon(
         onPressed: aoNovoGrupo,
         icon: const Icon(Icons.create_new_folder_outlined, size: 18),
         label: const Text('Grupo'),
       ),
-      const Spacer(),
+      // O construtor de campos: dá o nome e o tipo, e o campo aparece em
+      // todos os personagens. Ver `CamposDoPersonagem`.
+      OutlinedButton.icon(
+        onPressed: aoNovoCampo,
+        icon: const Icon(Icons.playlist_add, size: 18),
+        label: Text(
+          plano.campos.isEmpty ? 'Campo' : 'Campos (${plano.campos.length})',
+        ),
+      ),
       if (!plano.vazio)
         TextButton.icon(
           onPressed: aoCopiar,

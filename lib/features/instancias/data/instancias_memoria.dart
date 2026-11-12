@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../../../core/memoria/browser_memory.dart';
+import '../domain/campo_personalizado.dart';
 import '../domain/entrada_de_instancia.dart';
 import '../domain/grupo_de_instancias.dart';
 import '../domain/instancias_url.dart';
@@ -58,23 +59,36 @@ class InstanciasMemoria {
               cru is String && RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(cru)
               ? cru
               : null;
+          final extras = <String, String>{};
+          final extrasCru = p['extras'];
+          if (extrasCru is Map) {
+            for (final e in extrasCru.entries) {
+              final k = e.key;
+              final v = e.value;
+              if (k is String && v is String && v.isNotEmpty) extras[k] = v;
+            }
+          }
           personagens.add(
             PersonagemDeInstancia(
               nome: pnome,
               classe: classe!,
               contagens: contagens,
               coletadoEm: coletadoEm,
+              extras: extras,
             ),
           );
         }
         grupos.add(GrupoDeInstancias(nome: nome, personagens: personagens));
       }
 
+      final campos = _lerCampos(lido);
+
       // Um ficheiro sem grupo válido nenhum é tão bom como nenhum ficheiro —
-      // a tela precisa sempre de ter onde pôr o primeiro personagem.
+      // a tela precisa sempre de ter onde pôr o primeiro personagem. Os campos
+      // vêm à parte, num segundo elemento da lista do topo (ver `gravar`).
       return grupos.isEmpty
           ? PlanoDeInstancias.inicial()
-          : PlanoDeInstancias(grupos: grupos);
+          : PlanoDeInstancias(grupos: grupos, campos: campos);
     } catch (_) {
       return PlanoDeInstancias.inicial();
     }
@@ -82,28 +96,81 @@ class InstanciasMemoria {
 
   void gravar(PlanoDeInstancias plano) {
     // A ordem de origem, nunca a ordenada — a mesma regra do link.
+    //
+    // **O topo é uma lista de dois: os grupos, e depois um objecto com os
+    // campos personalizados.** Os campos são globais ao plano, não de um
+    // grupo, portanto vivem fora da lista de grupos. O objecto no fim é
+    // opcional: um ficheiro antigo sem ele lê-se com zero campos.
+    final grupos = [
+      for (final g in plano.grupos)
+        {
+          'nome': g.nome,
+          'personagens': [
+            for (final p in g.personagens)
+              {
+                'nome': p.nome,
+                'classe': p.classe,
+                // Por nome do valor do enum e nunca pelo índice: um enum
+                // reordenado trocaria as chaves pelas relíquias de toda a
+                // gente, em silêncio, no ficheiro que já estava gravado.
+                for (final e in EntradaDeInstancia.values) e.name: p.de(e),
+                // Só quando há: um dia sem coleta não escreve a chave, para
+                // o ficheiro não encher de nulos.
+                if (p.coletadoEm != null) 'coletadoEm': p.coletadoEm,
+                if (p.extras.isNotEmpty) 'extras': p.extras,
+              },
+          ],
+        },
+    ];
     _memoria.write(
       jsonEncode([
-        for (final g in plano.grupos)
+        ...grupos,
+        if (plano.campos.isNotEmpty)
           {
-            'nome': g.nome,
-            'personagens': [
-              for (final p in g.personagens)
+            'campos': [
+              for (final c in plano.campos)
                 {
-                  'nome': p.nome,
-                  'classe': p.classe,
-                  // Por nome do valor do enum e nunca pelo índice: um enum
-                  // reordenado trocaria as chaves pelas relíquias de toda a
-                  // gente, em silêncio, no ficheiro que já estava gravado.
-                  for (final e in EntradaDeInstancia.values) e.name: p.de(e),
-                  // Só quando há: um dia sem coleta não escreve a chave, para
-                  // o ficheiro não encher de nulos.
-                  if (p.coletadoEm != null) 'coletadoEm': p.coletadoEm,
+                  'id': c.id,
+                  'nome': c.nome,
+                  'tipo': c.tipo.sigla,
+                  if (c.opcoes.isNotEmpty) 'opcoes': c.opcoes,
                 },
             ],
           },
       ]),
     );
+  }
+
+  /// Lê os campos personalizados do objecto `{'campos': [...]}` que `gravar`
+  /// põe no fim da lista do topo. Qualquer elemento da lista que não seja um
+  /// grupo nem este objecto é ignorado — robusto a lixo.
+  List<CampoPersonalizado> _lerCampos(List lido) {
+    for (final item in lido) {
+      if (item is! Map || item['campos'] is! List) continue;
+      final campos = <CampoPersonalizado>[];
+      for (final c in item['campos'] as List) {
+        if (c is! Map) continue;
+        final id = c['id'];
+        final nome = (c['nome'] as String?)?.trim();
+        final tipo = CampoTipo.daSigla(c['tipo'] as String? ?? '');
+        if (id is! String ||
+            id.isEmpty ||
+            nome == null ||
+            nome.isEmpty ||
+            tipo == null) {
+          continue;
+        }
+        final opcoes = <String>[
+          for (final o in (c['opcoes'] as List? ?? const []))
+            if (o is String && o.isNotEmpty) o,
+        ];
+        campos.add(
+          CampoPersonalizado(id: id, nome: nome, tipo: tipo, opcoes: opcoes),
+        );
+      }
+      return campos;
+    }
+    return const [];
   }
 
   /// O que o botão *copiar link* põe na área de transferência.

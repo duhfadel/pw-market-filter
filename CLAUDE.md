@@ -838,6 +838,39 @@ ausência significa *não foi lido* e por isso não desenha linha nenhuma; aqui
 quem escreve é o dono da conta, e um campo apagado quer dizer que ele tem
 zero. Não há terceira hipótese.
 
+**Os campos personalizados são um construtor de colunas, e a decisão de
+layout foi não os fazer colunas.** Pedido do dono a 12/11/2026: um botão para
+fazer campos, de três tipos — marcação (sim/não), escolha (uma opção entre as
+que ele define) e nota (texto livre) — e **vários de cada**. A tabela de
+números já é larga; cada campo como coluna estouraria a largura ao segundo ou
+terceiro. Vivem como **fichas numa linha por baixo do nome** (`Wrap`, que
+quebra), iguais no largo e no cartão: a marcação e a escolha são fichas, a
+nota é uma linha própria porque texto é comprido. É o que escala para muitos
+campos sem partir nada.
+
+**Os campos são globais ao plano e o valor é por personagem.** Criar *TW?*
+uma vez põe-no em todos, para a marcação ser comparável (`marcados(id)` conta
+quantos ligaram). A identidade de um campo é a `id` gerada e nunca o nome —
+`CampoPersonalizado` — para o valor sobreviver à renomeação, a mesma razão
+pela qual um atributo do mercado viaja pela id. Apagar um campo limpa o valor
+dele em todos os personagens, senão ficariam órfãos a pesar no link.
+
+**Ausente é não preenchido, e um valor vazio apaga a chave.** `comExtra(id,
+'')` remove a entrada em vez de guardar `''`: uma nota apagada tem de voltar a
+*não preenchida*, não a uma string vazia que ainda contaria. O diálogo da nota
+usa um espaço como sentinela de *limpar*, distinto de `null` que é *cancelar*.
+
+**Tudo isto viaja no link, e é o que o dono pediu: o amigo abre e vê.** Três
+famílias de parâmetro, cada uma com a regra do *último é o resto* para o til
+não a partir: `cf=id~sigla~nome` define o campo (nome é o resto), `co=id~opção`
+dá uma opção (opção é o resto), `x=índiceGlobal~id~valor` dá o valor de um
+campo num personagem (valor é o resto, com tis e tudo). O índice global é a
+posição do personagem na ordem dos `p`, a mesma de um lado e do outro. Um
+valor cujo campo não existe, ou cujo índice caiu num link cortado, é deitado
+fora. No ficheiro os campos vivem num objecto `{campos: [...]}` no fim da
+lista do topo, e o `extras` de cada personagem só se escreve quando há —
+ausente nunca é afirmado.
+
 **A coleta diária é um botão por personagem e uma barra por grupo.** Pedido
 do dono a 12/11/2026: um botão *pegar as 3 entradas diárias* que soma +1 em
 cada Relíquia Maravilha — Artefato, Arma, Armadura — e **não toca na chave**

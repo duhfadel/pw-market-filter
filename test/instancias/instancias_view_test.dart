@@ -214,4 +214,51 @@ void main() {
     expect(find.textContaining('Pegar entradas de hoje'), findsNothing);
     expect(find.textContaining('Todos já pegaram'), findsOneWidget);
   });
+
+  testWidgets('um campo do link aparece como ficha no personagem', (
+    tester,
+  ) async {
+    // O caso que o dono descreveu: o amigo abre o link e vê tudo. A marcação
+    // ligada, a escolha e a nota chegam todas pelo endereço.
+    await _montar(
+      tester,
+      query: const {
+        'g': ['A'],
+        'cf': ['0~c~Fez TW', '1~e~Status', '2~t~Obs'],
+        'co': ['1~Ativo', '1~Vendendo'],
+        'p': ['0~Bardo~0~0~0~0~~duhit'],
+        'x': ['0~0~1', '0~1~Ativo', '0~2~lembrete aqui'],
+      },
+    );
+
+    expect(find.text('Fez TW'), findsOneWidget);
+    expect(find.text('Ativo'), findsWidgets);
+    expect(find.textContaining('lembrete aqui'), findsOneWidget);
+  });
+
+  testWidgets('criar um campo pela folha põe-no no personagem', (tester) async {
+    await _montar(
+      tester,
+      query: const {
+        'g': ['A'],
+        'p': ['0~Bardo~0~0~0~0~~duhit'],
+      },
+    );
+
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Campo'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Nome do campo'),
+      'Fez TW',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Criar campo'));
+    await tester.pumpAndSettle();
+    // Fecha a folha.
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+
+    // A ficha do campo novo aparece no personagem, por marcar.
+    expect(find.text('Fez TW'), findsOneWidget);
+  });
 }

@@ -12,6 +12,7 @@ class PersonagemDeInstancia {
     required this.classe,
     this.contagens = const {},
     this.coletadoEm,
+    this.extras = const {},
   });
 
   /// O apelido, como o dono dele o escreve. Pode ser qualquer coisa — este
@@ -38,25 +39,66 @@ class PersonagemDeInstancia {
   /// guias carrega uma data em vez de uma bandeira.
   final String? coletadoEm;
 
+  /// O valor de cada campo personalizado, pela `CampoPersonalizado.id`.
+  ///
+  /// **Por id e nunca por nome**, para o valor sobreviver à renomeação do
+  /// campo. O que o texto guardado significa depende do tipo do campo: uma
+  /// marcação é `'1'` (ou ausente), uma escolha é a opção escolhida, uma nota
+  /// é o próprio texto. Ausente é *não preenchido*.
+  final Map<String, String> extras;
+
   int de(EntradaDeInstancia entrada) => contagens[entrada] ?? 0;
 
   /// Se a coleta diária já foi feita no dia [hoje].
   bool pegouEm(String hoje) => coletadoEm == hoje;
 
-  PersonagemDeInstancia com(EntradaDeInstancia entrada, int quantos) =>
-      PersonagemDeInstancia(
-        nome: nome,
-        classe: classe,
-        contagens: {...contagens, entrada: quantos < 0 ? 0 : quantos},
-        coletadoEm: coletadoEm,
-      );
+  /// O valor de um campo personalizado, ou `null` se não preenchido.
+  String? extra(String campoId) => extras[campoId];
 
-  PersonagemDeInstancia renomeado(String novo) => PersonagemDeInstancia(
-    nome: novo,
+  /// Se a marcação [campoId] está ligada.
+  bool marcado(String campoId) => extras[campoId] == '1';
+
+  PersonagemDeInstancia _copia({
+    Map<EntradaDeInstancia, int>? contagens,
+    String? nome,
+    Object? coletadoEm = _mantem,
+    Map<String, String>? extras,
+  }) => PersonagemDeInstancia(
+    nome: nome ?? this.nome,
     classe: classe,
-    contagens: contagens,
-    coletadoEm: coletadoEm,
+    contagens: contagens ?? this.contagens,
+    coletadoEm: coletadoEm == _mantem ? this.coletadoEm : coletadoEm as String?,
+    extras: extras ?? this.extras,
   );
+
+  static const _mantem = Object();
+
+  PersonagemDeInstancia com(EntradaDeInstancia entrada, int quantos) =>
+      _copia(contagens: {...contagens, entrada: quantos < 0 ? 0 : quantos});
+
+  PersonagemDeInstancia renomeado(String novo) => _copia(nome: novo);
+
+  /// Define (ou limpa) um campo personalizado. Um valor vazio **apaga** a
+  /// chave em vez de guardar uma string vazia: ausente é *não preenchido*, e
+  /// uma nota apagada tem de voltar a esse estado, não a um `''` que ainda
+  /// contaria como preenchida.
+  PersonagemDeInstancia comExtra(String campoId, String? valor) {
+    final novos = {...extras};
+    if (valor == null || valor.isEmpty) {
+      novos.remove(campoId);
+    } else {
+      novos[campoId] = valor;
+    }
+    return _copia(extras: novos);
+  }
+
+  /// Esquece um campo que foi apagado do plano — para o `extras` não guardar
+  /// valores órfãos de um campo que já não existe.
+  PersonagemDeInstancia semOCampo(String campoId) {
+    if (!extras.containsKey(campoId)) return this;
+    final novos = {...extras}..remove(campoId);
+    return _copia(extras: novos);
+  }
 
   /// Pega as três entradas do dia: +1 em cada Relíquia Maravilha, e marca
   /// [coletadoEm] como [hoje]. A Chave não entra — a coleta diária dá
@@ -67,9 +109,7 @@ class PersonagemDeInstancia {
   /// que deixa o botão do grupo passar por quem já pegou sem o penalizar.
   PersonagemDeInstancia comColetaDiaria(String hoje) {
     if (pegouEm(hoje)) return this;
-    return PersonagemDeInstancia(
-      nome: nome,
-      classe: classe,
+    return _copia(
       contagens: {
         ...contagens,
         for (final e in EntradaDeInstancia.entradas) e: de(e) + 1,

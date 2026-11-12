@@ -11,7 +11,7 @@ import '../../domain/plano_de_instancias.dart';
 
 /// A largura de uma coluna de número — o par `−`/`+` mais o campo. Uma só
 /// medida, para o cabeçalho, as linhas e as somas não poderem desalinhar-se.
-const _colunaDeNumero = 96.0;
+const _colunaDeNumero = 106.0;
 const _colunaEstreita = 64.0;
 
 /// A coluna do botão de tirar. Uma medida só, pela mesma razão.
@@ -424,36 +424,11 @@ class _Linha extends StatelessWidget {
   final void Function(Morada) aoRemover;
 
   @override
-  Widget build(BuildContext context) {
-    final conteudo = _conteudo();
-    return LongPressDraggable<_Arrasto>(
-      data: onde,
-      dragAnchorStrategy: pointerDragAnchorStrategy,
-      feedback: _Fantasma(quem: quem),
-      // O lugar de origem esmaece enquanto o dedo carrega a cópia — diz de
-      // onde isto saiu sem o fazer desaparecer, caso o arrasto se cancele.
-      childWhenDragging: Opacity(opacity: 0.35, child: conteudo),
-      child: conteudo,
-    );
-  }
-
-  Widget _conteudo() => Padding(
+  Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 4),
     child: Row(
       children: [
-        // A pega: diz que a linha se arrasta. No telemóvel não há hover, e
-        // sem isto o gesto seria um segredo.
-        Padding(
-          padding: EdgeInsets.only(
-            left: compacto ? 0 : 2,
-            right: compacto ? 2 : 4,
-          ),
-          child: Icon(
-            Icons.drag_indicator,
-            size: compacto ? 14 : 16,
-            color: PWColors.border,
-          ),
-        ),
+        _PegaArrasto(onde: onde, quem: quem, compacto: compacto),
         // O ícone de classe sai no estreito: a classe já está escrita debaixo
         // do nome, e a 390 px os quatro steppers não cabem com ele ao lado.
         if (!compacto) ...[
@@ -509,6 +484,57 @@ class _Linha extends StatelessWidget {
 }
 
 /// O que se vê a voar com o dedo durante o arrasto.
+/// A pega por onde um personagem se arrasta para outro grupo.
+///
+/// **Só a pega arrasta, e isso resolve duas coisas de uma vez.** Antes a
+/// linha inteira era arrastável e, sobre o campo de texto do nome, o toque
+/// longo virava seleção de texto — o gesto nascia no sítio errado. E com
+/// rato, o toque longo não se adivinha: o dono abriu a tela e não viu como
+/// mudar alguém de grupo. Uma pega dedicada mostra o cursor de agarrar, traz
+/// a sua dica, e larga o resto da linha em paz.
+///
+/// **`Draggable` e não `LongPressDraggable`** porque a pega é um alvo pequeno
+/// e à esquerda: agarrá-la não rouba o deslize vertical da página como um
+/// arrasto imediato sobre a linha toda roubaria. É o mesmo que uma lista
+/// reordenável do sistema faz com o seu punho.
+class _PegaArrasto extends StatelessWidget {
+  const _PegaArrasto({
+    required this.onde,
+    required this.quem,
+    required this.compacto,
+  });
+
+  final Morada onde;
+  final PersonagemDeInstancia quem;
+  final bool compacto;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: 'Arraste para mudar de grupo',
+    child: MouseRegion(
+      cursor: SystemMouseCursors.grab,
+      child: Draggable<_Arrasto>(
+        data: onde,
+        dragAnchorStrategy: pointerDragAnchorStrategy,
+        feedback: _Fantasma(quem: quem),
+        // Enquanto se arrasta, a pega apaga-se no lugar de origem — um sinal
+        // discreto de que a cópia que voa é esta.
+        childWhenDragging: Opacity(opacity: 0.2, child: _icone()),
+        child: _icone(),
+      ),
+    ),
+  );
+
+  Widget _icone() => Padding(
+    padding: EdgeInsets.symmetric(horizontal: compacto ? 2 : 4, vertical: 2),
+    child: Icon(
+      Icons.drag_indicator,
+      size: compacto ? 18 : 20,
+      color: PWColors.textMuted,
+    ),
+  );
+}
+
 class _Fantasma extends StatelessWidget {
   const _Fantasma({required this.quem});
   final PersonagemDeInstancia quem;
@@ -659,59 +685,65 @@ class _CampoState extends State<_Campo> {
   @override
   Widget build(BuildContext context) {
     final passo = widget.compacto ? 18.0 : 26.0;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _Passo(
-          icone: Icons.remove,
-          // Desligado no zero: ninguém tem menos que nada, e um `−` que não
-          // faz nada ensina a desconfiar dos que fazem.
-          ligado: widget.valor > 0,
-          lado: passo,
-          rotulo: 'menos um — ${widget.rotulo}',
-          aoTocar: () => widget.aoSomar(-1),
-        ),
-        SizedBox(width: widget.compacto ? 3 : 5),
-        Expanded(
-          child: Semantics(
-            label: widget.rotulo,
-            child: TextField(
-              controller: _c,
-              textAlign: TextAlign.center,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              onChanged: (t) => widget.aoMudar(int.tryParse(t) ?? 0),
-              style: const TextStyle(
-                color: PWColors.text,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                fontFeatures: [FontFeature.tabularFigures()],
-              ),
-              decoration: const InputDecoration(
-                isDense: true,
-                filled: false,
-                hintText: '0',
-                hintStyle: TextStyle(color: PWColors.border, fontSize: 15),
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: 8,
-                  horizontal: 0,
+    // Recuo de cada lado para o `+` desta coluna não encostar ao `−` da
+    // seguinte: na tabela do largo as colunas são caixas encostadas, e sem
+    // este vão os dois controlos liam-se como um só.
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 9),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _Passo(
+            icone: Icons.remove,
+            // Desligado no zero: ninguém tem menos que nada, e um `−` que não
+            // faz nada ensina a desconfiar dos que fazem.
+            ligado: widget.valor > 0,
+            lado: passo,
+            rotulo: 'menos um — ${widget.rotulo}',
+            aoTocar: () => widget.aoSomar(-1),
+          ),
+          SizedBox(width: widget.compacto ? 3 : 5),
+          Expanded(
+            child: Semantics(
+              label: widget.rotulo,
+              child: TextField(
+                controller: _c,
+                textAlign: TextAlign.center,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                onChanged: (t) => widget.aoMudar(int.tryParse(t) ?? 0),
+                style: const TextStyle(
+                  color: PWColors.text,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  fontFeatures: [FontFeature.tabularFigures()],
                 ),
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
+                decoration: const InputDecoration(
+                  isDense: true,
+                  filled: false,
+                  hintText: '0',
+                  hintStyle: TextStyle(color: PWColors.border, fontSize: 15),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 0,
+                  ),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                ),
               ),
             ),
           ),
-        ),
-        SizedBox(width: widget.compacto ? 3 : 5),
-        _Passo(
-          icone: Icons.add,
-          ligado: true,
-          lado: passo,
-          rotulo: 'mais um — ${widget.rotulo}',
-          aoTocar: () => widget.aoSomar(1),
-        ),
-      ],
+          SizedBox(width: widget.compacto ? 3 : 5),
+          _Passo(
+            icone: Icons.add,
+            ligado: true,
+            lado: passo,
+            rotulo: 'mais um — ${widget.rotulo}',
+            aoTocar: () => widget.aoSomar(1),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -872,21 +904,15 @@ class _Cartao extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final conteudo = Padding(
+    return Padding(
       padding: const EdgeInsets.fromLTRB(6, 6, 6, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              const Padding(
-                padding: EdgeInsets.only(right: 4),
-                child: Icon(
-                  Icons.drag_indicator,
-                  size: 16,
-                  color: PWColors.border,
-                ),
-              ),
+              _PegaArrasto(onde: onde, quem: quem, compacto: true),
+              const SizedBox(width: 2),
               ClassIcon(ocupacaoDaClasse[quem.classe] ?? -1, size: 30),
               const SizedBox(width: 9),
               Expanded(
@@ -955,14 +981,6 @@ class _Cartao extends StatelessWidget {
           ),
         ],
       ),
-    );
-
-    return LongPressDraggable<_Arrasto>(
-      data: onde,
-      dragAnchorStrategy: pointerDragAnchorStrategy,
-      feedback: _Fantasma(quem: quem),
-      childWhenDragging: Opacity(opacity: 0.35, child: conteudo),
-      child: conteudo,
     );
   }
 }

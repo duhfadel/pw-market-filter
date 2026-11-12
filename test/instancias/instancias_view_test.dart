@@ -126,16 +126,17 @@ void main() {
       },
     );
 
-    // Pega-se pela pega, nunca pelo nome: um toque longo sobre o campo de
-    // texto seria seleção de texto. viajante é o primeiro, logo a sua pega é
-    // o primeiro drag_indicator.
+    // Pega-se pela pega: só ela arrasta, e o arrasto é imediato (sem toque
+    // longo) para o rato o descobrir. viajante é o primeiro, logo a sua pega
+    // é o primeiro drag_indicator.
+    final pega = tester.getCenter(find.byIcon(Icons.drag_indicator).first);
     final alvo = tester.getCenter(find.text('fixo'));
-    final gesto = await tester.startGesture(
-      tester.getCenter(find.byIcon(Icons.drag_indicator).first),
-    );
-    await tester.pump(const Duration(milliseconds: 700)); // o toque longo
-    await gesto.moveTo(alvo);
+    final gesto = await tester.startGesture(pega);
     await tester.pump();
+    for (var i = 1; i <= 8; i++) {
+      await gesto.moveTo(Offset.lerp(pega, alvo, i / 8)!);
+      await tester.pump(const Duration(milliseconds: 16));
+    }
     await gesto.up();
     await tester.pumpAndSettle();
 

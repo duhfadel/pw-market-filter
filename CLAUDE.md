@@ -852,16 +852,26 @@ personagem* faz o visitante trabalhar para a ferramenta. O primeiro nasce com
 a lista (`nomeInicial`), e tirar o último devolve um inicial em vez de zero —
 `semOGrupo` nunca deixa a lista sem casa.
 
-**O arrastar pega-se pela pega e não pela linha, e isso é desenho e não só o
-teste.** Um toque longo sobre o nome é seleção de texto — o campo ganha o
-gesto —, portanto a zona fiável é o `drag_indicator` à esquerda. Isto custou
-uma hora no harness: o arrasto *começava* (o fantasma aparecia) e a largada
-não registava, até perceber que o gesto nascia dentro do `TextField`.
-`LongPressDraggable` e não `Draggable` porque a página rola com o dedo no
-telemóvel, e um arrasto imediato roubaria todos os deslizes verticais. O
-grupo inteiro é o `DragTarget` — larga-se na gaveta, não numa linha de 44 px —
-e `movendoPersonagem` tira antes de calcular o destino, senão mover dentro do
+**Só a pega arrasta, e isso resolve três coisas.** Um toque longo sobre o
+nome era seleção de texto — o campo ganhava o gesto —, portanto o arrasto
+nascia no sítio errado; com rato, o toque longo não se adivinha e o dono abriu
+a tela e não viu como mudar alguém de grupo; e a linha inteira arrastável
+tornava qualquer deslize um começo de arrasto. A pega dedicada (`_PegaArrasto`)
+é um `Draggable` **imediato** — não um `LongPressDraggable` — porque é um alvo
+pequeno e à esquerda: agarrá-la não rouba o deslize vertical da página como um
+arrasto imediato sobre a linha toda roubaria, e com rato começa logo, com o
+cursor de agarrar e a dica *arraste para mudar de grupo*. O grupo inteiro é o
+`DragTarget` — larga-se na gaveta, não numa linha de 44 px — e
+`movendoPersonagem` tira antes de calcular o destino, senão mover dentro do
 mesmo grupo erraria por um.
+
+**Na tabela do largo as colunas de número levam recuo interno.** São caixas de
+largura fixa encostadas umas às outras, portanto sem um vão o `+` de uma
+coluna encostava ao `−` da seguinte e os dois liam-se como um controlo só — o
+dono apontou-o duas vezes, no estreito e no largo. O recuo vive dentro do
+`_Campo`, não entre as colunas, para o cabeçalho e as somas continuarem
+alinhados; e a coluna subiu para 106 px para o campo ainda caber um número de
+três dígitos depois de pagar o recuo.
 
 **Cada número ganhou `−` e `+`, e o campo fica.** Tocar é *usei uma chave* /
 *ganhei uma entrada*; escrever direto é para saltos grandes. O `−` desliga no

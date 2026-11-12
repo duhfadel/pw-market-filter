@@ -671,6 +671,7 @@ class _CampoState extends State<_Campo> {
           rotulo: 'menos um — ${widget.rotulo}',
           aoTocar: () => widget.aoSomar(-1),
         ),
+        SizedBox(width: widget.compacto ? 3 : 5),
         Expanded(
           child: Semantics(
             label: widget.rotulo,
@@ -702,6 +703,7 @@ class _CampoState extends State<_Campo> {
             ),
           ),
         ),
+        SizedBox(width: widget.compacto ? 3 : 5),
         _Passo(
           icone: Icons.add,
           ligado: true,
@@ -1070,7 +1072,9 @@ class _CelulaEstreitaState extends State<_CelulaEstreita> {
               rotulo: 'menos um — ${widget.rotulo}',
               aoTocar: () => widget.aoSomar(-1),
             ),
+            const SizedBox(width: 8),
             SizedBox(width: 54, child: _campo(tamanho: 16)),
+            const SizedBox(width: 8),
             _Passo(
               icone: Icons.add,
               ligado: true,
@@ -1096,7 +1100,9 @@ class _CelulaEstreitaState extends State<_CelulaEstreita> {
               rotulo: 'menos um — ${widget.rotulo}',
               aoTocar: () => widget.aoSomar(-1),
             ),
+            const SizedBox(width: 4),
             Expanded(child: _campo()),
+            const SizedBox(width: 4),
             _Passo(
               icone: Icons.add,
               ligado: true,

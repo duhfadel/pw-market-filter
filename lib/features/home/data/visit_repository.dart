@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import 'browser_memory.dart';
+import '../../../core/memoria/browser_memory.dart';
 
 /// The visit counter shown on the front page.
 ///

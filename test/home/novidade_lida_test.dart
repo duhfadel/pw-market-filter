@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pw_market_filter/features/home/data/browser_memory.dart';
+import 'package:pw_market_filter/core/memoria/browser_memory.dart';
 import 'package:pw_market_filter/features/home/data/novidade_lida.dart';
 import 'package:pw_market_filter/features/home/domain/novidade.dart';
 

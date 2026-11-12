@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/theme/pw_theme.dart';
-import '../../data/browser_memory.dart';
+import '../../../../core/memoria/browser_memory.dart';
 import '../../data/novidade_lida.dart';
 import '../../domain/tool.dart';
 import '../novidades_view_model.dart';

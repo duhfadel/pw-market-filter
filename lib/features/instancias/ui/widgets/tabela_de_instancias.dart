@@ -58,8 +58,14 @@ class TabelaDeInstancias extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      _Cabecalho(plano: plano, compacto: compacto, aoOrdenar: aoOrdenar),
-      const Divider(height: 1),
+      // No estreito não há cabeçalho de colunas: cada cartão leva o ícone do
+      // item ao lado do número, portanto uma fila de ícones no topo seria uma
+      // legenda para uma tabela que ali não existe.
+      if (!compacto) ...[
+        _Cabecalho(plano: plano, compacto: compacto, aoOrdenar: aoOrdenar),
+        const Divider(height: 1),
+      ] else
+        _OrdenarEstreito(plano: plano, aoOrdenar: aoOrdenar),
       for (var gi = 0; gi < plano.grupos.length; gi++)
         _Grupo(
           plano: plano,
@@ -78,7 +84,10 @@ class TabelaDeInstancias extends StatelessWidget {
           aoAdicionarNoGrupo: aoAdicionarNoGrupo,
         ),
       const SizedBox(height: 6),
-      _TotalGeral(plano: plano, compacto: compacto),
+      if (compacto)
+        _TotalGeralEstreito(plano: plano)
+      else
+        _TotalGeral(plano: plano, compacto: compacto),
     ],
   );
 }
@@ -240,21 +249,34 @@ class _Grupo extends StatelessWidget {
               else
                 for (final quem in ordenados) ...[
                   const Divider(height: 1),
-                  _Linha(
-                    quem: quem,
-                    // A morada de origem, achada por identidade: dois
-                    // personagens podem ter o mesmo nome e a mesma classe, e
-                    // procurar por nome escreveria no errado.
-                    onde: Morada(grupo, g.personagens.indexOf(quem)),
-                    compacto: compacto,
-                    aoSomar: aoSomar,
-                    aoContar: aoContar,
-                    aoRenomear: aoRenomear,
-                    aoRemover: aoRemover,
-                  ),
+                  if (compacto)
+                    _Cartao(
+                      quem: quem,
+                      onde: Morada(grupo, g.personagens.indexOf(quem)),
+                      aoSomar: aoSomar,
+                      aoContar: aoContar,
+                      aoRenomear: aoRenomear,
+                      aoRemover: aoRemover,
+                    )
+                  else
+                    _Linha(
+                      quem: quem,
+                      // A morada de origem, achada por identidade: dois
+                      // personagens podem ter o mesmo nome e a mesma classe, e
+                      // procurar por nome escreveria no errado.
+                      onde: Morada(grupo, g.personagens.indexOf(quem)),
+                      compacto: compacto,
+                      aoSomar: aoSomar,
+                      aoContar: aoContar,
+                      aoRenomear: aoRenomear,
+                      aoRemover: aoRemover,
+                    ),
                 ],
               const Divider(height: 1),
-              _Subtotal(grupo: g, compacto: compacto),
+              if (compacto)
+                _SubtotalEstreito(grupo: g)
+              else
+                _Subtotal(grupo: g, compacto: compacto),
             ],
           ),
         );
@@ -818,4 +840,381 @@ class _TotalGeral extends StatelessWidget {
       ),
     );
   }
+}
+
+// ===================== O estreito: cartões =====================
+//
+// **No telemóvel a linha única apertava tudo** — quatro `− [n] +` ao lado do
+// nome e do ícone não cabem em 390 px, e encolhê-los até caber tornava os
+// botões bicos de agulha. O dono pediu o óbvio: nome e classe em cima, os
+// botões numa fila por baixo. Cada botão ganha o ícone do item ao lado, que é
+// o que substitui o cabeçalho de colunas que o estreito deixou de ter.
+
+/// Um personagem como cartão: identidade em cima, contagens em baixo.
+class _Cartao extends StatelessWidget {
+  const _Cartao({
+    required this.quem,
+    required this.onde,
+    required this.aoSomar,
+    required this.aoContar,
+    required this.aoRenomear,
+    required this.aoRemover,
+  });
+
+  final PersonagemDeInstancia quem;
+  final Morada onde;
+  final void Function(Morada, EntradaDeInstancia, int) aoSomar;
+  final void Function(Morada, EntradaDeInstancia, int) aoContar;
+  final void Function(Morada, String) aoRenomear;
+  final void Function(Morada) aoRemover;
+
+  @override
+  Widget build(BuildContext context) {
+    final conteudo = Padding(
+      padding: const EdgeInsets.fromLTRB(6, 6, 6, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(right: 4),
+                child: Icon(
+                  Icons.drag_indicator,
+                  size: 16,
+                  color: PWColors.border,
+                ),
+              ),
+              ClassIcon(ocupacaoDaClasse[quem.classe] ?? -1, size: 30),
+              const SizedBox(width: 9),
+              Expanded(
+                child: _Nome(
+                  nome: quem.nome,
+                  classe: quem.classe,
+                  compacto: true,
+                  aoRenomear: (novo) => aoRenomear(onde, novo),
+                ),
+              ),
+              Tooltip(
+                message: 'Tirar ${quem.nome} da lista',
+                child: InkWell(
+                  onTap: () => aoRemover(onde),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: PWColors.border),
+                    ),
+                    child: const Icon(
+                      Icons.person_remove_outlined,
+                      size: 16,
+                      color: PWColors.textMuted,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              for (final entrada in EntradaDeInstancia.values)
+                Expanded(
+                  child: _CelulaEstreita(
+                    entrada: entrada,
+                    valor: quem.de(entrada),
+                    rotulo: '${entrada.nome} de ${quem.nome}',
+                    aoMudar: (n) => aoContar(onde, entrada, n),
+                    aoSomar: (d) => aoSomar(onde, entrada, d),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    return LongPressDraggable<_Arrasto>(
+      data: onde,
+      dragAnchorStrategy: pointerDragAnchorStrategy,
+      feedback: _Fantasma(quem: quem),
+      childWhenDragging: Opacity(opacity: 0.35, child: conteudo),
+      child: conteudo,
+    );
+  }
+}
+
+/// Uma contagem no cartão: o ícone do item, e `−` [n] `+` por baixo.
+///
+/// O ícone é o que diz qual item é — no estreito não há cabeçalho de colunas
+/// a dizê-lo, portanto cada célula tem de se explicar sozinha.
+class _CelulaEstreita extends StatefulWidget {
+  const _CelulaEstreita({
+    required this.entrada,
+    required this.valor,
+    required this.rotulo,
+    required this.aoMudar,
+    required this.aoSomar,
+  });
+
+  final EntradaDeInstancia entrada;
+  final int valor;
+  final String rotulo;
+  final void Function(int) aoMudar;
+  final void Function(int) aoSomar;
+
+  @override
+  State<_CelulaEstreita> createState() => _CelulaEstreitaState();
+}
+
+class _CelulaEstreitaState extends State<_CelulaEstreita> {
+  late final TextEditingController _c = TextEditingController(
+    text: widget.valor == 0 ? '' : '${widget.valor}',
+  );
+
+  @override
+  void didUpdateWidget(_CelulaEstreita a) {
+    super.didUpdateWidget(a);
+    final escrito = int.tryParse(_c.text) ?? 0;
+    if (escrito != widget.valor) {
+      _c.text = widget.valor == 0 ? '' : '${widget.valor}';
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      ItemIcon(widget.entrada.itemId, size: 22),
+      const SizedBox(height: 5),
+      Row(
+        children: [
+          _Passo(
+            icone: Icons.remove,
+            ligado: widget.valor > 0,
+            lado: 24,
+            rotulo: 'menos um — ${widget.rotulo}',
+            aoTocar: () => widget.aoSomar(-1),
+          ),
+          Expanded(
+            child: Semantics(
+              label: widget.rotulo,
+              child: TextField(
+                controller: _c,
+                textAlign: TextAlign.center,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                onChanged: (t) => widget.aoMudar(int.tryParse(t) ?? 0),
+                style: const TextStyle(
+                  color: PWColors.text,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+                decoration: const InputDecoration(
+                  isDense: true,
+                  filled: false,
+                  hintText: '0',
+                  hintStyle: TextStyle(color: PWColors.border, fontSize: 15),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 6,
+                    horizontal: 0,
+                  ),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                ),
+              ),
+            ),
+          ),
+          _Passo(
+            icone: Icons.add,
+            ligado: true,
+            lado: 24,
+            rotulo: 'mais um — ${widget.rotulo}',
+            aoTocar: () => widget.aoSomar(1),
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
+/// O subtotal de um grupo, no estreito: ícone do item e número, por célula.
+class _SubtotalEstreito extends StatelessWidget {
+  const _SubtotalEstreito({required this.grupo});
+  final GrupoDeInstancias grupo;
+
+  @override
+  Widget build(BuildContext context) => _FaixaDeSomaEstreita(
+    rotulo: grupo.personagens.length == 1
+        ? 'subtotal · 1'
+        : 'subtotal · ${grupo.personagens.length}',
+    valorDe: grupo.total,
+    cor: PWColors.textMuted,
+    forte: false,
+  );
+}
+
+/// O total geral, no estreito.
+class _TotalGeralEstreito extends StatelessWidget {
+  const _TotalGeralEstreito({required this.plano});
+  final PlanoDeInstancias plano;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    decoration: const BoxDecoration(
+      border: Border(top: BorderSide(color: PWColors.border, width: 2)),
+    ),
+    child: _FaixaDeSomaEstreita(
+      rotulo: plano.quantosPersonagens == 1
+          ? 'Total · 1 personagem'
+          : 'Total · ${plano.quantosPersonagens} personagens',
+      valorDe: plano.total,
+      cor: PWColors.accent,
+      forte: true,
+    ),
+  );
+}
+
+class _FaixaDeSomaEstreita extends StatelessWidget {
+  const _FaixaDeSomaEstreita({
+    required this.rotulo,
+    required this.valorDe,
+    required this.cor,
+    required this.forte,
+  });
+
+  final String rotulo;
+  final int Function(EntradaDeInstancia) valorDe;
+  final Color cor;
+  final bool forte;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          rotulo,
+          style: TextStyle(
+            color: forte ? PWColors.text : PWColors.textMuted,
+            fontSize: forte ? 13 : 11.5,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Row(
+          children: [
+            for (final entrada in EntradaDeInstancia.values)
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ItemIcon(entrada.itemId, size: 15),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${valorDe(entrada)}',
+                      style: TextStyle(
+                        color: cor,
+                        fontSize: forte ? 16 : 14,
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+/// No estreito não há cabeçalho de colunas para tocar e ordenar, portanto a
+/// ordenação vive numa fila de botões pequenos — um por item. É a mesma
+/// acção que o cabeçalho faz no largo, só que dita com palavras porque os
+/// ícones ali já estão gastos a identificar as colunas dos cartões.
+class _OrdenarEstreito extends StatelessWidget {
+  const _OrdenarEstreito({required this.plano, required this.aoOrdenar});
+  final PlanoDeInstancias plano;
+  final void Function(EntradaDeInstancia) aoOrdenar;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Row(
+      children: [
+        const Text(
+          'Ordenar:',
+          style: TextStyle(color: PWColors.textMuted, fontSize: 12),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final entrada in EntradaDeInstancia.values)
+                _ChipDeOrdem(
+                  entrada: entrada,
+                  ativo:
+                      plano.ordem is OrdemPorEntrada &&
+                      (plano.ordem as OrdemPorEntrada).entrada == entrada,
+                  aoTocar: () => aoOrdenar(entrada),
+                ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _ChipDeOrdem extends StatelessWidget {
+  const _ChipDeOrdem({
+    required this.entrada,
+    required this.ativo,
+    required this.aoTocar,
+  });
+  final EntradaDeInstancia entrada;
+  final bool ativo;
+  final VoidCallback aoTocar;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: aoTocar,
+    borderRadius: BorderRadius.circular(20),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: ativo ? PWColors.surfaceRaised : null,
+        border: Border.all(color: ativo ? PWColors.accent : PWColors.border),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ItemIcon(entrada.itemId, size: 15),
+          const SizedBox(width: 5),
+          Text(
+            entrada.curto,
+            style: TextStyle(
+              fontSize: 11.5,
+              color: ativo ? PWColors.accent : PWColors.textMuted,
+              fontWeight: ativo ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }

@@ -867,13 +867,22 @@ mesmo grupo erraria por um.
 *ganhei uma entrada*; escrever direto é para saltos grandes. O `−` desliga no
 zero — um botão que não faz nada ensina a desconfiar dos que fazem.
 
-**Quatro colunas no telemóvel também, mas o ícone de classe sai lá.** Empilhar
-os números daria quatro linhas por personagem e acabava-se a comparação, que é
-a razão de a ferramenta existir — a mesma decisão das oito colunas da grelha
-dos Títulos. Mas os quatro `− [n] +` ao lado do ícone de classe transbordavam
-390 px por 39, portanto no estreito o ícone sai: a classe já está escrita
-debaixo do nome, logo ali ele era redundante. O que encolhe mais é a folga e
-o corpo.
+**No telemóvel o personagem vira cartão, e isso reverte a regra das colunas.**
+A primeira versão insistiu numa linha única também no estreito — a mesma
+decisão das oito colunas dos Títulos — e os quatro `− [n] +` ao lado do nome e
+do ícone ficaram bicos de agulha. O dono apontou-o: *no celular ficou ruim*.
+No estreito cada personagem é agora um cartão — pega, ícone de classe e nome
+em cima; os quatro botões numa fila por baixo, cada um com o ícone do item
+ao lado. **O ícone do item é o que substitui o cabeçalho de colunas**, que o
+estreito deixou de ter: sem ele, cada célula teria de confiar numa legenda
+longe. A ordenação, que no largo é um toque no cabeçalho, mora numa fila de
+chips — e é lá que os nomes `Artefato`/`Chave` passaram a viver, porque nos
+cartões os ícones já estão gastos a identificar as células. O subtotal e o
+total geral levam o ícone do item ao lado de cada número, pela mesma razão.
+A diferença entre isto e os Títulos é que ali as oito colunas são a *imagem*
+que se compara com a janela do jogo; aqui a comparação é dentro da própria
+tabela, e um cartão por pessoa não a perde — os quatro números ficam na mesma
+posição em todos.
 
 **Os campos não levam o chão que o tema dá a todo o `TextField`.** Ali ele diz
 *aqui escreve-se*; numa tabela de quarenta campos são quarenta caixas claras a

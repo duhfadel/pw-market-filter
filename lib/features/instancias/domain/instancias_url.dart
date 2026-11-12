@@ -37,7 +37,7 @@ const _separador = '~';
 
 /// Quantos campos vêm antes do nome do personagem: o índice do grupo, a
 /// classe e as quatro contagens.
-const _camposFixos = 1 + 1 + 4;
+const _camposFixos = 1 + 1 + 4 + 1;
 
 /// Tectos, para o endereço não ser a arma. Um link que nenhum navegador
 /// aceita e que nenhum campo de chat deixa colar não é um link. Largos de
@@ -64,6 +64,10 @@ String encodeInstancias(PlanoDeInstancias plano) {
         '$gi',
         p.classe,
         for (final e in EntradaDeInstancia.values) '${p.de(e)}',
+        // A data da coleta diária, antes do nome: tem forma fixa (sem tis),
+        // portanto não estraga a regra de o nome ser o resto. Vazia quando
+        // nunca se pegou.
+        p.coletadoEm ?? '',
         p.nome,
       ].join(_separador);
       partes.add('$_personagemParam=${Uri.encodeQueryComponent(campos)}');
@@ -128,6 +132,14 @@ PlanoDeInstancias? decodeInstancias(
     }
     if (!valido) continue;
 
+    // A data está logo antes do nome. Vazia ou com forma errada vira `null`
+    // — uma data estragada que não case com hoje seria, no pior caso, um
+    // *pode pegar* a mais, mas é mais limpo recusá-la.
+    final cru6 = campos[_camposFixos - 1];
+    final coletadoEm = RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(cru6)
+        ? cru6
+        : null;
+
     personagensPorGrupo
         .putIfAbsent(grupo, () => [])
         .add(
@@ -135,6 +147,7 @@ PlanoDeInstancias? decodeInstancias(
             nome: nome,
             classe: classe,
             contagens: contagens,
+            coletadoEm: coletadoEm,
           ),
         );
     total++;

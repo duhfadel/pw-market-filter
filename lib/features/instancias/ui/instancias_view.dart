@@ -139,6 +139,58 @@ class _Conteudo extends StatelessWidget {
       );
   }
 
+  /// Pegar a diária de um personagem, com desfazer.
+  ///
+  /// **Um clique errado soma +3 a quem não devia**, então guarda-se o plano
+  /// de antes e oferece-se o desfazer — a mesma rede do tirar. Se já tinha
+  /// pegado hoje o botão nem aparece, portanto aqui chega-se sempre com algo
+  /// a somar.
+  void _pegarDiaria(BuildContext context, Morada onde) {
+    final vm = context.read<InstanciasViewModel>();
+    final antes = vm.state;
+    final nome = antes.grupos[onde.grupo].personagens[onde.personagem].nome;
+    final mensageiro = ScaffoldMessenger.of(context);
+
+    vm.pegarDiaria(onde);
+    mensageiro
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('Entradas de hoje somadas a $nome.'),
+          action: SnackBarAction(
+            label: 'Desfazer',
+            onPressed: () => vm.restaurar(antes),
+          ),
+        ),
+      );
+  }
+
+  /// Pegar a diária do grupo inteiro, com desfazer. Conta quantos foram
+  /// mesmo somados — quem já tinha pegado hoje não entra.
+  void _pegarGrupo(BuildContext context, int grupo) {
+    final vm = context.read<InstanciasViewModel>();
+    final antes = vm.state;
+    final somados = antes.grupos[grupo].faltamHoje(InstanciasViewModel.hoje());
+    final mensageiro = ScaffoldMessenger.of(context);
+
+    vm.pegarDiariaDoGrupo(grupo);
+    mensageiro
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            somados == 1
+                ? 'Entradas de hoje somadas a 1 personagem.'
+                : 'Entradas de hoje somadas a $somados personagens.',
+          ),
+          action: SnackBarAction(
+            label: 'Desfazer',
+            onPressed: () => vm.restaurar(antes),
+          ),
+        ),
+      );
+  }
+
   Future<void> _copiarLink(BuildContext context) async {
     final vm = context.read<InstanciasViewModel>();
     final mensageiro = ScaffoldMessenger.of(context);
@@ -187,6 +239,9 @@ class _Conteudo extends StatelessWidget {
               aoRemoverGrupo: (grupo) => _removerGrupo(context, grupo),
               aoAdicionarNoGrupo: (grupo) =>
                   unawaited(_adicionar(context, grupo)),
+              hoje: InstanciasViewModel.hoje(),
+              aoPegarDiaria: (onde) => _pegarDiaria(context, onde),
+              aoPegarGrupo: (grupo) => _pegarGrupo(context, grupo),
             ),
             const SizedBox(height: 22),
             const _OndeFica(),

@@ -90,6 +90,31 @@ class InstanciasViewModel extends Cubit<PlanoDeInstancias> {
   void contar(Morada onde, EntradaDeInstancia entrada, int quantos) =>
       _emitirEGravar(state.contando(onde, entrada, quantos));
 
+  /// O dia de hoje no fuso do Brasil, como `AAAA-MM-DD`.
+  ///
+  /// **O Brasil e nunca o relógio local**, pela mesma razão que o contador de
+  /// visitas: o reset diário do jogo é na hora do servidor, e um jogador na
+  /// Europa que lesse o seu próprio dia veria *pode pegar* horas antes do
+  /// jogo abrir. Três horas atrás de UTC, como `VisitRepository._today` já
+  /// faz.
+  static String hoje() {
+    final d = DateTime.now().toUtc().subtract(const Duration(hours: 3));
+    String dois(int n) => n.toString().padLeft(2, '0');
+    return '${d.year}-${dois(d.month)}-${dois(d.day)}';
+  }
+
+  /// A coleta diária de um personagem: +1 em cada entrada. Idempotente no dia.
+  void pegarDiaria(Morada onde) =>
+      _emitirEGravar(state.coletaDiaria(onde, hoje()));
+
+  /// A coleta diária do grupo: cada um que ainda não pegou hoje soma as três.
+  void pegarDiariaDoGrupo(int grupo) =>
+      _emitirEGravar(state.coletaDiariaDoGrupo(grupo, hoje()));
+
+  /// Volta a um plano anterior — o desfazer de uma coleta diária, que mexe em
+  /// vários personagens de uma vez e por isso se desfaz pelo todo.
+  void restaurar(PlanoDeInstancias plano) => _emitirEGravar(plano);
+
   /// `+` e `−` do número, nunca abaixo de zero.
   void somar(Morada onde, EntradaDeInstancia entrada, int delta) {
     final atual = state.grupos[onde.grupo].personagens[onde.personagem].de(

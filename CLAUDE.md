@@ -838,6 +838,42 @@ ausência significa *não foi lido* e por isso não desenha linha nenhuma; aqui
 quem escreve é o dono da conta, e um campo apagado quer dizer que ele tem
 zero. Não há terceira hipótese.
 
+**A coleta diária é um botão por personagem e uma barra por grupo.** Pedido
+do dono a 12/11/2026: um botão *pegar as 3 entradas diárias* que soma +1 em
+cada Relíquia Maravilha — Artefato, Arma, Armadura — e **não toca na chave**
+(a diária dá entradas, não chaves). Há um por personagem *e* uma barra que
+pega por todo o grupo, porque, nas palavras dele, *de repente eu posso pegar
+em um e não no outro*.
+
+**A marca de *já pegou hoje* é uma data e nunca um booleano.** `coletadoEm`
+guarda o dia da última coleta, e `pegouEm(hoje)` compara-o com o dia de hoje.
+Um booleano *já pegou* nunca se apagaria sozinho — amanhã continuaria a dizê-lo
+— e a data vira *pode pegar* à meia-noite do Brasil sem ninguém lhe tocar, a
+mesma razão pela qual o selo *novo* dos guias carrega uma data.
+
+**O dia é o do Brasil e nunca o relógio local**, pela razão do contador de
+visitas: o reset diário do jogo é na hora do servidor, e um jogador na Europa
+que lesse o seu próprio dia veria *pode pegar* horas antes do jogo abrir. Três
+horas atrás de UTC, como `VisitRepository._today`.
+
+**A coleta é idempotente no dia, e é isso que faz a barra do grupo funcionar.**
+`comColetaDiaria` devolve o próprio personagem sem somar se ele já pegou hoje
+— portanto o botão do grupo passa por quem já pegou sem o somar outra vez, e a
+barra conta só quantos faltam (`faltamHoje`) para prometer o que vai mesmo
+fazer. Quando `todosPegaramHoje`, a barra vira um recado verde em vez de um
+botão: um botão que não faz nada ensina a desconfiar dos que fazem. Um grupo
+vazio devolve `false` ali, para não dizer *todos pegaram* sobre ninguém.
+
+**Desfazer guarda o plano inteiro de antes**, porque a coleta do grupo mexe em
+vários de uma vez e desfaz-se pelo todo — `restaurar(antes)`. Um clique errado
+soma +3 a quem não devia, a mesma rede do tirar.
+
+**A data viaja no link e no ficheiro.** O link ganhou um campo fixo antes do
+nome (`g~classe~a~r~m~k~data~nome`) — tem forma sem tis, portanto não estraga
+a regra de o nome ser o resto; vazio quando nunca se pegou. O ficheiro só
+escreve `coletadoEm` quando há, para não encher de nulos. Ambos recusam uma
+data que não case com `AAAA-MM-DD`.
+
 **Os personagens arrumam-se em grupos de nome livre, e arrastam-se entre
 eles.** Pedido do dono a 11/11/2026: *grupo é um container* — ele cria «Conta
 principal» e «Mulas» e troca personagens de um para outro quando quer. O

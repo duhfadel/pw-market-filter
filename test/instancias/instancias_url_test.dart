@@ -89,7 +89,7 @@ void main() {
 
   test('um índice de grupo fora da lista cai, não inventa grupo', () {
     final v = decodeInstancias(
-      _q('g=A&p=0~Bardo~0~0~0~1~bom&p=5~Mago~0~0~0~2~orfao'),
+      _q('g=A&p=0~Bardo~0~0~0~1~~bom&p=5~Mago~0~0~0~2~~orfao'),
       classesConhecidas: _classes,
     )!;
     expect(v.grupos.length, 1);
@@ -111,14 +111,35 @@ void main() {
     final v = decodeInstancias(
       _q(
         'g=A'
-        '&p=0~Bardo~0~0~0~1~bom'
-        '&p=0~Nigromante~0~0~0~2~classe'
-        '&p=0~Mago~-1~0~0~2~negativo'
+        '&p=0~Bardo~0~0~0~1~~bom'
+        '&p=0~Nigromante~0~0~0~2~~classe'
+        '&p=0~Mago~-1~0~0~2~~negativo'
         '&p=0~Bardo~0~0~0',
       ),
       classesConhecidas: _classes,
     )!;
     expect([for (final q in v.grupos[0].personagens) q.nome], ['bom']);
+  });
+
+  test('a data da coleta diária sobrevive à viagem, e vazia é null', () {
+    final plano = PlanoDeInstancias(
+      grupos: [
+        GrupoDeInstancias(
+          nome: 'A',
+          personagens: [
+            const PersonagemDeInstancia(
+              nome: 'pegou',
+              classe: 'Bardo',
+              coletadoEm: '2026-11-12',
+            ),
+            _p('nunca', 'Mago'),
+          ],
+        ),
+      ],
+    );
+    final v = _ida(plano)!;
+    expect(v.grupos[0].personagens[0].coletadoEm, '2026-11-12');
+    expect(v.grupos[0].personagens[1].coletadoEm, isNull);
   });
 
   test('a ordenação não viaja: o link leva a ordem de origem', () {

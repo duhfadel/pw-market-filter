@@ -40,7 +40,7 @@ void main() {
       tester,
       query: const {
         'g': ['Principal', 'Mula'],
-        'p': ['0~Bardo~3~1~2~14~duhit', '1~Mago~0~0~1~2~mula1'],
+        'p': ['0~Bardo~3~1~2~14~~duhit', '1~Mago~0~0~1~2~~mula1'],
       },
     );
 
@@ -67,7 +67,7 @@ void main() {
       largura: 390,
       query: const {
         'g': ['A'],
-        'p': ['0~Bardo~3~1~2~14~duhit', '0~Arqueiro~5~5~5~31~farmante'],
+        'p': ['0~Bardo~3~1~2~14~~duhit', '0~Arqueiro~5~5~5~31~~farmante'],
       },
     );
     expect(find.text('Artefato'), findsOneWidget);
@@ -81,7 +81,7 @@ void main() {
       tester,
       query: const {
         'g': ['A'],
-        'p': ['0~Bardo~0~0~0~5~duhit'],
+        'p': ['0~Bardo~0~0~0~5~~duhit'],
       },
     );
 
@@ -104,7 +104,7 @@ void main() {
       tester,
       query: const {
         'g': ['A'],
-        'p': ['0~Bardo~0~0~0~2~poucas', '0~Mago~0~0~0~90~muitas'],
+        'p': ['0~Bardo~0~0~0~2~~poucas', '0~Mago~0~0~0~90~~muitas'],
       },
     );
 
@@ -122,7 +122,7 @@ void main() {
       tester,
       query: const {
         'g': ['Principal', 'Mula'],
-        'p': ['0~Bardo~0~0~0~1~viajante', '1~Mago~0~0~0~2~fixo'],
+        'p': ['0~Bardo~0~0~0~1~~viajante', '1~Mago~0~0~0~2~~fixo'],
       },
     );
 
@@ -154,7 +154,7 @@ void main() {
       tester,
       query: const {
         'g': ['A'],
-        'p': ['0~Bardo~0~0~0~1~duhit'],
+        'p': ['0~Bardo~0~0~0~1~~duhit'],
       },
     );
 
@@ -166,5 +166,52 @@ void main() {
 
     expect(find.text('Mula'), findsWidgets);
     expect(find.text('duhit'), findsOneWidget);
+  });
+
+  testWidgets('pegar a diária de um personagem soma 1 em cada entrada', (
+    tester,
+  ) async {
+    await _montar(
+      tester,
+      query: const {
+        'g': ['A'],
+        'p': ['0~Bardo~0~0~0~5~~duhit'],
+      },
+    );
+
+    // O botão de pegar a diária é o único Icons.redeem (um por personagem e
+    // um na barra do grupo — aqui o do personagem é o segundo; a barra é o
+    // primeiro). Pegar pela barra do grupo soma a todos; vamos pelo do
+    // personagem, que é o último redeem da linha.
+    await tester.tap(find.byIcon(Icons.redeem).last);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // Artefato/Arma/Armadura passaram de 0 para 1; a chave ficou em 5.
+    expect(find.text('1'), findsWidgets);
+    expect(find.text('5'), findsWidgets, reason: 'a chave não mudou');
+    // E agora diz que já pegou: aparece o visto.
+    expect(find.byIcon(Icons.event_available), findsWidgets);
+  });
+
+  testWidgets('a barra do grupo pega por todos e depois diz que já pegaram', (
+    tester,
+  ) async {
+    await _montar(
+      tester,
+      query: const {
+        'g': ['A'],
+        'p': ['0~Bardo~0~0~0~1~~a', '0~Mago~0~0~0~2~~b'],
+      },
+    );
+
+    expect(find.textContaining('Pegar entradas de hoje'), findsOneWidget);
+    await tester.tap(find.textContaining('Pegar entradas de hoje'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // Já não há botão de pegar — todos pegaram — e a barra vira o recado.
+    expect(find.textContaining('Pegar entradas de hoje'), findsNothing);
+    expect(find.textContaining('Todos já pegaram'), findsOneWidget);
   });
 }

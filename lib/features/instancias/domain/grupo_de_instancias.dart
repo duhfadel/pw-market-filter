@@ -19,6 +19,17 @@ class GrupoDeInstancias {
   int total(EntradaDeInstancia entrada) =>
       personagens.fold(0, (soma, p) => soma + p.de(entrada));
 
+  /// Quantos ainda não pegaram a coleta de [hoje] — o que o botão do grupo
+  /// vai somar se for carregado.
+  int faltamHoje(String hoje) =>
+      personagens.where((p) => !p.pegouEm(hoje)).length;
+
+  /// Se todos já pegaram hoje. Um grupo vazio devolve `false`: não há nada
+  /// para pegar, portanto o botão fica apagado em vez de dizer *todos
+  /// pegaram* sobre ninguém.
+  bool todosPegaramHoje(String hoje) =>
+      personagens.isNotEmpty && personagens.every((p) => p.pegouEm(hoje));
+
   GrupoDeInstancias com(List<PersonagemDeInstancia> novos) =>
       GrupoDeInstancias(nome: nome, personagens: novos);
 

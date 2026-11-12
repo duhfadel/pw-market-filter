@@ -36,6 +36,9 @@ class TabelaDeInstancias extends StatelessWidget {
     required this.aoRenomearGrupo,
     required this.aoRemoverGrupo,
     required this.aoAdicionarNoGrupo,
+    required this.hoje,
+    required this.aoPegarDiaria,
+    required this.aoPegarGrupo,
     super.key,
   });
 
@@ -53,6 +56,14 @@ class TabelaDeInstancias extends StatelessWidget {
   final void Function(int grupo, String nome) aoRenomearGrupo;
   final void Function(int grupo) aoRemoverGrupo;
   final void Function(int grupo) aoAdicionarNoGrupo;
+
+  /// O dia de hoje no fuso do Brasil, `AAAA-MM-DD`. Vem de fora, calculado
+  /// uma vez, para a tabela toda concordar sobre que dia é.
+  final String hoje;
+
+  /// Pegar as três entradas de hoje de um personagem, e do grupo inteiro.
+  final void Function(Morada) aoPegarDiaria;
+  final void Function(int grupo) aoPegarGrupo;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -82,6 +93,9 @@ class TabelaDeInstancias extends StatelessWidget {
           aoRenomearGrupo: aoRenomearGrupo,
           aoRemoverGrupo: aoRemoverGrupo,
           aoAdicionarNoGrupo: aoAdicionarNoGrupo,
+          hoje: hoje,
+          aoPegarDiaria: aoPegarDiaria,
+          aoPegarGrupo: aoPegarGrupo,
         ),
       const SizedBox(height: 6),
       if (compacto)
@@ -121,7 +135,7 @@ class _Cabecalho extends StatelessWidget {
               aoTocar: () => aoOrdenar(entrada),
             ),
           ),
-        SizedBox(width: _colunaDoBotao(compacto)),
+        SizedBox(width: _colunaDoBotao(compacto) * 2),
       ],
     ),
   );
@@ -162,8 +176,15 @@ class _BotaoDeColuna extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: compacto ? 9.5 : 10.5,
-                color: ordenada ? PWColors.accent : PWColors.textMuted,
-                fontWeight: ordenada ? FontWeight.w700 : FontWeight.w500,
+                // A chave é a coluna herói: o rótulo dela em dourado mesmo
+                // quando não é a coluna que ordena, para a cabeça da coluna
+                // combinar com os números dourados por baixo.
+                color: ordenada || entrada == EntradaDeInstancia.chave
+                    ? PWColors.accent
+                    : PWColors.textMuted,
+                fontWeight: entrada == EntradaDeInstancia.chave || ordenada
+                    ? FontWeight.w700
+                    : FontWeight.w500,
               ),
             ),
           ],
@@ -194,6 +215,9 @@ class _Grupo extends StatelessWidget {
     required this.aoRenomearGrupo,
     required this.aoRemoverGrupo,
     required this.aoAdicionarNoGrupo,
+    required this.hoje,
+    required this.aoPegarDiaria,
+    required this.aoPegarGrupo,
   });
 
   final PlanoDeInstancias plano;
@@ -208,6 +232,9 @@ class _Grupo extends StatelessWidget {
   final void Function(int, String) aoRenomearGrupo;
   final void Function(int) aoRemoverGrupo;
   final void Function(int) aoAdicionarNoGrupo;
+  final String hoje;
+  final void Function(Morada) aoPegarDiaria;
+  final void Function(int) aoPegarGrupo;
 
   @override
   Widget build(BuildContext context) {
@@ -244,6 +271,16 @@ class _Grupo extends StatelessWidget {
                 aoRemover: () => aoRemoverGrupo(grupo),
                 aoAdicionar: () => aoAdicionarNoGrupo(grupo),
               ),
+              // A barra da coleta do grupo, logo abaixo do cabeçalho e só
+              // quando há alguém para pegar. É a cara da funcionalidade nova,
+              // por isso tem barra própria em vez de ser mais um ícone no
+              // cabeçalho já cheio.
+              if (g.personagens.isNotEmpty)
+                _BarraDaDiaria(
+                  faltam: g.faltamHoje(hoje),
+                  todosPegaram: g.todosPegaramHoje(hoje),
+                  aoPegar: () => aoPegarGrupo(grupo),
+                ),
               if (g.personagens.isEmpty)
                 _GrupoVazio(compacto: compacto)
               else
@@ -253,10 +290,12 @@ class _Grupo extends StatelessWidget {
                     _Cartao(
                       quem: quem,
                       onde: Morada(grupo, g.personagens.indexOf(quem)),
+                      pegouHoje: quem.pegouEm(hoje),
                       aoSomar: aoSomar,
                       aoContar: aoContar,
                       aoRenomear: aoRenomear,
                       aoRemover: aoRemover,
+                      aoPegarDiaria: aoPegarDiaria,
                     )
                   else
                     _Linha(
@@ -266,10 +305,12 @@ class _Grupo extends StatelessWidget {
                       // procurar por nome escreveria no errado.
                       onde: Morada(grupo, g.personagens.indexOf(quem)),
                       compacto: compacto,
+                      pegouHoje: quem.pegouEm(hoje),
                       aoSomar: aoSomar,
                       aoContar: aoContar,
                       aoRenomear: aoRenomear,
                       aoRemover: aoRemover,
+                      aoPegarDiaria: aoPegarDiaria,
                     ),
                 ],
               const Divider(height: 1),
@@ -382,6 +423,144 @@ class _NomeDoGrupoState extends State<_NomeDoGrupo> {
   );
 }
 
+/// A barra que pega as entradas de hoje para o grupo inteiro.
+///
+/// **Diz em que estado está, não só o que faz.** Enquanto falta alguém, é um
+/// botão de acento que conta quantos — *pegar entradas de hoje (3)*. Quando
+/// todos já pegaram, vira um recado calado com um visto, *todos já pegaram
+/// hoje*, e deixa de ser tocável: a coleta é uma por dia, e um botão que não
+/// faz nada ensina a desconfiar dos que fazem.
+class _BarraDaDiaria extends StatelessWidget {
+  const _BarraDaDiaria({
+    required this.faltam,
+    required this.todosPegaram,
+    required this.aoPegar,
+  });
+
+  final int faltam;
+  final bool todosPegaram;
+  final VoidCallback aoPegar;
+
+  @override
+  Widget build(BuildContext context) {
+    if (todosPegaram) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+        child: Row(
+          children: const [
+            Icon(Icons.event_available, size: 15, color: PWColors.ok),
+            SizedBox(width: 7),
+            Text(
+              'Todos já pegaram as entradas hoje',
+              style: TextStyle(
+                color: PWColors.ok,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 0, 12, 8),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: aoPegar,
+            borderRadius: BorderRadius.circular(9),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(9),
+                color: PWColors.accent.withValues(alpha: 0.12),
+                border: Border.all(color: PWColors.accent),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.redeem, size: 16, color: PWColors.accent),
+                  const SizedBox(width: 8),
+                  Text(
+                    // Conta quantos ainda faltam: ao somar só por quem não
+                    // pegou, o botão promete o que vai mesmo fazer.
+                    faltam == 1
+                        ? 'Pegar entradas de hoje (1)'
+                        : 'Pegar entradas de hoje ($faltam)',
+                    style: const TextStyle(
+                      color: PWColors.accent,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// O botão da coleta diária de um personagem, ao lado do de tirar.
+///
+/// **Existe por personagem e não só por grupo** porque, nas palavras do dono,
+/// *de repente eu posso pegar em um e não no outro*. Depois de pegar hoje vira
+/// um visto verde apagado, com a dica *já pegou as entradas hoje* — a coleta é
+/// uma por dia, e o estado tem de dizer-se, não só o botão.
+class _BotaoDaDiaria extends StatelessWidget {
+  const _BotaoDaDiaria({
+    required this.nome,
+    required this.pegouHoje,
+    required this.aoPegar,
+  });
+
+  final String nome;
+  final bool pegouHoje;
+  final VoidCallback aoPegar;
+
+  @override
+  Widget build(BuildContext context) {
+    if (pegouHoje) {
+      return Tooltip(
+        message: '$nome já pegou as entradas hoje',
+        child: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            // Verde-apagado, sem borda: diz *feito*, e não convida a tocar.
+            color: PWColors.ok.withValues(alpha: 0.12),
+          ),
+          child: const Icon(
+            Icons.event_available,
+            size: 16,
+            color: PWColors.ok,
+          ),
+        ),
+      );
+    }
+    return Tooltip(
+      message: 'Pegar as 3 entradas de hoje de $nome (+1 em cada)',
+      child: InkWell(
+        onTap: aoPegar,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: PWColors.accent),
+          ),
+          child: const Icon(Icons.redeem, size: 16, color: PWColors.accent),
+        ),
+      ),
+    );
+  }
+}
+
 class _GrupoVazio extends StatelessWidget {
   const _GrupoVazio({required this.compacto});
   final bool compacto;
@@ -409,19 +588,23 @@ class _Linha extends StatelessWidget {
     required this.quem,
     required this.onde,
     required this.compacto,
+    required this.pegouHoje,
     required this.aoSomar,
     required this.aoContar,
     required this.aoRenomear,
     required this.aoRemover,
+    required this.aoPegarDiaria,
   });
 
   final PersonagemDeInstancia quem;
   final Morada onde;
   final bool compacto;
+  final bool pegouHoje;
   final void Function(Morada, EntradaDeInstancia, int) aoSomar;
   final void Function(Morada, EntradaDeInstancia, int) aoContar;
   final void Function(Morada, String) aoRenomear;
   final void Function(Morada) aoRemover;
+  final void Function(Morada) aoPegarDiaria;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -450,10 +633,21 @@ class _Linha extends StatelessWidget {
               valor: quem.de(entrada),
               rotulo: '${entrada.nome} de ${quem.nome}',
               compacto: compacto,
+              destaque: entrada == EntradaDeInstancia.chave,
               aoMudar: (n) => aoContar(onde, entrada, n),
               aoSomar: (d) => aoSomar(onde, entrada, d),
             ),
           ),
+        SizedBox(
+          width: _colunaDoBotao(compacto),
+          child: Center(
+            child: _BotaoDaDiaria(
+              nome: quem.nome,
+              pegouHoje: pegouHoje,
+              aoPegar: () => aoPegarDiaria(onde),
+            ),
+          ),
+        ),
         SizedBox(
           width: _colunaDoBotao(compacto),
           child: Center(
@@ -650,6 +844,7 @@ class _Campo extends StatefulWidget {
     required this.compacto,
     required this.aoMudar,
     required this.aoSomar,
+    this.destaque = false,
   });
 
   final int valor;
@@ -657,6 +852,11 @@ class _Campo extends StatefulWidget {
   final bool compacto;
   final void Function(int) aoMudar;
   final void Function(int) aoSomar;
+
+  /// A coluna da chave. Pinta o número em dourado — é a métrica herói desta
+  /// ferramenta (a que se conta, a que acaba primeiro), e sem isto era só a
+  /// quarta coluna igual às outras.
+  final bool destaque;
 
   @override
   State<_Campo> createState() => _CampoState();
@@ -712,17 +912,20 @@ class _CampoState extends State<_Campo> {
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 onChanged: (t) => widget.aoMudar(int.tryParse(t) ?? 0),
-                style: const TextStyle(
-                  color: PWColors.text,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  fontFeatures: [FontFeature.tabularFigures()],
+                // O número lidera: maior e mais forte que os `−`/`+` à volta,
+                // porque é a informação e o resto é maquinaria. A chave em
+                // dourado.
+                style: TextStyle(
+                  color: widget.destaque ? PWColors.accent : PWColors.text,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
                 decoration: const InputDecoration(
                   isDense: true,
                   filled: false,
                   hintText: '0',
-                  hintStyle: TextStyle(color: PWColors.border, fontSize: 15),
+                  hintStyle: TextStyle(color: PWColors.border, fontSize: 18),
                   contentPadding: EdgeInsets.symmetric(
                     vertical: 8,
                     horizontal: 0,
@@ -767,19 +970,23 @@ class _Passo extends StatelessWidget {
   Widget build(BuildContext context) => Semantics(
     button: true,
     label: rotulo,
+    // **Fantasma, não caixa.** A moldura em volta de cada `−`/`+` era o que
+    // enchia a grelha de retângulos e punha os controlos a competir com o
+    // número. Sem borda nem fundo, o `−` e o `+` são só glifos; o `InkWell`
+    // acende um halo redondo quando o rato passa, portanto no computador eles
+    // dizem "sou botão" ao aproximar e desaparecem no resto do tempo. No
+    // telemóvel não há hover, mas o glifo sozinho basta — ninguém confunde um
+    // `+` com texto.
     child: InkWell(
       onTap: ligado ? aoTocar : null,
-      borderRadius: BorderRadius.circular(7),
-      child: Container(
+      borderRadius: BorderRadius.circular(lado / 2),
+      hoverColor: PWColors.surfaceRaised,
+      child: SizedBox(
         width: lado,
         height: lado,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(7),
-          border: Border.all(color: PWColors.border),
-        ),
         child: Icon(
           icone,
-          size: lado * 0.56,
+          size: lado * 0.62,
           color: ligado ? PWColors.textMuted : PWColors.border,
         ),
       ),
@@ -815,15 +1022,19 @@ class _Subtotal extends StatelessWidget {
               child: Text(
                 '${grupo.total(entrada)}',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: PWColors.textMuted,
+                style: TextStyle(
+                  // A chave do subtotal também em dourado, para a coluna herói
+                  // se manter reconhecível de cima a baixo.
+                  color: entrada == EntradaDeInstancia.chave
+                      ? PWColors.accent
+                      : PWColors.textMuted,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  fontFeatures: [FontFeature.tabularFigures()],
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ),
-          SizedBox(width: _colunaDoBotao(compacto)),
+          SizedBox(width: _colunaDoBotao(compacto) * 2),
         ],
       ),
     );
@@ -838,10 +1049,15 @@ class _TotalGeral extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final n = plano.quantosPersonagens;
+    // Uma barra cheia, não uma linha fina. Numa ferramenta sobre somas, o
+    // total geral é a âncora do fim — tem de ter peso de rodapé, não de mais
+    // uma linha da tabela.
     return Container(
-      padding: const EdgeInsets.fromLTRB(10, 10, 0, 10),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: PWColors.border, width: 2)),
+      padding: const EdgeInsets.fromLTRB(14, 13, 6, 13),
+      decoration: BoxDecoration(
+        color: PWColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: PWColors.border),
       ),
       child: Row(
         children: [
@@ -850,7 +1066,7 @@ class _TotalGeral extends StatelessWidget {
               n == 1 ? 'Total · 1 personagem' : 'Total · $n personagens',
               style: const TextStyle(
                 color: PWColors.text,
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -861,15 +1077,15 @@ class _TotalGeral extends StatelessWidget {
               child: Text(
                 '${plano.total(entrada)}',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   color: PWColors.accent,
-                  fontSize: 16,
+                  fontSize: entrada == EntradaDeInstancia.chave ? 22 : 19,
                   fontWeight: FontWeight.w700,
-                  fontFeatures: [FontFeature.tabularFigures()],
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ),
-          SizedBox(width: _colunaDoBotao(compacto)),
+          SizedBox(width: _colunaDoBotao(compacto) * 2),
         ],
       ),
     );
@@ -889,18 +1105,22 @@ class _Cartao extends StatelessWidget {
   const _Cartao({
     required this.quem,
     required this.onde,
+    required this.pegouHoje,
     required this.aoSomar,
     required this.aoContar,
     required this.aoRenomear,
     required this.aoRemover,
+    required this.aoPegarDiaria,
   });
 
   final PersonagemDeInstancia quem;
   final Morada onde;
+  final bool pegouHoje;
   final void Function(Morada, EntradaDeInstancia, int) aoSomar;
   final void Function(Morada, EntradaDeInstancia, int) aoContar;
   final void Function(Morada, String) aoRenomear;
   final void Function(Morada) aoRemover;
+  final void Function(Morada) aoPegarDiaria;
 
   @override
   Widget build(BuildContext context) {
@@ -923,6 +1143,12 @@ class _Cartao extends StatelessWidget {
                   aoRenomear: (novo) => aoRenomear(onde, novo),
                 ),
               ),
+              _BotaoDaDiaria(
+                nome: quem.nome,
+                pegouHoje: pegouHoje,
+                aoPegar: () => aoPegarDiaria(onde),
+              ),
+              const SizedBox(width: 6),
               Tooltip(
                 message: 'Tirar ${quem.nome} da lista',
                 child: InkWell(

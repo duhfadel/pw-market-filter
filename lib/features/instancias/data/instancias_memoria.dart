@@ -53,11 +53,17 @@ class InstanciasMemoria {
             final n = (p[e.name] as num?)?.toInt() ?? 0;
             contagens[e] = n < 0 ? 0 : n;
           }
+          final cru = p['coletadoEm'];
+          final coletadoEm =
+              cru is String && RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(cru)
+              ? cru
+              : null;
           personagens.add(
             PersonagemDeInstancia(
               nome: pnome,
               classe: classe!,
               contagens: contagens,
+              coletadoEm: coletadoEm,
             ),
           );
         }
@@ -90,6 +96,9 @@ class InstanciasMemoria {
                   // reordenado trocaria as chaves pelas relíquias de toda a
                   // gente, em silêncio, no ficheiro que já estava gravado.
                   for (final e in EntradaDeInstancia.values) e.name: p.de(e),
+                  // Só quando há: um dia sem coleta não escreve a chave, para
+                  // o ficheiro não encher de nulos.
+                  if (p.coletadoEm != null) 'coletadoEm': p.coletadoEm,
                 },
             ],
           },

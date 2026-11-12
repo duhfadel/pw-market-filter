@@ -217,6 +217,24 @@ class PlanoDeInstancias {
     grupos[onde.grupo].personagens[onde.personagem].com(entrada, quantos),
   );
 
+  /// A coleta diária de um personagem: +1 em cada entrada, marcado em [hoje].
+  /// Sem efeito se ele já pegou hoje.
+  PlanoDeInstancias coletaDiaria(Morada onde, String hoje) =>
+      trocandoPersonagem(
+        onde,
+        grupos[onde.grupo].personagens[onde.personagem].comColetaDiaria(hoje),
+      );
+
+  /// A coleta diária do grupo inteiro: cada personagem que ainda não pegou
+  /// hoje soma as três entradas. Quem já pegou fica como está.
+  PlanoDeInstancias coletaDiariaDoGrupo(int grupo, String hoje) =>
+      _trocandoGrupo(
+        grupo,
+        grupos[grupo].com([
+          for (final p in grupos[grupo].personagens) p.comColetaDiaria(hoje),
+        ]),
+      );
+
   PlanoDeInstancias renomeandoPersonagem(Morada onde, String nome) {
     final limpo = nome.trim();
     if (limpo.isEmpty) return this;

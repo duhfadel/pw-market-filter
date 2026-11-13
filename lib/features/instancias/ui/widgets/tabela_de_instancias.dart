@@ -308,55 +308,12 @@ class TabelaDeInstancias extends StatelessWidget {
       );
     }
 
-    // --- Largo com colunas de campo: uma coluna só, a rolar na horizontal. ---
+    // --- Largo: grupos lado a lado, cada um uma tabela completa. ---
     //
-    // Grupos lado a lado com colunas que já rolam seria aperto sobre aperto,
-    // portanto aqui fica em coluna única e o cabeçalho é partilhado em cima.
-    if (nomeFixo) {
-      final tabela = Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _Cabecalho(
-            plano: plano,
-            compacto: compacto,
-            aoOrdenar: aoOrdenar,
-            colunas: colunas,
-            nomeFixo: nomeFixo,
-          ),
-          const Divider(height: 1),
-          for (var gi = 0; gi < plano.grupos.length; gi++)
-            _constroiGrupo(
-              gi,
-              colunas: colunas,
-              nomeFixo: true,
-              comCabecalho: false,
-            ),
-          const SizedBox(height: 6),
-          _TotalGeral(
-            plano: plano,
-            compacto: compacto,
-            colunas: colunas,
-            nomeFixo: nomeFixo,
-          ),
-        ],
-      );
-      final largura =
-          _larguraNome +
-          EntradaDeInstancia.values.length * _colunaDeNumero +
-          colunas.fold(0.0, (s, c) => s + _larguraCampoColuna(c)) +
-          _colunaDoBotao(false) * 2 +
-          8;
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: SizedBox(width: largura, child: tabela),
-      );
-    }
-
-    // --- Largo sem colunas de campo: grupos lado a lado, à largura toda. ---
-    //
-    // Cada grupo é uma tabela completa, com o seu próprio cabeçalho de colunas
-    // — dois grupos lado a lado não podem partilhar um cabeçalho em cima. O
-    // total geral fica numa barra à largura toda em baixo.
+    // Cada grupo tem o seu próprio cabeçalho de colunas; quando há colunas de
+    // campo, a parte de tabela do grupo rola na horizontal dentro da célula
+    // (ver `_Grupo._tabela`). O total geral fica numa barra à largura toda em
+    // baixo.
     return LayoutBuilder(
       builder: (context, c) {
         final quantos = plano.grupos.length;
@@ -369,9 +326,10 @@ class TabelaDeInstancias extends StatelessWidget {
         // dois grupos esticam-se até às bordas em vez de ficarem num miolo.
         final largura =
             (c.maxWidth - espaco * (colunasPorLinha - 1)) / colunasPorLinha;
-        // As colunas só se comprimem quando há mesmo aperto: dois grupos num
-        // monitor largo têm espaço para a medida cheia; dois num portátil não.
-        final comprimido = colunasPorLinha > 1 && largura < _larguraFolgada;
+        // As colunas de número só se comprimem quando não há colunas de campo
+        // (essas já rolam na horizontal) e há mesmo aperto.
+        final comprimido =
+            !nomeFixo && colunasPorLinha > 1 && largura < _larguraFolgada;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -385,8 +343,8 @@ class TabelaDeInstancias extends StatelessWidget {
                     width: largura,
                     child: _constroiGrupo(
                       gi,
-                      colunas: const [],
-                      nomeFixo: false,
+                      colunas: colunas,
+                      nomeFixo: nomeFixo,
                       comCabecalho: true,
                       comprimido: comprimido,
                     ),
@@ -568,6 +526,93 @@ class _Grupo extends StatelessWidget {
   final bool nomeFixo;
   final void Function(Morada, String, String?) aoDefinirExtra;
 
+  /// A grelha de um grupo: cabeçalho de colunas, uma linha por personagem e o
+  /// subtotal. Com colunas de campo tem largura fixa e rola na horizontal
+  /// dentro da célula — um nome `Expanded` não cabe num scroll horizontal, e
+  /// por isso o `nomeFixo` fixa a coluna de identidade.
+  Widget _tabela(GrupoDeInstancias g, List<PersonagemDeInstancia> ordenados) {
+    final conteudo = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (comCabecalho && g.personagens.isNotEmpty) ...[
+          _Cabecalho(
+            plano: plano,
+            compacto: compacto,
+            aoOrdenar: aoOrdenar,
+            colunas: colunas,
+            nomeFixo: nomeFixo,
+            comprimido: comprimido,
+          ),
+          const Divider(height: 1),
+        ],
+        if (g.personagens.isEmpty)
+          _GrupoVazio(compacto: compacto)
+        else
+          for (final quem in ordenados) ...[
+            const Divider(height: 1),
+            if (compacto)
+              _Cartao(
+                quem: quem,
+                onde: Morada(grupo, g.personagens.indexOf(quem)),
+                pegouHoje: quem.pegouEm(hoje),
+                aoSomar: aoSomar,
+                aoContar: aoContar,
+                aoRenomear: aoRenomear,
+                aoRemover: aoRemover,
+                aoPegarDiaria: aoPegarDiaria,
+                campos: campos,
+                aoDefinirExtra: aoDefinirExtra,
+              )
+            else
+              _Linha(
+                quem: quem,
+                // A morada de origem, achada por identidade: dois personagens
+                // podem ter o mesmo nome e a mesma classe, e procurar por nome
+                // escreveria no errado.
+                onde: Morada(grupo, g.personagens.indexOf(quem)),
+                compacto: compacto,
+                pegouHoje: quem.pegouEm(hoje),
+                aoSomar: aoSomar,
+                aoContar: aoContar,
+                aoRenomear: aoRenomear,
+                aoRemover: aoRemover,
+                aoPegarDiaria: aoPegarDiaria,
+                campos: campos,
+                colunas: colunas,
+                nomeFixo: nomeFixo,
+                comprimido: comprimido,
+                aoDefinirExtra: aoDefinirExtra,
+              ),
+          ],
+        const Divider(height: 1),
+        if (compacto)
+          _SubtotalEstreito(grupo: g)
+        else
+          _Subtotal(
+            grupo: g,
+            compacto: compacto,
+            colunas: colunas,
+            nomeFixo: nomeFixo,
+            comprimido: comprimido,
+          ),
+      ],
+    );
+
+    if (!nomeFixo) return conteudo;
+
+    final larguraFixa =
+        _larguraNome +
+        EntradaDeInstancia.values.length * _colunaDeNumero +
+        colunas.fold(0.0, (s, c) => s + _larguraCampoColuna(c)) +
+        _colunaDoBotao(false) * 2 +
+        8;
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SizedBox(width: larguraFixa, child: conteudo),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final g = plano.grupos[grupo];
@@ -618,67 +663,11 @@ class _Grupo extends StatelessWidget {
                   aoFinalizar: (e) => aoFinalizarDungeon(grupo, e),
                 ),
               ],
-              // O cabeçalho de colunas, dentro do grupo, quando os grupos vão
-              // lado a lado — cada um é uma tabela por inteiro.
-              if (comCabecalho && g.personagens.isNotEmpty) ...[
-                _Cabecalho(
-                  plano: plano,
-                  compacto: compacto,
-                  aoOrdenar: aoOrdenar,
-                  comprimido: comprimido,
-                ),
-                const Divider(height: 1),
-              ],
-              if (g.personagens.isEmpty)
-                _GrupoVazio(compacto: compacto)
-              else
-                for (final quem in ordenados) ...[
-                  const Divider(height: 1),
-                  if (compacto)
-                    _Cartao(
-                      quem: quem,
-                      onde: Morada(grupo, g.personagens.indexOf(quem)),
-                      pegouHoje: quem.pegouEm(hoje),
-                      aoSomar: aoSomar,
-                      aoContar: aoContar,
-                      aoRenomear: aoRenomear,
-                      aoRemover: aoRemover,
-                      aoPegarDiaria: aoPegarDiaria,
-                      campos: campos,
-                      aoDefinirExtra: aoDefinirExtra,
-                    )
-                  else
-                    _Linha(
-                      quem: quem,
-                      // A morada de origem, achada por identidade: dois
-                      // personagens podem ter o mesmo nome e a mesma classe, e
-                      // procurar por nome escreveria no errado.
-                      onde: Morada(grupo, g.personagens.indexOf(quem)),
-                      compacto: compacto,
-                      pegouHoje: quem.pegouEm(hoje),
-                      aoSomar: aoSomar,
-                      aoContar: aoContar,
-                      aoRenomear: aoRenomear,
-                      aoRemover: aoRemover,
-                      aoPegarDiaria: aoPegarDiaria,
-                      campos: campos,
-                      colunas: colunas,
-                      nomeFixo: nomeFixo,
-                      comprimido: comprimido,
-                      aoDefinirExtra: aoDefinirExtra,
-                    ),
-                ],
-              const Divider(height: 1),
-              if (compacto)
-                _SubtotalEstreito(grupo: g)
-              else
-                _Subtotal(
-                  grupo: g,
-                  compacto: compacto,
-                  colunas: colunas,
-                  nomeFixo: nomeFixo,
-                  comprimido: comprimido,
-                ),
+              // A parte da tabela (cabeçalho de colunas, linhas, subtotal).
+              // Quando há colunas de campo, rola na horizontal dentro da
+              // célula — o cabeçalho do grupo e as barras ficam de fora, à
+              // largura da célula, e só a grelha rola.
+              _tabela(g, ordenados),
             ],
           ),
         );
@@ -1634,16 +1623,9 @@ class _Subtotal extends StatelessWidget {
 }
 
 class _TotalGeral extends StatelessWidget {
-  const _TotalGeral({
-    required this.plano,
-    required this.compacto,
-    this.colunas = const [],
-    this.nomeFixo = false,
-  });
+  const _TotalGeral({required this.plano, required this.compacto});
   final PlanoDeInstancias plano;
   final bool compacto;
-  final List<CampoPersonalizado> colunas;
-  final bool nomeFixo;
 
   @override
   Widget build(BuildContext context) {
@@ -1658,14 +1640,10 @@ class _TotalGeral extends StatelessWidget {
     );
     // Uma barra cheia, não uma linha fina. Numa ferramenta sobre somas, o
     // total geral é a âncora do fim — tem de ter peso de rodapé, não de mais
-    // uma linha da tabela.
-    //
-    // No modo coluna o padding horizontal sai: ele empurraria as colunas para
-    // fora do alinhamento com as linhas e faria a tabela transbordar.
+    // uma linha da tabela. É sempre à largura toda, com os quatro totais; as
+    // colunas de campo não entram aqui, que cada grupo já conta no subtotal.
     return Container(
-      padding: nomeFixo
-          ? const EdgeInsets.symmetric(vertical: 13)
-          : const EdgeInsets.fromLTRB(14, 13, 6, 13),
+      padding: const EdgeInsets.fromLTRB(14, 13, 6, 13),
       decoration: BoxDecoration(
         color: PWColors.surface,
         borderRadius: BorderRadius.circular(12),
@@ -1673,16 +1651,7 @@ class _TotalGeral extends StatelessWidget {
       ),
       child: Row(
         children: [
-          if (nomeFixo)
-            SizedBox(
-              width: _larguraNome,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 14),
-                child: rotulo,
-              ),
-            )
-          else
-            Expanded(child: rotulo),
+          Expanded(child: rotulo),
           for (final entrada in EntradaDeInstancia.values)
             SizedBox(
               width: _coluna(compacto),
@@ -1694,20 +1663,6 @@ class _TotalGeral extends StatelessWidget {
                   fontSize: entrada == EntradaDeInstancia.chave ? 22 : 19,
                   fontWeight: FontWeight.w700,
                   fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-            ),
-          for (final c in colunas)
-            SizedBox(
-              width: _larguraCampoColuna(c),
-              child: Text(
-                c.tipo == CampoTipo.marcacao ? '${plano.marcados(c.id)}' : '',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: PWColors.accent,
-                  fontSize: 19,
-                  fontWeight: FontWeight.w700,
-                  fontFeatures: [FontFeature.tabularFigures()],
                 ),
               ),
             ),

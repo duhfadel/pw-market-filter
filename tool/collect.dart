@@ -64,6 +64,42 @@ const _userAgent =
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
     '(KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 
+/// A sessão do marketplace, quando há uma. **O login deles passou a exigir
+/// conta a 11/11/2026, com hCaptcha**, portanto o coletor não loga: o dono
+/// resolve o captcha à mão no navegador, uma vez, e o que viaja é o **cookie
+/// da sessão já autenticada**. Vive num GitHub Secret (`TCMARKET_COOKIE`),
+/// nunca no repositório nem num log — é a sessão de uma conta real.
+///
+/// Vazio quando não há sessão: o coletor tenta na mesma e bate no portão, que
+/// é o estado desde o dia do login obrigatório. A sessão expira, e aí o Secret
+/// é refeito à mão — não há parte automática, de propósito.
+final _cookieDaSessao = (Platform.environment['TCMARKET_COOKIE'] ?? '').trim();
+
+/// O User-Agent do navegador onde a sessão foi aberta (`TCMARKET_UA`). Um
+/// servidor que amarra a sessão ao UA recusa um cookie reusado sob outro, por
+/// isso o do navegador viaja junto. Vazio cai no [_userAgent] padrão.
+final _uaDaSessao = (Platform.environment['TCMARKET_UA'] ?? '').trim();
+
+/// O cabeçalho `Cookie` de cada pedido: `mkt_lang=portuguese` sempre, mais a
+/// sessão por cima quando há.
+///
+/// Um `mkt_lang` que venha na sessão é descartado antes, para não duplicar e
+/// para a língua continuar **fixada em português** — ver a nota longa em
+/// `_get`. Os outros cookies da sessão passam inteiros.
+final _cabecalhoDeCookie = () {
+  final daSessao = _cookieDaSessao
+      .split(';')
+      .map((c) => c.trim())
+      .where((c) => c.isNotEmpty && !c.startsWith('mkt_lang='))
+      .join('; ');
+  return daSessao.isEmpty
+      ? 'mkt_lang=portuguese'
+      : 'mkt_lang=portuguese; $daSessao';
+}();
+
+/// O User-Agent efectivo: o da sessão se foi dado, senão o padrão.
+final _cabecalhoDeUa = _uaDaSessao.isEmpty ? _userAgent : _uaDaSessao;
+
 /// Halved from three seconds when the redirect below was removed. That change
 /// cut the requests per character from two to one, so this keeps the sustained
 /// rate at the same ~40 per minute that has been running without trouble —
@@ -224,6 +260,23 @@ Future<void> main(List<String> arguments) async {
     client.close();
     _rebuildFromState();
     return;
+  }
+
+  // Diz se há sessão — nunca o valor dela, que é a conta de uma pessoa real.
+  if (_cookieDaSessao.isEmpty) {
+    stdout.writeln(
+      'Sem TCMARKET_COOKIE: a pedir sem sessão. Desde 11/11/2026 isto bate '
+      'no portão de login do marketplace.',
+    );
+  } else {
+    final n = _cookieDaSessao
+        .split(';')
+        .where((c) => c.trim().isNotEmpty)
+        .length;
+    stdout.writeln(
+      'Sessão do marketplace: $n cookies'
+      '${_uaDaSessao.isEmpty ? '' : ' + UA próprio'}.',
+    );
   }
 
   try {
@@ -559,7 +612,9 @@ bool _lastErrorWasRefusal = false;
 Future<String?> _get(HttpClient client, String url) async {
   try {
     final request = await client.getUrl(Uri.parse(url));
-    request.headers.set(HttpHeaders.userAgentHeader, _userAgent);
+    // O UA da sessão quando há — um servidor que prende a sessão ao navegador
+    // recusa o cookie reusado sob outro UA.
+    request.headers.set(HttpHeaders.userAgentHeader, _cabecalhoDeUa);
     request.headers.set(HttpHeaders.acceptLanguageHeader, 'pt-BR,pt;q=0.9');
     // **A língua da página é um cookie, e sem o fixar ela é sorteada.**
     //
@@ -577,7 +632,11 @@ Future<String?> _get(HttpClient client, String url) async {
     //
     // Fixar o cookie mata a classe inteira de problema: deixa de haver
     // variante para adivinhar. `_sexoCanonico` fica na mesma, como rede.
-    request.headers.set(HttpHeaders.cookieHeader, 'mkt_lang=portuguese');
+    //
+    // E, por cima da língua, a sessão autenticada quando há — ver
+    // `_cabecalhoDeCookie`. Sem ela, isto é só `mkt_lang=portuguese` e o
+    // pedido bate no portão de login.
+    request.headers.set(HttpHeaders.cookieHeader, _cabecalhoDeCookie);
     // The server compresses: a detail page is 1.13 MB plain and 116 KB gzipped,
     // and arrives in two thirds of the time. `autoUncompress` is on by default,
     // so the bytes are transparent from here on.

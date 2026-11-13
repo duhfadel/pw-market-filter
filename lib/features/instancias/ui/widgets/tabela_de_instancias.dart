@@ -16,9 +16,16 @@ import 'campos_do_personagem.dart';
 const _colunaDeNumero = 128.0;
 const _colunaEstreita = 64.0;
 
+/// Uma coluna de número mais apertada, usada só quando os grupos vão lado a
+/// lado e cada um precisa de caber em menos largura — ver
+/// `TabelaDeInstancias`. O campo ainda cabe um número de três algarismos.
+const _colunaDeNumeroComprimida = 104.0;
+
 /// A coluna do botão de tirar. Uma medida só, pela mesma razão.
 double _colunaDoBotao(bool compacto) => compacto ? 34 : 40;
-double _coluna(bool compacto) => compacto ? _colunaEstreita : _colunaDeNumero;
+double _coluna(bool compacto, {bool comprimido = false}) => compacto
+    ? _colunaEstreita
+    : (comprimido ? _colunaDeNumeroComprimida : _colunaDeNumero);
 
 /// A largura da coluna de identidade (pega, ícone de classe, nome) quando a
 /// tabela larga passa a rolar na horizontal — ver `TabelaDeInstancias`. Em
@@ -226,13 +233,22 @@ class TabelaDeInstancias extends StatelessWidget {
   /// A largura mínima confortável de um grupo lado a lado: nome, as quatro
   /// colunas de número e os dois botões. Abaixo disto o nome fica espremido,
   /// portanto a grelha cai para menos colunas.
-  static const _larguraMinimaDoGrupo = 740.0;
+  /// A largura a partir da qual um grupo cabe lado a lado com outro. É
+  /// deliberadamente baixa — abaixo dela as colunas de número usam a medida
+  /// comprimida — para os grupos emparelharem já num portátil de 1366 px, que
+  /// é onde o dono reparou que o segundo grupo caía para baixo.
+  static const _larguraParaEmparelhar = 636.0;
+
+  /// Acima disto um grupo tem espaço para as colunas de número na medida
+  /// cheia; abaixo, comprimem-se para caber dois lado a lado.
+  static const _larguraFolgada = 740.0;
 
   _Grupo _constroiGrupo(
     int gi, {
     required List<CampoPersonalizado> colunas,
     required bool nomeFixo,
     required bool comCabecalho,
+    bool comprimido = false,
   }) => _Grupo(
     plano: plano,
     grupo: gi,
@@ -241,6 +257,7 @@ class TabelaDeInstancias extends StatelessWidget {
     // porque o primeiro personagem precisa sempre de uma casa.
     podeApagar: plano.grupos.length > 1,
     comCabecalho: comCabecalho,
+    comprimido: comprimido,
     aoSomar: aoSomar,
     aoContar: aoContar,
     aoRenomear: aoRenomear,
@@ -342,11 +359,14 @@ class TabelaDeInstancias extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, c) {
         final quantos = plano.grupos.length;
-        final cabem = (c.maxWidth / _larguraMinimaDoGrupo).floor();
+        final cabem = (c.maxWidth / _larguraParaEmparelhar).floor();
         final colunasPorLinha = cabem.clamp(1, 3).clamp(1, quantos);
         const espaco = 16.0;
         final largura =
             (c.maxWidth - espaco * (colunasPorLinha - 1)) / colunasPorLinha;
+        // As colunas só se comprimem quando há mesmo aperto: dois grupos num
+        // monitor largo têm espaço para a medida cheia; dois num portátil não.
+        final comprimido = colunasPorLinha > 1 && largura < _larguraFolgada;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -363,6 +383,7 @@ class TabelaDeInstancias extends StatelessWidget {
                       colunas: const [],
                       nomeFixo: false,
                       comCabecalho: true,
+                      comprimido: comprimido,
                     ),
                   ),
               ],
@@ -383,6 +404,7 @@ class _Cabecalho extends StatelessWidget {
     required this.aoOrdenar,
     this.colunas = const [],
     this.nomeFixo = false,
+    this.comprimido = false,
   });
 
   final PlanoDeInstancias plano;
@@ -390,6 +412,7 @@ class _Cabecalho extends StatelessWidget {
   final void Function(EntradaDeInstancia) aoOrdenar;
   final List<CampoPersonalizado> colunas;
   final bool nomeFixo;
+  final bool comprimido;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -402,7 +425,7 @@ class _Cabecalho extends StatelessWidget {
           const Expanded(child: SizedBox()),
         for (final entrada in EntradaDeInstancia.values)
           SizedBox(
-            width: _coluna(compacto),
+            width: _coluna(compacto, comprimido: comprimido),
             child: _BotaoDeColuna(
               entrada: entrada,
               ordenada:
@@ -490,6 +513,7 @@ class _Grupo extends StatelessWidget {
     required this.compacto,
     required this.podeApagar,
     required this.comCabecalho,
+    this.comprimido = false,
     required this.aoOrdenar,
     required this.aoSomar,
     required this.aoContar,
@@ -517,6 +541,10 @@ class _Grupo extends StatelessWidget {
   /// Desenha o cabeçalho de colunas (os ícones dos itens) dentro do grupo —
   /// usado quando os grupos ficam lado a lado e cada um é uma tabela completa.
   final bool comCabecalho;
+
+  /// As colunas de número usam a medida comprimida, para dois grupos caberem
+  /// lado a lado num ecrã estreito.
+  final bool comprimido;
   final void Function(EntradaDeInstancia) aoOrdenar;
   final void Function(Morada, EntradaDeInstancia, int) aoSomar;
   final void Function(Morada, EntradaDeInstancia, int) aoContar;
@@ -592,6 +620,7 @@ class _Grupo extends StatelessWidget {
                   plano: plano,
                   compacto: compacto,
                   aoOrdenar: aoOrdenar,
+                  comprimido: comprimido,
                 ),
                 const Divider(height: 1),
               ],
@@ -630,6 +659,7 @@ class _Grupo extends StatelessWidget {
                       campos: campos,
                       colunas: colunas,
                       nomeFixo: nomeFixo,
+                      comprimido: comprimido,
                       aoDefinirExtra: aoDefinirExtra,
                     ),
                 ],
@@ -642,6 +672,7 @@ class _Grupo extends StatelessWidget {
                   compacto: compacto,
                   colunas: colunas,
                   nomeFixo: nomeFixo,
+                  comprimido: comprimido,
                 ),
             ],
           ),
@@ -1044,12 +1075,14 @@ class _Linha extends StatelessWidget {
     required this.campos,
     required this.colunas,
     required this.nomeFixo,
+    this.comprimido = false,
     required this.aoDefinirExtra,
   });
 
   final PersonagemDeInstancia quem;
   final Morada onde;
   final bool compacto;
+  final bool comprimido;
   final bool pegouHoje;
   final void Function(Morada, EntradaDeInstancia, int) aoSomar;
   final void Function(Morada, EntradaDeInstancia, int) aoContar;
@@ -1111,11 +1144,12 @@ class _Linha extends StatelessWidget {
             ],
             for (final entrada in EntradaDeInstancia.values)
               SizedBox(
-                width: _coluna(compacto),
+                width: _coluna(compacto, comprimido: comprimido),
                 child: _Campo(
                   valor: quem.de(entrada),
                   rotulo: '${entrada.nome} de ${quem.nome}',
                   compacto: compacto,
+                  comprimido: comprimido,
                   destaque: entrada == EntradaDeInstancia.chave,
                   aoMudar: (n) => aoContar(onde, entrada, n),
                   aoSomar: (d) => aoSomar(onde, entrada, d),
@@ -1359,12 +1393,17 @@ class _Campo extends StatefulWidget {
     required this.compacto,
     required this.aoMudar,
     required this.aoSomar,
+    this.comprimido = false,
     this.destaque = false,
   });
 
   final int valor;
   final String rotulo;
   final bool compacto;
+
+  /// A coluna é mais estreita (grupos lado a lado): os `−`/`+` e os vãos
+  /// encolhem para o número de três algarismos continuar a caber.
+  final bool comprimido;
   final void Function(int) aoMudar;
   final void Function(int) aoSomar;
 
@@ -1399,12 +1438,15 @@ class _CampoState extends State<_Campo> {
 
   @override
   Widget build(BuildContext context) {
-    final passo = widget.compacto ? 18.0 : 26.0;
+    final passo = widget.compacto ? 18.0 : (widget.comprimido ? 23.0 : 26.0);
     // Recuo de cada lado para o `+` desta coluna não encostar ao `−` da
     // seguinte: na tabela do largo as colunas são caixas encostadas, e sem
-    // este vão os dois controlos liam-se como um só.
+    // este vão os dois controlos liam-se como um só. Comprimido, encolhe para
+    // o número continuar a caber.
+    final recuo = widget.comprimido ? 6.0 : 9.0;
+    final vao = widget.compacto ? 3.0 : (widget.comprimido ? 3.0 : 5.0);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 9),
+      padding: EdgeInsets.symmetric(horizontal: recuo),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1417,7 +1459,7 @@ class _CampoState extends State<_Campo> {
             rotulo: 'menos um — ${widget.rotulo}',
             aoTocar: () => widget.aoSomar(-1),
           ),
-          SizedBox(width: widget.compacto ? 3 : 5),
+          SizedBox(width: vao),
           Expanded(
             child: Semantics(
               label: widget.rotulo,
@@ -1452,7 +1494,7 @@ class _CampoState extends State<_Campo> {
               ),
             ),
           ),
-          SizedBox(width: widget.compacto ? 3 : 5),
+          SizedBox(width: vao),
           _Passo(
             icone: Icons.add,
             ligado: true,
@@ -1515,11 +1557,13 @@ class _Subtotal extends StatelessWidget {
     required this.compacto,
     this.colunas = const [],
     this.nomeFixo = false,
+    this.comprimido = false,
   });
   final GrupoDeInstancias grupo;
   final bool compacto;
   final List<CampoPersonalizado> colunas;
   final bool nomeFixo;
+  final bool comprimido;
 
   int _marcadosNoGrupo(String campoId) =>
       grupo.personagens.where((p) => p.marcado(campoId)).length;
@@ -1545,7 +1589,7 @@ class _Subtotal extends StatelessWidget {
             Expanded(child: rotulo),
           for (final entrada in EntradaDeInstancia.values)
             SizedBox(
-              width: _coluna(compacto),
+              width: _coluna(compacto, comprimido: comprimido),
               child: Text(
                 '${grupo.total(entrada)}',
                 textAlign: TextAlign.center,

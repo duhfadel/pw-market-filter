@@ -20,8 +20,155 @@ const _colunaEstreita = 64.0;
 double _colunaDoBotao(bool compacto) => compacto ? 34 : 40;
 double _coluna(bool compacto) => compacto ? _colunaEstreita : _colunaDeNumero;
 
+/// A largura da coluna de identidade (pega, ícone de classe, nome) quando a
+/// tabela larga passa a rolar na horizontal — ver `TabelaDeInstancias`. Em
+/// modo normal (sem campos-coluna) o nome continua a ser `Expanded` e esta
+/// medida não se usa.
+const _larguraNome = 210.0;
+
+/// A largura de uma coluna de campo personalizado. A marcação é estreita (um
+/// visto); a escolha precisa de caber a opção.
+double _larguraCampoColuna(CampoPersonalizado c) =>
+    c.tipo == CampoTipo.marcacao ? 86 : 128;
+
+/// Os campos que viram coluna na tabela larga — marcação e escolha. A nota
+/// não: texto é comprido demais para uma coluna, e fica numa linha própria
+/// por baixo do personagem.
+List<CampoPersonalizado> _camposColuna(List<CampoPersonalizado> campos) => [
+  for (final c in campos)
+    if (c.tipo != CampoTipo.nota) c,
+];
+
 /// O que o arrastar carrega: a morada de origem de um personagem.
 typedef _Arrasto = Morada;
+
+/// O cabeçalho de uma coluna de campo personalizado: o nome, cortado para
+/// caber, com o nome inteiro na dica.
+class _CabecaColunaCampo extends StatelessWidget {
+  const _CabecaColunaCampo({required this.campo});
+
+  final CampoPersonalizado campo;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: campo.nome,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            campo.tipo == CampoTipo.marcacao
+                ? Icons.check_box_outlined
+                : Icons.radio_button_checked,
+            size: 18,
+            color: PWColors.textMuted,
+          ),
+          const SizedBox(height: 3),
+          Text(
+            campo.nome,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 10.5,
+              color: PWColors.textMuted,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// A célula de um campo-coluna numa linha: o visto da marcação, ou a opção da
+/// escolha, centrados na largura da coluna.
+class _CelulaColunaCampo extends StatelessWidget {
+  const _CelulaColunaCampo({
+    required this.campo,
+    required this.quem,
+    required this.onde,
+    required this.aoDefinir,
+  });
+
+  final CampoPersonalizado campo;
+  final PersonagemDeInstancia quem;
+  final Morada onde;
+  final void Function(Morada, String, String?) aoDefinir;
+
+  @override
+  Widget build(BuildContext context) {
+    if (campo.tipo == CampoTipo.marcacao) {
+      final ligado = quem.marcado(campo.id);
+      return Center(
+        child: Tooltip(
+          message: '${campo.nome} — ${quem.nome}',
+          child: InkWell(
+            onTap: () => aoDefinir(onde, campo.id, ligado ? null : '1'),
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(
+                ligado ? Icons.check_box : Icons.check_box_outline_blank,
+                size: 22,
+                color: ligado ? PWColors.accent : PWColors.textMuted,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Escolha: a opção atual, e um menu para a trocar.
+    final valor = quem.extra(campo.id);
+    final escolhido = valor != null && campo.opcoes.contains(valor);
+    final mostra = escolhido ? valor : '—';
+    return Center(
+      child: PopupMenuButton<String>(
+        tooltip: campo.nome,
+        onSelected: (v) => aoDefinir(onde, campo.id, v.isEmpty ? null : v),
+        itemBuilder: (_) => [
+          for (final o in campo.opcoes) PopupMenuItem(value: o, child: Text(o)),
+          const PopupMenuDivider(),
+          const PopupMenuItem(value: '', child: Text('— limpar —')),
+        ],
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: escolhido ? PWColors.accent : PWColors.border,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  mostra,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: escolhido ? PWColors.accent : PWColors.textMuted,
+                    fontWeight: escolhido ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.arrow_drop_down,
+                size: 16,
+                color: PWColors.textMuted,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 /// A tabela inteira — um grupo de cada vez, com subtotais, e um total geral
 /// no fim.
@@ -72,46 +219,88 @@ class TabelaDeInstancias extends StatelessWidget {
   final void Function(Morada, String campoId, String? valor) aoDefinirExtra;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      // No estreito não há cabeçalho de colunas: cada cartão leva o ícone do
-      // item ao lado do número, portanto uma fila de ícones no topo seria uma
-      // legenda para uma tabela que ali não existe.
-      if (!compacto) ...[
-        _Cabecalho(plano: plano, compacto: compacto, aoOrdenar: aoOrdenar),
-        const Divider(height: 1),
-      ] else
-        _OrdenarEstreito(plano: plano, aoOrdenar: aoOrdenar),
-      for (var gi = 0; gi < plano.grupos.length; gi++)
-        _Grupo(
-          plano: plano,
-          grupo: gi,
-          compacto: compacto,
-          // Um grupo só se apaga quando há mais de um: o último não pode
-          // sumir, porque o primeiro personagem precisa sempre de uma casa.
-          podeApagar: plano.grupos.length > 1,
-          aoSomar: aoSomar,
-          aoContar: aoContar,
-          aoRenomear: aoRenomear,
-          aoRemover: aoRemover,
-          aoMover: aoMover,
-          aoRenomearGrupo: aoRenomearGrupo,
-          aoRemoverGrupo: aoRemoverGrupo,
-          aoAdicionarNoGrupo: aoAdicionarNoGrupo,
-          hoje: hoje,
-          aoPegarDiaria: aoPegarDiaria,
-          aoPegarGrupo: aoPegarGrupo,
-          campos: plano.campos,
-          aoDefinirExtra: aoDefinirExtra,
-        ),
-      const SizedBox(height: 6),
-      if (compacto)
-        _TotalGeralEstreito(plano: plano)
-      else
-        _TotalGeral(plano: plano, compacto: compacto),
-    ],
-  );
+  Widget build(BuildContext context) {
+    // As marcações e escolhas viram colunas no largo; a nota fica numa linha
+    // por baixo do personagem. Quando há colunas destas, a tabela passa a ter
+    // largura fixa e rola na horizontal — um nome `Expanded` não cabe num
+    // `SingleChildScrollView`, que dá largura infinita.
+    final colunas = compacto
+        ? const <CampoPersonalizado>[]
+        : _camposColuna(plano.campos);
+    final nomeFixo = colunas.isNotEmpty;
+
+    final tabela = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // No estreito não há cabeçalho de colunas: cada cartão leva o ícone do
+        // item ao lado do número, portanto uma fila de ícones no topo seria
+        // uma legenda para uma tabela que ali não existe.
+        if (!compacto) ...[
+          _Cabecalho(
+            plano: plano,
+            compacto: compacto,
+            aoOrdenar: aoOrdenar,
+            colunas: colunas,
+            nomeFixo: nomeFixo,
+          ),
+          const Divider(height: 1),
+        ] else
+          _OrdenarEstreito(plano: plano, aoOrdenar: aoOrdenar),
+        for (var gi = 0; gi < plano.grupos.length; gi++)
+          _Grupo(
+            plano: plano,
+            grupo: gi,
+            compacto: compacto,
+            // Um grupo só se apaga quando há mais de um: o último não pode
+            // sumir, porque o primeiro personagem precisa sempre de uma casa.
+            podeApagar: plano.grupos.length > 1,
+            aoSomar: aoSomar,
+            aoContar: aoContar,
+            aoRenomear: aoRenomear,
+            aoRemover: aoRemover,
+            aoMover: aoMover,
+            aoRenomearGrupo: aoRenomearGrupo,
+            aoRemoverGrupo: aoRemoverGrupo,
+            aoAdicionarNoGrupo: aoAdicionarNoGrupo,
+            hoje: hoje,
+            aoPegarDiaria: aoPegarDiaria,
+            aoPegarGrupo: aoPegarGrupo,
+            campos: plano.campos,
+            colunas: colunas,
+            nomeFixo: nomeFixo,
+            aoDefinirExtra: aoDefinirExtra,
+          ),
+        const SizedBox(height: 6),
+        if (compacto)
+          _TotalGeralEstreito(plano: plano)
+        else
+          _TotalGeral(
+            plano: plano,
+            compacto: compacto,
+            colunas: colunas,
+            nomeFixo: nomeFixo,
+          ),
+      ],
+    );
+
+    if (!nomeFixo) return tabela;
+
+    // A largura total da tabela com as colunas de campo, para o scroll
+    // horizontal saber até onde vai.
+    final largura =
+        _larguraNome +
+        EntradaDeInstancia.values.length * _colunaDeNumero +
+        colunas.fold(0.0, (s, c) => s + _larguraCampoColuna(c)) +
+        _colunaDoBotao(false) * 2 +
+        // Uma folga, para nenhuma linha interna transbordar por um pixel de
+        // arredondamento da pega ou de uma borda. Invisível no scroll.
+        8;
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SizedBox(width: largura, child: tabela),
+    );
+  }
 }
 
 class _Cabecalho extends StatelessWidget {
@@ -119,18 +308,25 @@ class _Cabecalho extends StatelessWidget {
     required this.plano,
     required this.compacto,
     required this.aoOrdenar,
+    this.colunas = const [],
+    this.nomeFixo = false,
   });
 
   final PlanoDeInstancias plano;
   final bool compacto;
   final void Function(EntradaDeInstancia) aoOrdenar;
+  final List<CampoPersonalizado> colunas;
+  final bool nomeFixo;
 
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Row(
       children: [
-        const Expanded(child: SizedBox()),
+        if (nomeFixo)
+          const SizedBox(width: _larguraNome)
+        else
+          const Expanded(child: SizedBox()),
         for (final entrada in EntradaDeInstancia.values)
           SizedBox(
             width: _coluna(compacto),
@@ -142,6 +338,11 @@ class _Cabecalho extends StatelessWidget {
               compacto: compacto,
               aoTocar: () => aoOrdenar(entrada),
             ),
+          ),
+        for (final c in colunas)
+          SizedBox(
+            width: _larguraCampoColuna(c),
+            child: _CabecaColunaCampo(campo: c),
           ),
         SizedBox(width: _colunaDoBotao(compacto) * 2),
       ],
@@ -227,6 +428,8 @@ class _Grupo extends StatelessWidget {
     required this.aoPegarDiaria,
     required this.aoPegarGrupo,
     required this.campos,
+    required this.colunas,
+    required this.nomeFixo,
     required this.aoDefinirExtra,
   });
 
@@ -246,6 +449,8 @@ class _Grupo extends StatelessWidget {
   final void Function(Morada) aoPegarDiaria;
   final void Function(int) aoPegarGrupo;
   final List<CampoPersonalizado> campos;
+  final List<CampoPersonalizado> colunas;
+  final bool nomeFixo;
   final void Function(Morada, String, String?) aoDefinirExtra;
 
   @override
@@ -326,6 +531,8 @@ class _Grupo extends StatelessWidget {
                       aoRemover: aoRemover,
                       aoPegarDiaria: aoPegarDiaria,
                       campos: campos,
+                      colunas: colunas,
+                      nomeFixo: nomeFixo,
                       aoDefinirExtra: aoDefinirExtra,
                     ),
                 ],
@@ -333,7 +540,12 @@ class _Grupo extends StatelessWidget {
               if (compacto)
                 _SubtotalEstreito(grupo: g)
               else
-                _Subtotal(grupo: g, compacto: compacto),
+                _Subtotal(
+                  grupo: g,
+                  compacto: compacto,
+                  colunas: colunas,
+                  nomeFixo: nomeFixo,
+                ),
             ],
           ),
         );
@@ -611,6 +823,8 @@ class _Linha extends StatelessWidget {
     required this.aoRemover,
     required this.aoPegarDiaria,
     required this.campos,
+    required this.colunas,
+    required this.nomeFixo,
     required this.aoDefinirExtra,
   });
 
@@ -624,6 +838,8 @@ class _Linha extends StatelessWidget {
   final void Function(Morada) aoRemover;
   final void Function(Morada) aoPegarDiaria;
   final List<CampoPersonalizado> campos;
+  final List<CampoPersonalizado> colunas;
+  final bool nomeFixo;
   final void Function(Morada, String, String?) aoDefinirExtra;
 
   @override
@@ -634,21 +850,46 @@ class _Linha extends StatelessWidget {
       children: [
         Row(
           children: [
-            _PegaArrasto(onde: onde, quem: quem, compacto: compacto),
-            // O ícone de classe sai no estreito: a classe já está escrita debaixo
-            // do nome, e a 390 px os quatro steppers não cabem com ele ao lado.
-            if (!compacto) ...[
-              ClassIcon(ocupacaoDaClasse[quem.classe] ?? -1, size: 26),
-              const SizedBox(width: 9),
-            ],
-            Expanded(
-              child: _Nome(
-                nome: quem.nome,
-                classe: quem.classe,
-                compacto: compacto,
-                aoRenomear: (novo) => aoRenomear(onde, novo),
+            // A identidade (pega + ícone + nome). Quando há colunas de campo,
+            // mede exactamente `_larguraNome`, para a tabela que rola não
+            // transbordar por uns pixéis da pega; senão enche o espaço livre.
+            if (nomeFixo)
+              SizedBox(
+                width: _larguraNome,
+                child: Row(
+                  children: [
+                    _PegaArrasto(onde: onde, quem: quem, compacto: compacto),
+                    ClassIcon(ocupacaoDaClasse[quem.classe] ?? -1, size: 26),
+                    const SizedBox(width: 9),
+                    Expanded(
+                      child: _Nome(
+                        nome: quem.nome,
+                        classe: quem.classe,
+                        compacto: compacto,
+                        aoRenomear: (novo) => aoRenomear(onde, novo),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else ...[
+              _PegaArrasto(onde: onde, quem: quem, compacto: compacto),
+              // O ícone de classe sai no estreito: a classe já está escrita
+              // debaixo do nome, e a 390 px os quatro steppers não cabem com
+              // ele ao lado.
+              if (!compacto) ...[
+                ClassIcon(ocupacaoDaClasse[quem.classe] ?? -1, size: 26),
+                const SizedBox(width: 9),
+              ],
+              Expanded(
+                child: _Nome(
+                  nome: quem.nome,
+                  classe: quem.classe,
+                  compacto: compacto,
+                  aoRenomear: (novo) => aoRenomear(onde, novo),
+                ),
               ),
-            ),
+            ],
             for (final entrada in EntradaDeInstancia.values)
               SizedBox(
                 width: _coluna(compacto),
@@ -659,6 +900,16 @@ class _Linha extends StatelessWidget {
                   destaque: entrada == EntradaDeInstancia.chave,
                   aoMudar: (n) => aoContar(onde, entrada, n),
                   aoSomar: (d) => aoSomar(onde, entrada, d),
+                ),
+              ),
+            for (final c in colunas)
+              SizedBox(
+                width: _larguraCampoColuna(c),
+                child: _CelulaColunaCampo(
+                  campo: c,
+                  quem: quem,
+                  onde: onde,
+                  aoDefinir: aoDefinirExtra,
                 ),
               ),
             SizedBox(
@@ -697,13 +948,14 @@ class _Linha extends StatelessWidget {
             ),
           ],
         ),
-        // As fichas dos campos personalizados, debaixo da linha de números.
-        // Indentadas para alinhar com o nome, não com a pega.
-        if (campos.isNotEmpty)
+        // Debaixo da linha, só as notas: a marcação e a escolha já são
+        // colunas à direita, portanto aqui fica o que não cabe numa coluna.
+        // Indentado para alinhar com o nome, não com a pega.
+        if (_notas.isNotEmpty)
           Padding(
             padding: EdgeInsets.only(left: compacto ? 24 : 37),
             child: CamposDoPersonagem(
-              campos: campos,
+              campos: _notas,
               quem: quem,
               onde: onde,
               aoDefinir: aoDefinirExtra,
@@ -712,6 +964,13 @@ class _Linha extends StatelessWidget {
       ],
     ),
   );
+
+  /// As notas — o que a tabela larga mostra por baixo do nome. (Marcação e
+  /// escolha são colunas.)
+  List<CampoPersonalizado> get _notas => [
+    for (final c in campos)
+      if (c.tipo == CampoTipo.nota) c,
+  ];
 }
 
 /// O que se vê a voar com o dedo durante o arrasto.
@@ -1032,27 +1291,39 @@ class _Passo extends StatelessWidget {
 }
 
 class _Subtotal extends StatelessWidget {
-  const _Subtotal({required this.grupo, required this.compacto});
+  const _Subtotal({
+    required this.grupo,
+    required this.compacto,
+    this.colunas = const [],
+    this.nomeFixo = false,
+  });
   final GrupoDeInstancias grupo;
   final bool compacto;
+  final List<CampoPersonalizado> colunas;
+  final bool nomeFixo;
+
+  int _marcadosNoGrupo(String campoId) =>
+      grupo.personagens.where((p) => p.marcado(campoId)).length;
 
   @override
   Widget build(BuildContext context) {
     final quantos = grupo.personagens.length;
+    final rotulo = Text(
+      quantos == 1 ? 'subtotal · 1' : 'subtotal · $quantos',
+      style: const TextStyle(
+        color: PWColors.textMuted,
+        fontSize: 11.5,
+        fontWeight: FontWeight.w600,
+      ),
+    );
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 7, 0, 7),
       child: Row(
         children: [
-          Expanded(
-            child: Text(
-              quantos == 1 ? 'subtotal · 1' : 'subtotal · $quantos',
-              style: const TextStyle(
-                color: PWColors.textMuted,
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+          if (nomeFixo)
+            SizedBox(width: _larguraNome - 10, child: rotulo)
+          else
+            Expanded(child: rotulo),
           for (final entrada in EntradaDeInstancia.values)
             SizedBox(
               width: _coluna(compacto),
@@ -1071,6 +1342,22 @@ class _Subtotal extends StatelessWidget {
                 ),
               ),
             ),
+          // Nas colunas de campo, a marcação mostra quantos marcaram; a
+          // escolha não soma nada.
+          for (final c in colunas)
+            SizedBox(
+              width: _larguraCampoColuna(c),
+              child: Text(
+                c.tipo == CampoTipo.marcacao ? '${_marcadosNoGrupo(c.id)}' : '',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: PWColors.textMuted,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
           SizedBox(width: _colunaDoBotao(compacto) * 2),
         ],
       ),
@@ -1079,18 +1366,38 @@ class _Subtotal extends StatelessWidget {
 }
 
 class _TotalGeral extends StatelessWidget {
-  const _TotalGeral({required this.plano, required this.compacto});
+  const _TotalGeral({
+    required this.plano,
+    required this.compacto,
+    this.colunas = const [],
+    this.nomeFixo = false,
+  });
   final PlanoDeInstancias plano;
   final bool compacto;
+  final List<CampoPersonalizado> colunas;
+  final bool nomeFixo;
 
   @override
   Widget build(BuildContext context) {
     final n = plano.quantosPersonagens;
+    final rotulo = Text(
+      n == 1 ? 'Total · 1 personagem' : 'Total · $n personagens',
+      style: const TextStyle(
+        color: PWColors.text,
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
+      ),
+    );
     // Uma barra cheia, não uma linha fina. Numa ferramenta sobre somas, o
     // total geral é a âncora do fim — tem de ter peso de rodapé, não de mais
     // uma linha da tabela.
+    //
+    // No modo coluna o padding horizontal sai: ele empurraria as colunas para
+    // fora do alinhamento com as linhas e faria a tabela transbordar.
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 13, 6, 13),
+      padding: nomeFixo
+          ? const EdgeInsets.symmetric(vertical: 13)
+          : const EdgeInsets.fromLTRB(14, 13, 6, 13),
       decoration: BoxDecoration(
         color: PWColors.surface,
         borderRadius: BorderRadius.circular(12),
@@ -1098,16 +1405,16 @@ class _TotalGeral extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(
-            child: Text(
-              n == 1 ? 'Total · 1 personagem' : 'Total · $n personagens',
-              style: const TextStyle(
-                color: PWColors.text,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
+          if (nomeFixo)
+            SizedBox(
+              width: _larguraNome,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 14),
+                child: rotulo,
               ),
-            ),
-          ),
+            )
+          else
+            Expanded(child: rotulo),
           for (final entrada in EntradaDeInstancia.values)
             SizedBox(
               width: _coluna(compacto),
@@ -1119,6 +1426,20 @@ class _TotalGeral extends StatelessWidget {
                   fontSize: entrada == EntradaDeInstancia.chave ? 22 : 19,
                   fontWeight: FontWeight.w700,
                   fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+          for (final c in colunas)
+            SizedBox(
+              width: _larguraCampoColuna(c),
+              child: Text(
+                c.tipo == CampoTipo.marcacao ? '${plano.marcados(c.id)}' : '',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: PWColors.accent,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                  fontFeatures: [FontFeature.tabularFigures()],
                 ),
               ),
             ),

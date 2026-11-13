@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pw_market_filter/features/guias/domain/guia.dart';
 import 'package:pw_market_filter/features/home/domain/tool.dart';
 
 void main() {
@@ -47,9 +48,21 @@ void main() {
     expect(filtro.novoEm(DateTime.utc(2026, 9, 21)), isFalse);
   });
 
-  test('cada card aparece em exatamente uma seção', () {
+  test('cada entrada aparece em exatamente uma seção', () {
+    // **`tools` deixou de ser a lista toda a 09/11/2026.** Os *Guias* são
+    // derivados de `guias` — a gaveta deles é a lista dos guias e não três
+    // entradas curadas à mão — portanto somar as secções dá os `tools`
+    // escritos à mão **mais** os oito guias.
+    //
+    // A propriedade que este teste guarda não mudou: nada aparece em duas
+    // secções. O que mudou foi de onde vem o total.
     final somadas = [for (final s in secoesDaHome) ...toolsDe(s)];
 
-    expect(somadas.length, tools.length);
+    expect(somadas.length, tools.length + guias.length);
+    expect(
+      somadas.map((t) => t.name).toSet().length,
+      somadas.length,
+      reason: 'uma entrada apareceu em duas secções',
+    );
   });
 }

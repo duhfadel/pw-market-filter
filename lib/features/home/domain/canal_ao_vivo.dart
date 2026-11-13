@@ -102,6 +102,58 @@ bool jogandoOJogo(CanalAoVivo canal) {
   return _marcasDoJogo.any(onde.contains);
 }
 
+/// As versões que o site serve, e as duas grafias de cada uma.
+///
+/// **A versão vem do título da transmissão e não de uma coluna**, ideia do
+/// dono e melhor do que a alternativa: a Twitch só diz *Perfect World* e não
+/// distingue versão, e o título é reescrito a cada transmissão — portanto quem
+/// muda de versão muda sozinho. Uma coluna envelheceria em silêncio, e o site
+/// só mostra quem está **ao vivo**, logo o título existe exactamente quando é
+/// preciso.
+/// A forma com pontos é a chave; a nua é o mesmo número sem eles.
+const _grafiasDaVersao = {'1.8.7': '187', '1.2.6': '126', '1.4.4': '144'};
+
+/// Que versão o título de [titulo] diz, ou `null` quando não diz uma só.
+///
+/// **Falsos positivos são o único dano real**, e é isso que ordena as
+/// decisões aqui: não mostrar alguém custa visibilidade, mostrá-lo na versão
+/// errada é o site a afirmar o que não sabe.
+///
+/// **A fronteira é o dígito e o ponto, nunca `\b`.** `PW187` é a grafia mais
+/// comum de todas e entre o `W` e o `1` não há fronteira de palavra nenhuma,
+/// portanto um `\b187\b` perderia justamente o caso que mais aparece. O que
+/// tem de ser recusado é o número dentro de outro número — `2187`, `1870`,
+/// `187.5` — e é isso que a vizinhança de dígitos e pontos exclui.
+///
+/// **A forma nua recusa também a letra depois, e a com pontos não.** `187k`
+/// é dano ou ouro, não uma versão, e títulos destes estão cheios de números
+/// com `k`; `1.8.7` não tem como ser outra coisa. A assimetria é deliberada:
+/// letra **antes** é como se escreve o jogo (`pw187`), letra **depois** é
+/// uma unidade. O preço é perder um `PW187BR`, que ninguém escreveu ainda.
+///
+/// **Duas versões nomeadas contam como não saber.** Decisão minha e barata de
+/// mudar: quem escreve as duas não disse em qual está, e escolher pela ordem
+/// de aparição seria o site a inventar a resposta.
+///
+/// O título é lido e **nunca mostrado** — está cheio de cupões e emoji, e já
+/// tinha sido deixado de fora do cartão por isso.
+String? versaoDaTransmissao(String? titulo) {
+  if (titulo == null || titulo.isEmpty) return null;
+
+  final achadas = <String>{};
+  for (final entrada in _grafiasDaVersao.entries) {
+    final comPontos = RegExp(
+      '(?<![0-9.])${RegExp.escape(entrada.key)}(?![0-9.])',
+    );
+    final nua = RegExp('(?<![0-9.])${entrada.value}(?![\\w.])');
+    if (comPontos.hasMatch(titulo) || nua.hasMatch(titulo)) {
+      achadas.add(entrada.key);
+    }
+  }
+
+  return achadas.length == 1 ? achadas.first : null;
+}
+
 /// How old a reading may be before it stops meaning anything.
 ///
 /// The Worker looks every five minutes, so twelve is three missed rounds —
@@ -141,3 +193,19 @@ List<CanalAoVivo> aoVivoAgora(List<CanalAoVivo> canais, DateTime agora) {
   vivos.sort((a, b) => (b.espectadores ?? 0).compareTo(a.espectadores ?? 0));
   return vivos;
 }
+
+/// Se [canal] pertence à página de [versao] — pedido do dono: no 1.8.7 só
+/// quem joga 1.8.7, e assim por diante.
+///
+/// **[versao] nula é a raiz**, que não é de versão nenhuma e por isso não
+/// afirma nada ao mostrar quem não escreveu a sua. Com versão, quem não a
+/// nomeia no título fica de fora — decisão do dono. O custo é visível a quem
+/// transmite e resolve-se escrevendo duas palavras no título.
+///
+/// **Separada de [aoVivoAgora] de propósito.** Aquela responde *está ao vivo
+/// neste jogo*, que é um facto sobre o canal e o mesmo em todas as telas, e é
+/// por isso que o cubit — único para o site inteiro — a aplica uma vez. Esta
+/// responde *pertence a esta tela*, que muda de tela para tela e por isso é
+/// decidida onde a tela sabe quem é.
+bool transmiteAVersao(CanalAoVivo canal, String? versao) =>
+    versao == null || versaoDaTransmissao(canal.titulo) == versao;

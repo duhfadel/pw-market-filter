@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/pw_colors.dart';
+import '../../../../core/ui/cabeca_de_seccao.dart';
 import '../../../../market/market_index.dart';
 import '../../../search/domain/search_query.dart';
+import '../../../search/ui/widgets/character_card.dart' show PatamarDaArma;
 import '../../domain/arte_da_classe.dart';
 import '../../domain/destaques.dart';
 
@@ -77,33 +79,63 @@ class DestaquesView extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // The phone case: three rows of two columns ate ~800 px of height,
-        // roughly three screens before the next section even started. One
-        // row that scrolls sideways is the owner's own call, 01/10/2026 —
-        // wide screens keep the grid untouched below.
-        if (_columnsFor(constraints.maxWidth) == 2) {
-          return _Carrossel(
-            destaques: destaques,
-            onAbrir: onAbrir,
-            spacing: spacing,
-            largura: constraints.maxWidth,
-          );
-        }
+        final colunas = DestaquesView._columnsFor(constraints.maxWidth);
 
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.zero,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: _columnsFor(constraints.maxWidth),
-            crossAxisSpacing: spacing,
-            mainAxisSpacing: spacing,
-            // The proportion the brief sets: the art is the card.
-            childAspectRatio: 2 / 3,
-          ),
-          itemCount: destaques.length,
-          itemBuilder: (context, i) =>
-              _Carta(destaque: destaques[i], onAbrir: onAbrir),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // **A cabeça que faltava.** A grelha começava do nada: seis
+            // cartas soltas por baixo da faixa de números, sem nada a dizer
+            // o que eram. A maquete abre-a com a régua e uma porta — e a
+            // porta aqui é a busca vazia, que é literalmente *o mercado
+            // todo*, a mesma função que cada carta já chama com a sua
+            // pergunta dentro.
+            CabecaDeSeccao(
+              titulo: tituloDosDestaques(destaques.length),
+              // **A porta cai no telemóvel, e é medida.** Com as fontes
+              // reais, `SEIS PORTAS PARA O MERCADO` são 258 px e
+              // `ver todos →` são 143: com os dois vãos de 16 dá 441 contra
+              // os ~350 que um ecrã de 390 deixa. Transbordava 72 px, e não
+              // era artefacto do harness.
+              //
+              // O que se perde ali é pouco: no estreito a fila rola de lado
+              // com a última carta cortada de propósito a dizer que há mais,
+              // e cada carta já é uma porta para o filtro.
+              porta: colunas == 2 ? null : 'ver todos →',
+              aoTocarNaPorta: colunas == 2
+                  ? null
+                  : () => onAbrir(const SearchQuery()),
+            ),
+            SizedBox(height: wide ? 14 : 11),
+            if (colunas == 2)
+              // The phone case: three rows of two columns ate ~800 px of
+              // height, roughly three screens before the next section even
+              // started. One row that scrolls sideways is the owner's own
+              // call, 01/10/2026 — wide screens keep the grid untouched
+              // below.
+              _Carrossel(
+                destaques: destaques,
+                onAbrir: onAbrir,
+                spacing: spacing,
+                largura: constraints.maxWidth,
+              )
+            else
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: colunas,
+                  crossAxisSpacing: spacing,
+                  mainAxisSpacing: spacing,
+                  // The proportion the brief sets: the art is the card.
+                  childAspectRatio: 2 / 3,
+                ),
+                itemCount: destaques.length,
+                itemBuilder: (context, i) =>
+                    _Carta(destaque: destaques[i], onAbrir: onAbrir),
+              ),
+          ],
         );
       },
     );
@@ -180,7 +212,7 @@ class _Carta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final arte = arteVerticalDaClasse(destaque.personagem.characterClass);
+    final recorte = recorteDaClasse(destaque.personagem.characterClass);
     final cor = destaque.cor;
 
     return Card(
@@ -202,16 +234,17 @@ class _Carta extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
+          // **O degradê diz o patamar da arma, e a figura fica por cima
+          // dele.** Até 09/11/2026 o fundo era a arte vertical a sangrar e a
+          // cor do patamar vivia só na moldura de 1,5 px — que ninguém lê a
+          // varrer uma fila de seis. Agora o patamar é o fundo inteiro e lê-se
+          // de relance, que é a mesma razão por que a grelha do filtro ganhou
+          // moldura colorida em 29/09.
+          _FundoDoPatamar(patamar: destaque.patamar),
           // A class with no art draws the plain ground, never a borrowed
-          // face — the same silent fallback `arteVerticalDaClasse` itself
-          // makes by returning null.
-          if (arte != null)
-            Image.asset(
-              arte,
-              fit: BoxFit.cover,
-              alignment: const Alignment(0, -0.76),
-              errorBuilder: (_, _, _) => const SizedBox.shrink(),
-            ),
+          // face — the same silent fallback `recorteDaClasse` itself makes by
+          // returning null.
+          if (recorte != null) _Figura(recorte: recorte),
           const _Veu(),
           if (destaque.selo != null) _Selo(texto: destaque.selo!),
           _Rodape(destaque: destaque),
@@ -232,6 +265,84 @@ class _Carta extends StatelessWidget {
       ),
     );
   }
+}
+
+/// O patamar da arma como fundo: forte no topo, morto antes do texto.
+///
+/// **Sem patamar não desenha nada**, e isso é a regra e não um descuido. É a
+/// mesma decisão que a moldura da grelha do filtro já carrega — pintar quem
+/// não tem patamar seria a mentira, não a omissão — e aqui ela é duplamente
+/// precisa, porque a categoria que trouxe a pessoa ao ecrã não é a arma que
+/// ela veste: *o mais barato* e *quem mais carrega Chave da Sorte* chegam
+/// aqui sem arma nenhuma de nota.
+///
+/// **E morre antes do texto, o que não é só estética.** [PWColors.accent] é
+/// `#FFB454` e o patamar de 70 é o **mesmo byte** — e 70 é o patamar mais
+/// comum do mercado, portanto o fundo mais frequente desta grelha é a cor do
+/// dinheiro. O preço, a ouro, cai na zona onde já não há cor nenhuma.
+class _FundoDoPatamar extends StatelessWidget {
+  const _FundoDoPatamar({required this.patamar});
+
+  final PatamarDaArma? patamar;
+
+  @override
+  Widget build(BuildContext context) {
+    final patamar = this.patamar;
+    // **`baixo` desenha a borda e não o fundo**, e é a mesma linha que a
+    // grelha do filtro usa. Metade do mercado está nesse degrau; tingir-lhe o
+    // fundo poria cor em 51,8% dos cards e deixaria os 3,7% que são 80 sem
+    // nada por onde se distinguirem.
+    if (patamar == null || !patamar.pinta) return const SizedBox.shrink();
+    final cor = patamar.cor;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          // Três paragens e não duas: uma rampa recta deixa cor a meio da
+          // carta, onde a figura já está, e o fundo passa a competir com ela.
+          // Esta cai depressa — a 30% já só tem um terço da força.
+          colors: [
+            cor.withValues(alpha: 0.42),
+            cor.withValues(alpha: 0.15),
+            Colors.transparent,
+          ],
+          stops: const [0, 0.3, 0.62],
+        ),
+      ),
+    );
+  }
+}
+
+/// A figura recortada, assente sobre o bloco de texto.
+///
+/// **`contain` e não `cover`**, que é a diferença toda entre este card e o
+/// anterior: uma arte sem fundo cortada pelos lados fica um personagem sem
+/// braços, enquanto a mesma arte inteira num fundo liso é um cartão de
+/// coleção. Os recortes vêm perto de 1:1 e o card é 2:3, portanto a figura
+/// ocupa os dois terços de cima e o texto fica no terço que sobra — que é o
+/// espaço que ela deixa, e não um espaço roubado dela.
+///
+/// Os pés caem a 68% da altura e o rótulo começa a 78%: o [_Veu] por cima
+/// existe para esses dez pontos de sobreposição.
+class _Figura extends StatelessWidget {
+  const _Figura({required this.recorte});
+
+  final String recorte;
+
+  @override
+  Widget build(BuildContext context) => FractionallySizedBox(
+    alignment: Alignment.topCenter,
+    heightFactor: 0.68,
+    widthFactor: 0.96,
+    child: Image.asset(
+      recorte,
+      fit: BoxFit.contain,
+      alignment: Alignment.bottomCenter,
+      errorBuilder: (_, _, _) => const SizedBox.shrink(),
+    ),
+  );
 }
 
 /// Darkens only the card's lower third, so the footer's text has solid
@@ -273,23 +384,35 @@ class _Selo extends StatelessWidget {
 
   final String texto;
 
+  /// `.etq { top:10px; left:10px; font-size:9.5px; letter-spacing:.09em;
+  /// background:rgba(11,11,26,.8); border:1px solid filete; border-radius:5px;
+  /// padding:3px 7px; color:apagado }`.
+  ///
+  /// **O texto recua para apagado e ganha a borda fininha**, que é a
+  /// diferença entre um selo e um rótulo gritado. Estava em [PWColors.papel]
+  /// a `w700` e sem borda: sobre o recorte da classe lia-se como a coisa mais
+  /// clara da carta, acima do nome e do preço — e o que o selo diz (*ARMA
+  /// 70*) já está escrito por extenso na categoria três linhas abaixo. Ele
+  /// existe para a grelha se arrumar de relance, não para ser lido primeiro.
   @override
   Widget build(BuildContext context) => Positioned(
-    left: 8,
-    top: 8,
+    left: 10,
+    top: 10,
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: PWColors.noite.withValues(alpha: 0.78),
-        borderRadius: BorderRadius.circular(6),
+        color: PWColors.background.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: PWColors.filete),
       ),
       child: Text(
         texto,
         style: const TextStyle(
-          color: PWColors.papel,
+          color: PWColors.apagado,
           fontSize: 9.5,
           fontWeight: FontWeight.w700,
-          letterSpacing: 0.6,
+          // `letter-spacing: .09em` sobre 9,5 px.
+          letterSpacing: 0.86,
         ),
       ),
     ),
@@ -317,47 +440,63 @@ class _Rodape extends StatelessWidget {
       left: 0,
       right: 0,
       bottom: 0,
+      // `.carta { padding: 13px }` — eram 10 px, e com o preço a 16 o número
+      // ficava quase a tocar a moldura.
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+        padding: const EdgeInsets.fromLTRB(13, 0, 13, 13),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // `.cat { font-size: 10.5px; color: apagado; margin-bottom: 3px }`
+            // — e **sem peso**, que a maquete deixa em 400. Estava a `w700`,
+            // o que punha a pergunta a competir com o nome logo abaixo: numa
+            // carta onde o que interessa é *quem* e *quanto*, a etiqueta da
+            // categoria é a linha que deve recuar.
             Text(
               destaque.rotulo,
               style: const TextStyle(
                 color: PWColors.apagado,
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
+                fontSize: 10.5,
                 letterSpacing: 0.3,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 3),
+            // `.nm { font-size: 15px; font-weight: 600; line-height: 1.15 }`.
             Text(
               personagem.name,
               style: const TextStyle(
                 color: PWColors.papel,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                height: 1.15,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
+            // `.sub { font-size: 11px; color: apagado; margin-top: 2px }`.
+            const SizedBox(height: 2),
             Text(
               'nv ${personagem.level} · ${personagem.characterClass}',
               style: const TextStyle(color: PWColors.apagado, fontSize: 11),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 2),
+            // `.pr { font-size: 16px; font-weight: 600; margin-top: 7px }`.
+            //
+            // **Era 13 e é o número sobre que alguém decide.** Três pontos
+            // abaixo do desenho no item mais importante da carta, enquanto a
+            // etiqueta da categoria acima estava a negrito — a hierarquia
+            // saía ao contrário do que a página quer dizer.
+            const SizedBox(height: 7),
             Text(
               '${personagem.price} TCC',
               style: const TextStyle(
                 color: PWColors.accent,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

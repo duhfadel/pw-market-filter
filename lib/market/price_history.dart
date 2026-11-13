@@ -32,6 +32,39 @@ class PriceHistory {
   /// why this is counted rather than derived from the two prices.
   final int cuts;
 
+  /// Whether the price **fell** to [precoAgora].
+  ///
+  /// **A regra da queda vive aqui porque dois lados a leem**: o card desenha
+  /// o preço antigo riscado e o filtro aceita o personagem. Cada um a decidir
+  /// por sua conta é como um card passa a mostrar uma queda que o filtro não
+  /// aceita — o mesmo defeito que `bestMatchFor` existe para impedir no
+  /// equipamento.
+  ///
+  /// **Não é `cuts > 0`**, e a diferença morde: [cuts] conta quedas passadas,
+  /// portanto quem baixou e voltou a subir tem `cuts` positivo e preço acima
+  /// do que pedia. [previousPrice] também não chega sozinho — ele é escrito
+  /// em **qualquer** movimento, subida inclusive. É a comparação com o preço
+  /// de agora que confina isto à descida.
+  bool baixouPara(int precoAgora) {
+    final antes = previousPrice;
+    return antes != null && antes > precoAgora;
+  }
+
+  /// Se entrou no mercado há menos de [dias], medido contra [coletadoEm].
+  ///
+  /// **Contra a data da coleta e nunca contra o relógio de quem lê.** O índice
+  /// é servido por horas e um `DateTime.now()` aqui faria «entrou hoje» mudar
+  /// de resposta durante a leitura da mesma página — e à meia-noite o número
+  /// cairia para zero sem nada ter acontecido no mercado.
+  ///
+  /// **A regra vive aqui porque tem dois leitores**: o filtro, que a usa para
+  /// cortar a grelha, e o coletor, que conta quantos são para escrever o
+  /// número na porta da versão. Duas contagens da mesma pergunta é como a
+  /// porta e a grelha passam a discordar — a forma que já custou o pulso da
+  /// home a 30/09/2026.
+  bool entrouNosUltimos(int dias, DateTime coletadoEm) =>
+      coletadoEm.difference(firstSeen).inDays < dias;
+
   Map<String, dynamic> toJson() => {
     'firstSeen': firstSeen.toUtc().toIso8601String(),
     if (previousPrice != null) 'previousPrice': previousPrice,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/rotas.dart' as rotas;
+import '../../../core/theme/medidas_da_maquete.dart';
 import '../../../core/theme/pw_colors.dart';
 import '../../../market/market_index.dart';
 import '../../ads/ad_slot.dart';
@@ -14,7 +15,12 @@ import '../domain/arte_da_classe.dart';
 import 'widgets/ao_vivo_strip.dart';
 import 'widgets/cabecalho.dart';
 import 'widgets/cartaz.dart';
+import 'widgets/palco_de_classe.dart';
 import 'widgets/destaques_view.dart';
+import '../../guias/ui/widgets/guerras_secao.dart';
+import '../../guias/ui/widgets/guias_secao.dart';
+import 'widgets/faixa_viva.dart';
+import 'widgets/tool_navigation.dart';
 import 'widgets/ajuda_strip.dart';
 import 'widgets/discord_strip.dart';
 import 'widgets/rodape.dart';
@@ -108,12 +114,48 @@ class HomeView extends StatelessWidget {
     // overflow menu. One breakpoint, read from the one place it is defined.
     final wide = width >= Cabecalho.larguraMinima;
     final large = width >= _largeWidth;
-    // 1040 and not 900 at the top step, and the reason is one line of type:
-    // at 900 the old headline broke with "usando" alone on a second line at
-    // every desktop size measured — 1366 and 1920 both.
-    final maxWidth = large ? 1040.0 : 780.0;
+    // **1180 no degrau de cima, que é a coluna da maquete** — `--col: 1180px`,
+    // lida do CSS dela e já usada pela raiz. Esteve em 1040 até 10/11/2026,
+    // por uma razão que continua verdadeira e que deixou de ser o limite: a
+    // 900 a manchete antiga partia com *«usando»* sozinho numa segunda linha,
+    // a 1366 e a 1920. 1040 era o mínimo que a resolvia, e ficou a valer como
+    // se fosse o máximo.
+    //
+    // O que o denunciou foram os Destaques: a seis colunas, 1040 menos as
+    // margens dá 960 de conteúdo e cartas de 148 px, onde a maquete lhes dá
+    // 1132 e 177. Era isso que fazia a página inteira parecer um degrau
+    // abaixo do desenho.
+    //
+    // **A faixa de tablet fica nos 780**, e isso é separado: aquele tecto não
+    // é folga a mais, é o ponto em que a tipografia do Cartaz deixa de caber
+    // — a 780 px o título dele já estourava a própria caixa em 36 px.
+    final maxWidth = large ? Maquete.colunaDeLeitura : 780.0;
+    // `.env { padding: 0 24px }` no degrau da maquete. Nos outros dois fica o
+    // respiro que esta tela já tinha: ali a coluna é estreita e 24 px
+    // colariam o texto à borda do ecrã.
+    final margem = large ? 24.0 : (wide ? 40.0 : 20.0);
 
     return Scaffold(
+      // **A barra assenta sobre a arte do herói**, como na raiz e como a
+      // maquete faz nas duas telas: `.barra { position:absolute; top:0 }`.
+      // Estava dentro da coluna de leitura, o que lhe dava chão próprio e
+      // empurrava o herói para baixo dela.
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        titleSpacing: 0,
+        title: _ComMargem(
+          margem: margem,
+          child: Cabecalho(
+            wide: wide,
+            versao: pw126 ? rotas.pw126 : rotas.pw187,
+          ),
+        ),
+      ),
       body: Stack(
         children: [
           // Behind everything and touching nothing: the light is decoration,
@@ -147,6 +189,95 @@ class HomeView extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
+                // **O herói e a faixa sangram de margem a margem**, como na
+                // raiz: estavam presos à coluna de leitura e a arte ficava
+                // emoldurada no meio do ecrã — uma fotografia ao lado do
+                // conteúdo, que é o contrário do que ela é. O **texto** do
+                // herói alinha com a coluna, calculado da mesma largura.
+                //
+                // Por isso vivem aqui, fora do `ConstrainedBox`, e tudo o
+                // resto continua lá dentro.
+                BlocBuilder<SearchViewModel, SearchState>(
+                  builder: (context, state) {
+                    final ready = state is SearchReady ? state : null;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Cartaz(
+                          // **Fixa por mercado desde 10/11/2026**, e era
+                          // sorteada pela data da coleta. Decisão do dono:
+                          // cada tela tem a cara dela, como a raiz já tem.
+                          classe: classeDoCartaz(
+                            pw126 ? rotas.pw126 : rotas.pw187,
+                          ),
+                          // `large`, not `wide`. Both were built and
+                          // measured at 1200 px — close to this
+                          // page's `large` step (1280) — and their
+                          // "wide" typography does not fit the
+                          // tablet band between 680 and 1279: at
+                          // 780 px the Cartaz's own 40 px headline
+                          // overflowed its box by 36 px. Below
+                          // `large`, both fall back to their
+                          // compact layout instead of the rest of
+                          // the page's `wide` one.
+                          wide: large,
+                          // The canonical path for 1.8.7, the
+                          // version-prefixed one for 1.2.6 — same
+                          // reason as `_abrirBusca` above.
+                          aoBuscar: () => Navigator.of(context).pushNamed(
+                            pw126
+                                ? '/${rotas.pw126}/filtro'
+                                : AddressBar.canonicalFiltro,
+                          ),
+                          // One claim per marketplace, not one
+                          // shared between them: 1.2.6's own filter
+                          // has no cards, relics, essences or runes
+                          // — the pruning this branch exists for —
+                          // so the 1.8.7 line promised four
+                          // families the very next click did not
+                          // have.
+                          // A segunda porta do herói: os guias,
+                          // que servem as três versões e por isso
+                          // não escolhem mercado nenhum.
+                          aoVerGuias: () =>
+                              abrirEndereco(context, '/guias/', externo: true),
+                          subtitulo: pw126 ? _subtituloPw126 : _subtituloPw187,
+                          // O texto do herói alinha com a coluna de leitura,
+                          // calculado da mesma largura — a arte sangra, o
+                          // texto não.
+                          margemHorizontal: recuoDoHeroi(width, maxWidth, wide),
+                        ),
+                        if (ready != null) ...[
+                          SizedBox(height: wide ? 14 : 10),
+                          // **Antes dos Destaques, e isso é a
+                          // ordem da pergunta.** A faixa diz o
+                          // tamanho e o movimento do mercado; os
+                          // Destaques mostram seis pessoas dele.
+                          // Invertido, as seis cartas chegariam
+                          // antes de haver um mercado para elas
+                          // pertencerem — e é o que a maquete
+                          // tinha, que foi exactamente a falta
+                          // que o dono apontou: «talvez falte a
+                          // informaçao antes do market para que o
+                          // pessoal entenda o que sao aqueles
+                          // numeros».
+                          FaixaViva(
+                            index: ready.index,
+                            wide: wide,
+                            larguraDaColuna: maxWidth,
+                            margem: wide ? 24 : 16,
+                            onAbrir: (query) => _abrirBusca(
+                              context,
+                              ready.index,
+                              query,
+                              pw126: pw126,
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
+                ),
                 Align(
                   alignment: Alignment.topCenter,
                   child: ConstrainedBox(
@@ -165,84 +296,35 @@ class HomeView extends StatelessWidget {
                         // would have shrunk to their own width without this.
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _ComMargem(
-                            wide: wide,
-                            child: Cabecalho(
-                              wide: wide,
-                              versao: pw126 ? rotas.pw126 : rotas.pw187,
-                            ),
-                          ),
-                          SizedBox(height: wide ? 22 : 16),
-                          // **The Cartaz bleeds to the reading column's own
-                          // edges.** It is not an image beside the content,
-                          // it is the ground the content stands on, and a
-                          // side margin around it would say otherwise — so,
-                          // unlike everything else on this page, it carries
-                          // no `_ComMargem` and touches the column's edges
-                          // directly. Its own internal padding is what keeps
-                          // its text off them.
+                          // **Os Destaques ficam dentro da coluna, e o herói
+                          // e a faixa fora.** Saíram daqui por engano ao
+                          // mover o herói, e passaram a receber a janela
+                          // inteira — 1020 px onde a coluna dá 700 — o que
+                          // pôs as cinco cartas numa linha só numa largura de
+                          // tablet. Era o teste do `dy` que o dizia.
                           BlocBuilder<SearchViewModel, SearchState>(
                             builder: (context, state) {
-                              final ready = state is SearchReady ? state : null;
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Cartaz(
-                                    classe: classeDoCartaz(
-                                      ready?.index.collectedAt,
-                                      classes: pw126
-                                          ? classesClassicasPw126
-                                          : classesComArte,
-                                    ),
-                                    // `large`, not `wide`. Both were built and
-                                    // measured at 1200 px — close to this
-                                    // page's `large` step (1280) — and their
-                                    // "wide" typography does not fit the
-                                    // tablet band between 680 and 1279: at
-                                    // 780 px the Cartaz's own 40 px headline
-                                    // overflowed its box by 36 px. Below
-                                    // `large`, both fall back to their
-                                    // compact layout instead of the rest of
-                                    // the page's `wide` one.
+                              if (state is! SearchReady) {
+                                return const SizedBox.shrink();
+                              }
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                  bottom: wide ? 14 : 10,
+                                ),
+                                child: _ComMargem(
+                                  margem: margem,
+                                  child: DestaquesView(
+                                    index: state.index,
                                     wide: large,
-                                    // The canonical path for 1.8.7, the
-                                    // version-prefixed one for 1.2.6 — same
-                                    // reason as `_abrirBusca` above.
-                                    aoBuscar: () =>
-                                        Navigator.of(context).pushNamed(
-                                          pw126
-                                              ? '/${rotas.pw126}/filtro'
-                                              : AddressBar.canonicalFiltro,
-                                        ),
-                                    // One claim per marketplace, not one
-                                    // shared between them: 1.2.6's own filter
-                                    // has no cards, relics, essences or runes
-                                    // — the pruning this branch exists for —
-                                    // so the 1.8.7 line promised four
-                                    // families the very next click did not
-                                    // have.
-                                    subtitulo: pw126
-                                        ? _subtituloPw126
-                                        : _subtituloPw187,
-                                  ),
-                                  if (ready != null) ...[
-                                    SizedBox(height: wide ? 8 : 4),
-                                    _ComMargem(
-                                      wide: wide,
-                                      child: DestaquesView(
-                                        index: ready.index,
-                                        wide: large,
-                                        pw126: pw126,
-                                        onAbrir: (query) => _abrirBusca(
-                                          context,
-                                          ready.index,
-                                          query,
-                                          pw126: pw126,
-                                        ),
-                                      ),
+                                    pw126: pw126,
+                                    onAbrir: (query) => _abrirBusca(
+                                      context,
+                                      state.index,
+                                      query,
+                                      pw126: pw126,
                                     ),
-                                  ],
-                                ],
+                                  ),
+                                ),
                               );
                             },
                           ),
@@ -259,6 +341,44 @@ class HomeView extends StatelessWidget {
                           // to `GavetaItem`, the drawer row each pill opens —
                           // the one place left that can still show it.
                           SizedBox(height: large ? 32 : (wide ? 26 : 20)),
+                          // **Os guias desta versão, e não os do site.**
+                          // Pedido do dono a 09/11/2026: guias em todas as
+                          // versões, cada uma com os seus. Hoje sete dos oito
+                          // são de 1.8.7 sem o dizerem, portanto o 1.2.6
+                          // recebe só o que fala do cliente do jogo — e a
+                          // porta *Todos os guias* dentro da secção é o que
+                          // o impede de ler como «este site tem um guia».
+                          //
+                          // A pílula *Guias* do cabeçalho continua a destacar
+                          // três entradas e não a listar isto: uma gaveta de
+                          // navegação diz nomes, esta secção vende o artigo
+                          // com a linha dele.
+                          _ComMargem(
+                            margem: margem,
+                            child: GuiasSecao(
+                              versao: pw126 ? rotas.pw126 : rotas.pw187,
+                              wide: wide,
+                            ),
+                          ),
+                          SizedBox(height: wide ? 26 : 20),
+                          // **As guerras, e os vídeos sem o mapa.** A maquete
+                          // desenhava os dois lado a lado; o painel do mapa
+                          // saiu por duas razões medidas a 10/11/2026 — os
+                          // territórios não mudam desde 18/08, e `/guerras/`
+                          // está `noindex` e foi retirada do site de
+                          // propósito a 29/09. Ver `GuerrasSecao`.
+                          //
+                          // Depois dos Guias e antes dos streamers: é
+                          // comunidade a mostrar o que fez, e pertence a esse
+                          // lado da página.
+                          _ComMargem(
+                            margem: margem,
+                            child: GuerrasSecao(
+                              versao: pw126 ? rotas.pw126 : rotas.pw187,
+                              wide: wide,
+                            ),
+                          ),
+                          SizedBox(height: wide ? 26 : 20),
                           // The closed news bar used to sit here, between the
                           // tools and the streamers — see the class doc above
                           // for what left with it on 01/10/2026 and what it
@@ -269,12 +389,21 @@ class HomeView extends StatelessWidget {
                           // Em cima disputaria com as ferramentas; no rodapé
                           // ninguém veria.
                           _ComMargem(
-                            wide: wide,
-                            child: AoVivoStrip(wide: wide),
+                            margem: margem,
+                            // **Só quem joga esta versão**, pedido do dono
+                            // a 09/11/2026. A versão vem do título da
+                            // transmissão e não de uma coluna: a Twitch só
+                            // diz *Perfect World*, e um título é reescrito a
+                            // cada transmissão, portanto quem muda de versão
+                            // muda sozinho.
+                            child: AoVivoStrip(
+                              wide: wide,
+                              versao: pw126 ? rotas.pw126 : rotas.pw187,
+                            ),
                           ),
                           SizedBox(height: wide ? 26 : 20),
                           _ComMargem(
-                            wide: wide,
+                            margem: margem,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
@@ -314,9 +443,9 @@ class HomeView extends StatelessWidget {
                           // page. It is the one block here nobody came for, so
                           // it goes last — but it is not hidden, because a
                           // hidden advert is a dishonest one.
-                          _ComMargem(wide: wide, child: const AdSlot()),
+                          _ComMargem(margem: margem, child: const AdSlot()),
                           SizedBox(height: wide ? 28 : 22),
-                          _ComMargem(wide: wide, child: const Rodape()),
+                          _ComMargem(margem: margem, child: const Rodape()),
                         ],
                       ),
                     ),
@@ -407,14 +536,20 @@ class _Aurora extends StatelessWidget {
 /// Cartaz along with the rest; wrapping each section individually is what
 /// lets the hero opt out.
 class _ComMargem extends StatelessWidget {
-  const _ComMargem({required this.wide, required this.child});
+  const _ComMargem({required this.margem, required this.child});
 
-  final bool wide;
+  /// **A margem vem de fora e não de uma bandeira.** Era `wide ? 40 : 20`, o
+  /// que juntava dois degraus de largura num só booleano — e quando o degrau
+  /// de cima passou a 1180 com os 24 px da maquete, um terceiro valor não
+  /// tinha por onde entrar. Quem conhece os três degraus é o `build` da
+  /// página; este widget só os aplica.
+  final double margem;
+
   final Widget child;
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.symmetric(horizontal: wide ? 40 : 20),
+    padding: EdgeInsets.symmetric(horizontal: margem),
     child: child,
   );
 }

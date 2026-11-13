@@ -104,9 +104,27 @@ String arteDoStreamer(String login) =>
     '/storage/v1/object/public/streamers/${login.toLowerCase()}.webp';
 
 class AoVivoStrip extends StatefulWidget {
-  const AoVivoStrip({required this.wide, super.key});
+  const AoVivoStrip({
+    required this.wide,
+    this.versao,
+    this.espacoAcima = 0,
+    super.key,
+  });
 
   final bool wide;
+
+  /// Qual página esta faixa está a servir — `1.8.7`, `1.2.6` — ou `null` na
+  /// raiz, que não é de versão nenhuma. Ver `transmiteAVersao`.
+  final String? versao;
+
+  /// Quanto respirar acima do título, **desenhado por dentro**.
+  ///
+  /// Parece um detalhe e não é: a faixa desaparece inteira quando ninguém
+  /// está ao vivo, e um `SizedBox` posto por fora ficaria lá a abrir um vão
+  /// sobre nada. Quem chama põe o espaço aqui e ele vai-se com a secção.
+  /// Na home o espaço é da página, que já alterna as suas próprias folgas;
+  /// na raiz é esta, porque ali a faixa é a última coisa antes do rodapé.
+  final double espacoAcima;
 
   @override
   State<AoVivoStrip> createState() => _AoVivoStripState();
@@ -209,7 +227,14 @@ class _AoVivoStripState extends State<AoVivoStrip> {
   @override
   Widget build(BuildContext context) =>
       BlocBuilder<AoVivoViewModel, List<CanalAoVivo>>(
-        builder: (context, canais) {
+        builder: (context, todos) {
+          // O cubit já respondeu *está ao vivo neste jogo*, que é igual em
+          // todas as telas. O que falta é *pertence a esta tela*, e é aqui
+          // que se sabe qual ela é.
+          final canais = [
+            for (final canal in todos)
+              if (transmiteAVersao(canal, widget.versao)) canal,
+          ];
           if (canais.isEmpty) return const SizedBox.shrink();
 
           final porPagina = _porPagina(widget.wide);
@@ -219,6 +244,7 @@ class _AoVivoStripState extends State<AoVivoStrip> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (widget.espacoAcima > 0) SizedBox(height: widget.espacoAcima),
               _Titulo(quantos: canais.length),
               SizedBox(height: widget.wide ? 12 : 10),
               MouseRegion(
@@ -272,6 +298,7 @@ class _AoVivoStripState extends State<AoVivoStrip> {
           if (i > 0) const SizedBox(width: 14),
           Expanded(
             child: CardDoStreamer(
+              versao: widget.versao,
               key: ValueKey('${cartoes[i].canal}-$pagina-$i'),
               canal: cartoes[i],
               wide: widget.wide,
@@ -636,10 +663,19 @@ class _Titulo extends StatelessWidget {
 }
 
 class CardDoStreamer extends StatefulWidget {
-  const CardDoStreamer({required this.canal, required this.wide, super.key});
+  const CardDoStreamer({
+    required this.canal,
+    required this.wide,
+    this.versao,
+    super.key,
+  });
 
   final CanalAoVivo canal;
   final bool wide;
+
+  /// A versão da **página**. Nula na raiz, e é lá que o chip da versão se
+  /// desenha — ver `_ChipDaVersao`.
+  final String? versao;
 
   @override
   State<CardDoStreamer> createState() => _CardDoStreamerState();
@@ -821,6 +857,16 @@ class _CardDoStreamerState extends State<CardDoStreamer> {
                 ),
               ),
             ),
+            // **A versão ao lado do nome, quando o título a diz.** Na raiz é
+            // a informação que falta — ali a faixa mostra toda a gente, de
+            // qualquer versão, e sem o chip um visitante do 1.2.6 não sabe
+            // que o canal aberto é de 1.4.4. Numa tela de versão todos os
+            // cartões a repetiriam, portanto ali não se desenha: a etiqueta
+            // diz o que difere do escopo da página, a mesma regra dos guias.
+            if (widget.versao == null) ...[
+              const SizedBox(width: 8),
+              ?_ChipDaVersao.para(canal.titulo),
+            ],
           ],
         ),
         if (abaixo.isNotEmpty) ...[
@@ -908,5 +954,38 @@ class _Placar extends StatelessWidget {
         ),
       ),
     ],
+  );
+}
+
+/// O chip que diz que versão a transmissão está a jogar.
+///
+/// `null` quando o título não a diz — e aí não se desenha nada, em vez de um
+/// *desconhecido* que ocuparia o mesmo espaço para não informar.
+class _ChipDaVersao extends StatelessWidget {
+  const _ChipDaVersao._(this.versao);
+
+  final String versao;
+
+  static Widget? para(String? titulo) {
+    final versao = versaoDaTransmissao(titulo);
+    return versao == null ? null : _ChipDaVersao._(versao);
+  }
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(5),
+      border: Border.all(color: PWColors.border),
+      color: PWColors.surfaceRaised,
+    ),
+    child: Text(
+      versao,
+      style: const TextStyle(
+        color: PWColors.textMuted,
+        fontSize: 10.5,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
   );
 }

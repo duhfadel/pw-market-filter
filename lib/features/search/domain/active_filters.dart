@@ -132,6 +132,17 @@ List<ActiveFilter> activeFilters(MarketIndex index, SearchQuery query) {
     add(pet, (q) => q.copyWith(pets: {...q.pets}..remove(pet)));
   }
 
+  final novos = query.novosEmDias;
+  if (novos != null) {
+    add(
+      novos == 1 ? 'entraram hoje' : 'entraram em $novos dias',
+      (q) => q.copyWith(novosEmDias: () => null),
+    );
+  }
+  if (query.soComQueda) {
+    add('baixaram o preço', (q) => q.copyWith(soComQueda: false));
+  }
+
   if (query.comboName != null) {
     // Tirar o combo tira o renascimento com ele: um «renascidas 2» sobre
     // combo nenhum é um filtro sem onde se mostrar.

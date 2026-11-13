@@ -68,80 +68,75 @@
        lista passou a ter runas e cartas, que não são sobre começar. Um título
        que descrevia o único guia que existia descreve mal a lista que ele
        virou. -->
-  <h1>Guias do PW Classic <span class="algarismos">1.8.7</span></h1>
+  <!-- **Chamava-se "Guias do PW Classic 1.8.7" e deixou de ser verdade a
+       09/11/2026**, quando a lista ganhou o filtro por versão e passou a
+       dizer a que versão cada guia serve. Sete dos oito são de 1.8.7 e o
+       título dizia-o por todos; a barra abaixo diz melhor, com números. -->
+  <h1>Guias do Portal PW</h1>
   <p class="resumo">
     O que o jogo não explica e a janela não diz: quanto custam as coisas, o
     que cada conjunto dá, e por onde se começa.
   </p>
 
-  <!-- Each guide is one <a class="guia">. Adding one is a copy of the block
-       below with the file name, the title and the one-line summary changed. -->
+  <!-- **A lista abaixo é gerada. Não a edite aqui.**
+
+       Acrescentar um guia é uma entrada em `lib/features/guias/domain/guia.dart`
+       seguida de `dart run tool/guias/pagina.dart`. Esta nota dizia o
+       contrário até 09/11/2026 — mandava copiar o bloco seguinte e trocar o
+       nome — e era verdade enquanto a lista era escrita à mão. Houve duas
+       listas de guias que não sabiam uma da outra, e um artigo publicado
+       ficou dias sem caminho a partir do site: a app lê agora a mesma
+       declaração que isto.
+
+       `test/guias/pagina_guias_test.dart` reprova se as duas discordarem. -->
   <div class="lista">
     <!-- INÍCIO DA LISTA -->
-    <!-- Primeiro da lista porque é o maior e o mais pedido agora: dezassete
-         páginas, uma por classe. O cartão aponta para o índice delas, nunca
-         para uma classe — quem chega não sabe qual quer até ver a tabela. -->
-    <a class="guia" href="/guias/saga-do-heroi/">
-      <span class="selo novo">novo</span>
+    <div class="filtro-versao" role="group" aria-label="Filtrar guias por versão">
+      <button type="button" class="chip-versao atual" aria-pressed="true" data-ver="todos">Todos <span class="conta">8</span></button>
+      <button type="button" class="chip-versao" aria-pressed="false" data-ver="1.8.7"><span class="algarismos">1.8.7</span> <span class="conta">8</span></button>
+      <button type="button" class="chip-versao" aria-pressed="false" data-ver="1.2.6"><span class="algarismos">1.2.6</span> <span class="conta">1</span></button>
+      <button type="button" class="chip-versao" aria-pressed="false" data-ver="1.4.4"><span class="algarismos">1.4.4</span> <span class="conta">1</span></button>
+    </div>
+
+    <a class="guia" href="/guias/saga-do-heroi/" data-versoes="1.8.7" data-publicado="2026-10-29">
       <div class="titulo">Saga do Herói: as <span class="algarismos">17</span> classes</div>
-      <div class="linha">
-        O mascote e o título de <span class="algarismos">+100</span> de HP de cada
-        classe, lado a lado — e uma página por saga com todas as missões e as
-        coordenadas.
-      </div>
+      <div class="linha">O mascote e o título de +<span class="algarismos">100</span> de HP de cada classe, lado a lado — e uma página por saga com todas as missões e as coordenadas.</div>
+      <div class="meta"><span class="versao"><span class="algarismos">1.8.7</span></span> · <span class="duracao"><span class="algarismos">17</span> classes, uma página cada</span></div>
     </a>
-
-    <a class="guia" href="inicio-rapido">
+    <a class="guia" href="/guias/inicio-rapido" data-versoes="1.8.7" data-publicado="2026-08-16">
       <div class="titulo">Início rápido</div>
-      <div class="linha">
-        Como ganhar nível: as quests vermelhas, o Vale da Fênix e as Anedotas.
-      </div>
+      <div class="linha">Como ganhar nível: as quests vermelhas, o Vale da Fênix e as Anedotas.</div>
+      <div class="meta"><span class="versao"><span class="algarismos">1.8.7</span></span> · <span class="duracao"><span class="algarismos">5</span> min de leitura</span></div>
     </a>
-
-    <a class="guia" href="/guias/runas">
-      <span class="selo novo">novo</span>
-      <div class="titulo">Quanto custa uma runa nível 10</div>
-      <div class="linha">
-        São 648.000 runas nível 1, ou 125 runas nível 7 na consignação. E
-        dois degraus da escada custam o dobro dos vizinhos — a janela de fusão
-        não diz nenhuma das duas coisas.
-      </div>
+    <a class="guia" href="/guias/runas" data-versoes="1.8.7" data-publicado="2026-10-22">
+      <div class="titulo">Quanto custa uma runa nível <span class="algarismos">10</span></div>
+      <div class="linha">São <span class="algarismos">648.000</span> runas nível <span class="algarismos">1</span>, ou <span class="algarismos">125</span> runas nível <span class="algarismos">7</span> na consignação. E dois degraus da escada custam o dobro dos vizinhos — a janela de fusão não diz nenhuma das duas coisas.</div>
+      <div class="meta"><span class="versao"><span class="algarismos">1.8.7</span></span> · <span class="duracao"><span class="algarismos">5</span> min de leitura</span></div>
     </a>
-
-    <a class="guia" href="/guias/cartas-nuema">
-      <span class="selo novo">novo</span>
+    <a class="guia" href="/guias/cartas-nuema" data-versoes="1.8.7" data-publicado="2026-10-23">
       <div class="titulo">Cartas Nuema</div>
-      <div class="linha">
-        As seis cartas S do conjunto Portal de Nuema, o que elas dobram, e as
-        três maneiras de consegui-las.
-      </div>
+      <div class="linha">As seis cartas S do conjunto Portal de Nuema, o que elas dobram, e as três maneiras de consegui-las.</div>
+      <div class="meta"><span class="versao"><span class="algarismos">1.8.7</span></span> · <span class="duracao"><span class="algarismos">4</span> min de leitura</span></div>
     </a>
-
-    <a class="guia" href="/guias/astrolabio">
-      <span class="selo novo">novo</span>
+    <a class="guia" href="/guias/astrolabio" data-versoes="1.8.7" data-publicado="2026-10-28">
       <div class="titulo">O astrolábio, do primeiro ao nível máximo</div>
-      <div class="linha">
-        As três barras, os quatro botões, a parede do nível 50 — e onde não
-        desperdiçar pérola nem poeira.
-      </div>
+      <div class="linha">As três barras, os quatro botões, a parede do nível <span class="algarismos">50</span> — e onde não desperdiçar pérola nem poeira.</div>
+      <div class="meta"><span class="versao"><span class="algarismos">1.8.7</span></span> · <span class="duracao"><span class="algarismos">6</span> min de leitura</span></div>
     </a>
-
-    <a class="guia" href="/guias/conduite">
-      <span class="selo novo">novo</span>
+    <a class="guia" href="/multicontas" data-versoes="1.8.7,1.2.6,1.4.4" data-publicado="2026-10-05">
+      <div class="titulo">Multi contas</div>
+      <div class="linha">Jogar com mais de um cliente aberto: para que serve um segundo personagem e o que é preciso para o aguentar.</div>
+      <div class="meta"><span class="versao">todas as versões</span> · <span class="duracao"><span class="algarismos">4</span> min de leitura</span></div>
+    </a>
+    <a class="guia" href="/guias/conduite" data-versoes="1.8.7" data-publicado="2026-10-27">
       <div class="titulo">O conduíte, do começo ao nível máximo</div>
-      <div class="linha">
-        Como subir, o que escolher em cada nível, e por que os níveis 50 e 100
-        valem mais que todos os outros juntos.
-      </div>
+      <div class="linha">Como subir, o que escolher em cada nível, e por que os níveis <span class="algarismos">50</span> e <span class="algarismos">100</span> valem mais que todos os outros juntos.</div>
+      <div class="meta"><span class="versao"><span class="algarismos">1.8.7</span></span> · <span class="duracao"><span class="algarismos">5</span> min de leitura</span></div>
     </a>
-
-    <a class="guia" href="/guias/quests-diarias">
-      <span class="selo novo">novo</span>
+    <a class="guia" href="/guias/quests-diarias" data-versoes="1.8.7" data-publicado="2026-10-27">
       <div class="titulo">Quests diárias</div>
-      <div class="linha">
-        As mais fáceis e com melhor retorno, para fechar o dia em menos de uma
-        hora — incluindo a que só funciona num personagem por IP.
-      </div>
+      <div class="linha">As mais fáceis e com melhor retorno, para fechar o dia em menos de uma hora — incluindo a que só funciona num personagem por IP.</div>
+      <div class="meta"><span class="versao"><span class="algarismos">1.8.7</span></span> · <span class="duracao"><span class="algarismos">2</span> min de leitura</span></div>
     </a>
     <!-- FIM DA LISTA -->
   </div>
@@ -159,6 +154,62 @@
     <a href="/privacidade/">Privacidade</a> &middot; <a href="/">Voltar ao Portal</a>
   </p>
 </footer>
+
+<script>
+  // O filtro por versão. **Esconde e nunca reordena**, pela mesma razão que a
+  // grelha dos Títulos esmaece em vez de remover: quem está a comparar a
+  // lista com o que joga não quer que as cartas saltem de lugar.
+  //
+  // **Sem JavaScript a página fica como está**, com os oito guias à vista e
+  // os botões inertes. Era o contrário se o filtro nascesse aplicado: aí uma
+  // página sem script mostraria uma lista cortada e nada diria porquê.
+  (function () {
+    // **O selo de novo é desenhado aqui e não no gerador**, e a razão é que
+    // numa página estática o relógio de quem visita é o único relógio que há.
+    // Gerado, ele ficaria gravado em HTML e o ficheiro em disco passaria a
+    // discordar da regeneração no dia em que o primeiro expirasse — um teste
+    // a falhar pelo calendário e não por defeito.
+    //
+    // Trinta dias, o mesmo número que `Guia.duracaoDoSelo` usa no lado da
+    // app. São dois sítios a dizer trinta, o que é o preço de a app e uma
+    // página estática não poderem partilhar código; o número está escrito
+    // nos dois com esta nota a dizer que são um par.
+    var UM_MES = 30 * 24 * 60 * 60 * 1000;
+    var agora = Date.now();
+    var cartoes = document.querySelectorAll('.guia[data-publicado]');
+    for (var k = 0; k < cartoes.length; k++) {
+      var quando = Date.parse(cartoes[k].dataset.publicado);
+      if (isNaN(quando) || agora - quando >= UM_MES) continue;
+      var selo = document.createElement('span');
+      selo.className = 'selo novo';
+      selo.textContent = 'novo';
+      cartoes[k].insertBefore(selo, cartoes[k].firstChild);
+    }
+
+    var chips = document.querySelectorAll('.chip-versao');
+    var cartas = document.querySelectorAll('.guia[data-versoes]');
+
+    function filtrar(versao) {
+      for (var i = 0; i < cartas.length; i++) {
+        var serve = versao === 'todos' ||
+          cartas[i].dataset.versoes.split(',').indexOf(versao) >= 0;
+        cartas[i].hidden = !serve;
+      }
+    }
+
+    for (var i = 0; i < chips.length; i++) {
+      chips[i].addEventListener('click', function (e) {
+        var alvo = e.currentTarget;
+        for (var j = 0; j < chips.length; j++) {
+          var escolhido = chips[j] === alvo;
+          chips[j].classList.toggle('atual', escolhido);
+          chips[j].setAttribute('aria-pressed', escolhido ? 'true' : 'false');
+        }
+        filtrar(alvo.dataset.ver);
+      });
+    }
+  })();
+</script>
 
 </body>
 </html>

@@ -42,8 +42,9 @@ class ActiveFilterChips extends StatelessWidget {
                 filters.length == 1 ? '1 FILTRO' : '${filters.length} FILTROS',
                 style: const TextStyle(
                   color: PWColors.textMuted,
-                  fontSize: 10,
-                  letterSpacing: 1.3,
+                  // `.ptopo b { font-size:11px; letter-spacing:.14em }`.
+                  fontSize: 11,
+                  letterSpacing: 1.5,
                   fontWeight: FontWeight.w700,
                 ),
               ),

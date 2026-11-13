@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FontLoader, rootBundle;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/core/theme/pw_theme.dart';
+import 'package:pw_market_filter/core/theme/pw_colors.dart';
 import 'package:pw_market_filter/features/home/ui/widgets/destaques_view.dart';
 import 'package:pw_market_filter/features/search/domain/search_query.dart';
 import 'package:pw_market_filter/market/market_index.dart';
@@ -132,12 +133,21 @@ void main() {
     SearchQuery? pedida;
     await _montar(tester, index: index, onAbrir: (q) => pedida = q);
 
-    await tester.tap(find.byType(InkWell).at(0));
+    // **Dentro da grelha, nunca `InkWell` da tela inteira.** A cabeça da
+    // secção tem a sua própria porta — `ver todos →` — e ela é o primeiro
+    // `InkWell` a ser montado, portanto um índice absoluto passou a apontar
+    // para o sítio errado no dia em que a cabeça entrou.
+    final cartas = find.descendant(
+      of: find.byType(GridView),
+      matching: find.byType(InkWell),
+    );
+
+    await tester.tap(cartas.at(0));
     final primeira = pedida;
     expect(primeira, isNotNull);
     expect(primeira!.criteria, isEmpty);
 
-    await tester.tap(find.byType(InkWell).at(1));
+    await tester.tap(cartas.at(1));
     final segunda = pedida;
     expect(segunda, isNotNull);
     expect(segunda!.criteria, hasLength(1));
@@ -219,6 +229,83 @@ void main() {
 
     expect(find.byType(GridView), findsOneWidget);
   });
+  testWidgets('o card desenha o recorte, nunca a cena pintada', (tester) async {
+    // **São duas artes diferentes e não a mesma com e sem fundo.** A vertical
+    // é uma cena pintada, e usá-la aqui traria o céu dela por trás da figura
+    // — que é exactamente o que este card deixou de fazer a 09/11/2026, para
+    // o degradê do patamar poder ser o fundo. Um `Image.asset` que voltasse
+    // ao caminho antigo tapava o degradê inteiro e nada na suíte diria.
+    await _montar(tester, index: indiceDeTeste());
+
+    final caminhos = tester
+        .widgetList<Image>(find.byType(Image))
+        .map((i) => (i.image as AssetImage).assetName)
+        .toList();
+
+    expect(caminhos, isNotEmpty);
+    for (final caminho in caminhos) {
+      expect(caminho, contains('classes-recorte'));
+      expect(caminho, isNot(contains('classes-verticais')));
+    }
+  });
+
+  testWidgets('o fundo é a cor do patamar da arma que a pessoa veste', (
+    tester,
+  ) async {
+    // A cor tem de vir de `weaponTierColor` e não da categoria que trouxe a
+    // pessoa ao ecrã — o plano original pintava a carta da arma de 70 com a
+    // cor de um 40, e o card teria ensinado a cor errada à grelha para onde
+    // manda clicar. Aqui: quem veste 80 de ataque desenha o vermelho do topo.
+    await _montar(tester, index: indiceDeTeste());
+
+    final gradientes = tester
+        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+        .map((d) => (d.decoration as BoxDecoration).gradient)
+        .whereType<LinearGradient>()
+        .expand((g) => g.colors)
+        .map((c) => c.withValues(alpha: 1))
+        .toSet();
+
+    expect(gradientes, contains(PWColors.gradeColors[6]));
+    expect(gradientes, contains(PWColors.defenceTier));
+  });
+
+  testWidgets('sem patamar não há degradê nenhum', (tester) async {
+    // **A omissão é a verdade, não um descuido.** As categorias que trazem
+    // alguém sem arma de nota — o mais barato, quem mais carrega Chave da
+    // Sorte — não podem receber uma cor emprestada: é a mesma decisão que a
+    // moldura da grelha do filtro já carrega, e a razão por que o patamar 30
+    // não pinta nada.
+    final semArma = MarketIndex(
+      server: 'pw187',
+      collectedAt: DateTime.utc(2026, 10, 1),
+      attributes: const ['Nível de Ataque', 'Nível de Defesa'],
+      items: const {},
+      characters: [
+        _personagem('barato', 100, 'Guerreiro'),
+        _personagem('caro', 9000, 'Mago'),
+      ],
+    );
+
+    await _montar(tester, index: semArma);
+
+    final gradientes = tester
+        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+        .map((d) => (d.decoration as BoxDecoration).gradient)
+        .whereType<LinearGradient>()
+        .expand((g) => g.colors)
+        .toList();
+
+    // O véu é o único degradê que sobra, e ele é noite sobre transparente.
+    for (final cor in gradientes) {
+      expect(
+        cor.withValues(alpha: 1),
+        anyOf(PWColors.noite, const Color(0x00000000).withValues(alpha: 1)),
+        reason: 'uma cor de patamar apareceu num mercado sem patamar nenhum',
+      );
+    }
+  });
+
   testWidgets('the veil is dark where the footer text begins', (tester) async {
     // The defect this pins shipped once and was caught by eye, not by the
     // suite: the veil stayed clear until 62% of the card, the label is the
@@ -279,6 +366,44 @@ void main() {
           'the label sits at ${(ondeOTextoComeca * 100).round()}% of the card '
           'and the veil is barely there — it will land on the artwork',
     );
+  });
+
+  testWidgets('a cabeça diz o que a grelha é, e a porta abre o mercado todo', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    SearchQuery? pedida;
+    await _montar(tester, index: indiceDeTeste(), onAbrir: (q) => pedida = q);
+
+    // Cinco categorias respondem neste índice, e o título conta — não crava
+    // «Seis», que seria falso aqui e no 1.2.6, onde são duas.
+    expect(find.text('CINCO PORTAS PARA O MERCADO'), findsOneWidget);
+
+    await tester.tap(find.text('ver todos →'));
+    expect(pedida, isNotNull);
+    expect(pedida!.isEmpty, isTrue, reason: 'ver todos não pede nada');
+  });
+
+  testWidgets('no telemóvel a cabeça fica sem porta, e não transborda', (
+    tester,
+  ) async {
+    // Medido com as fontes reais: `SEIS PORTAS PARA O MERCADO` são 258 px e
+    // `ver todos →` são 143, o que com os dois vãos dá 441 contra os ~350 de
+    // um ecrã de 390. Transbordava 72 px — e o que se perde no estreito é
+    // pouco, porque a fila rola de lado com a última carta cortada a dizer
+    // que há mais.
+    tester.view.physicalSize = const Size(390, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await _montar(tester, index: indiceDeTeste(), wide: false);
+
+    expect(find.textContaining('PORTAS PARA O MERCADO'), findsOneWidget);
+    expect(find.text('ver todos →'), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 }
 

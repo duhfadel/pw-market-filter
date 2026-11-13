@@ -144,8 +144,10 @@ both legendary pets and has renamed both).
 | `dart run tool/fetch_icons.dart` | Downloads class and item icons named by the index; skips what is already on disk |
 | `dart run tool/build_fixture_index.dart` | Builds an index from the saved fixtures — no network, for working on the screen |
 | `python3 tool/mapa/pagina.py` | Rebuilds both pages of `web/guerras/` from the map's SVG and the models in `tool/mapa/` |
+| `dart run tool/guias/pagina.dart` | Reescreve a lista de `web/guias/index.html` a partir da declaração dos guias |
 | `python3 tool/registros/semear.py` | Reads the registries spreadsheet and writes the SQL that seeds the table — one-off, already run |
 | `gh workflow run publish.yml` | Collects and publishes now, when the schedule has gone quiet |
+| `python3 tool/servir.py` | Serve `build/web` como o GitHub Pages serve — endereços sem extensão incluídos |
 | `flutter run -d chrome` | Runs the app |
 | `flutter test` | Runs every test |
 | `flutter analyze` | Static analysis |
@@ -1022,11 +1024,11 @@ entre 31 e 79**, e 80 em oito pessoas.
 
 Daí as duas correções de 29/09, as duas na mão do dono:
 
-**O 30 não desenha nada.** Era um degrau e era o pior lugar para gastar uma
-cor: 212 personagens no patamar mais barato que o jogo imprime. Moldura serve
-para distinguir a grade, e o fundo do mercado não precisa de um selo dizendo
-que é o fundo — a borda cinza já diz. O bloco cinza vai de 16% a 30% da grade,
-e é isso mesmo que se quer.
+**O 30 não desenhava nada** — e isto foi revertido a 09/11/2026, ver
+*A escada remedida* abaixo. O argumento de então: era o pior lugar para gastar
+uma cor, 212 personagens no patamar mais barato que o jogo imprime, e o fundo
+do mercado não precisa de um selo dizendo que é o fundo. O que o derrubou não
+foi o argumento ter envelhecido mal — foi o fundo ter deixado de ser um canto.
 
 **A UP5 defensiva tem cor própria, `PWColors.defenceTier`.** Não é um degrau:
 é o mesmo topo comprado na outra moeda, e quem caça arma defensiva não está
@@ -1045,15 +1047,76 @@ A defesa é perguntada **primeiro**, para que as oito nunca caiam na escada de
 ataque. São disjuntas hoje; uma ordem que só funciona enquanto isso valer é
 uma ordem esperando para quebrar.
 
-E a moldura ganhou o teste que nunca teve. `weapon_tier_test` crava os quatro
-degraus, o degrau defensivo, o 30 que não pinta, o ruído de defesa até 30, que
-só a arma fala pela moldura, e uma coleta que nunca viu o atributo. Oito
-pessoas em 1519 é um caso que ninguém encontra rolando a página.
+E a moldura ganhou o teste que nunca teve. `weapon_tier_test` crava os
+degraus, o degrau defensivo, o ruído de defesa até 30, que só a arma fala pela
+moldura, e uma coleta que nunca viu o atributo. Oito pessoas em 1519 é um caso
+que ninguém encontra rolando a página.
 
 **Os degraus são espalhados pela paleta, não tomados em ordem.** A primeira
 versão usou os graus 5 e 4 — laranja e âmbar, vizinhos — e na grade **o UP5 e
 o 70 saíram da mesma cor**, justamente a distinção que mais importa aqui. Só
 apareceu renderizando. O vermelho encabeça a escada do jogo e ficou com o topo.
+
+### A escada remedida, a 09/11/2026: o âmbar saiu e o fundo ganhou azul
+
+**A escada mudou de forma debaixo de nós.** Sobre os 2.486 anúncios de 23/10,
+contra os 1519 de Setembro:
+
+| o que a arma dá | quantos | fatia |
+|---|---|---|
+| 70 a 79 | 1107 | **44,5%** |
+| 40 a 69 | 511 | 20,6% |
+| nível de ataque nenhum | 409 | 16,5% |
+| 30 | 337 | 13,6% |
+| 80 de ataque | 52 | 2,1% |
+| 80 de defesa | 40 | 1,6% |
+
+**O 70 é hoje o card mais vulgar da grelha, e perdeu o âmbar por isso.** Dar a
+cor mais quente da paleta à coisa mais comum que ali existe é dizer *raro*
+sobre o normal, e o dono tinha previsto a mudança: *«cada vez mais, as armas
+do 70 serao mais normais»*. Ficou com o roxo que era do 40-69.
+
+**E o âmbar tinha um defeito que só se vê medindo: era a cor do dinheiro.**
+`PWColors.accent` é `#FFB454` e `gradeColors` grau 4 é `#FFB454` — **o mesmo
+byte**. A moldura de 44,5% da grelha era a mesma cor do preço que ela tinha ao
+lado, e isso esteve no ar seis semanas sem ninguém dar por ele, porque nada
+compara duas constantes que nunca aparecem na mesma linha.
+
+**O fundo da escada passou a pintar de azul, e os três degraus de baixo
+fundiram-se num.** O 30, o 40-69 e a arma que não publica nível nenhum são
+agora `PatamarDaArma.baixo`. Isto reverte a decisão de 29/09 e reverte-a
+porque o fundo deixou de ser um canto: juntos são **51,8%** da grelha.
+
+**Os 412 sem nível entram no azul por decisão do dono, contra a
+recomendação.** Eu propus deixá-los sem cor: a `★★★Geada Tardia` é rank 4 e
+não dá nível de ataque, portanto o azul ali afirma *fundo da escada* sobre uma
+coisa que ninguém mediu — a regra pela qual um conduíte sem atributo não
+desenha zero. O argumento dele ganha e vale guardar: **numa grelha em que
+alguma cor é a norma, a ausência de cor lê-se como card partido e não como
+reserva.**
+
+**`null` e `baixo` continuam a ser coisas diferentes**, e é isso que salva a
+honestidade do resto. `baixo` quer dizer *lemos a arma e ela não chega aos
+70*; `null` quer dizer *não há arma, ou esta coleta nem conhece o atributo* —
+que é o 1.2.6 inteiro, cujo índice não publica `Nível de Ataque`. Juntá-los
+poria borda azul em 1.426 personagens a afirmar um degrau que aquele mercado
+nunca mediu.
+
+**Só `baixo` não tinge o fundo.** Um degrau que metade do mercado ocupa não
+pode falar tão alto como os 3,7% que são 80: a borda diz *isto foi lido e é o
+fundo*, e o fundo liso diz *não há mais nada a acrescentar*. É por isso que o
+patamar passou a ser um tipo com dois campos em vez de uma cor solta — e
+`Destaque` guarda o degrau, nunca a cor, porque um segundo campo `pinta` ao
+lado de `cor` seria o mesmo facto escrito duas vezes.
+
+**O azul é o par mais apertado da paleta, e isso entrou de olhos abertos.** A
+medição de 29/09 continua verdadeira: composto a 55% sobre `surface`, o azul
+`#56A8F5` fica a **27,9 ΔE** do roxo, a menor distância de toda a escada — e
+agora esses dois cobrem 96% da grelha. O que o desmede é a renderização: são
+matizes diferentes e num filete de 2 px separam-se bem. **Foi desenhado antes
+de ser escolhido**, que é a correção da armadilha que pegou a primeira versão
+da escada — e é também a lição ao contrário, de que um ΔE pequeno entre
+matizes distintos subestima o que o olho faz num traço fino.
 
 O degradê entra a 10% pelo canto superior esquerdo e morre antes do texto: o
 bastante para a grade se organizar de relance, não o bastante para brigar com
@@ -1236,48 +1299,61 @@ mais abaixo nesta mesma página — e virou um link direto que rola a página at
 lá (`Scrollable.ensureVisible`), em vez de um menu que abriria para mostrar
 uma entrada só.
 
-## A arte das classes existe em dois tamanhos, e só o Cartaz pede o grande
+## A arte das classes: uma cena pintada e um recorte
 
-`arteVerticalDaClasse` resolve `classes-verticais/480/` ou `/960/` conforme
-quem desenha — **duas pastas e uma regra de endereço, não duas listas de
-ficheiros**, o mesmo arranjo do ícone de item derivado do id. Acrescentar um
-terceiro tamanho não toca na tabela de classes.
+São **duas ilustrações por classe e não duas cópias da mesma**, e confundi-las
+é como alguém as "arruma" apagando uma:
 
-**O Cartaz é o único chamador que amplia a arte, e é por isso que o parâmetro
-existe.** A caixa dele é da largura da página por 360 px, com `BoxFit.cover`,
-portanto numa página de 1280 px uma fonte de 480 é esticada **2,67×** — 5,3×
-em `DPR 2`. Os Destaques a seis colunas dão ~120 px por carta e as Portas
-menos: ali 480 já é quatro vezes o que o ecrã mostra, e servir 960 seria
-pagar por píxeis que ninguém vê.
+| pasta | o que é | quem a desenha |
+|---|---|---|
+| `classes-verticais/960/` | a cena pintada, 960×1440 | o `PalcoDeClasse` — o Cartaz e o herói da raiz |
+| `classes-recorte/` | a arte do marketplace deles, já sem fundo, 560×~540 | os seis Destaques |
 
-**A conta que decidiu, por visita de home** — uma classe para o Cartaz e seis
-para os Destaques, sete ficheiros:
+**As verticais não dão recorte, e isso foi medido a 09/11/2026.** Não têm
+canal alfa e não têm fundo chapado: os quatro cantos de cada uma discordam
+entre si até **209 de 255**. Só o Bárbaro e o Paladino têm fundo liso. E há
+pior do que técnica — **em quinze das dezassete o efeito do próprio
+personagem *é* o fundo**: o gelo que envolve o Bardo, o fogo em volta da
+Feiticeira. Ali «só o personagem» não tem fronteira definida, e qualquer
+recorte ou come a magia dele ou traz um pedaço de céu junto.
 
-| | por visita |
-|---|---|
-| tudo a 480, como estava | 373 KB |
-| tudo a 960 | 1009 KB |
-| 1×960 + 6×480, o que ficou | **464 KB** |
+Os recortes vieram de outro lado: são a arte que o marketplace deles publica
+em `marketplace.theclassic.games/assets/img/<ocupacao>.png`, buscada em
+Novembro para as páginas da Saga do Herói, com 51% a 81% de transparência. A
+casa é `assets/images/classes-recorte/` e `tool/sagas/pagina.py` escreve a
+cópia que as páginas estáticas servem; `recorte_da_classe_test` crava que as
+duas pastas são byte a byte iguais. Substituir só uma delas deixava a página
+da Saga e o card a mostrar artes diferentes da mesma classe, sem erro nenhum
+— que é a forma com que a arte do Ceifador já se perdeu uma vez.
 
-**As artes novas são fonte verdadeira e isso foi medido, não suposto.**
-Energia de borda das de 960 contra as nossas de 480 ampliadas para o mesmo
-tamanho: **1,94× de média** sobre as dezassete. Um upscale daria 1,00×. E são
-a mesma arte, não outra — o espiritualista, que mais se destacou, tem 9,5/255
-de diferença média por canal à mesma escala.
+**O tamanho de 480 saiu a 10/11/2026.** Havia duas pastas de verticais e um
+parâmetro a escolher entre elas, porque só o Cartaz ampliava; quando os
+Destaques passaram ao recorte, a de 480 ficou sem chamador — 906 KB que a app
+não desenhava. **Não se perdeu arte: era a mesma cena em metade do tamanho.**
+Medido antes de apagar, reduzindo cada 960 a 480 e comparando píxel a píxel,
+a diferença média é **5,2 em 255**, com o pior caso no espiritualista a 9,5 —
+compressão, não desenho diferente. Se um cartão voltar a querer a cena
+pintada em pequeno, sai das de 960 com um `cwebp` e sem rede.
+
+**As de 960 são fonte verdadeira e isso também foi medido, não suposto.**
+Energia de borda contra as de 480 ampliadas ao mesmo tamanho: **1,94× de
+média** sobre as dezassete. Um upscale daria 1,00×.
 
 **Chegaram como `pw-01..17` e o emparelhamento é por ordem alfabética**, o
 que foi confirmado por assinatura de 16×16 antes de renomear: distância 1 a 6
 contra a classe certa, 45 a 85 contra a segunda melhor. Não se adivinhou.
 
 **Três testes guardam isto, e o segundo é o que não é óbvio.** Que toda a arte
-declarada existe em disco nos dois tamanhos — `errorBuilder` engole o 404 de
-propósito, para uma classe sem arte desenhar o chão em vez de uma caixa
-partida, e é isso mesmo que torna a falta invisível. Que **cada ficheiro tem a
-largura que o nome da pasta promete**, lida do cabeçalho WebP: um 480 guardado
-em `960/` serviria metade dos píxeis sob um nome que promete o dobro, e nada na
-página diria, porque `BoxFit.cover` estica o que lhe derem. E que o Cartaz
-continua a ser o único a pedir o tamanho grande, para um segundo chamador ser
-uma decisão e não um descuido.
+declarada existe em disco — `errorBuilder` engole o 404 de propósito, para
+uma classe sem arte desenhar o chão em vez de uma caixa partida, e é isso
+mesmo que torna a falta invisível. Que **o ficheiro tem a largura que o nome
+da pasta promete**, lida do cabeçalho WebP: um 480 guardado em `960/` serviria
+metade dos píxeis sob um nome que promete o dobro, e nada na página diria,
+porque `BoxFit.cover` estica o que lhe derem — e isto ficou *mais* importante
+depois de o segundo tamanho sair, porque já não há outro a desmentir um
+ficheiro trocado. E que a vertical tem **um chamador só**, para um segundo ser
+uma decisão e não um descuido: qualquer cartão que a queira está a pedir
+quatro vezes os píxeis que mostra, e o que lhe serve é o recorte.
 
 **E o teste do Cartaz cravava o caminho à mão**, portanto quebrou no dia em
 que a pasta mudou. Lê da função agora — um caminho escrito num teste é o
@@ -1352,6 +1428,461 @@ número gastaria setenta minutos da rede deles para não aprender nada — é
 exactamente o caso para que o carimbo deixou de ser um só. A conta contra o
 `timeout` foi refeita no mesmo commit, que é o momento em que ela tem de ser
 refeita e não o momento em que falha.
+
+## A camada visual da raiz, e o que ela custou
+
+A arquitectura da raiz foi construída primeiro e o visual depois, e isso foi
+uma decisão minha que não ficou dita na altura — o dono apontou-a com uma
+frase: *«Tá bem diferente da maquete, nao?»*. Estava: as secções certas
+enxertadas no invólucro antigo.
+
+**`PalcoDeClasse` saiu do `Cartaz`.** O dispositivo — arte de classe a sangrar,
+duas lavagens por cima, conteúdo no espaço vazio — é o mesmo na home de uma
+versão e no herói da raiz; o que muda é a altura e o texto. Era a quinta vez
+que uma cópia se ia justificar neste ficheiro.
+
+**A arte encosta-se à direita no herói, e isso veio de renderizar.** A fonte é
+um retrato 480×720. No `Cartaz`, de 1040×360, o `cover` ainda mostra figura; no
+herói, mais largo, ampliava uma fatia vertical até sobrar cabelo e pano **sem
+cara** — a mesma armadilha que o card de largura inteira já pagou na saia do
+sacerdote. Encostada, cortava a pique como uma imagem colada, e precisou de
+desvanecer à esquerda e nas bordas de cima e de baixo.
+
+**E no telemóvel a arte encostada é errada.** A 390 px o painel 2:3 ocupa quase
+a largura toda e a manchete caía em cima da figura. No estreito volta ao
+enquadramento que o `Cartaz` já prova a 340 px. **Os três defeitos deste bloco
+só apareceram no navegador**, nenhum deles numa suíte verde.
+
+**A classe do herói sai das seis clássicas**, o que fecha uma pergunta que a
+spec deixou aberta: elas existem nas três versões, portanto nenhuma promete em
+arte um mercado onde não se pode entrar. Deriva da data da coleta, nunca do
+relógio.
+
+**A barra assenta sobre a arte** (`extendBodyBehindAppBar`), só na raiz: nas
+telas de versão o que fica por baixo dela é a página e não uma imagem.
+
+### Ler o CSS da maquete, em vez de o deduzir
+
+Houve três voltas no herói e duas foram erradas, pela mesma causa: eu
+**deduzi** o enquadramento em vez de o ler. A maquete está em disco e o CSS
+dela diz tudo em quatro linhas.
+
+```css
+.heroi     { min-height: min(86vh, 760px); display:flex; align-items:center }
+.arteheroi { inset:0; width:100%; height:100%; object-fit:cover;
+             object-position:76% 20% }
+.veu       { linear-gradient(100deg, #0B0B1A 4%, rgba(11,11,26,.86) 36%,
+                             rgba(11,11,26,.1) 66%, rgba(11,11,26,.5) 100%) }
+.veu2      { linear-gradient(to top, #0B0B1A, transparent 34%) }
+.heroi h1  { font-size: clamp(38px,5.6vw,68px); line-height:1.08 }
+.heroi p   { max-width:46ch; font-size:16.5px }
+```
+
+**A arte cobre a largura toda.** Eu tinha experimentado `cover` com o
+Arqueiro, visto cabelo e pano sem cara, e concluído que não servia num herói
+largo — a conclusão certa teria sido que o **enquadramento** estava mal.
+Daí saiu um painel encostado à direita, que o dono viu como errado à primeira.
+
+`object-position: 20%` traduz-se em `Alignment.y = 2 × 0,20 − 1 = −0,6`. A
+regra geral vale para qualquer porte futuro.
+
+**A manchete tem tecto e a sub-linha tem o dela.** Com um tecto único a
+manchete corria até *«As contas que o»* em vez de *«As contas que»*, e essa
+sílaba a mais punha-a em cima da cara da figura — a única parte da dobra que
+não pode ter texto por cima.
+
+**E o `--noite` da maquete é `#0B0B1A`, que aqui se chama `background`.**
+`PWColors.noite` é `#12102A`, cinco pontos de luminância mais claro. Com o
+nome errado o herói saía uniformemente mais claro: **+4 a +12 em todos os
+pontos medidos**, que é a assinatura de um desvio constante e não de um
+gradiente mal montado.
+
+**A medição que fechou isto, e o erro que ela apanhou primeiro.** Comparar
+píxel a píxel deu 32/255 de diferença média — e eram **os meus recortes que
+estavam desalinhados**, não as páginas. Pedindo ao DOM a caixa exacta do
+herói (`getBoundingClientRect`), a mesma comparação deu 14, e depois da cor
+**10,9 de média e 3,3 de mediana** — 1,3%. A lição é a de sempre neste
+ficheiro: *uma medição que contradiz o sistema é primeiro suspeita da
+medição.*
+
+### O herói usa sempre o Guerreiro, e a rotação saiu
+
+Era rotativo como o `Cartaz`, e o argumento era bom: duas visitas não abrem a
+mesma página. O dono pôs a maquete ao lado do que estava no ar e disse **«usa
+a mesma imagem»** — e tem razão por uma razão que o argumento antigo não
+pesava.
+
+**A porta da frente não ganha nada em mudar de cara.** O `Cartaz` roda dentro
+de um mercado, para quem já entrou; a raiz é o primeiro ecrã de quem nunca viu
+o site, e a arte é metade do que ele vai lembrar. Cinco das seis classes dariam
+uma dobra diferente da que foi desenhada e aprovada — e a arte fria do Arqueiro,
+que foi a que calhou ao comparar, dá uma página visivelmente mais pobre do que
+a quente do Guerreiro. `classeDe` fica, e é o que mantém a rotação a um
+parâmetro de distância.
+
+**O painel da arte é uma fracção da largura e não o formato da fonte.** A
+primeira versão prendeu-o a 2:3, o que o deixava com um quarto da dobra e os
+outros três quartos vazios — era essa a diferença que o dono viu. A 58% com
+`cover`, a figura é cortada pelos pés em vez de espremida, que é o corte certo
+para artes com a cara no quinto superior. E a altura foi a 750 px, a da
+maquete: a esta altura o herói ocupa a dobra quase inteira, que é o que o torna
+um herói em vez de uma faixa.
+
+### A pílula *Guias* voltou à raiz, e a bandeira virou aritmética
+
+`Cabecalho` escondia as duas secções na raiz com `semMercado`, posto à mão a
+27/10/2026 porque `rotaDaTool` sem versão cai no 1.8.7 e clicar ali escolhia o
+mercado em silêncio. **A bandeira resolvia o defeito e não sabia porque
+existia**: no dia em que uma secção deixasse de ter entradas presas a um
+mercado, continuaria escondida.
+
+`secaoServeSemMercado` deriva-o agora, e a pergunta é **sobre o destino e não
+sobre `Tool.versoes`** — a primeira versão olhou para o campo errado e o
+exemplo que a desmente estava à vista: *Todos os guias* declara-se de 1.8.7 e é
+literalmente a lista das três versões. `versoes` diz em que menus a entrada
+aparece; o que escolhe mercado é uma rota que **nomeia uma versão**, pela marca
+`{versao}` ou por um prefixo cravado como `/1.8.7/filtro`. Um `href` nunca
+escolhe.
+
+Com isso os *Guias* passam: dois `href` e as multi contas, que perderam o
+prefixo no mesmo dia. *Ferramentas* continua fora por causa do filtro, e agora
+por aritmética em vez de por bandeira — `cabecalho_versao_test` nomeia-o, para
+que tirar aquele prefixo um dia seja decisão visível e não efeito colateral.
+
+### As três portas perderam a arte, de propósito
+
+Cada uma vestia um retrato 2:3 da sua própria classe, e o raciocínio era bom
+enquanto esta tela era só o garfo. Com o herói a abrir a página com um retrato
+a toda a altura, três retratos logo abaixo punham **quatro** peças de arte de
+classe no mesmo ecrã, e a que manda deixava de mandar.
+
+**Filete entre colunas e não moldura à volta de cada.** Três cartas com borda
+lêem-se como três coisas separadas a competir; três colunas de uma faixa
+lêem-se como uma comparação, que é o que são.
+
+**A descrição do servidor fica nas três, inclusive nas que têm números** — a
+maquete só a mostrava na fechada, e aqui o pedido do dono de 28/10 ganha: *a
+tela pergunta qual mercado e só respondia com números*.
+
+**`MaterialType.transparency` e não uma cor transparente.** Com o tipo por
+omissão o `Material` pinta um chão por baixo da ondulação, e as colunas
+clicáveis saíam com uma caixa mais clara que a terceira. Depois disso sobrou
+um realce na primeira coluna que parecia defeito e **era hover**: branco a 4%
+sobre `noite` dá exactamente (27,25,50), que foi o que a medição de píxeis
+mostrou. Mover o ponteiro provou-o — e é a lição de sempre, que uma medição
+vale mais do que três hipóteses.
+
+### A etiqueta diz o que difere do escopo da página
+
+Nos guias, numa tela de 1.8.7 escrever `1.8.7` em sete de oito cartas é ruído e
+o que vale dizer é qual serve **todas** as versões; na raiz é o contrário — ela
+não tem versão nenhuma, portanto a versão de cada guia é a informação que
+falta. A mesma regra decide o chip de versão no cartão do streamer: só na raiz.
+
+E o título da secção segue-a: `TODOS OS GUIAS` na raiz, `GUIAS` numa tela de
+versão. Chamar *todos* a um recorte afirmaria que o site tem oito guias de
+1.2.6 quando tem um.
+
+### As novidades voltaram, e não é a barra que saiu
+
+A barra fechada foi removida da home das versões a 01/10/2026 porque a pílula
+do cabeçalho era a mesma porta. Aqui não é o mesmo caso: a pílula é navegação e
+**só abre ao toque**; esta secção mostra o texto, que é a única coisa da página
+que muda sozinha. **Um só recado, e aberto** — três abertos corriam a mil
+píxeis na home antiga, e um fechado não diria nada que a pílula já não diga.
+
+## A raiz deixou de ser torniquete
+
+Até 09/11/2026 `/` eram três cartas e **148 palavras**, e a doc de
+`PortasView` dizia que a tela *«responde duas perguntas e nada mais, de
+propósito»*, com o argumento de que não há nada para vender a quem já está no
+site. **O argumento vale para metade de quem chega.** Quem vem de um link de
+`/filtro` já sabe o que isto é; quem escreveu `portalpw.net` às cegas — que é
+exactamente quem esta tela recebe — não sabe.
+
+Duas coisas forçaram a mudança, e as duas são medidas. **Foi esta a página que
+o AdSense viu como vazia a 31/10.** E o dono apontou a falta nos termos dele:
+*«talvez falte a informaçao antes do market para que o pessoal entenda o que
+sao aqueles numeros»* — sem premissa, *2.486 personagens à venda* é um número
+sem substantivo.
+
+A raiz tem agora abertura, as três portas, os guias das três versões, a banda
+do canal e os streamers. A abertura são **204 palavras**; o DOM de
+`web/index.html` passou de 145 para **239**.
+
+**A prosa da abertura não publica preço nenhum, e isso é regra.** Um número do
+jogo é permanente e um preço de mercado não é — a lição do guia das runas —
+portanto os números que se movem ficam nas portas, onde a data da coleta está
+ao lado. A primeira versão deste parágrafo dizia *«a de 70 vende por 1000 TCC
+e as de 40 por 90»*, copiado da medição de Agosto sobre 770 personagens;
+medido outra vez a 09/11 sobre 2.486, o Dilacerador Raivoso (70) vai de 40 a
+2500 TCC e o do Vento (40) de 40 a 500 — **as faixas sobrepõem-se**, e a frase
+tinha deixado de ser verdade sem ninguém notar. Saiu em vez de ser
+actualizada.
+
+**E o 70 já não é o topo**, o que o dono tinha previsto: *«cada vez mais, as
+armas do 70 serao mais normais»*. A 09/11 são 1107 de 2486 pessoas, e acima
+delas há **52 com 80** — eram 13 a 29/09. A abertura diz *a arma de topo de
+cada classe* sem cravar o número, por isso.
+
+O que ficou é durável e medido: **quatro armas chamam-se Dilacerador** —
+★★Gelado dá 30, ★★★do Vento dá 40, ★★★Raivoso dá 70, e ★★★de Almas, com as
+mesmas três estrelas, não dá nível de ataque nenhum.
+
+**O texto do `#sem-script` e a abertura da app dizem o mesmo e não são a mesma
+string, de propósito.** Um é o que um rastreador e um visitante sem
+JavaScript recebem; o outro é a premissa de quem vai ler números a seguir.
+Ligá-los obrigaria a gerar HTML a partir de Dart para poupar dois parágrafos.
+A nota está nos dois ficheiros para a próxima pessoa saber que são um par — e
+**é o `#sem-script` que conta para a revisão automática do AdSense**, porque a
+app desenha em canvas e não deixa texto no DOM.
+
+### Um ramo de layout a menos
+
+A raiz tinha dois: largo, o rodapé ficava pregado em baixo e as portas
+centravam-se no que sobrava; empilhado, o rodapé era o fim da página e rolava
+com ela. **O que os separava era haver espaço de sobra no caso largo**, e com
+a abertura acima e três secções abaixo não há — a página rola em qualquer
+largura. Um ramo só.
+
+O aviso antigo continua a valer para quem pensar em voltar atrás: uma
+tentativa de servir os dois casos com um desenho só (`minHeight` +
+`IntrinsicHeight`) empurrou o rodapé para fora do ecrã no caso largo. A saída
+não é um truque que equilibra os dois — é não ter dois.
+
+**Dois testes mudaram de afirmação e nenhum deles quebrou.** O do rodapé
+cravava que ele cabia no ecrã, o que era certo enquanto estava pregado e
+passaria a querer dizer *página sem conteúdo*; agora crava que existe, que se
+alcança rolando, e que nada transborda pelo caminho. E o do toque na porta
+precisou de janela alta: `ensureVisible` alinha o mínimo, e a porta é um
+retrato 2:3 mais alto do que o ecrã deixa, portanto o **centro** dela — onde o
+toque cai — ficava a 751 px num ecrã de 600.
+
+### A banda do canal, e o cartão que foi extraído
+
+`CanalDoPortal` mostra os vídeos de `videos` com `secao = 'canal'` — dois, a
+09/11. **É do site e não de uma versão**, portanto vive na raiz e não se
+repete na tela de cada mercado.
+
+**Sem pílula no cabeçalho**: uma entrada de navegação para uma secção da mesma
+página, de um canal com dois vídeos, é promessa a mais. *Novidades* tem a sua
+porque muda sozinha e tem o ponto a avisar.
+
+**Carrega sozinha e falha calada**, como a faixa dos streamers — é uma secção
+a somar, não a razão de alguém ter vindo. Sem vídeos não desenha nada e **nem
+o espaço**, que é a mesma razão pela qual `AoVivoStrip.espacoAcima` existe: a
+secção desaparece inteira e o vão tem de se ir com ela.
+
+`CartaoDeVideo` e `GrelhaDeVideos` saíram de `tela_de_videos.dart` no mesmo
+commit, quando passou a haver um segundo chamador. Copiar o cartão seria a
+cópia que este repositório já pagou três vezes — `_abrir` e `_openTool` byte a
+byte iguais, duas listas de guias que não se conheciam, dois escritores de
+`versoes.json`.
+
+**E a secção monta o repositório ela própria**, como `TelaDeVideos` já faz. Um
+`getIt` em falta, engolido por um `unawaited`, foi o que deixou esta mesma
+tela a girar para sempre em 02/10/2026.
+
+## Os streamers por versão, lidos do título da transmissão
+
+Pedido do dono a 09/11/2026: no 1.8.7 só quem joga 1.8.7, e assim por diante.
+
+**A versão vem do título e não de uma coluna, e a ideia é dele.** A Twitch só
+diz *Perfect World* e não distingue versão; o título é reescrito a cada
+transmissão, portanto quem muda de versão muda sozinho. Uma coluna
+envelheceria em silêncio — e o site só mostra quem está **ao vivo**, logo o
+título existe exactamente quando é preciso.
+
+**A fronteira é o dígito e o ponto, nunca `\b`.** `PW187` é a grafia mais
+comum de todas e entre o `W` e o `1` não há fronteira de palavra nenhuma,
+portanto um `\b187\b` perderia justamente o caso que mais aparece. O que tem
+de ser recusado é o número dentro de outro número: `2187`, `1870`, `187.5`.
+
+**A forma nua recusa também a letra depois, e a com pontos não.** `187k` é
+dano ou ouro, e títulos destes estão cheios de números com `k`; `1.8.7` não
+tem como ser outra coisa. A assimetria é deliberada — letra **antes** é como
+se escreve o jogo (`pw187`), letra **depois** é uma unidade. O preço está
+cravado num teste: um `PW187BR` também é recusado.
+
+**Duas versões nomeadas contam como não saber.** Decisão minha e barata de
+mudar: quem escreve as duas não disse em qual está, e escolher pela ordem de
+aparição seria o site a inventar a resposta. Em tudo isto **falsos positivos
+são o único dano real** — não mostrar alguém custa visibilidade, mostrá-lo na
+versão errada é o site a afirmar o que não sabe.
+
+**São duas funções e duas perguntas.** `aoVivoAgora` responde *está ao vivo
+neste jogo*, que é um facto sobre o canal e o mesmo em todas as telas, e é por
+isso que o cubit — único para o site inteiro — a aplica uma vez.
+`transmiteAVersao` responde *pertence a esta tela*, que muda de tela para tela
+e por isso é decidida onde a tela sabe quem é. A contagem do título conta os
+desta versão e não os do site: vinda de antes do filtro, a faixa anunciaria
+«4 ao vivo» e mostraria um, e a conta é a única parte que o visitante pode
+verificar.
+
+**O título é lido e nunca mostrado.** Está cheio de cupões e emoji, e já tinha
+sido deixado de fora do cartão por isso — vale repeti-lo agora que é ele que
+decide quem aparece.
+
+### O efeito prático está por medir, e a razão é a própria tabela
+
+`canais_twitch.titulo` é nulo quando o canal está offline, portanto **não há
+histórico de títulos** e não há como medir com que frequência um deles traz a
+versão. A 09/11/2026, às 21h, os oito canais estavam offline — o Worker são,
+vistos há 24 segundos — e a única observação que existe é a do levantamento:
+`magraotvv` com *THE CLASSIC PW 1.4.4 BETA ABERTO*.
+
+Essa observação é também o aviso: **ele não apareceria em nenhuma página.** O
+1.4.4 não tem tela, e o 1.8.7 e o 1.2.6 recusam-no com razão.
+
+### A faixa na raiz é a rede, e foi construída no mesmo dia
+
+Pedido do dono assim que o problema apareceu: **o 1.4.4 tem de aparecer na
+home.** Ele não tem tela própria — *«em breve vamos abrir o market e outras
+coisas do 1.4.4»* — e as duas telas que têm faixa recusam-no com razão,
+portanto quem escreve `1.4.4` no título não aparecia em sítio nenhum do site.
+A faixa é uma cortesia a quem transmite, e uma cortesia que não chega a
+ninguém não é discreta, é inútil — a mesma lição do card dos streamers quando
+*discreto* saiu **invisível**.
+
+`AoVivoStrip(versao: null)` na tela de escolha. **Nulo não é desleixo**: a raiz
+não é de versão nenhuma, logo não afirma nada ao mostrar quem não escreveu a
+sua — é o oposto exacto de uma página de versão, onde mostrar alguém sem
+versão seria o site a dizer o que não sabe.
+
+**O espaço acima da faixa é desenhado por dentro dela**, e é por isso que
+`espacoAcima` existe em vez de um `SizedBox` de fora: a faixa desaparece
+inteira quando ninguém está ao vivo, e esse é o caso normal — oito canais
+offline foi o que a tabela respondeu a 09/11. Posto por fora, o vão ficava lá
+a abrir sobre nada.
+
+**A raiz tem dois ramos de layout e a secção tem de caber nos dois.** Largo, o
+rodapé está pregado em baixo e as portas centram-se no que sobra; empilhado, o
+rodapé é o fim da página e rola com ela. Já se tentou servir os dois com um
+desenho só e isso empurrou o rodapé para fora do ecrã, portanto há um teste
+por ramo — e o estreito é o que um teste a 800 px nunca exercita.
+
+Desligar o filtro das telas de versão continua a ser tirar `versao:` da
+chamada em `home_view.dart`.
+
+## A porta da versão diz quantos entraram hoje
+
+Até 09/11/2026 as duas portas da raiz diziam o tamanho da loja e a data da
+coleta — **dois números que mudam de semana a semana** — portanto escolher
+mercado era um clique que não informava. `VersaoResumo.novosHoje` é a única
+coisa ali que é diferente amanhã: medido a 09/11, 380 no 1.8.7 e 189 no 1.2.6.
+
+**A regra vive em `PriceHistory.entrouNosUltimos` e tem dois leitores.** O
+filtro usa-a para cortar a grelha; o coletor usa-a para contar o número que
+escreve na porta. Duas contagens da mesma pergunta é como a porta anuncia um
+número e a grelha, ao abrir, mostra outro — a forma que já custou o pulso da
+home a 30/09/2026, e `novos_hoje_test` crava que os dois dão o mesmo.
+
+**Conta contra a data da coleta e nunca contra o relógio de quem lê.** O
+índice é servido por horas: um `DateTime.now()` ali faria «entrou hoje» mudar
+de resposta durante a leitura da mesma página, e à meia-noite o número cairia
+para zero sem nada ter acontecido no mercado.
+
+**Nulo e zero são coisas diferentes, e a porta desenha-os diferentes.** Zero
+quer dizer *ninguém entrou hoje*, que é notícia num mercado que se move de
+meia em meia hora, e sai como `ninguém novo hoje`. Ausente quer dizer *esta
+linha é anterior ao campo* — os `versoes.json` já publicados não a têm — e não
+desenha linha nenhuma. Escritos iguais, a porta anunciaria um mercado parado
+onde o que há é um ficheiro velho; é a mesma razão pela qual um conduíte sem
+atributo não desenha zero.
+
+**`VersaoResumo.doIndice` existe porque há dois escritores do ficheiro** — a
+coleta de uma versão e o `--escrever-versoes` que o refaz a partir do disco —
+e um campo acrescentado à mão nos dois é um campo esquecido num. Foi assim que
+o `require_level` morreu na travessia, e o `sexo`, e a `escada`.
+
+**E o número sai no log do coletor.** Ele desenha na porta, portanto um zero
+por defeito de contagem apareceria como *ninguém novo hoje* — uma frase
+credível — e passaria semanas sem ninguém reparar.
+
+## Os guias têm versão, e a versão não é um pedaço do endereço
+
+Até 09/11/2026 havia **duas listas de guias que não sabiam uma da outra**:
+os artigos em `web/guias/index.html`, à mão, e o menu em `tool.dart`. Custou
+uma vez — o guia das runas foi publicado e durante dias não havia caminho
+nenhum para ele a partir do site. `lib/features/guias/domain/guia.dart` é
+agora a fonte das duas: a página é gerada por `tool/guias/pagina.dart` e a
+app lê o mesmo objecto.
+
+**`/guias/runas` fica onde está, e essa é a decisão que custaria mais se
+fosse errada.** As 24 páginas de guia foram indexadas na semana de 02/11, e é
+disso que depende o pedido de revisão do AdSense. Passá-las a
+`/1.8.7/guias/runas` moveria 24 endereços recém-indexados no mês em que o
+Google está a decidir se o site tem valor — e o GitHub Pages não faz
+redirecionamento de servidor. A versão é um campo do guia; *todos os guias* é
+simplesmente não filtrar.
+
+**Medido: sete dos oito guias são de 1.8.7 e nenhum o dizia.** Runas,
+conduíte, astrolábio e cartas Nuema são conteúdo de 1.8.7; a Saga tem
+dezassete classes e o 1.2.6 tem seis. Quem chegava de uma busca não tinha como
+saber se o artigo servia a versão que joga.
+
+**As multi contas são o único que serve as três, e saíram de `/1.8.7`.**
+Jogar com dois clientes abertos é uma coisa do computador de quem joga, não de
+um mercado — a mesma razão pela qual `/novidades` não tem prefixo. Presas
+debaixo do 1.8.7, desapareciam da gaveta do 1.2.6: um guia que servia aquela
+versão, escondido dela. A forma prefixada continua a abrir, como `/registros`
+e `/runas`, porque era o único endereço que o guia já teve.
+
+**O selo *novo* é desenhado pelo browser e não pelo gerador**, e a primeira
+versão fez o contrário. Gravado no HTML, o ficheiro em disco passava a
+discordar da regeneração no dia em que o primeiro selo expirasse — e o
+`--conferir` que o teste usa ficaria vermelho **pelo calendário**, sem defeito
+nenhum. É a forma que já congelou este site duas vezes: um gate de publicação
+cuja entrada é o mundo. A data vai em `data-publicado` e trinta linhas de
+JavaScript decidem; numa página estática o relógio de quem visita é o único
+relógio que há.
+
+Antes disso o selo era HTML escrito à mão, **seis cartas com ele e nenhuma com
+data**. Nenhuma mentia ainda: a primeira passaria a mentir a 22/11 e nada o
+diria. O próprio comentário do CSS admitia o arranjo — *«não há relógio para o
+apagar, por isso tirar o selo é parte de publicar o guia seguinte»* — que é uma
+regra que depende de alguém se lembrar.
+
+**O tempo de leitura é medido do `<main>`, e só dele.** O cabeçalho, o rodapé
+e o bloco de publicidade repetem-se em todas as páginas: contados, davam a um
+guia de dois parágrafos o mesmo peso de base que a um de trinta. Os
+comentários HTML saem também — este repositório escreve-os longos, e contá-los
+mediria a conversa sobre o guia em vez do guia. Dá 2 a 6 minutos nos sete.
+
+**A Saga não mostra minutos.** Somadas, as dezoito páginas davam «81 min de
+leitura», que ninguém lê de uma vez e que se lê como avaria. Diz *17 classes,
+uma página cada* — um conjunto não tem duração, tem tamanho.
+
+**E a app não mostra minutos nenhuns.** Medir o ficheiro é `dart:io`, que
+`lib/` não importa, e guardar os minutos à mão na declaração seria o mesmo
+facto em dois sítios a divergir no dia em que alguém acrescentasse um
+parágrafo. A medida vive na página `/guias/`, que é onde alguém escolhe o que
+ler.
+
+### A secção de guias na home reverte metade da decisão de 01/10
+
+`home_ordem_test` cravava que `FERRAMENTAS` **e** `GUIAS` não aparecem na
+página — a decisão do dono de 01/10/2026, *«não acho que valha a pena
+duplicar»*, quando as pílulas do cabeçalho tornaram os cards um segundo menu
+para o mesmo conjunto.
+
+**`GUIAS` voltou a 09/11, pedido do dono nas palavras dele:** «Guias tem que
+estar em todas as paginas, (1.2.6, 1.4.4, 1.8.7) só que cada um terá
+(futuramente) seus guias próprios». O que fazia dos cards uma duplicação não
+vale aqui: a pílula *Guias* destaca **três** entradas e só abre ao toque, e a
+secção lista os **oito** que servem aquela versão, cada um com a linha que diz
+o que responde. Duas superfícies para o mesmo conjunto é duplicação; uma
+pílula com três nomes e uma secção com oito artigos não é.
+
+`FERRAMENTAS` continua fora, e é a metade da decisão que fica de pé.
+
+**A porta *Todos os guias* fica dentro da secção, mesmo com tudo à vista.** É
+ela que separa «os guias desta versão» de «os guias do site» — sem ela, o
+1.2.6 mostra uma carta e lê-se como um site que tem um guia.
+
+**A etiqueta de versão desenha-se só quando diz algo.** Numa tela de 1.8.7,
+escrever `1.8.7` em sete de oito cartas é ruído; o que vale dizer é qual serve
+*todas* as versões, porque essa é a que não é de cá.
 
 ## A licença, e por que ela existe
 
@@ -2865,6 +3396,15 @@ Each of these already cost something — measured on the live site, not guessed.
   like a broken link while editing locally. The dangerous move is "fixing" the
   href to silence that local 404: the fix would be guided by a server nobody
   visits the site through, and it would break the one that matters.
+
+  **`tool/servir.py` existe para o engano não chegar a acontecer**, e foi
+  escrito a 10/11/2026 depois de o dono perguntar se as URLs dos guias tinham
+  ficado por ligar — tinham sido ligadas, e o que respondia 404 era o módulo
+  do Python. Ele copia as três resoluções do Pages — o ficheiro exacto,
+  `caminho.html`, `caminho/index.html` — e serve sem cache, que é a outra
+  razão para não usar o módulo simples. Medido no dia: **dezassete endereços,
+  zero diferenças** entre ele e `portalpw.net`, contra sete 404 do
+  `http.server` nos mesmos guias.
 - **A rebuilt Flutter web app keeps serving the previous bundle, and it looks
   exactly like a change that did not compile.** The file on disk is new, the
   md5 served matches the md5 on disk, and the browser still runs yesterday's

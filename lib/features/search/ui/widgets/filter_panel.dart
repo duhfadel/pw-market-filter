@@ -136,11 +136,13 @@ class FilterPanel extends StatelessWidget {
     padding: EdgeInsets.only(top: primeiro ? 0 : 18, bottom: 10),
     child: Text(
       nome.toUpperCase(),
+      // `.gtit { font-size:10.5px; letter-spacing:.16em; color:#6B6690 }`.
+      // Era `accentDim` e negrito — uma cor de acento apagada que puxava a
+      // vista para o letreiro em vez de para o controlo por baixo dele.
       style: const TextStyle(
-        color: PWColors.accentDim,
-        fontSize: 10,
-        letterSpacing: 2,
-        fontWeight: FontWeight.w700,
+        color: Color(0xFF6B6690),
+        fontSize: 10.5,
+        letterSpacing: 1.7,
       ),
     ),
   );

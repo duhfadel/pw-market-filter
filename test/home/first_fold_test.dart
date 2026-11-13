@@ -15,6 +15,7 @@ import 'package:pw_market_filter/features/home/data/visit_repository.dart';
 import 'package:pw_market_filter/features/home/ui/novidades_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/visit_counter_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/home_view.dart';
+import 'package:pw_market_filter/features/home/ui/widgets/faixa_viva.dart';
 import 'package:pw_market_filter/features/search/ui/search_view_model.dart';
 import 'package:pw_market_filter/market/index_repository.dart';
 import 'package:pw_market_filter/market/market_index.dart';
@@ -153,6 +154,23 @@ Future<List<String>> _pumpHome(WidgetTester tester) async {
   return pushed;
 }
 
+/// Rola a página até [alvo] ser construído.
+///
+/// **Necessário desde 09/11/2026**, quando o herói passou de uma faixa de 360
+/// px a `min(86vh, 760px)`: num `ListView` o que está abaixo da dobra não é
+/// construído, portanto `find.text` não acha o que um visitante encontra
+/// rolando uma vez.
+Future<void> _rolarAte(WidgetTester tester, Finder alvo) async {
+  // `scrollUntilVisible` nao serve aqui: a pagina tem mais do que um
+  // `Scrollable` -- o carrossel dos Destaques e a faixa dos streamers -- e
+  // ele rebenta com «Too many elements». Arrasta-se a lista de fora.
+  final lista = find.byType(ListView).first;
+  for (var i = 0; i < 30 && alvo.evaluate().isEmpty; i++) {
+    await tester.drag(lista, const Offset(0, -300));
+    await tester.pump();
+  }
+}
+
 void main() {
   setUpAll(_carregarFontesReais);
 
@@ -225,5 +243,67 @@ void main() {
 
     expect(find.text('Sabia'), findsOneWidget);
     expect(find.text('90 TCC'), findsOneWidget);
+  });
+
+  testWidgets('a faixa viva diz o tamanho do mercado antes de mostrar '
+      'pessoas dele', (tester) async {
+    await _pumpHome(tester);
+
+    // Três personagens no índice, nenhum com histórico de preço: a faixa
+    // mostra 3, 0 e 0. **Os zeros ficam de propósito** — o mercado move-se
+    // sozinho a cada meia hora, e um número que desaparece num dia quieto lê
+    // como página partida em vez de dia quieto.
+    // Procurado **dentro da faixa**: um `3` nu aparece três vezes nesta
+    // página — nível, preço, contagem — e um achado solto apanharia o
+    // primeiro que calhasse.
+    Finder naFaixa(String texto) =>
+        find.descendant(of: find.byType(FaixaViva), matching: find.text(texto));
+
+    expect(naFaixa('3'), findsOneWidget);
+    expect(naFaixa('à venda agora'), findsOneWidget);
+    expect(naFaixa('entraram hoje'), findsOneWidget);
+    expect(naFaixa('baixaram o preço'), findsOneWidget);
+    expect(naFaixa('0'), findsNWidgets(2));
+  });
+
+  testWidgets('o carimbo da coleta vem com os números', (tester) async {
+    await _pumpHome(tester);
+    // Um índice velho parece exactamente igual a um fresco, e um filtro
+    // perfeito sobre dados do mês passado é pior do que filtro nenhum.
+    expect(find.textContaining('colhido a 09/08'), findsOneWidget);
+  });
+
+  testWidgets('tocar uma figura abre o filtro com a pergunta já feita', (
+    tester,
+  ) async {
+    // A cadeia inteira, que nem o teste do widget isolado nem o do domínio
+    // alcançam: a figura, o `encodeQuery` e a rota que o `MaterialApp`
+    // recebe. É onde a faixa seria uma porta bonita para o lugar errado.
+    final pushed = await _pumpHome(tester);
+
+    await tester.tap(find.text('baixaram o preço'));
+    await tester.pumpAndSettle();
+    expect(pushed, ['/1.8.7/filtro?baixou=1']);
+  });
+
+  testWidgets('os guias do 1.8.7 estão na página, com a linha de cada um', (
+    tester,
+  ) async {
+    // Pedido do dono a 09/11/2026: guias em todas as versões. A pílula
+    // *Guias* do cabeçalho destaca três entradas e só abre ao toque; esta
+    // secção lista os oito que servem esta versão, e é o que torna as duas
+    // superfícies coisas diferentes em vez de uma duplicada.
+    await _pumpHome(tester);
+    await _rolarAte(tester, find.text('GUIAS DESTA VERSÃO'));
+
+    expect(find.text('GUIAS DESTA VERSÃO'), findsOneWidget);
+    expect(find.text('Cartas Nuema'), findsOneWidget);
+    // A porta para a lista inteira, na cabeça da secção — é ela que separa
+    // «os guias desta versão» de «os guias do site».
+    expect(find.text('ver todos os guias →'), findsOneWidget);
+    expect(
+      find.textContaining('As seis cartas S do conjunto Portal de Nuema'),
+      findsOneWidget,
+    );
   });
 }

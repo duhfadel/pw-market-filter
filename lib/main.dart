@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/di/injection.dart';
 import 'core/rotas.dart';
 import 'core/theme/pw_theme.dart';
+import 'features/home/ui/espreitar_144_view.dart';
 import 'features/home/ui/home_view.dart';
 import 'features/home/ui/ao_vivo_view_model.dart';
 import 'features/home/ui/novidades_view_model.dart';
@@ -96,6 +97,9 @@ class PortalPWApp extends StatelessWidget {
           RotaTela(tela: Tela.guerras126) => const GuerrasView(versao: pw126),
           RotaTela(tela: Tela.multiContas) => const MultiContasView(),
           RotaTela(tela: Tela.novidades) => const NovidadesView(),
+          // **Temporária**: o Cartaz do 1.4.4 sozinho, sem números. Sai no
+          // dia em que aquele mercado abrir — ver `Espreitar144View`.
+          RotaTela(tela: Tela.espreitar144) => const Espreitar144View(),
           // The choice screen now exists on its own — `/` no longer opens
           // the 1.8.7 home directly.
           RotaTela(tela: Tela.escolha) => const PortasView(),

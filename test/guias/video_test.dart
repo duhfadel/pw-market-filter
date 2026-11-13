@@ -125,4 +125,36 @@ void main() {
       expect(v.contem('nuema'), isFalse);
     });
   });
+
+  test('a versão atravessa o fromJson', () {
+    // **É a travessia onde esta casa já perdeu cinco campos** — o
+    // `require_level`, o `sexo`, o `nivel`, a `escada` e os
+    // `bonusNaoResolvidos` —, todos lidos pelo parser e desconhecidos do
+    // codec. O `select=*` sempre trouxe a versão; o modelo é que a deitava
+    // fora, porque a única pergunta era «quais vídeos desta versão?» e o
+    // repositório respondia-a na consulta.
+    expect(
+      Video.fromJson(const {
+        'secao': 'guerras',
+        'youtube': 'abc',
+        'versao': '1.8.7',
+      }).versao,
+      '1.8.7',
+    );
+
+    // As multi contas não são de mercado nenhum, e branco tem de virar nulo:
+    // uma string vazia desenharia uma etiqueta sem nada lá dentro.
+    expect(
+      Video.fromJson(const {
+        'secao': 'multicontas',
+        'youtube': 'abc',
+        'versao': '',
+      }).versao,
+      isNull,
+    );
+    expect(
+      Video.fromJson(const {'secao': 'guerras', 'youtube': 'abc'}).versao,
+      isNull,
+    );
+  });
 }

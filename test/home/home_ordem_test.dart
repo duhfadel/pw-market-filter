@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show FontLoader, rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -21,6 +20,8 @@ import 'package:pw_market_filter/market/index_repository.dart';
 import 'package:pw_market_filter/market/market_index.dart';
 import 'package:pw_market_filter/market/slot_names.dart';
 
+import '../support/load_fonts.dart';
+
 /// Where the assembled front page puts each section, top to bottom.
 ///
 /// One of these positions already cost an error and is recorded in
@@ -30,27 +31,17 @@ import 'package:pw_market_filter/market/slot_names.dart';
 /// from `Cabecalho`'s pill, so there is no longer a news position to pin
 /// here.
 
-/// Loads the real Marcellus and Inter files `pubspec.yaml` already declares,
-/// so this file measures text the way a browser does. Without this, the
-/// Cartaz's own headline overflows under `flutter_test`'s fake square-glyph
-/// metrics — a failure about the harness, not about the page.
-/// `cartaz_test.dart` is where this pattern was learned.
-Future<void> _carregarFontesReais() async {
-  Future<void> carregar(String familia, List<String> arquivos) async {
-    final carregador = FontLoader(familia);
-    for (final arquivo in arquivos) {
-      carregador.addFont(rootBundle.load(arquivo));
-    }
-    await carregador.load();
-  }
-
-  await carregar('Marcellus', ['assets/fonts/Marcellus-Regular.ttf']);
-  await carregar('Inter', [
-    'assets/fonts/Inter-Regular.ttf',
-    'assets/fonts/Inter-SemiBold.ttf',
-    'assets/fonts/Inter-Bold.ttf',
-  ]);
-}
+/// Este ficheiro tinha uma cópia própria do carregador de fontes, e **ela
+/// registava Marcellus e Inter mas não o Roboto** — que é a face que um
+/// `Text` sem família herda do tema. O resultado era um teste que media
+/// metade da página com as fontes verdadeiras e a outra metade com os
+/// quadrados do harness, sem nada o dizer.
+///
+/// Custou um falso transbordo de **128 px** a 10/11/2026, quando a porta dos
+/// guias passou a dizer `ver todos os guias →`: ela mede 120 px em Inter e
+/// 260 em quadrados, e o teste acusou a página de partir quando o que estava
+/// partido era a medição. `test/support/load_fonts.dart` carrega as três e
+/// explica porque o Roboto vem de fora do bundle.
 
 final _index = MarketIndex(
   server: 'pw187',
@@ -188,8 +179,25 @@ Future<void> _pumpHome(
   await tester.pumpAndSettle();
 }
 
+/// Rola a página até [alvo] ser construído.
+///
+/// **Necessário desde 09/11/2026**, quando o herói passou de uma faixa de 360
+/// px a `min(86vh, 760px)`: num `ListView` o que está abaixo da dobra não é
+/// construído, portanto `find.text` não acha o que um visitante encontra
+/// rolando uma vez.
+Future<void> _rolarAte(WidgetTester tester, Finder alvo) async {
+  // `scrollUntilVisible` nao serve aqui: a pagina tem mais do que um
+  // `Scrollable` -- o carrossel dos Destaques e a faixa dos streamers -- e
+  // ele rebenta com «Too many elements». Arrasta-se a lista de fora.
+  final lista = find.byType(ListView).first;
+  for (var i = 0; i < 30 && alvo.evaluate().isEmpty; i++) {
+    await tester.drag(lista, const Offset(0, -300));
+    await tester.pump();
+  }
+}
+
 void main() {
-  setUpAll(_carregarFontesReais);
+  setUpAll(loadAppFonts);
 
   testWidgets('the sections come in the order the spec fixed', (tester) async {
     // A market with real characters, so Destaques actually draws a section
@@ -239,18 +247,28 @@ void main() {
   });
 
   testWidgets(
-    'the tool cards and the guide line are gone — the header pills are the '
-    'only menu now',
+    'the tool cards are gone — the header pills are the only tool menu now',
     (tester) async {
       // Decision of 01/10: "não acho que valha a pena duplicar". The cards
       // sold the tools with art and a tagline; the header's pills (already
       // proven in `menu_everywhere_test.dart`) list the same set. Keeping
       // both put two navigation surfaces for one set of tools on the same
       // page, one above the other.
+      //
+      // **`GUIAS` came back on 09/11/2026, and this is the one half of that
+      // decision that was reversed — by the owner, in his own words:** «Guias
+      // tem que estar em todas as paginas, (1.2.6, 1.4.4, 1.8.7) só que cada
+      // um terá (futuramente) seus guias próprios». What made the tool cards
+      // a duplicate does not hold for the guides: the *Guias* pill shows
+      // three curated entries, and this section shows the eight that serve
+      // **this** version, each with the line that says what it answers. Two
+      // surfaces for the same set is duplication; a pill listing three names
+      // and a section selling eight articles is not.
+      //
+      // `FERRAMENTAS` stays out, and that is the half still standing.
       await _pumpHome(tester);
 
       expect(find.text('FERRAMENTAS'), findsNothing);
-      expect(find.text('GUIAS'), findsNothing);
       expect(find.text('GUIA'), findsNothing);
       // The tagline that used to sit on the card, in the open — it survives
       // only inside the header's drawer now, which `GavetaItem` renders on
@@ -315,6 +333,12 @@ void main() {
       // `large` — so the grid never sees more than ~700 px here, which
       // `_columnsFor` reads as the middle tier (>=440, <760), never the
       // six-column one. The five cards split 3-then-2.
+      // **Rola ate o quinto card, e so entao mede.** Com o heroi a ocupar a
+      // dobra desde 09/11/2026, parte da grelha fica por construir -- e um
+      // card por construir devolve a posicao do ultimo que existe, que foi o
+      // que fez as cinco aparecerem na mesma linha.
+      await _rolarAte(tester, find.byType(Card).at(4));
+      await tester.pumpAndSettle();
       final topos = [
         for (var i = 0; i < 5; i++) tester.getTopLeft(find.byType(Card).at(i)),
       ];

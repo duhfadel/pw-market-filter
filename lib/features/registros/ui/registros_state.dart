@@ -42,6 +42,14 @@ class RegistrosReady extends RegistrosState {
 
   List<String> get abas => abasDe(todos);
 
+  /// Quantas receitas há na aba [aba] — a conta que cada aba imprime.
+  ///
+  /// **Conta a aba inteira e não o que o filtro deixa passar.** O número na
+  /// aba diz *o que há ali dentro*; mudá-lo com os atributos faria as seis
+  /// abas encolherem juntas e deixaria de se poder comparar onde está o
+  /// grosso das 126 receitas, que é a única pergunta que ele responde.
+  int quantasNaAba(String aba) => todos.where((r) => r.aba == aba).length;
+
   /// The recipes of the open tab, in slot order.
   List<Registro> get daAba => paraGrade(todos, query);
 

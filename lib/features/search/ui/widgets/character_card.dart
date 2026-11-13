@@ -84,45 +84,113 @@ class _Fact {
 /// The frame carries it now, in the palette a player already reads from the
 /// game's own items.
 ///
-/// The rungs are the market's and not invented. Measured over 1519 listings,
-/// `Nível de Ataque` on a weapon lands on exactly four numbers — 30 (212
-/// characters), 40 (363), 70 (674) and 80 (13) — which is the game's ladder
-/// showing through. `Nível de Defesa` is a different shape: noise from 1 to
-/// 30, nothing at all between 31 and 79, then **80 on eight characters**. So
-/// the defensive UP5 is unambiguous, and it gets a colour of its own rather
-/// than a rung: it is the same top tier bought in the other currency, and
-/// whoever wants it is not shopping for an attacking weapon at any price.
+/// **Os degraus são do mercado e remedidos a 09/11/2026, sobre 2.486
+/// anúncios** — a escada mudou de forma debaixo de nós desde os 1519 de
+/// Setembro:
 ///
-/// **Thirty draws nothing, on the owner's call.** It was a rung until
-/// 29/09/2026 and it was the wrong one to spend a colour on: 212 characters
-/// wearing the cheapest tier the game prints. A frame is for telling the grid
-/// apart, and the bottom of the market does not need a badge saying it is the
-/// bottom — the plain border already says it. The grey block goes from 16% to
-/// 30% of the grid and that is the point.
+/// | o que a arma dá | quantos | fatia |
+/// |---|---|---|
+/// | 70 a 79 | 1107 | 44,5% |
+/// | 40 a 69 | 511 | 20,6% |
+/// | nível de ataque nenhum | 409 | 16,5% |
+/// | 30 | 337 | 13,6% |
+/// | 80 de ataque | 52 | 2,1% |
+/// | 80 de defesa | 40 | 1,6% |
 ///
-/// The order matters and is deliberate: defence is asked **first**, so the
-/// eight defensive UP5s can never fall through to the attack ladder. They are
-/// disjoint in this collection — no character carries both — but an ordering
-/// that only works while that holds is an ordering waiting to break.
-Color? weaponTierColor(MarketIndex index, MarketCharacter character) {
-  final (ataque, defesa) = _weaponLevels(index, character);
+/// **O 70 passou a ser o card mais vulgar da grelha, e perdeu o âmbar por
+/// isso.** Dar a cor mais quente da paleta à coisa mais comum que ali existe
+/// era dizer *raro* sobre o normal — e o dono tinha previsto a mudança:
+/// *«cada vez mais, as armas do 70 serao mais normais»*. O âmbar tinha ainda
+/// um defeito que só se vê medindo: [PWColors.accent], a cor do dinheiro, é
+/// `#FFB454` e [PWColors.gradeColors] grau 4 é `#FFB454` — **o mesmo byte**.
+/// A moldura de 44,5% da grelha era a cor do preço que ela tinha ao lado.
+///
+/// **E o fundo da escada passou a pintar de azul, incluindo quem não publica
+/// nível nenhum.** Decisão do dono a 09/11/2026, tomada contra a minha
+/// recomendação e registada como dele: eu propus deixar sem cor os 412 cuja
+/// arma não imprime nível de ataque — a `★★★Geada Tardia` é rank 4 e não dá
+/// nenhum — porque pintá-los de azul é o site afirmar *fundo da escada* sobre
+/// uma coisa que ninguém mediu, que é a regra pela qual um conduíte sem
+/// atributo não desenha zero. Ele escolheu o azul para todos, e o argumento a
+/// favor é bom: numa grelha em que *alguma* cor é a norma, a ausência de cor
+/// lê-se como card partido e não como reserva.
+///
+/// Isto reverte a decisão de 29/09/2026 que tirou a cor ao 30 — *«o fundo do
+/// mercado não precisa de um selo dizendo que é o fundo»* — e reverte-a
+/// porque o fundo deixou de ser um canto: com o 30, o 40-69 e os sem-nível
+/// juntos, são **51,8%** da grelha.
+///
+/// **O azul é o par mais apertado da paleta e isso fica dito.** Composto a
+/// 55% sobre [PWColors.surface] ele fica a **27,9 ΔE** do roxo — a menor
+/// distância de toda a escada, e a razão registada por que o patamar
+/// defensivo é verde e não azul. Agora esses dois cobrem 96% da grelha. O que
+/// o desmede é a renderização: são matizes diferentes e num filete de 2 px
+/// separam-se bem. Foi desenhado antes de ser escolhido.
+///
+/// A ordem importa e é deliberada: a defesa é perguntada **primeiro**, para
+/// que os 80 defensivos nunca caiam na escada de ataque. São disjuntos nesta
+/// coleta — ninguém carrega os dois — mas uma ordem que só funciona enquanto
+/// isso valer é uma ordem à espera de partir.
+enum PatamarDaArma {
+  /// Tudo o que não é 70 nem 80: o 30, o 40-69, e a arma que não publica
+  /// nível de ataque nenhum.
+  ///
+  /// **É o único que não pinta o fundo**, e é isso que o mantém honesto a
+  /// 51,8% da grelha: um degrau que metade do mercado ocupa não pode gritar
+  /// tão alto como os 3,7% que são 80. A borda diz *isto foi lido e é o
+  /// fundo*; o fundo liso diz *e não há mais nada a acrescentar*.
+  baixo,
 
-  if (defesa >= 80) return PWColors.defenceTier;
+  setenta,
+  ataque80,
+  defesa80;
 
-  // The steps are spread across the palette rather than taken in order. Grades
-  // 4 and 5 are amber and orange — neighbours — and the distinction that
-  // matters most here is exactly the one they blurred: a grid of UP5s and 70s
-  // came out the same colour. Red tops the game's own ladder, so it takes the
-  // top rung.
+  /// A cor vem sempre de [PWColors.gradeColors], nunca de um literal: é a
+  /// paleta de raridade que o jogador já lê nos itens do próprio jogo, e uma
+  /// segunda tabela de cores seria uma segunda tabela para divergir.
+  Color get cor => switch (this) {
+    baixo => PWColors.gradeColors[2]!,
+    setenta => PWColors.gradeColors[3]!,
+    ataque80 => PWColors.gradeColors[6]!,
+    defesa80 => PWColors.defenceTier,
+  };
+
+  /// Se este degrau também tinge o fundo do card, ou só desenha a borda.
+  bool get pinta => this != baixo;
+}
+
+/// O degrau da arma que [character] veste, ou `null` quando não há o que ler.
+///
+/// **`null` e [PatamarDaArma.baixo] são coisas diferentes**, e a distinção é
+/// a mesma que separa um conduíte sem atributos de um conduíte por resolver.
+/// `baixo` quer dizer *lemos a arma e ela não chega aos 70*; `null` quer
+/// dizer *não há arma nenhuma, ou esta coleta nem conhece o atributo* — que é
+/// o caso do 1.2.6 inteiro, cujo índice não publica `Nível de Ataque`.
+/// Juntá-los poria uma borda azul em 1.426 personagens a afirmar um degrau
+/// que aquele mercado nunca mediu.
+PatamarDaArma? patamarDaArma(MarketIndex index, MarketCharacter character) {
+  final niveis = _weaponLevels(index, character);
+  if (niveis == null) return null;
+
+  final (ataque, defesa) = niveis;
+  if (defesa >= 80) return PatamarDaArma.defesa80;
+
+  // O ruído de defesa — 1 a 30, com nada entre 31 e 79 — cai em `baixo` pelo
+  // mesmo caminho que um ataque de 30, que é onde ele pertence: é uma arma
+  // lida que não chega a lado nenhum.
   return switch (ataque > defesa ? ataque : defesa) {
-    >= 80 => PWColors.gradeColors[6],
-    >= 70 => PWColors.gradeColors[4],
-    >= 40 => PWColors.gradeColors[3],
-    _ => null,
+    >= 80 => PatamarDaArma.ataque80,
+    >= 70 => PatamarDaArma.setenta,
+    _ => PatamarDaArma.baixo,
   };
 }
 
-/// Attack and defence level on the **worn weapon**, in that order.
+/// A cor da moldura, ou `null` quando não há degrau para dizer.
+Color? weaponTierColor(MarketIndex index, MarketCharacter character) =>
+    patamarDaArma(index, character)?.cor;
+
+/// Attack and defence level on the **worn weapon**, in that order — ou `null`
+/// quando não há como saber.
 ///
 /// Kept apart rather than reduced to the better of the two, which is what this
 /// read before the defensive tier earned its own colour: `max` cannot say
@@ -133,14 +201,22 @@ Color? weaponTierColor(MarketIndex index, MarketCharacter character) {
 /// a statement about the weapon, and an amulet's attack level vouching for it
 /// would be the same fraud `_satisfies` refuses when it reads every condition
 /// off one item.
-(int, int) _weaponLevels(MarketIndex index, MarketCharacter character) {
+///
+/// **Devolve `null` em dois casos e zeros num terceiro**, e é essa a
+/// diferença que o azul tornou cara. Sem nenhum dos dois atributos no índice,
+/// ou sem arma vestida, não há leitura nenhuma. Com arma e sem os números,
+/// há: a arma foi lida e não publica nível, que é um facto sobre ela.
+(int, int)? _weaponLevels(MarketIndex index, MarketCharacter character) {
   final idAtaque = index.attributes.indexOf('Nível de Ataque');
   final idDefesa = index.attributes.indexOf('Nível de Defesa');
+  if (idAtaque < 0 && idDefesa < 0) return null;
 
   var ataque = 0;
   var defesa = 0;
+  var temArma = false;
   for (final item in character.equipped) {
     if (item.slot != weaponSlot) continue;
+    temArma = true;
     // Arredondado de propósito: isto escolhe um degrau da escada de raridade
     // da moldura, e meio ponto não move degrau nenhum.
     if (idAtaque >= 0) {
@@ -152,7 +228,7 @@ Color? weaponTierColor(MarketIndex index, MarketCharacter character) {
       if (v > defesa) defesa = v;
     }
   }
-  return (ataque, defesa);
+  return temArma ? (ataque, defesa) : null;
 }
 
 class CharacterCard extends StatelessWidget {
@@ -174,7 +250,8 @@ class CharacterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tier = weaponTierColor(index, character);
+    final patamar = patamarDaArma(index, character);
+    final tier = patamar?.cor;
 
     return Material(
       color: PWColors.surface,
@@ -191,7 +268,13 @@ class CharacterCard extends StatelessWidget {
             // before it reaches the text. At 0x1A it is barely a tint — enough
             // for a grid of forty to sort itself out at a glance, not enough
             // to fight the numbers.
-            gradient: tier == null
+            //
+            // **`baixo` desenha a borda e não o fundo**, que é o que impede
+            // 51,8% da grelha de ficar tingida. Um degrau que metade do
+            // mercado ocupa não pode falar tão alto como os 3,7% que são 80 —
+            // e a borda azul já diz o que havia a dizer, que é *isto foi
+            // lido*.
+            gradient: tier == null || !patamar!.pinta
                 ? null
                 : LinearGradient(
                     begin: Alignment.topLeft,
@@ -306,16 +389,23 @@ class CharacterCard extends StatelessWidget {
                 ..._lines.map(_highlightLine),
                 ..._facts.map(_factLine),
               ],
-              if (character.runes.isNotEmpty) ..._runeStrip,
-              // **No fim, e depois das peças que responderam ao filtro.** As
-              // linhas acima dizem *porque é que este apareceu*; a fita diz
+              // **Depois das peças que responderam ao filtro.** As linhas
+              // acima dizem *porque é que este apareceu*; as duas tiras dizem
               // *o que ele está a usar*, que é a pergunta de quem varre a
               // grelha em vez de ler um card. A ordem põe a resposta antes do
               // retrato, que é como a página inteira já está arrumada.
+              //
+              // **E o equipamento vem antes das runas, que é o contrário do
+              // que estava.** As duas tiras separam-se pela forma — catorze
+              // quadrados e depois seis círculos — e a separação só funciona
+              // com elas adjacentes e nesta ordem, que é a da maquete e a da
+              // janela do jogo. Com as runas no meio, as peças ficavam
+              // partidas em dois blocos pelo bloco redondo.
               if (character.equipped.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 FitaDoSet(character: character, index: index),
               ],
+              if (character.runes.isNotEmpty) ..._runeStrip,
             ],
           ),
         ),
@@ -392,6 +482,23 @@ class CharacterCard extends StatelessWidget {
     ),
   ];
 
+  /// **Redonda, e é a separação inteira entre as duas tiras.**
+  ///
+  /// Escolha do dono entre três saídas desenhadas: um fio de 1 px entre elas,
+  /// formas diferentes, ou empurrar as runas para o lado oposto. Ganhou a
+  /// segunda — *«equipamento quadrado, runas redondas»* — porque separa sem
+  /// acrescentar vocabulário nenhum ao card, e porque as runas já têm cor
+  /// própria por nível.
+  ///
+  /// **O recorte não come a arte, e isso foi medido antes.** Os ícones são
+  /// 32×32 inteiramente opacos e 20,7% da imagem cai fora do círculo
+  /// inscrito — mas essa fatia são os cantos da moldura escura que o jogo
+  /// desenha à volta da pedra, não a pedra. As seis do índice foram
+  /// renderizadas lado a lado, quadradas e redondas, antes de isto ser
+  /// escrito.
+  ///
+  /// O anel é [PWColors.border], o mesmo que `_Peca` dá ao quadrado: as duas
+  /// tiras diferem na forma e em mais nada.
   Widget _rune(int itemId) {
     final level = index.runes[itemId]?.level;
 
@@ -401,7 +508,16 @@ class CharacterCard extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          ItemIcon(itemId, size: 24),
+          Container(
+            width: 24,
+            height: 24,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: PWColors.border),
+            ),
+            child: ItemIcon(itemId, size: 24),
+          ),
           if (level != null)
             Positioned(
               right: -2,
@@ -767,11 +883,12 @@ class _Queda extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final antes = history.previousPrice;
-    if (antes == null || antes <= price) return const SizedBox.shrink();
+    // A regra vive em `PriceHistory.baixouPara`, e o filtro chama a mesma:
+    // repeti-la aqui era como o card e o filtro vinham a discordar.
+    if (!history.baixouPara(price)) return const SizedBox.shrink();
 
     return Text(
-      '$antes',
+      '${history.previousPrice}',
       key: const ValueKey('queda'),
       style: const TextStyle(
         color: PWColors.textMuted,

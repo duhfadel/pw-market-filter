@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pw_market_filter/core/rotas.dart' as rotas;
 import 'package:pw_market_filter/core/theme/pw_colors.dart';
 import 'package:pw_market_filter/features/home/domain/arte_da_classe.dart';
 
@@ -57,29 +58,62 @@ void main() {
     expect(usados, hasLength(2));
   });
 
-  test('the same collection always wears the same class', () {
-    // Finding 4 of the 2026-09-30 review: nothing pinned this, so a slide
-    // back to `DateTime.now()` — the likelier accident, since it would look
-    // like "rotate the hero" — would keep every existing test green. Same
-    // `collectedAt` in, same class out, twice, is what a regression to the
-    // wall clock cannot survive.
-    final quando = DateTime.utc(2026, 8, 9, 12, 30);
+  test('cada mercado veste a sua classe, sempre a mesma', () {
+    // **Era sorteada pela data da coleta e passou a ser fixa a 10/11/2026**,
+    // por decisão do dono — a mesma que ele já tinha tomado para o herói da
+    // raiz: *«usa a mesma imagem»*. Uma tela de mercado tem a cara dela.
+    //
+    // O que os três testes que estavam aqui guardavam — determinismo contra
+    // um `DateTime.now()` — deixou de ser preciso, porque a função já não
+    // olha para relógio nenhum. O que passou a ser preciso é isto: que os
+    // três mercados não vistam a mesma, senão a escolha não distingue nada.
+    expect(classeDoCartaz(rotas.pw187), 'Andarilho');
+    expect(classeDoCartaz(rotas.pw126), 'Guerreiro');
+    expect(classeDoCartaz(rotas.pw144), 'Mercenário');
 
-    expect(classeDoCartaz(quando), classeDoCartaz(quando));
+    final todas = {
+      for (final v in [rotas.pw187, rotas.pw126, rotas.pw144])
+        classeDoCartaz(v),
+    };
+    expect(todas, hasLength(3));
   });
 
-  test('a different collection can wear a different class', () {
-    // Guards the other half: a `classeDoCartaz` that ignored its argument
-    // entirely (always returning `classesComArte.first`) would also pass the
-    // determinism test above without ever actually reading the collection.
-    final a = classeDoCartaz(DateTime.utc(2026, 8, 9));
-    final b = classeDoCartaz(DateTime.utc(2026, 9, 30));
+  test('nenhum mercado veste uma arte com o logótipo do editor', () {
+    // **Duas das dezassete trazem o `PERFECT WORLD` pintado na arte** — o
+    // sacerdote inteiro e o místico com o topo de um `P` no canto —, e o
+    // Cartaz desenha a arte sem aparar nada. Com a escolha sorteada pela data
+    // da coleta era questão de tempo até calhar uma delas, e calhou: a 10/11
+    // o 1.8.7 abria com o sacerdote e o logótipo bem legível na dobra.
+    //
+    // Uma marca do editor na primeira dobra contradiz, sem uma palavra, o que
+    // o rodapé diz em todas as páginas sobre ser projecto de fã sem vínculo —
+    // que é a mesma razão pela qual `tool/artes/capa.py` as apara antes de as
+    // pôr na capa da raiz.
+    //
+    // Esta lista é curta e escrita à mão de propósito: é a mesma medição que
+    // o `APARAR_EM_BAIXO` do gerador carrega, e são duas. Uma terceira arte
+    // com logótipo entra aqui no dia em que aparecer.
+    const comLogotipo = {'Sacerdote', 'Místico'};
 
-    expect(a, isNot(b));
+    for (final versao in [rotas.pw187, rotas.pw126, rotas.pw144, '9.9.9']) {
+      expect(
+        comLogotipo,
+        isNot(contains(classeDoCartaz(versao))),
+        reason: '$versao abriria com a marca do editor na dobra',
+      );
+    }
   });
 
-  test('no collection loaded yet opens on the first class', () {
-    expect(classeDoCartaz(null), classesComArte.first);
+  test('o 1.2.6 nunca veste uma classe que aquele jogo não tem', () {
+    // Ele só tem as seis clássicas. Um Andarilho ali seria o herói da página
+    // a prometer uma classe que aquele servidor não serve — que é a mesma
+    // razão pela qual a rotação antiga tinha uma lista menor para o 1.2.6.
+    expect(classesClassicasPw126, contains(classeDoCartaz(rotas.pw126)));
+  });
+
+  test('uma versão desconhecida cai numa classe que existe nas três', () {
+    // Nunca numa que possa faltar no mercado que a página apresenta.
+    expect(classesClassicasPw126, contains(classeDoCartaz('9.9.9')));
   });
 
   test('every class in the rotation has vertical art', () {
@@ -100,52 +134,59 @@ void main() {
       // invisível: a mesma razão por que `paginas_html_test` passou a exigir
       // que toda a imagem que uma página pede exista em disco.
       //
-      // Pega o caso que importa: as 480 foram movidas para a sua pasta e as
-      // 960 chegaram com nomes `pw-01..17`. Um emparelhamento errado entre as
-      // duas listas não se vê de outra forma.
+      // Pega o caso que importa: as 960 chegaram com nomes `pw-01..17` e
+      // foram emparelhadas por assinatura antes de serem renomeadas. Um
+      // emparelhamento errado não se vê de outra forma.
       for (final classe in classesComArte) {
-        for (final tamanho in TamanhoDaArte.values) {
-          final caminho = arteVerticalDaClasse(classe, tamanho: tamanho)!;
-          expect(
-            File(caminho).existsSync(),
-            isTrue,
-            reason: '$classe em ${tamanho.largura}: falta $caminho',
-          );
-        }
+        final caminho = arteVerticalDaClasse(classe)!;
+        expect(
+          File(caminho).existsSync(),
+          isTrue,
+          reason: '$classe: falta $caminho',
+        );
       }
     },
   );
 
-  test('cada tamanho tem a largura que o nome promete', () {
+  test('a pasta tem a largura que o nome promete', () {
     // Um ficheiro de 480 guardado na pasta 960 serviria metade dos píxeis
     // sob um nome que promete o dobro — e nada na página diria, porque
     // `BoxFit.cover` estica o que lhe derem. O cabeçalho WebP é a prova.
+    //
+    // **Isto ficou mais importante depois de os 480 saírem**, não menos:
+    // agora não há um segundo tamanho a desmentir um ficheiro trocado, e
+    // o caminho leva o número em cima.
     for (final classe in classesComArte) {
-      for (final tamanho in TamanhoDaArte.values) {
-        final caminho = arteVerticalDaClasse(classe, tamanho: tamanho)!;
-        expect(
-          _larguraWebp(File(caminho).readAsBytesSync()),
-          tamanho.largura,
-          reason: '$classe em ${tamanho.largura}',
-        );
-      }
+      final caminho = arteVerticalDaClasse(classe)!;
+      expect(
+        _larguraWebp(File(caminho).readAsBytesSync()),
+        larguraDaArteVertical,
+        reason: classe,
+      );
     }
   });
 
-  test('o Cartaz é o único chamador que pede o tamanho grande', () {
-    // Servir 960 a todos custaria 600 KB a mais em cada abertura da home, e
-    // seis dos sete ficheiros que a visita busca já recebem mais píxeis do
-    // que desenham. Se um segundo chamador passar a pedir `cartaz`, que seja
-    // uma decisão e não um descuido.
+  test('a arte vertical tem um chamador só, e é o palco', () {
+    // **Um tamanho só desde 10/11/2026**, quando os 480 saíram por não terem
+    // chamador — os Destaques passaram ao recorte. O que este teste guardava
+    // era que só um sítio pedia a arte grande; agora guarda que só um sítio
+    // pede a arte vertical, que é o mesmo facto com a escolha já feita.
+    //
+    // O palco desenha-a no Cartaz e no herói da raiz, e é o único lugar do
+    // site que a **amplia**: a caixa é da largura da página. Um segundo
+    // chamador tem de ser uma decisão e não um descuido — qualquer cartão
+    // que a queira está a pedir quatro vezes os píxeis que mostra, e o que
+    // lhe serve é `recorteDaClasse`.
     final pedem = Directory('lib')
         .listSync(recursive: true)
         .whereType<File>()
         .where((f) => f.path.endsWith('.dart'))
-        .where((f) => f.readAsStringSync().contains('TamanhoDaArte.cartaz'))
+        .where((f) => f.uri.pathSegments.last != 'arte_da_classe.dart')
+        .where((f) => f.readAsStringSync().contains('arteVerticalDaClasse('))
         .map((f) => f.uri.pathSegments.last)
         .toList();
 
-    expect(pedem, ['cartaz.dart']);
+    expect(pedem, ['palco_de_classe.dart']);
   });
 
   test('a class nobody has art for draws nothing', () {

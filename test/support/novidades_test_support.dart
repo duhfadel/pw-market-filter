@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:pw_market_filter/features/home/data/novidade_repository.dart';
+import 'package:pw_market_filter/features/home/domain/canal_ao_vivo.dart';
+import 'package:pw_market_filter/features/home/ui/ao_vivo_view_model.dart';
 import 'package:pw_market_filter/core/memoria/browser_memory.dart';
 import 'package:pw_market_filter/features/home/data/visit_repository.dart';
 import 'package:pw_market_filter/features/home/ui/novidades_view_model.dart';
@@ -85,3 +87,28 @@ Widget comBusca(Widget child, {Object corpo = const {}}) =>
       )..load(),
       child: child,
     );
+
+/// Envolve [child] com um `AoVivoViewModel` — o quarto que o `main.dart`
+/// monta acima de todas as rotas.
+///
+/// **Necessário desde 09/11/2026 por qualquer teste que monte a raiz**, e não
+/// só a home: a faixa de quem está ao vivo passou a desenhar-se também na
+/// tela de escolha, para o canal que joga 1.4.4 ter onde aparecer enquanto
+/// aquela versão não tem tela própria.
+///
+/// [canais] são as linhas que o cubit já considera ao vivo — este duplo não
+/// chama `aoVivoAgora`, portanto um teste que queira a faixa vazia passa a
+/// lista vazia, que é o caso normal e o que a maioria dos testes quer.
+Widget comAoVivo(Widget child, {List<CanalAoVivo> canais = const []}) =>
+    BlocProvider<AoVivoViewModel>.value(
+      value: _AoVivoFixo(canais),
+      child: child,
+    );
+
+/// Um `AoVivoViewModel` que não fala com a rede e não recalcula nada.
+class _AoVivoFixo extends Cubit<List<CanalAoVivo>> implements AoVivoViewModel {
+  _AoVivoFixo(super.canais);
+
+  @override
+  Future<void> load() async {}
+}

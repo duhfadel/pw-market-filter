@@ -201,14 +201,19 @@ Future<void> main(List<String> arguments) async {
       final index = MarketIndex.fromJson(
         jsonDecode(file.readAsStringSync()) as Map<String, dynamic>,
       );
-      versoes[servidor.chave] = VersaoResumo(
+      versoes[servidor.chave] = VersaoResumo.doIndice(
+        index,
         chave: servidor.chave,
         nome: _nomesLegiveis[servidor.chave] ?? servidor.chave,
-        personagens: index.characters.length,
-        coletadoEm: index.collectedAt,
       );
+      // O `novosHoje` sai no log de propósito. Ele desenha na porta da
+      // versão, portanto um zero por defeito de contagem apareceria como
+      // «ninguém novo hoje» — uma frase credível — e passaria semanas sem
+      // ninguém reparar. É a mesma razão pela qual o censo dos campos é
+      // impresso antes de qualquer arrasto.
       stdout.writeln(
         '  ${servidor.chave}: ${index.characters.length} personagens, '
+        '${versoes[servidor.chave]!.novosHoje} entraram hoje, '
         '${index.collectedAt.toIso8601String()}',
       );
     }
@@ -975,11 +980,10 @@ void escreverVersoes(
     }
   }
 
-  versoes[servidor.chave] = VersaoResumo(
+  versoes[servidor.chave] = VersaoResumo.doIndice(
+    index,
     chave: servidor.chave,
     nome: _nomesLegiveis[servidor.chave] ?? servidor.chave,
-    personagens: index.characters.length,
-    coletadoEm: index.collectedAt,
   );
 
   file.writeAsStringSync(jsonEncode(versoesToJson(versoes)));

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../../../core/rotas.dart' as rotas;
 import '../../../core/theme/pw_colors.dart';
+import '../../home/domain/visit_label.dart' show groupThousands;
 import '../../../market/slot_names.dart';
 import '../../ads/ad_slot.dart';
 import '../../home/ui/widgets/ajuda_strip.dart';
@@ -163,15 +164,33 @@ class _Results extends StatelessWidget {
               children: [
                 Row(
                   children: [
+                    // `.rtopo .qt { font-size:23px; font-weight:600 }` com
+                    // `.qt i { font-size:15px; color: apagado }` — o número
+                    // que a busca devolveu é o que se lê de relance, e o
+                    // total é o contexto dele. Eram os dois a 13 px, o que
+                    // dava a mesma voz à pergunta e à resposta.
                     Expanded(
-                      child: Text(
-                        '${state.results.length} de ${state.total}',
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: PWColors.text,
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: groupThousands(state.results.length),
+                              style: const TextStyle(
+                                fontSize: 23,
+                                fontWeight: FontWeight.w600,
+                                color: PWColors.text,
+                              ),
+                            ),
+                            TextSpan(
+                              text: ' de ${groupThousands(state.total)}',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: PWColors.apagado,
+                              ),
+                            ),
+                          ],
                         ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     _OrderPicker(state: state, viewModel: viewModel),
@@ -669,12 +688,43 @@ class _OrderPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) => PopupMenuButton<ResultOrder>(
     tooltip: 'Ordenar',
-    icon: const Icon(Icons.sort, size: 20, color: PWColors.textMuted),
     onSelected: viewModel.setOrder,
     itemBuilder: (context) => [
       for (final order in _offered)
         PopupMenuItem(value: order, child: Text(order.label)),
     ],
+    // `.ord { border:1px solid filete; border-radius:8px; padding:7px 12px;
+    // font-size:12.5px; background: chao }` — **um ícone de setas não diz
+    // por que ordem a lista está.** Era `Icons.sort` sozinho, portanto a
+    // ordem em vigor não aparecia em lado nenhum e só se descobria abrindo
+    // o menu. A maquete escreve-a, e escrever é o ponto.
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: PWColors.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: PWColors.border),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
+              state.query.order.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12.5, color: PWColors.text),
+            ),
+          ),
+          const SizedBox(width: 8),
+          const Icon(
+            Icons.keyboard_arrow_down,
+            size: 16,
+            color: PWColors.apagado,
+          ),
+        ],
+      ),
+    ),
   );
 }
 

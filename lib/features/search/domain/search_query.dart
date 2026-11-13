@@ -30,6 +30,14 @@ enum FacetDimension {
 
   /// O conjunto de pedras de nível nas sete peças.
   stoneSet,
+
+  /// Quem entrou há pouco e quem baixou o preço.
+  ///
+  /// **Uma dimensão para as duas perguntas**, e não uma cada, pela mesma
+  /// razão que os catorze slots partilham a sua: as duas vivem no mesmo
+  /// controlo — a faixa do mercado — e separá-las faria cada número contar
+  /// dentro do que o outro já filtrou, deixando a volta atrás sem números.
+  mercadoVivo,
 }
 
 /// How the results are ordered.
@@ -145,6 +153,8 @@ class SearchQuery {
     this.itemBySlot = const {},
     this.comboName,
     this.comboMinRebirth,
+    this.novosEmDias,
+    this.soComQueda = false,
     this.cardRarity,
     this.cardsMaxed = false,
     this.criteria = const [],
@@ -198,6 +208,23 @@ class SearchQuery {
 
   /// An AND. Every criterion has to find its own satisfying item.
   final List<ItemCriterion> criteria;
+
+  /// Há quantos dias, no máximo, o personagem entrou no mercado.
+  ///
+  /// Contado contra `MarketIndex.collectedAt`, não contra o relógio de quem
+  /// abre a página: o índice descreve um momento, e medir a idade de um
+  /// anúncio por outro relógio faria a resposta mudar sem a coleta mudar.
+  ///
+  /// **Quem não tem registo nunca passa.** Um índice colhido antes de haver
+  /// memória não sabe quando alguém entrou, e chamar-lhe novo seria afirmar
+  /// o que ninguém mediu.
+  final int? novosEmDias;
+
+  /// Só quem **desceu** o preço.
+  ///
+  /// A regra é `PriceHistory.baixouPara`, a mesma que desenha o preço riscado
+  /// no card — e não `cuts > 0`, que inclui quem baixou e voltou a subir.
+  final bool soComQueda;
 
   /// Name of a [CardCombo] the character must wear in full.
   final String? comboName;
@@ -334,6 +361,8 @@ class SearchQuery {
       itemBySlot.isEmpty &&
       comboName == null &&
       comboMinRebirth == null &&
+      novosEmDias == null &&
+      !soComQueda &&
       cardRarity == null &&
       !cardsMaxed &&
       criteria.isEmpty &&
@@ -380,6 +409,10 @@ class SearchQuery {
     FacetDimension.path => copyWith(path: () => null),
     FacetDimension.forja => copyWith(forjaMinima: () => null),
     FacetDimension.stoneSet => copyWith(stoneSet: () => null),
+    FacetDimension.mercadoVivo => copyWith(
+      novosEmDias: () => null,
+      soComQueda: false,
+    ),
     FacetDimension.runes => copyWith(runes: () => null),
     FacetDimension.owned => copyWith(
       shownOwned: const {},
@@ -399,6 +432,8 @@ class SearchQuery {
     Map<int, int>? itemBySlot,
     String? Function()? comboName,
     int? Function()? comboMinRebirth,
+    int? Function()? novosEmDias,
+    bool? soComQueda,
     String? Function()? cardRarity,
     bool? cardsMaxed,
     List<ItemCriterion>? criteria,
@@ -425,6 +460,8 @@ class SearchQuery {
     minPrice: minPrice == null ? this.minPrice : minPrice(),
     maxPrice: maxPrice == null ? this.maxPrice : maxPrice(),
     itemBySlot: itemBySlot ?? this.itemBySlot,
+    novosEmDias: novosEmDias == null ? this.novosEmDias : novosEmDias(),
+    soComQueda: soComQueda ?? this.soComQueda,
     comboName: comboName == null ? this.comboName : comboName(),
     comboMinRebirth: comboMinRebirth == null
         ? this.comboMinRebirth

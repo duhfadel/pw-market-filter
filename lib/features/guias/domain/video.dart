@@ -8,6 +8,7 @@ class Video {
   const Video({
     required this.secao,
     required this.youtube,
+    this.versao,
     this.titulo,
     this.classe,
     this.personagem,
@@ -22,6 +23,20 @@ class Video {
   final String secao;
 
   final String youtube;
+
+  /// A que mercado pertence — `1.8.7`, `1.2.6` —, ou nulo nas seções que não
+  /// são de versão nenhuma, como as multi contas.
+  ///
+  /// **O `select=*` sempre a trouxe e o modelo deitava-a fora**, porque a
+  /// única pergunta era *«quais vídeos desta versão?»* e o repositório
+  /// respondia-a na consulta. A secção da raiz pede os três mercados de uma
+  /// vez e precisa de os separar depois — e aí o campo tem de chegar cá.
+  ///
+  /// É a travessia onde esta casa já perdeu o `require_level`, o `sexo`, o
+  /// `nivel`, a `escada` e os `bonusNaoResolvidos`: o parser lia-os e o codec
+  /// não os conhecia. Por isso `video_test` crava este do outro lado do
+  /// `fromJson` e não só a existência do campo.
+  final String? versao;
 
   /// O nome do vídeo, ou nulo quando ele não acrescenta nada.
   ///
@@ -107,6 +122,7 @@ class Video {
   factory Video.fromJson(Map<String, dynamic> json) => Video(
     secao: json['secao'] as String? ?? '',
     youtube: json['youtube'] as String? ?? '',
+    versao: _texto(json['versao']),
     titulo: _texto(json['titulo']),
     classe: _texto(json['classe']),
     personagem: _texto(json['personagem']),

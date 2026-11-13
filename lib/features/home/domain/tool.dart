@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../guias/domain/guia.dart';
+
 /// One entry on the Portal's front page.
 ///
 /// Tools that do not exist yet belong here too, with `route: null`. A menu that
@@ -178,7 +180,11 @@ final tools = <Tool>[
     emblem: 56274,
     route: '/instancias',
     versoes: const {'1.8.7'},
-    novoAte: _ateDezembro,
+    // BETA e não *novo*: a ferramenta ainda não está 100%, e o que se quer
+    // dizer é a ressalva, não o convite. Uma ferramenta beta já é nova — a
+    // etiqueta sozinha diz as duas coisas. Sai quando o dono a der por pronta,
+    // como saiu a da calculadora de runas.
+    beta: true,
   ),
   Tool(
     name: 'Calculadora de runas',
@@ -227,22 +233,6 @@ final tools = <Tool>[
   // que é a lista que se mantém sozinha, e a entrada *Todos os guias* logo
   // abaixo leva lá. É exactamente a divisão que essa entrada existe para
   // garantir — o menu destaca um, a lista guarda todos.
-  Tool(
-    name: 'Saga do Herói',
-    // Um mês de selo, e a data vence sozinha.
-    novoAte: _ateFimDeNovembro,
-    tagline:
-        'As 17 sagas lado a lado: o mascote e o título de +100 de HP de cada '
-        'classe, e as missões de cada uma com as coordenadas.',
-    icon: Icons.military_tech_outlined,
-    secao: 'Guias',
-    // Um ovo de mascote, que é o que as dezassete sagas pagam. Partilha a
-    // arte com todos os outros ovos — mas `emblem` não é lido em lado
-    // nenhum hoje, e quando for, o ovo é o símbolo certo para isto.
-    emblem: 38587,
-    href: '/guias/saga-do-heroi/',
-    versoes: const {'1.8.7'},
-  ),
   // **A porta para a lista, e ela existe porque havia duas listas de guias que
   // não sabiam uma da outra.** Os artigos vivem em `web/guias/index.html`, que
   // se mantém sozinho; o menu vive aqui. O guia das runas foi publicado a
@@ -255,43 +245,13 @@ final tools = <Tool>[
   // repara o terceiro e deixa o quarto cair no mesmo buraco. É uma entrada
   // para a lista que já se mantém, e a partir daqui um guia novo aparece no
   // menu sem ninguém se lembrar de nada.
-  Tool(
-    name: 'Todos os guias',
-    // Um mês, e a data vence sozinha — um *novo* que ninguém se lembra de
-    // tirar deixa de ser verdade muito antes de alguém reparar, e um selo que
-    // mentiu uma vez é um selo em que ninguém volta a acreditar.
-    novoAte: _ateNovembro,
-    tagline:
-        'A lista inteira: runas, cartas Nuema, começar no jogo e o que vier.',
-    icon: Icons.menu_book_outlined,
-    secao: 'Guias',
-    // Página de Registro, o item que é literalmente um índice de coisas.
-    emblem: 27424,
-    href: '/guias/',
-    versoes: const {'1.8.7'},
-  ),
   // **E esta é a volta da entrada que saiu em 29/09/2026**, agora com algo
   // atrás dela. Saiu porque era um *em breve* sem data, e um *em breve* que
   // fica meses na primeira dobra ensina o visitante a não acreditar no
   // próximo. Volta com `route` e não com `href` porque agora é uma tela do
   // site e não uma página estática em `web/guerras/`.
   Tool(
-    name: 'Multi contas',
-    // Um mês de badge, e a data vence sozinha: um "novo" que ninguém se
-    // lembra de tirar deixa de ser verdade muito antes de alguém reparar.
-    tagline:
-        'Jogar com mais de um cliente aberto: para que serve um segundo '
-        'personagem e o que é preciso para o aguentar.',
-    icon: Icons.devices_other_outlined,
-    secao: 'Guias',
-    // A Pedra do Teletransporte: o item de quem anda com dois personagens
-    // em dois sítios ao mesmo tempo.
-    emblem: 23040,
-    route: '/1.8.7/multicontas',
-    versoes: const {'1.8.7'},
-  ),
-  Tool(
-    name: 'Guerras Territoriais',
+    name: 'Vídeos de Guerras Territoriais',
     tagline:
         'Vídeos de guerra gravados pela comunidade, por classe — e todos '
         'com permissão de quem gravou.',
@@ -299,10 +259,11 @@ final tools = <Tool>[
     // **Secção própria, não os Guias** — decisão do dono em 05/10/2026, e tem
     // razão: um vídeo de guerra não explica nada, mostra. Com uma entrada só,
     // a pílula leva direto à tela em vez de abrir uma gaveta de um item.
-    // **A pílula diz `Guerras` e a tela diz `Guerras Territoriais`**, e isso
-    // é medido e não preferência: com o nome inteiro a barra transbordava
-    // 70 px ao lado de *Ferramentas*, *Guias* e *Novidades*, com as fontes
-    // reais. Uma pílula é um rótulo, não um título — o nome completo está no
+    // **A pílula diz `Guerras` e a entrada diz o nome inteiro**, e isso é
+    // medido e não preferência: já com `Guerras Territoriais` a barra
+    // transbordava 70 px ao lado de *Ferramentas*, *Guias* e *Novidades*,
+    // com as fontes reais, e o nome ficou ainda mais longo a 10/11/2026.
+    // Uma pílula é um rótulo, não um título — o nome completo está no
     // cabeçalho da tela e na dica da própria pílula.
     secao: 'Guerras',
     // `{versao}` é substituído pela versão em que o visitante está — as
@@ -312,21 +273,6 @@ final tools = <Tool>[
     versoes: const {'1.8.7', '1.2.6'},
   ),
 ];
-
-/// Quando vence o selo de *novo* que estiver em uso.
-///
-/// **Um só, e os selos antigos saíram todos a 23/10/2026**, a pedido do dono:
-/// o BETA da calculadora de runas, que está no ar desde Setembro e é exacta,
-/// e os *novo* das Multi contas e das Guerras, que já não eram notícia. O dos
-/// Títulos tinha-se apagado sozinho a 20/10 — que é precisamente o que a data
-/// existe para fazer.
-final _ateNovembro = DateTime.utc(2026, 11, 5);
-
-/// Um mês a contar da publicação das dezassete Sagas do Herói, a 29/10/2026.
-final _ateFimDeNovembro = DateTime.utc(2026, 11, 29);
-
-/// Um mês a contar da publicação do organizador de instâncias, a 11/11/2026.
-final _ateDezembro = DateTime.utc(2026, 12, 11);
 
 /// As seções na ordem em que a home as mostra, cada uma uma vez.
 ///
@@ -338,11 +284,96 @@ List<String> get secoesDaHome {
   return [
     for (final tool in tools)
       if (vistas.add(tool.secao)) tool.secao,
+    // **Os guias não estão em `tools` e por isso entram à mão.** A gaveta
+    // deles é a lista de `guias`, derivada, e não três entradas escritas
+    // aqui — ver `_guiasComoTools`. Sem esta linha a secção desaparecia da
+    // barra no dia em que as entradas à mão saíram, que foi exactamente o
+    // que a suíte apanhou.
+    if (vistas.add(seccaoDosGuias)) seccaoDosGuias,
   ];
 }
 
 /// Os cards de uma seção, na ordem da lista, para a versão em que se está.
-List<Tool> toolsDe(String secao, {String? versao}) => [
-  for (final tool in tools)
-    if (tool.secao == secao && tool.serveA(versao)) tool,
+List<Tool> toolsDe(String secao, {String? versao}) => secao == seccaoDosGuias
+    ? _guiasComoTools(versao)
+    : [
+        for (final tool in tools)
+          if (tool.secao == secao && tool.serveA(versao)) tool,
+      ];
+
+/// O nome da secção dos guias, escrito uma vez.
+const seccaoDosGuias = 'Guias';
+
+/// A gaveta dos *Guias* é a lista dos guias, e não uma selecção à mão.
+///
+/// **Era curada — a Saga, *Todos os guias* e as multi contas — e a pílula
+/// dizia três.** A maquete diz **oito**, e o dono escolheu o número dela:
+/// quem chega quer saber quantos artigos há, não quantas entradas alguém
+/// destacou. Com a conta a vir da lista, as duas passam a dizer o mesmo
+/// número pela única razão que resiste: são a mesma coisa.
+///
+/// **A entrada *Todos os guias* saiu da gaveta e não saiu do site.** Ela
+/// existia para haver um caminho até `/guias/`, e esse caminho está agora na
+/// própria página, na régua da secção — `os 8 →`. Duas portas para a mesma
+/// lista na mesma tela era o que o dono já tinha recusado nas ferramentas.
+///
+/// **E a Saga deixou de ser destaque, que é a metade que se perde.** Ela era
+/// a primeira da gaveta por ser a maior; passa a ser a primeira da lista, que
+/// é onde a ordem de `guias` já a põe.
+List<Tool> _guiasComoTools(String? versao) => [
+  for (final guia in guiasDe(versao))
+    Tool(
+      name: guia.titulo,
+      tagline: guia.linha,
+      icon: Icons.menu_book_outlined,
+      secao: seccaoDosGuias,
+      versoes: guia.versoes,
+      // Um mês a contar da publicação, derivado e não escrito — ver
+      // `Guia.publicado`. Um *novo* que ninguém se lembra de tirar deixa de
+      // ser verdade muito antes de alguém reparar.
+      novoAte: guia.publicado.add(Guia.duracaoDoSelo),
+      route: guia.noApp ? guia.endereco : null,
+      href: guia.noApp ? null : guia.endereco,
+    ),
 ];
+
+/// Se abrir [tool] escolheria um mercado por quem clicou.
+///
+/// **A pergunta é sobre o destino e não sobre [Tool.versoes]**, e a primeira
+/// versão disto olhou para o campo errado. *Todos os guias* declara-se de
+/// 1.8.7 e é literalmente a lista das três versões; abri-lo leva a uma página
+/// HTML que não pertence a mercado nenhum. `versoes` diz em que menus a
+/// entrada aparece — outra pergunta.
+///
+/// O que escolhe mercado é uma rota que **nomeia uma versão**: a marca
+/// `{versao}`, que `rotaDaTool` preenche com o 1.8.7 quando não há nenhuma, ou
+/// um prefixo cravado como `/1.8.7/filtro`. Um `href` nunca escolhe: é uma
+/// página do site, servida igual a toda a gente.
+bool escolheMercado(Tool tool) {
+  final rota = tool.route;
+  if (rota == null) return false;
+  if (rota.contains('{versao}')) return true;
+  return _prefixosDeVersao.any((p) => rota.startsWith('/$p/'));
+}
+
+/// Os prefixos que `core/rotas.dart` conhece. Escritos aqui e não importados
+/// porque `domain/` não depende de `core/rotas.dart` — e o 1.4.4 entra na
+/// lista no dia em que ganhar rota, que é o mesmo dia em que ganha prefixo.
+const _prefixosDeVersao = ['1.8.7', '1.2.6', '1.4.4'];
+
+/// Se [secao] pode ser oferecida numa tela que ainda não escolheu mercado.
+///
+/// **A regra é derivada e não declarada**, e isso é o ponto. `Cabecalho`
+/// escondia as duas secções na raiz com uma bandeira — `semMercado` — posta à
+/// mão a 27/10/2026, porque `rotaDaTool` sem versão cai no 1.8.7 e clicar ali
+/// escolhia o mercado em silêncio. A bandeira resolvia o defeito e não sabia
+/// porque existia: no dia em que uma secção deixasse de ter entradas presas a
+/// um mercado, continuaria escondida.
+///
+/// Foi o que aconteceu. Os *Guias* são três entradas que nenhuma escolhe
+/// mercado — duas são endereços de páginas HTML e a terceira, as multi
+/// contas, perdeu o prefixo a 09/11/2026. *Ferramentas* tem o filtro cravado
+/// em `/1.8.7/filtro` e continua escondida, que é o defeito original a
+/// continuar tapado pela razão certa.
+bool secaoServeSemMercado(String secao) =>
+    toolsDe(secao).every((t) => !escolheMercado(t));

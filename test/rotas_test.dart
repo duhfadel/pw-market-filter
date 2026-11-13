@@ -182,6 +182,23 @@ void main() {
     });
   });
 
+  group('/multicontas is bare because it is about the game client', () {
+    // The guide serves all three versions, so a `/1.8.7` prefix would switch
+    // the visitor's marketplace underfoot — the very defect `Tool.versoes`
+    // exists to prevent. The prefixed spelling stays a reader forever: it was
+    // the only address this guide ever had.
+    test('bare opens the guide', () {
+      expect((resolverRota('/multicontas') as RotaTela).tela, Tela.multiContas);
+    });
+
+    test('the old prefixed address opens the same screen', () {
+      expect(
+        (resolverRota('/1.8.7/multicontas') as RotaTela).tela,
+        Tela.multiContas,
+      );
+    });
+  });
+
   group('an unknown path falls back rather than throwing', () {
     test('an unknown top-level path falls back to the choice', () {
       expect((resolverRota('/nada-aqui') as RotaTela).tela, Tela.escolha);
@@ -229,5 +246,23 @@ void main() {
       final context = tester.element(find.text('filtro187'));
       expect(Navigator.of(context).canPop(), isTrue);
     });
+  });
+
+  test('o 1.4.4 abre uma espreitadela, e nada mais', () {
+    // **Temporária**, pedida pelo dono a 10/11/2026 para ver o Cartaz daquela
+    // versão antes de o mercado abrir. Não se chega lá a clicar — a porta da
+    // raiz continua apagada —, é preciso escrever o endereço.
+    expect((resolverRota('/$pw144') as RotaTela).tela, Tela.espreitar144);
+
+    // **E só o endereço nu.** Nada debaixo do 1.4.4 existe: um `/1.4.4/filtro`
+    // tem de cair na escolha e não inventar um mercado, que é a mesma recusa
+    // que mantém a porta sem rota.
+    for (final sob in ['filtro', 'guerras', 'registros']) {
+      expect(
+        (resolverRota('/$pw144/$sob') as RotaTela).tela,
+        Tela.escolha,
+        reason: '/1.4.4/$sob não pode existir enquanto o mercado não existir',
+      );
+    }
   });
 }

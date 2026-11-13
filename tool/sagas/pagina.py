@@ -19,6 +19,7 @@ Run: python3 tool/sagas/pagina.py
 
 import os
 import re
+import shutil
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -331,6 +332,35 @@ def pagina_indice():
     return '\n'.join(h) + RODAPE
 
 
+ARTES = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), '..', '..', 'assets',
+    'images', 'classes-recorte',
+)
+
+
+def _copiar_artes():
+    """Traz os recortes de `assets/` para a pasta que estas páginas servem.
+
+    **A casa é `assets/images/classes-recorte/` e isto é a cópia.** A app
+    Flutter precisa deles como assets declarados no `pubspec`, e estas
+    páginas estáticas precisam deles ao lado do HTML — um ficheiro em dois
+    sítios, portanto, e este repositório já pagou por um desses sem guarda:
+    o campo `arte` que repetia o slug deu a arte do Guerreiro ao Ceifador.
+
+    Aqui a guarda é dupla. Esta função reescreve a cópia a cada geração, e
+    `recorte_da_classe_test` crava que as duas pastas são byte a byte iguais
+    — porque substituir só uma delas deixa a página e o card dos Destaques a
+    mostrar artes diferentes da mesma classe, e nada o diz: as duas carregam
+    sem erro nenhum.
+    """
+    destino = os.path.join(RAIZ, 'img')
+    os.makedirs(destino, exist_ok=True)
+    for s in SAGAS:
+        origem = os.path.join(ARTES, _arte(s))
+        if os.path.exists(origem):
+            shutil.copyfile(origem, os.path.join(destino, _arte(s)))
+
+
 def _conferir_artes():
     """A arte declarada tem de existir em disco.
 
@@ -353,6 +383,7 @@ def _conferir_artes():
 
 def main():
     os.makedirs(RAIZ, exist_ok=True)
+    _copiar_artes()
     _conferir_artes()
     escritos = []
     for s in SAGAS:

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/rotas.dart' as rotas;
+
 import '../../../core/theme/pw_colors.dart';
 
 /// The seventeen classes the market lists, mapped to the art that stands for
@@ -56,29 +58,24 @@ const classesComArte = [
   'Tormentador',
 ];
 
-/// Os dois tamanhos em que a arte vertical existe, em píxeis de largura.
+/// A largura em que a arte vertical existe, em píxeis.
 ///
-/// **São duas pastas e uma regra de endereço, não duas listas de ficheiros.**
-/// A classe é o facto; a pasta é escolhida por quem desenha, conforme a caixa
-/// que vai preencher. É o mesmo arranjo do ícone de item, derivado do id, e é
-/// por isso que acrescentar um terceiro tamanho não toca em [_classes].
-enum TamanhoDaArte {
-  /// Para cartões: os Destaques a seis colunas dão ~120 px cada, e as Portas
-  /// menos ainda. Aqui 480 já é quatro vezes o que o ecrã mostra.
-  cartao(480),
-
-  /// Para o Cartaz, que é o único sítio que **amplia** a arte: a caixa é da
-  /// largura da página por 360 px de altura, com `BoxFit.cover`, portanto numa
-  /// página de 1280 px uma fonte de 480 é esticada 2,67× — 5,3× em `DPR 2`.
-  /// Medido a 06/11/2026: as artes de 960 trazem **1,94×** mais energia de
-  /// borda do que as de 480 ampliadas para o mesmo tamanho, o que as prova
-  /// fonte verdadeira e não um upscale, que daria 1,00×.
-  cartaz(960);
-
-  const TamanhoDaArte(this.largura);
-
-  final int largura;
-}
+/// **Era um par — 480 para cartões, 960 para o Cartaz — e os 480 saíram a
+/// 10/11/2026, por decisão do dono.** Ficaram sem chamador quando os
+/// Destaques passaram a desenhar [recorteDaClasse] sobre o degradê do
+/// patamar, e eram 906 KB de ficheiros que a app não desenhava.
+///
+/// **Não se perdeu arte: eram a mesma cena, em metade do tamanho.** Medido
+/// antes de apagar — reduzindo cada 960 para 480 e comparando píxel a píxel,
+/// a diferença média é de **5,2 em 255**, com o pior caso no espiritualista
+/// a 9,5. Isso é compressão, não um desenho diferente. Se um cartão voltar a
+/// querer a cena pintada em pequeno, sai daqui com um `cwebp` e sem rede.
+///
+/// Fica como constante e não como enum de um valor só: o número é o que o
+/// `arte_da_classe_test` lê do cabeçalho WebP de cada ficheiro, para que um
+/// 480 guardado nesta pasta não sirva metade dos píxeis sob um nome que
+/// promete o dobro.
+const larguraDaArteVertical = 960;
 
 /// The art for [classe] at the 2:3 crop, or `null` where none was ever
 /// supplied.
@@ -87,27 +84,66 @@ enum TamanhoDaArte {
 /// A hero showing somebody else's face would be worse than a hero showing no
 /// face at all.
 ///
-/// **[tamanho] existe porque só um chamador amplia.** Servir 960 a todos
-/// custaria 600 KB a mais em cada abertura da home — a visita busca sete
-/// ficheiros, uma classe para o Cartaz e seis para os Destaques — e seis
-/// desses sete já recebem mais píxeis do que desenham. O valor por omissão é
-/// o do cartão, que é o caso comum.
+/// **Um tamanho só, e um chamador só.** O [PalcoDeClasse] é quem a desenha —
+/// no Cartaz e no herói da raiz — e é o único sítio do site que **amplia** a
+/// arte: a caixa é da largura da página, portanto numa página de 1280 px uma
+/// fonte de 480 seria esticada 2,67×, e 5,3× em `DPR 2`. É por isso que os
+/// 960 ficaram e os 480 saíram, e não ao contrário.
 ///
 /// This used to have a square 560 sibling, `arteDaClasse`, cropped to put the
 /// face a fifth from the top for a half-width card. It was deleted on
 /// 2026-10-01 once the Cartaz moved to this tall crop and nothing else ever
 /// called the square one — kept alive only by its own test, which is the
 /// inverse of the failure CLAUDE.md names when it says "a codec with no test
-/// is where a field goes to die". `assets/images/classes/` went with it.
-String? arteVerticalDaClasse(
-  String classe, {
-  TamanhoDaArte tamanho = TamanhoDaArte.cartao,
-}) {
+/// is where a field goes to die". `assets/images/classes/` went with it, and
+/// `classes-verticais/480/` followed it a month later, for the same reason.
+String? arteVerticalDaClasse(String classe) {
   final entrada = _classes[classe];
   return entrada == null
       ? null
-      : 'assets/images/classes-verticais/${tamanho.largura}/'
+      : 'assets/images/classes-verticais/$larguraDaArteVertical/'
             '${entrada.arquivo}.webp';
+}
+
+/// A capa: as dezassete artes de classe numa só imagem, de pé.
+///
+/// **Existe porque o herói deitava a arte e isso amolecia o rosto.** Uma cena
+/// 960×1440 a cobrir uma faixa da largura da página é esticada *pela largura*
+/// — 1,48× a 1420 e 2× a 1920, o que em píxeis de ecrã retina são 2,96× e 4×.
+/// Não há arte maior publicada: procurou-se no oficial brasileiro (952×880,
+/// menos do que já temos), no oficial chinês (outra arte, 800 px) e no site do
+/// servidor (ícones de 36×36).
+///
+/// De pé, a mesma arte enche os 1520 px de altura da faixa a **1,06×**.
+/// Dezassete lado a lado enchem a largura sem que nenhuma seja esticada — a
+/// nitidez vem de usar a arte na orientação em que foi pintada.
+///
+/// Escrita por `tool/artes/capa.py`, que guarda o porquê de cada número.
+const capaDasClasses = 'assets/images/capa-classes.webp';
+
+/// O recorte da arte de [classe] — a figura sem fundo nenhum.
+///
+/// **É outra ilustração, e não a vertical sem fundo.** As verticais são cenas
+/// pintadas: não têm canal alfa, os quatro cantos de cada uma discordam entre
+/// si até 209 de 255, e em quinze das dezassete o efeito do próprio
+/// personagem **é** o fundo — o gelo que envolve o Bardo, o fogo em volta da
+/// Feiticeira. Ali «só o personagem» não tem fronteira definida, e qualquer
+/// recorte ou come a magia dele ou traz um pedaço de céu junto. Estes vieram
+/// recortados de origem, do marketplace deles, com 51% a 81% de transparência.
+///
+/// **Um endereço derivado da mesma tabela**, pela razão que
+/// [arteVerticalDaClasse] já carrega: uma segunda lista de ficheiros é uma
+/// segunda lista para divergir. Um tamanho só, 560 px: o maior cartão que o
+/// desenha tem 330, pelo que ninguém o amplia, e um segundo tamanho seria
+/// pagar píxeis que ninguém vê.
+///
+/// `null` para uma classe que nunca existiu, como a arte vertical: o chão
+/// liso, nunca a cara de outra pessoa.
+String? recorteDaClasse(String classe) {
+  final entrada = _classes[classe];
+  return entrada == null
+      ? null
+      : 'assets/images/classes-recorte/${entrada.arquivo}.webp';
 }
 
 /// The accent the page wears while showing [classe].
@@ -132,28 +168,29 @@ const classesClassicasPw126 = [
   'Sacerdote',
 ];
 
-/// Which class the Cartaz wears for a collection made at [collectedAt].
+/// Que classe o Cartaz veste em cada mercado.
 ///
-/// Derived from the collection's own timestamp — never `Random()`, never the
-/// wall clock. The same collection has to draw the same page, or a rebuild
-/// reads as a slot machine instead of a site. `null` (no collection loaded
-/// yet) opens on the first class of [classes] rather than waiting to show any
-/// art at all.
+/// **Fixa por versão desde 10/11/2026, e era sorteada pela data da coleta.**
+/// O argumento antigo era bom — duas visitas não abriam a mesma página — e o
+/// dono trocou-o pelo mesmo que já tinha decidido para o herói da raiz: *«usa
+/// a mesma imagem»*. Uma tela de mercado tem a cara dela, e quem volta
+/// reconhece-a.
 ///
-/// [classes] defaults to [classesComArte], the 1.8.7 pool of seventeen. The
-/// 1.2.6 home passes [classesClassicasPw126] instead — the smaller pool is
-/// what keeps the hero honest about which game it is rotating through.
+/// O que se perde é a rotação; o que se ganha é cada mercado passar a ser
+/// reconhecível pela arte. E some junto a classe de pergunta que a rotação
+/// obrigava a fazer — se a coleta muda a cara, um `--rebuild` muda a página
+/// sem nada ter mudado no mercado.
 ///
-/// Lifted out of `home_view.dart` so a test can call it directly rather than
-/// only through the assembled page — a regression to `DateTime.now()` here
-/// would otherwise stay invisible to every widget test, since none of them
-/// pump the same index twice in the same run.
-String classeDoCartaz(
-  DateTime? collectedAt, {
-  List<String> classes = classesComArte,
-}) {
-  if (classes.isEmpty) return classesComArte.first;
-  if (collectedAt == null) return classes.first;
-  final posicao = collectedAt.millisecondsSinceEpoch % classes.length;
-  return classes[posicao];
-}
+/// **A escolha respeita o que cada jogo tem.** O 1.2.6 só tem as seis
+/// clássicas, portanto leva o Guerreiro; pôr-lhe um Andarilho seria o herói
+/// da página a prometer uma classe que aquele servidor não serve. Ver
+/// [classesClassicasPw126].
+///
+/// Uma versão sem linha aqui cai no Guerreiro, que existe nas três — nunca
+/// numa classe que possa não existir no mercado que a página apresenta.
+String classeDoCartaz(String versao) => switch (versao) {
+  rotas.pw187 => 'Andarilho',
+  rotas.pw126 => 'Guerreiro',
+  rotas.pw144 => 'Mercenário',
+  _ => 'Guerreiro',
+};

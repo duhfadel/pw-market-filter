@@ -205,4 +205,19 @@ void main() {
     );
     expect(pushed.any((nome) => nome.startsWith('/1.8.7/filtro')), isFalse);
   });
+
+  testWidgets('a secção de guias do 1.2.6 não oferece guias do 1.8.7', (
+    tester,
+  ) async {
+    // A metade que só se alcança deste lado. O 1.8.7 tem sete guias próprios
+    // e o 1.2.6 nenhum, portanto é aqui que uma secção filtrada por versão
+    // mostraria o artigo errado — e é aqui que ela nasceria vazia se a regra
+    // de «vazio quer dizer todas» estivesse ao contrário.
+    await _pumpHomePw126(tester);
+
+    expect(find.text('GUIAS DESTA VERSÃO'), findsOneWidget);
+    expect(find.text('Multi contas'), findsOneWidget);
+    expect(find.text('Cartas Nuema'), findsNothing);
+    expect(find.text('Quanto custa uma runa nível 10'), findsNothing);
+  });
 }

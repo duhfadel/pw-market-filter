@@ -248,7 +248,7 @@ void main() {
     await tester.tap(find.widgetWithText(OutlinedButton, 'Campo'));
     await tester.pumpAndSettle();
     await tester.enterText(
-      find.widgetWithText(TextField, 'Nome do campo'),
+      find.widgetWithText(TextField, 'Nome curto do campo'),
       'Fez TW',
     );
     await tester.pumpAndSettle();

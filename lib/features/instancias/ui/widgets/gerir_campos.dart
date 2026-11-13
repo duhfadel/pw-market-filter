@@ -184,9 +184,13 @@ class _NovoCampoState extends State<_NovoCampo> {
         controller: _nome,
         onChanged: (_) => setState(() {}),
         style: const TextStyle(color: PWColors.text),
+        // Um nome curto vira a coluna e encurta o link: a marcação e a
+        // escolha ganham uma coluna com este nome no cabeçalho, e um nome
+        // grande deixa a coluna larga.
         decoration: const InputDecoration(
-          labelText: 'Nome do campo',
-          hintText: 'TW?, Status, Observação…',
+          labelText: 'Nome curto do campo',
+          hintText: 'TW, Boss, Status…',
+          helperText: 'Vira o cabeçalho da coluna — curto fica melhor.',
         ),
       ),
       const SizedBox(height: 12),

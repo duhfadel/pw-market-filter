@@ -838,8 +838,23 @@ ausência significa *não foi lido* e por isso não desenha linha nenhuma; aqui
 quem escreve é o dono da conta, e um campo apagado quer dizer que ele tem
 zero. Não há terceira hipótese.
 
-**Os campos personalizados são um construtor de colunas, e a decisão de
-layout foi não os fazer colunas.** Pedido do dono a 12/11/2026: um botão para
+**Os campos personalizados são colunas no largo, fichas no estreito — e a
+primeira versão invertia isto.** Eu fiz fichas por baixo do nome para não
+alargar a tabela; o dono corrigiu a 13/11/2026: *os campos deveriam ser uma
+nova coluna*, com um checkbox por personagem, como a da Chave. É o modelo de
+planilha que ele tem na cabeça. No largo, a marcação e a escolha viram colunas
+à direita da Chave e a tabela **rola na horizontal** quando são muitas (um
+`Expanded` não cabe num scroll horizontal, portanto a identidade — pega, ícone,
+nome — passa a uma caixa de largura fixa, `_larguraNome`). O subtotal e o total
+de uma coluna de marcação contam *quantos marcaram*. A nota continua numa
+linha por baixo do nome, porque texto é comprido demais para uma coluna. No
+estreito não há colunas: tudo volta a fichas no cartão, porque quatro checkbox
+em coluna não cabem a 390 px.
+
+**O nome do campo viaja no link uma vez só** — `cf=id~sigla~nome` — e os
+valores usam a id curta, portanto acrescentar campos não incha o link como o
+dono receava; o que precisa de ser curto é o cabeçalho da coluna, e o
+formulário de criar campo pede *nome curto* por isso. Pedido do dono a 12/11/2026: um botão para
 fazer campos, de três tipos — marcação (sim/não), escolha (uma opção entre as
 que ele define) e nota (texto livre) — e **vários de cada**. A tabela de
 números já é larga; cada campo como coluna estouraria a largura ao segundo ou

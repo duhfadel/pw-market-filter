@@ -191,6 +191,13 @@ jobs:
         env:
           DISCORD_ALERTAS: ${{ secrets.DISCORD_ALERTAS }}
           ALERTAS_CATCHUP: ${{ inputs.catchup }}
+          # A sessão autenticada do marketplace, desde que o login passou a ser
+          # obrigatório (11/11/2026). O captcha é resolvido à mão no navegador;
+          # aqui só viaja o cookie da sessão e o UA do navegador. Ausentes numa
+          # bifurcação e na máquina de quem desenvolve — sem eles o coletor
+          # bate no portão, que é um estado honesto, não um segredo exposto.
+          TCMARKET_COOKIE: ${{ secrets.TCMARKET_COOKIE }}
+          TCMARKET_UA: ${{ secrets.TCMARKET_UA }}
         run: |
           dart run tool/collect.dart --server ${{ matrix.servidor }} --resume && exit 0
           echo "::warning::A coleta caiu; segunda tentativa. Se isto virar rotina, deixou de ser azar."

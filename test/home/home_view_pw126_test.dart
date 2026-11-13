@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:pw_market_filter/features/home/data/ao_vivo_repository.dart';
-import 'package:pw_market_filter/features/home/data/browser_memory.dart';
+import 'package:pw_market_filter/core/memoria/browser_memory.dart';
 import 'package:pw_market_filter/features/home/data/novidade_repository.dart';
 import 'package:pw_market_filter/features/home/data/visit_repository.dart';
 import 'package:pw_market_filter/features/home/domain/arte_da_classe.dart';

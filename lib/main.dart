@@ -11,6 +11,7 @@ import 'features/home/ui/novidades_view_model.dart';
 import 'features/home/ui/visit_counter_view_model.dart';
 import 'features/novidades/ui/novidades_view.dart';
 import 'features/portas/ui/portas_view.dart';
+import 'features/instancias/ui/instancias_view.dart';
 import 'features/registros/ui/registros_view.dart';
 import 'features/guias/ui/guerras_view.dart';
 import 'features/guias/ui/multi_contas_view.dart';
@@ -87,6 +88,11 @@ class PortalPWApp extends StatelessWidget {
           ),
           RotaTela(tela: Tela.registros) => const RegistrosView(),
           RotaTela(tela: Tela.runas) => const RunasView(),
+          // A query vai para dentro: a lista inteira pode vir no endereço,
+          // como no filtro. Ver `instancias_url.dart`.
+          RotaTela(tela: Tela.instancias, :final query) => InstanciasView(
+            query: query,
+          ),
           RotaTela(tela: Tela.guerras) => const GuerrasView(),
           RotaTela(tela: Tela.guerras126) => const GuerrasView(versao: pw126),
           RotaTela(tela: Tela.multiContas) => const MultiContasView(),

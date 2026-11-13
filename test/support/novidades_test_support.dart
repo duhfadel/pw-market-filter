@@ -7,7 +7,7 @@ import 'package:http/testing.dart';
 import 'package:pw_market_filter/features/home/data/novidade_repository.dart';
 import 'package:pw_market_filter/features/home/domain/canal_ao_vivo.dart';
 import 'package:pw_market_filter/features/home/ui/ao_vivo_view_model.dart';
-import 'package:pw_market_filter/features/home/data/browser_memory.dart';
+import 'package:pw_market_filter/core/memoria/browser_memory.dart';
 import 'package:pw_market_filter/features/home/data/visit_repository.dart';
 import 'package:pw_market_filter/features/home/ui/novidades_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/visit_counter_view_model.dart';

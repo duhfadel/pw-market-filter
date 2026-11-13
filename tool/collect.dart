@@ -1094,8 +1094,13 @@ class _CollectState {
         done.remove(id);
         relidos.add(id);
       }
+      // **Diz o motivo e não só o número.** O critério do `aReler` muda
+      // quando a reparação da vez acaba — já foi *sem sexo nem reino* e é
+      // agora *com título de fundador* —, e um log que o não nomeasse
+      // deixaria quem lê a corrida sem saber o que está a ser reparado.
       stdout.writeln(
-        '  ${alvos.length} sem sexo nem reino vão ser relidos '
+        '  ${alvos.length} com título de fundador vão ser relidos, para o '
+        'grau sair do card mais alto e não do primeiro '
         '(tecto de $releiturasPorCorrida por corrida)',
       );
     }

@@ -1,5 +1,5 @@
 import '../domain/novidade.dart';
-import 'browser_memory.dart';
+import '../../../core/memoria/browser_memory.dart';
 
 /// Whether this browser has opened `/novidades` since the newest entry was
 /// posted — one fact, read by the header's pill (`cabecalho.dart`) and

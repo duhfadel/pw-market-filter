@@ -19,6 +19,7 @@
 /// /filtro?...          redireciona      (links já partilhados, para sempre)
 /// /1.8.7/registros     Títulos
 /// /1.8.7/runas         Runas
+/// /instancias          Organizador de instâncias
 /// /1.8.7/guerras       Guerras Territoriais
 /// /1.2.6/guerras       Guerras Territoriais do 1.2.6
 /// /multicontas         Guia de multi contas  (canónica: serve as três)
@@ -82,6 +83,14 @@ enum Tela {
   filtro126,
   registros,
   runas,
+
+  /// O organizador de instâncias — `InstanciasView`.
+  ///
+  /// **Sem prefixo de versão, como o `/registros` e o `/runas`.** Os itens
+  /// que ela conta são do 1.8.7 e é só lá que a entrada aparece no menu, mas
+  /// a rota não nomeia versão: o que ela guarda são os personagens de quem
+  /// está a ler, e uma lista escrita à mão não muda de mercado.
+  instancias,
 
   /// Os vídeos de guerra territorial que a comunidade autorizou —
   /// `GuerrasView`. Só existe sob o 1.8.7: os vídeos são daquele mercado, e
@@ -191,6 +200,12 @@ RotaResolvida resolverRota(String? name) {
     return const RotaTela(Tela.multiContas);
   }
 
+  // A query vem junto porque a lista inteira viaja no endereço — ver
+  // `instancias_url.dart`. É a segunda tela a fazê-lo, depois do filtro.
+  if (segments.first == 'instancias' && segments.length == 1) {
+    return RotaTela(Tela.instancias, query: uri.queryParametersAll);
+  }
+
   if (segments.first == pw187) {
     if (segments.length == 1) return const RotaTela(Tela.home187);
     if (segments[1] == 'filtro') {
@@ -198,6 +213,9 @@ RotaResolvida resolverRota(String? name) {
     }
     if (segments[1] == 'registros') return const RotaTela(Tela.registros);
     if (segments[1] == 'runas') return const RotaTela(Tela.runas);
+    if (segments[1] == 'instancias') {
+      return RotaTela(Tela.instancias, query: uri.queryParametersAll);
+    }
     if (segments[1] == 'guerras') return const RotaTela(Tela.guerras);
     if (segments[1] == 'multicontas') return const RotaTela(Tela.multiContas);
     return const RotaTela(Tela.home187);

@@ -168,6 +168,21 @@ final tools = <Tool>[
     // o assunto da ferramenta em vez de um retrato qualquer.
   ),
   Tool(
+    name: 'Organizador de instâncias',
+    // Diz o que se ganha, não o que a ferramenta é por dentro. Quem tem seis
+    // personagens não procura "um organizador": procura saber em qual é que
+    // ainda há chave.
+    tagline:
+        'Quantas Relíquias Maravilha e Chaves da Sorte cada personagem seu '
+        'tem — e em qual delas ainda sobra entrada.',
+    icon: Icons.checklist_rtl_outlined,
+    // A Chave da Sorte, que é o que acaba primeiro e o que se vem cá ver.
+    emblem: 56274,
+    route: '/instancias',
+    versoes: const {'1.8.7'},
+    novoAte: _ateDezembro,
+  ),
+  Tool(
     name: 'Calculadora de runas',
     // O número é a manchete. A janela de fusão mostra uma porcentagem e nada
     // mais: nunca diz que a runa no centro é a vigésima quinta que alguém vai
@@ -254,6 +269,13 @@ final tools = <Tool>[
     versoes: const {'1.8.7', '1.2.6'},
   ),
 ];
+
+/// Um mês a contar da publicação do organizador de instâncias, a 11/11/2026.
+///
+/// É o único selo de *novo* em uso: o redesenho de Novembro recalcula o dos
+/// guias a partir de `guia.publicado` (ver abaixo), e os selos antigos já
+/// tinham saído ou expirado sozinhos.
+final _ateDezembro = DateTime.utc(2026, 12, 11);
 
 /// As seções na ordem em que a home as mostra, cada uma uma vez.
 ///

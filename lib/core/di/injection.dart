@@ -5,6 +5,9 @@ import '../../features/home/ui/ao_vivo_view_model.dart';
 import '../../features/home/data/novidade_repository.dart';
 import '../../features/home/ui/novidades_view_model.dart';
 import '../../features/home/data/visit_repository.dart';
+import '../../features/instancias/data/instancias_memoria.dart';
+import '../../features/instancias/ui/instancias_view_model.dart';
+import '../memoria/browser_memory.dart';
 import '../../features/registros/ui/registros_view_model.dart';
 import '../../features/registros/data/registro_repository.dart';
 import '../../features/home/ui/visit_counter_view_model.dart';
@@ -53,6 +56,15 @@ void configureDependencies() {
         getIt<IndexRepository>(instanceName: IndexRepository.pw126),
       ),
       instanceName: IndexRepository.pw126,
+    )
+    // **Uma fábrica e não um singleton**, ao contrário dos repositórios: esta
+    // gaveta é de quem está a ler, e um singleton manteria o plano montado
+    // em memória depois de alguém sair da tela. A verdade está no
+    // `localStorage`, que é relido a cada entrada.
+    ..registerFactory<InstanciasViewModel>(
+      () => InstanciasViewModel(
+        InstanciasMemoria(BrowserMemory.platform(InstanciasMemoria.chave)),
+      ),
     )
     ..registerFactory<RegistrosViewModel>(
       () => RegistrosViewModel(getIt<RegistroRepository>()),

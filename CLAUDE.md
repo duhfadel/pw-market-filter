@@ -382,7 +382,7 @@ existe.
 #### The streamers: a third table, and the Worker as the only writer
 
 `canais_twitch (canal, nome, ativo, ao_vivo, titulo, jogo, espectadores,
-thumb, visto_em)` holds who from the community is streaming. The browser
+thumb, avatar, visto_em)` holds who from the community is streaming. The browser
 cannot ask Twitch this — the Helix API needs a secret, and a secret compiled
 into the bundle is not a secret — so the Cloudflare Worker asks every five
 minutes on its own cron and writes the answer here.
@@ -443,6 +443,42 @@ and still no thumbnail and no animation beyond a slow swap, because nobody
 paid for it and it must not read as bought placement. The stream title is
 deliberately dropped — written for Twitch, full of emoji and coupon codes, it
 reads as spam pasted onto somebody else's site.
+
+**A foto de perfil enche o card de quem não enviou arte — sete dos dez.**
+Pedida a 11/11/2026. O `/helix/users` devolve `profile_image_url` ao lado do
+`display_name`, portanto o Worker já a tinha na mão e deitava-a fora: entra
+em `batizarOsNovos`, no mesmo pedido, e **custa zero requisição**.
+
+**Avatar e `thumb` são coisas diferentes e é por isso que há duas colunas.**
+A `thumb` é a miniatura da transmissão, do `/helix/streams`, e só existe
+enquanto alguém está no ar — continua guardada e **continua a não ser
+desenhada**, porque um card com preview de live lê-se como anúncio pago. O
+avatar é a cara do canal e responde sempre.
+
+**Só desenha avatar quem não tem arte no balde, e os dois nunca aparecem
+juntos.** O emblema é uma peça 3:1 desenhada para esta caixa; o avatar é
+redondo e pequeno ao lado do nome. Desenhar ambos poria duas imagens da mesma
+pessoa a 90 px uma da outra, e a autoral perderia para a redonda só por estar
+mais perto do nome.
+
+**Guardado como endereço e não como ficheiro**, ao contrário da arte do balde:
+aquela é do streamer e vive connosco, esta é da Twitch e muda quando ele a
+trocar lá. Copiá-la seria uma segunda cópia a envelhecer sozinha. Em troca,
+**uma foto trocada não é relida** — reler custaria uma chamada por rodada para
+sempre, e o conserto, se um dia incomodar, é limpar a coluna daquele canal,
+que volta à fila sozinho.
+
+**A condição é *falta o nome **ou** a foto*, e essa é a parte que não é
+óbvia.** `batizarOsNovos` filtrava por nome em falta; quando a coluna nasceu,
+os dez canais já tinham nome, portanto um filtro só pelo nome nunca lhes
+pediria o avatar e o campo ficaria eternamente vazio para todos os que já
+existiam. E o lote manda **sempre as duas chaves**, porque mistura quem só
+precisa de nome com quem só precisa de foto — o `PGRST102` que já custou um
+dia aqui.
+
+**A Twitch devolve `""` para quem nunca pôs foto**, e vazio é guardado como
+ausente: um `Image.network('')` desenha a caixa partida que o `errorBuilder`
+existe para evitar.
 
 **A streamer's own art lives in a Supabase bucket, not in `assets/`, and it is
 found by the login.** `streamers` is public, images only, capped at **512 KB** —
@@ -733,6 +769,244 @@ dá para fazer **subindo**, e aí uma runa alta vale.
 pattern — centre 3 and centre 6 both give 20% at the top and then 10% and 8%
 respectively — and the cheapest path never needs them, because same-level fuel
 alone reproduces the game's own cost lists exactly.
+
+## O organizador de instâncias
+
+A primeira ferramenta deste site que **escreve em vez de ler**. Tudo o resto
+parte de uma recolha e responde sobre o jogo; esta não sabe nada — a lista é
+de quem está a ler, escrita à mão, e o site nunca a viu nem a pode verificar.
+Pedido do dono a 11/11/2026: quem tem seis personagens não sabe em qual é que
+ainda há chave.
+
+Uma linha por personagem, quatro números cada — as três **Relíquias
+Maravilha** (Artefato `54687`, Arma `50410`, Armadura `70020`) e a **Chave da
+Sorte** `56274` — e a soma de todos em baixo, que é a única resposta que
+nenhuma linha sozinha dá.
+
+**Não lê o índice do mercado, de propósito.** Seriam 3 MB para saber quatro
+ids que não mudam, e tornaria um planeador pessoal refém de uma recolha — que,
+no dia em que isto nasceu, estava parada atrás do login deles. Os ids foram
+lidos do índice uma vez e estão cravados, como `countedItemIcons` já faz.
+
+**`ocupacaoDaClasse` existe pela mesma razão e não duplica `occupationOf`.**
+Aquele mapa diz *que classes apareceram neste índice*, portanto encolhe com o
+mercado; este diz *como se chama o ícone do Bardo*, que é verdade com ou sem
+mercado. Medido sobre os 2.977 personagens de 11/11: as dezassete casam com
+exactamente uma ocupação cada, zero ambiguidades, e `ocupacoes_test` repete a
+conferência contra o índice que estiver em `web/` — uma ocupação errada
+desenha o ícone de outra classe sem falhar nem avisar, que é a forma que já
+custou a arte do Ceifador nas Sagas.
+
+**Ordenar é uma vista e nunca uma mudança na lista.** `PlanoDeInstancias.emOrdem`
+ordena; `personagens` guarda a ordem em que o dono os escreveu, e é essa que é
+gravada e que viaja no link. Tocar num cabeçalho e recarregar a página não
+pode deixar alguém com a lista baralhada para sempre. **Só decrescente**: um
+segundo toque volta à ordem de entrada em vez de inverter, porque *quem tem
+menos chaves* lê-se no fim da mesma lista. E **empate fica na ordem de
+entrada** — dez personagens com zero chaves não podem saltar de sítio.
+
+**A lista vive no `localStorage` e o link é a única rede.** Não há conta, não
+há servidor nosso e não guardamos dados de ninguém; o preço é que é por
+aparelho. `_OndeFica` diz isso **na tela**, ao lado do botão que resolve —
+quem não sabe que é por aparelho descobre-o a perder tudo, e uma ferramenta
+sem conta que parece ter conta é uma promessa que o site não fez.
+
+**Um link ganha sempre ao que está gravado.** Quem abre um link está a dizer
+*quero esta lista*; respeitar a do aparelho faria o link não funcionar
+precisamente na máquina nova, que é o único sítio onde ele serve para alguma
+coisa.
+
+**O link leva os grupos primeiro e cada personagem diz a que grupo pertence
+pelo índice.** `g=Principal&g=Mula&p=0~Bardo~3~1~2~14~duhit&p=1~Mago~…` — e
+aqui um índice de grupo **é** seguro, ao contrário da classe: ele resolve-se
+*dentro do próprio link*, contra a lista de `g` que viaja ao lado, não contra
+uma recolha que mudou noutro dia. `queryParametersAll` preserva a ordem dentro
+de cada chave, portanto a lista de `g` chega ordenada. O nome do personagem vai
+no fim — tudo antes dele tem aridade fixa (índice, classe, quatro números),
+portanto o que sobra depois da sexta separação *é* o nome, com tis dentro; o
+nome do grupo tem o seu próprio parâmetro e nunca precisa de ser separado de
+nada. A classe continua a viajar **pelo nome e nunca por índice**, pela razão
+oposta à do grupo: ela resolve-se contra o jogo, que é externo ao link.
+
+**Guardado como JSON e não como o link**, apesar de os dois saberem escrever a
+mesma coisa: o link é para um humano ver e colar, portanto tem tecto (cem) e
+abrevia; o ficheiro não tem tecto e pode ganhar campos sem ter de caber num
+endereço. E as contagens são gravadas **pelo nome do valor do enum** — um enum
+reordenado trocaria as chaves pelas relíquias de toda a gente, em silêncio, no
+ficheiro que já estava gravado.
+
+**Vazio é zero, e aqui isso é o contrário da regra do card.** No mercado uma
+ausência significa *não foi lido* e por isso não desenha linha nenhuma; aqui
+quem escreve é o dono da conta, e um campo apagado quer dizer que ele tem
+zero. Não há terceira hipótese.
+
+**Os campos personalizados são colunas no largo, fichas no estreito — e a
+primeira versão invertia isto.** Eu fiz fichas por baixo do nome para não
+alargar a tabela; o dono corrigiu a 13/11/2026: *os campos deveriam ser uma
+nova coluna*, com um checkbox por personagem, como a da Chave. É o modelo de
+planilha que ele tem na cabeça. No largo, a marcação e a escolha viram colunas
+à direita da Chave e a tabela **rola na horizontal** quando são muitas (um
+`Expanded` não cabe num scroll horizontal, portanto a identidade — pega, ícone,
+nome — passa a uma caixa de largura fixa, `_larguraNome`). O subtotal e o total
+de uma coluna de marcação contam *quantos marcaram*. A nota continua numa
+linha por baixo do nome, porque texto é comprido demais para uma coluna. No
+estreito não há colunas: tudo volta a fichas no cartão, porque quatro checkbox
+em coluna não cabem a 390 px.
+
+**O nome do campo viaja no link uma vez só** — `cf=id~sigla~nome` — e os
+valores usam a id curta, portanto acrescentar campos não incha o link como o
+dono receava; o que precisa de ser curto é o cabeçalho da coluna, e o
+formulário de criar campo pede *nome curto* por isso. Pedido do dono a 12/11/2026: um botão para
+fazer campos, de três tipos — marcação (sim/não), escolha (uma opção entre as
+que ele define) e nota (texto livre) — e **vários de cada**. A tabela de
+números já é larga; cada campo como coluna estouraria a largura ao segundo ou
+terceiro. Vivem como **fichas numa linha por baixo do nome** (`Wrap`, que
+quebra), iguais no largo e no cartão: a marcação e a escolha são fichas, a
+nota é uma linha própria porque texto é comprido. É o que escala para muitos
+campos sem partir nada.
+
+**Os campos são globais ao plano e o valor é por personagem.** Criar *TW?*
+uma vez põe-no em todos, para a marcação ser comparável (`marcados(id)` conta
+quantos ligaram). A identidade de um campo é a `id` gerada e nunca o nome —
+`CampoPersonalizado` — para o valor sobreviver à renomeação, a mesma razão
+pela qual um atributo do mercado viaja pela id. Apagar um campo limpa o valor
+dele em todos os personagens, senão ficariam órfãos a pesar no link.
+
+**Ausente é não preenchido, e um valor vazio apaga a chave.** `comExtra(id,
+'')` remove a entrada em vez de guardar `''`: uma nota apagada tem de voltar a
+*não preenchida*, não a uma string vazia que ainda contaria. O diálogo da nota
+usa um espaço como sentinela de *limpar*, distinto de `null` que é *cancelar*.
+
+**Tudo isto viaja no link, e é o que o dono pediu: o amigo abre e vê.** Três
+famílias de parâmetro, cada uma com a regra do *último é o resto* para o til
+não a partir: `cf=id~sigla~nome` define o campo (nome é o resto), `co=id~opção`
+dá uma opção (opção é o resto), `x=índiceGlobal~id~valor` dá o valor de um
+campo num personagem (valor é o resto, com tis e tudo). O índice global é a
+posição do personagem na ordem dos `p`, a mesma de um lado e do outro. Um
+valor cujo campo não existe, ou cujo índice caiu num link cortado, é deitado
+fora. No ficheiro os campos vivem num objecto `{campos: [...]}` no fim da
+lista do topo, e o `extras` de cada personagem só se escreve quando há —
+ausente nunca é afirmado.
+
+**Finalizar uma dungeon é três botões por grupo, um por entrada.** Pedido do
+dono a 13/11/2026: cada dungeon gasta uma relíquia de um tipo e dá 6 chaves,
+portanto a barra tem um botão por entrada — Artefato, Arma, Armadura. Carregar
+num deles, para todo o grupo: quem tem aquela entrada gasta uma (−1) e ganha
++6 chaves; quem está a zero dela não pode fazer a dungeon e fica de fora. O
+botão conta quantos podem (`podemDungeon`) e apaga-se quando ninguém pode — a
+mesma regra da coleta diária, um botão que não faz nada ensina a desconfiar
+dos que fazem. `comDungeon` no personagem é idempotente só no sentido de
+recusar quem não tem a entrada; não há marca de dia, porque uma dungeon pode
+fazer-se várias vezes. Desfazer guarda o plano inteiro de antes, como a
+coleta do grupo.
+
+**A coleta diária é um botão por personagem e uma barra por grupo.** Pedido
+do dono a 12/11/2026: um botão *pegar as 3 entradas diárias* que soma +1 em
+cada Relíquia Maravilha — Artefato, Arma, Armadura — e **não toca na chave**
+(a diária dá entradas, não chaves). Há um por personagem *e* uma barra que
+pega por todo o grupo, porque, nas palavras dele, *de repente eu posso pegar
+em um e não no outro*.
+
+**A marca de *já pegou hoje* é uma data e nunca um booleano.** `coletadoEm`
+guarda o dia da última coleta, e `pegouEm(hoje)` compara-o com o dia de hoje.
+Um booleano *já pegou* nunca se apagaria sozinho — amanhã continuaria a dizê-lo
+— e a data vira *pode pegar* à meia-noite do Brasil sem ninguém lhe tocar, a
+mesma razão pela qual o selo *novo* dos guias carrega uma data.
+
+**O dia é o do Brasil e nunca o relógio local**, pela razão do contador de
+visitas: o reset diário do jogo é na hora do servidor, e um jogador na Europa
+que lesse o seu próprio dia veria *pode pegar* horas antes do jogo abrir. Três
+horas atrás de UTC, como `VisitRepository._today`.
+
+**A coleta é idempotente no dia, e é isso que faz a barra do grupo funcionar.**
+`comColetaDiaria` devolve o próprio personagem sem somar se ele já pegou hoje
+— portanto o botão do grupo passa por quem já pegou sem o somar outra vez, e a
+barra conta só quantos faltam (`faltamHoje`) para prometer o que vai mesmo
+fazer. Quando `todosPegaramHoje`, a barra vira um recado verde em vez de um
+botão: um botão que não faz nada ensina a desconfiar dos que fazem. Um grupo
+vazio devolve `false` ali, para não dizer *todos pegaram* sobre ninguém.
+
+**Desfazer guarda o plano inteiro de antes**, porque a coleta do grupo mexe em
+vários de uma vez e desfaz-se pelo todo — `restaurar(antes)`. Um clique errado
+soma +3 a quem não devia, a mesma rede do tirar.
+
+**A data viaja no link e no ficheiro.** O link ganhou um campo fixo antes do
+nome (`g~classe~a~r~m~k~data~nome`) — tem forma sem tis, portanto não estraga
+a regra de o nome ser o resto; vazio quando nunca se pegou. O ficheiro só
+escreve `coletadoEm` quando há, para não encher de nulos. Ambos recusam uma
+data que não case com `AAAA-MM-DD`.
+
+**Os personagens arrumam-se em grupos de nome livre, e arrastam-se entre
+eles.** Pedido do dono a 11/11/2026: *grupo é um container* — ele cria «Conta
+principal» e «Mulas» e troca personagens de um para outro quando quer. O
+modelo passou a ter dois níveis — `GrupoDeInstancias` dentro de
+`PlanoDeInstancias` — com **subtotal por grupo e um total geral** no fim; o
+total é a única resposta a *quantas chaves tenho ao todo*, e o subtotal a
+*quantas tem esta conta*.
+
+**Há sempre pelo menos um grupo.** Um plano sem grupo não teria onde pôr o
+primeiro personagem, e uma tela que pede *crie um grupo antes de criar um
+personagem* faz o visitante trabalhar para a ferramenta. O primeiro nasce com
+a lista (`nomeInicial`), e tirar o último devolve um inicial em vez de zero —
+`semOGrupo` nunca deixa a lista sem casa.
+
+**Só a pega arrasta, e isso resolve três coisas.** Um toque longo sobre o
+nome era seleção de texto — o campo ganhava o gesto —, portanto o arrasto
+nascia no sítio errado; com rato, o toque longo não se adivinha e o dono abriu
+a tela e não viu como mudar alguém de grupo; e a linha inteira arrastável
+tornava qualquer deslize um começo de arrasto. A pega dedicada (`_PegaArrasto`)
+é um `Draggable` **imediato** — não um `LongPressDraggable` — porque é um alvo
+pequeno e à esquerda: agarrá-la não rouba o deslize vertical da página como um
+arrasto imediato sobre a linha toda roubaria, e com rato começa logo, com o
+cursor de agarrar e a dica *arraste para mudar de grupo*. O grupo inteiro é o
+`DragTarget` — larga-se na gaveta, não numa linha de 44 px — e
+`movendoPersonagem` tira antes de calcular o destino, senão mover dentro do
+mesmo grupo erraria por um.
+
+**Na tabela do largo as colunas de número levam recuo interno.** São caixas de
+largura fixa encostadas umas às outras, portanto sem um vão o `+` de uma
+coluna encostava ao `−` da seguinte e os dois liam-se como um controlo só — o
+dono apontou-o duas vezes, no estreito e no largo. O recuo vive dentro do
+`_Campo`, não entre as colunas, para o cabeçalho e as somas continuarem
+alinhados; e a coluna subiu para 106 px para o campo ainda caber um número de
+três dígitos depois de pagar o recuo.
+
+**Cada número ganhou `−` e `+`, e o campo fica.** Tocar é *usei uma chave* /
+*ganhei uma entrada*; escrever direto é para saltos grandes. O `−` desliga no
+zero — um botão que não faz nada ensina a desconfiar dos que fazem.
+
+**No telemóvel o personagem vira cartão, e isso reverte a regra das colunas.**
+A primeira versão insistiu numa linha única também no estreito — a mesma
+decisão das oito colunas dos Títulos — e os quatro `− [n] +` ao lado do nome e
+do ícone ficaram bicos de agulha. O dono apontou-o: *no celular ficou ruim*.
+No estreito cada personagem é agora um cartão — pega, ícone de classe e nome
+em cima; os quatro botões numa fila por baixo, cada um com o ícone do item
+ao lado. **O ícone do item é o que substitui o cabeçalho de colunas**, que o
+estreito deixou de ter: sem ele, cada célula teria de confiar numa legenda
+longe. A ordenação, que no largo é um toque no cabeçalho, mora numa fila de
+chips — e é lá que os nomes `Artefato`/`Chave` passaram a viver, porque nos
+cartões os ícones já estão gastos a identificar as células. O subtotal e o
+total geral levam o ícone do item ao lado de cada número, pela mesma razão.
+A diferença entre isto e os Títulos é que ali as oito colunas são a *imagem*
+que se compara com a janela do jogo; aqui a comparação é dentro da própria
+tabela, e um cartão por pessoa não a perde — os quatro números ficam na mesma
+posição em todos.
+
+**E dentro do cartão a chave desceu para uma linha só dela**, a pedido do dono
+— quatro steppers numa fila a 390 px ainda saíam estreitos. As três entradas
+(Relíquia Maravilha) ficam numa fila e a `Chave da Sorte` numa caixa por
+baixo, com o nome por extenso. Não é só espaço: uma entrada abre a instância e
+a chave abre o baú lá dentro — são coisas diferentes, a chave é a que se conta
+mais, e separá-la dá-lhe os botões maiores que ela merece. `EntradaDeInstancia.entradas`
+é a lista das três sem a chave, para o cartão não a repetir à mão.
+
+**Os campos não levam o chão que o tema dá a todo o `TextField`.** Ali ele diz
+*aqui escreve-se*; numa tabela de quarenta campos são quarenta caixas claras a
+desenhar uma grelha por cima da grelha. Só se viu renderizando.
+
+**`BrowserMemory` mudou-se para `core/memoria/`** quando ganhou o terceiro
+consumidor. Estava em `features/home/data/` desde que só contava visitas, e o
+nome já tinha deixado de ser verdade antes do sítio.
 
 ## A moldura do card diz o patamar da arma
 

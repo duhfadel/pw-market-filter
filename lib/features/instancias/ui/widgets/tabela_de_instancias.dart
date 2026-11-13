@@ -318,14 +318,22 @@ class TabelaDeInstancias extends StatelessWidget {
       builder: (context, c) {
         final quantos = plano.grupos.length;
         const espaco = 16.0;
+        double celula(int cols) => (c.maxWidth - espaco * (cols - 1)) / cols;
         // Quantos grupos cabem lado a lado, preenchendo a largura toda do
         // monitor — até quatro por linha, e nunca mais grupos do que existem.
         final cabem = (c.maxWidth / _larguraParaEmparelhar).floor();
-        final colunasPorLinha = cabem.clamp(1, 4).clamp(1, quantos);
+        var colunasPorLinha = cabem.clamp(1, 4).clamp(1, quantos);
+        // O par aparece cedo (limiar baixo, para emparelhar já num portátil),
+        // mas três ou mais por linha só quando cada um fica folgado — senão o
+        // terceiro espreme todos, e o que o dono quer é que ele desça. Reduz
+        // até a célula caber com folga.
+        while (colunasPorLinha >= 3 &&
+            celula(colunasPorLinha) < _larguraFolgada) {
+          colunasPorLinha--;
+        }
         // Cada grupo divide a largura disponível por igual: num ecrã largo
         // dois grupos esticam-se até às bordas em vez de ficarem num miolo.
-        final largura =
-            (c.maxWidth - espaco * (colunasPorLinha - 1)) / colunasPorLinha;
+        final largura = celula(colunasPorLinha);
         // As colunas de número só se comprimem quando não há colunas de campo
         // (essas já rolam na horizontal) e há mesmo aperto.
         final comprimido =

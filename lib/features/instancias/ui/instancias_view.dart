@@ -9,6 +9,7 @@ import '../../../core/rotas.dart' as rotas;
 import '../../../core/theme/pw_colors.dart';
 import '../../ads/ad_slot.dart';
 import '../../home/ui/widgets/cabecalho.dart';
+import '../domain/entrada_de_instancia.dart';
 import '../domain/plano_de_instancias.dart';
 import 'instancias_view_model.dart';
 import 'widgets/escolher_classe.dart';
@@ -179,6 +180,37 @@ class _Conteudo extends StatelessWidget {
       );
   }
 
+  /// Finalizar uma dungeon no grupo, com desfazer. Conta quantos a fizeram —
+  /// quem não tinha a entrada não entra.
+  void _finalizarDungeon(
+    BuildContext context,
+    int grupo,
+    EntradaDeInstancia entrada,
+  ) {
+    final vm = context.read<InstanciasViewModel>();
+    final antes = vm.state;
+    final quantos = antes.grupos[grupo].podemDungeon(entrada);
+    if (quantos == 0) return;
+    final mensageiro = ScaffoldMessenger.of(context);
+
+    vm.finalizarDungeon(grupo, entrada);
+    mensageiro
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            quantos == 1
+                ? 'Dungeon de ${entrada.curto}: 1 personagem gastou 1 e ganhou 6 chaves.'
+                : 'Dungeon de ${entrada.curto}: $quantos personagens gastaram 1 e ganharam 6 chaves.',
+          ),
+          action: SnackBarAction(
+            label: 'Desfazer',
+            onPressed: () => vm.restaurar(antes),
+          ),
+        ),
+      );
+  }
+
   /// Pegar a diária do grupo inteiro, com desfazer. Conta quantos foram
   /// mesmo somados — quem já tinha pegado hoje não entra.
   void _pegarGrupo(BuildContext context, int grupo) {
@@ -257,6 +289,8 @@ class _Conteudo extends StatelessWidget {
               hoje: InstanciasViewModel.hoje(),
               aoPegarDiaria: (onde) => _pegarDiaria(context, onde),
               aoPegarGrupo: (grupo) => _pegarGrupo(context, grupo),
+              aoFinalizarDungeon: (grupo, entrada) =>
+                  _finalizarDungeon(context, grupo, entrada),
               aoDefinirExtra: vm.definirExtra,
             ),
             const SizedBox(height: 22),

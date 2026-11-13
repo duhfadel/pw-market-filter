@@ -321,6 +321,19 @@ class PlanoDeInstancias {
         ]),
       );
 
+  /// Finaliza uma dungeon no grupo inteiro: cada personagem com a entrada
+  /// [entrada] gasta uma dela e ganha +6 chaves. Quem está a zero fica como
+  /// está.
+  PlanoDeInstancias finalizarDungeonNoGrupo(
+    int grupo,
+    EntradaDeInstancia entrada,
+  ) => _trocandoGrupo(
+    grupo,
+    grupos[grupo].com([
+      for (final p in grupos[grupo].personagens) p.comDungeon(entrada),
+    ]),
+  );
+
   PlanoDeInstancias renomeandoPersonagem(Morada onde, String nome) {
     final limpo = nome.trim();
     if (limpo.isEmpty) return this;

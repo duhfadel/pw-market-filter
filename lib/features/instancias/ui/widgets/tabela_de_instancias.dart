@@ -188,6 +188,7 @@ class TabelaDeInstancias extends StatelessWidget {
     required this.hoje,
     required this.aoPegarDiaria,
     required this.aoPegarGrupo,
+    required this.aoFinalizarDungeon,
     required this.aoDefinirExtra,
     super.key,
   });
@@ -214,6 +215,10 @@ class TabelaDeInstancias extends StatelessWidget {
   /// Pegar as três entradas de hoje de um personagem, e do grupo inteiro.
   final void Function(Morada) aoPegarDiaria;
   final void Function(int grupo) aoPegarGrupo;
+
+  /// Finalizar uma dungeon no grupo que gasta [entrada]: todos −1 nela, +6
+  /// chaves.
+  final void Function(int grupo, EntradaDeInstancia entrada) aoFinalizarDungeon;
 
   /// Definir (ou limpar) o valor de um campo personalizado num personagem.
   final void Function(Morada, String campoId, String? valor) aoDefinirExtra;
@@ -265,6 +270,7 @@ class TabelaDeInstancias extends StatelessWidget {
             hoje: hoje,
             aoPegarDiaria: aoPegarDiaria,
             aoPegarGrupo: aoPegarGrupo,
+            aoFinalizarDungeon: aoFinalizarDungeon,
             campos: plano.campos,
             colunas: colunas,
             nomeFixo: nomeFixo,
@@ -427,6 +433,7 @@ class _Grupo extends StatelessWidget {
     required this.hoje,
     required this.aoPegarDiaria,
     required this.aoPegarGrupo,
+    required this.aoFinalizarDungeon,
     required this.campos,
     required this.colunas,
     required this.nomeFixo,
@@ -448,6 +455,7 @@ class _Grupo extends StatelessWidget {
   final String hoje;
   final void Function(Morada) aoPegarDiaria;
   final void Function(int) aoPegarGrupo;
+  final void Function(int, EntradaDeInstancia) aoFinalizarDungeon;
   final List<CampoPersonalizado> campos;
   final List<CampoPersonalizado> colunas;
   final bool nomeFixo;
@@ -492,12 +500,17 @@ class _Grupo extends StatelessWidget {
               // quando há alguém para pegar. É a cara da funcionalidade nova,
               // por isso tem barra própria em vez de ser mais um ícone no
               // cabeçalho já cheio.
-              if (g.personagens.isNotEmpty)
+              if (g.personagens.isNotEmpty) ...[
                 _BarraDaDiaria(
                   faltam: g.faltamHoje(hoje),
                   todosPegaram: g.todosPegaramHoje(hoje),
                   aoPegar: () => aoPegarGrupo(grupo),
                 ),
+                _BarraDaDungeon(
+                  grupo: g,
+                  aoFinalizar: (e) => aoFinalizarDungeon(grupo, e),
+                ),
+              ],
               if (g.personagens.isEmpty)
                 _GrupoVazio(compacto: compacto)
               else
@@ -783,6 +796,127 @@ class _BotaoDaDiaria extends StatelessWidget {
             border: Border.all(color: PWColors.accent),
           ),
           child: const Icon(Icons.redeem, size: 16, color: PWColors.accent),
+        ),
+      ),
+    );
+  }
+}
+
+/// A barra de finalizar uma dungeon: um botão por entrada, para o grupo todo.
+///
+/// **Um botão por entrada, porque cada dungeon gasta uma relíquia de um tipo
+/// — decisão do dono a 13/11/2026.** Carregar num deles tira uma daquela
+/// entrada e dá +6 chaves a cada personagem do grupo que a tenha; quem está a
+/// zero daquela não pode fazer a dungeon e fica de fora. O botão conta quantos
+/// podem, e apaga-se quando ninguém pode — um botão que não faz nada ensina a
+/// desconfiar dos que fazem, a mesma regra da coleta diária.
+class _BarraDaDungeon extends StatelessWidget {
+  const _BarraDaDungeon({required this.grupo, required this.aoFinalizar});
+
+  final GrupoDeInstancias grupo;
+  final void Function(EntradaDeInstancia) aoFinalizar;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(10, 0, 12, 10),
+    child: Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        const Text(
+          'Finalizar dungeon:',
+          style: TextStyle(
+            color: PWColors.textMuted,
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        for (final e in EntradaDeInstancia.entradas)
+          _BotaoDeDungeon(
+            entrada: e,
+            podem: grupo.podemDungeon(e),
+            aoFinalizar: () => aoFinalizar(e),
+          ),
+      ],
+    ),
+  );
+}
+
+class _BotaoDeDungeon extends StatelessWidget {
+  const _BotaoDeDungeon({
+    required this.entrada,
+    required this.podem,
+    required this.aoFinalizar,
+  });
+
+  final EntradaDeInstancia entrada;
+
+  /// Quantos do grupo têm esta entrada — quem a dungeon vai afectar.
+  final int podem;
+  final VoidCallback aoFinalizar;
+
+  @override
+  Widget build(BuildContext context) {
+    final ligado = podem > 0;
+    return Tooltip(
+      message: ligado
+          ? 'Finalizar dungeon de ${entrada.curto}: −1 ${entrada.curto} e +6 '
+                'chaves para os $podem do grupo que a têm'
+          : 'Ninguém no grupo tem ${entrada.curto} para gastar',
+      child: InkWell(
+        onTap: ligado ? aoFinalizar : null,
+        borderRadius: BorderRadius.circular(9),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(9),
+            border: Border.all(
+              color: ligado ? PWColors.border : PWColors.border,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Opacity(
+                opacity: ligado ? 1 : 0.4,
+                child: ItemIcon(entrada.itemId, size: 18),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                entrada.curto,
+                style: TextStyle(
+                  color: ligado ? PWColors.text : PWColors.textMuted,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: 7),
+              Text(
+                '−1',
+                style: TextStyle(
+                  color: ligado ? PWColors.danger : PWColors.border,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '+6',
+                style: TextStyle(
+                  color: ligado ? PWColors.accent : PWColors.border,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 2),
+              Icon(
+                Icons.vpn_key,
+                size: 12,
+                color: ligado ? PWColors.accent : PWColors.border,
+              ),
+            ],
+          ),
         ),
       ),
     );

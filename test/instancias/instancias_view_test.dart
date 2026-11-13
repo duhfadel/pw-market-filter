@@ -70,8 +70,11 @@ void main() {
         'p': ['0~Bardo~3~1~2~14~~duhit', '0~Arqueiro~5~5~5~31~~farmante'],
       },
     );
-    expect(find.text('Artefato'), findsOneWidget);
+    // 'Artefato' aparece no chip de ordenar e no botão de dungeon — por isso
+    // findsWidgets, não findsOneWidget.
+    expect(find.text('Artefato'), findsWidgets);
     expect(find.text('Chave'), findsOneWidget);
+    expect(find.textContaining('Finalizar dungeon'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -260,5 +263,41 @@ void main() {
 
     // A ficha do campo novo aparece no personagem, por marcar.
     expect(find.text('Fez TW'), findsOneWidget);
+  });
+
+  testWidgets('finalizar dungeon tira 1 da entrada e soma 6 chaves ao grupo', (
+    tester,
+  ) async {
+    // Dois com Artefato, um sem. Carregar no botão de Artefato afecta os dois.
+    await _montar(
+      tester,
+      query: const {
+        'g': ['A'],
+        'p': [
+          '0~Bardo~2~0~0~10~~duhit',
+          '0~Mago~1~0~0~0~~mula',
+          '0~Arqueiro~0~0~0~5~~semArtefato',
+        ],
+      },
+    );
+
+    // O botão de dungeon de Artefato: o primeiro ItemIcon do artefato na barra.
+    // Procura-se pelo tooltip, que é único.
+    final botao = find.byTooltip(
+      'Finalizar dungeon de Artefato: −1 Artefato e +6 chaves para os 2 do grupo que a têm',
+    );
+    expect(botao, findsOneWidget);
+    await tester.tap(botao);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // duhit: artefato 2->1, chave 10->16. mula: artefato 1->0, chave 0->6.
+    // Total de chaves: 16 + 6 + 5 = 27.
+    expect(find.textContaining('Total · 3'), findsOneWidget);
+    expect(
+      find.text('27'),
+      findsWidgets,
+      reason: 'total de chaves depois da dungeon',
+    );
   });
 }

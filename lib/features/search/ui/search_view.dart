@@ -213,10 +213,6 @@ class _Results extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // O aviso de que a coleta parou vem primeiro: é notícia, e o
-          // aviso abaixo é permanente. Desenha-se sozinho a partir da
-          // data da coleta — ver `_AvisoDoLogin`, que é temporário.
-          _AvisoDoLogin(state: state, wide: panelsWide),
           _Disclaimer(wide: panelsWide),
           const Divider(height: 1),
           Expanded(
@@ -501,95 +497,6 @@ void _openFilterSheet(BuildContext context, SearchViewModel viewModel) {
 /// given up was the second sentence, which explains the project rather than
 /// making the claim. The claim — not ours, nothing for sale — is what a
 /// visitor arriving from a link needs, and it is what stays at every width.
-/// O aviso de que a coleta parou, e porquê.
-///
-/// **Temporário, e a condição de saída está escrita aqui.** A 11/11/2026,
-/// entre as 04:38 e as 05:07 UTC, o marketplace passou a exigir login: a
-/// listagem responde com um portão (*«Acesso exclusivo para jogadores»*) e
-/// todos os endpoints respondem `401 login_required`. O coletor não tem
-/// sessão e não vai buscar uma, portanto o índice ficou onde estava. Este
-/// widget sai do código no dia em que o acesso voltar — ou no dia em que a
-/// resposta deles for não e o filtro sair do ar.
-///
-/// **Desenha-se a partir da data da coleta e de mais nada.** Enquanto o
-/// mercado estiver fechado, o `--carry-forward` republica o mesmo índice de
-/// meia em meia hora e [SearchReady.index.collectedAt] fica parado; no minuto
-/// em que uma coleta passar, a data anda e o aviso desaparece sem ninguém
-/// lhe tocar. Uma bandeira escrita à mão teria de ser apagada por alguém que
-/// se lembrasse — e um aviso que ficou a mentir é um aviso que ninguém mais
-/// lê, que é a mesma razão pela qual o selo *novo* dos guias carrega uma data
-/// em vez de um booleano.
-///
-/// **Três horas, que são seis rondas falhadas.** O workflow corre aos `:07` e
-/// aos `:37`, portanto uma coleta de há mais de três horas não é atraso do
-/// GitHub, é coisa partida. O limiar vive aqui e não em `isStale` de
-/// propósito: aquele mede *o índice está velho ao ponto de enganar* — sete
-/// dias — e é uma pergunta diferente, que continua a ser feita na data ao
-/// lado do contador.
-///
-/// **Diz o que aconteceu e não quem tem culpa.** O site vive de uma
-/// permissão para existir e não de um aval; escrever que o mercado «fechou a
-/// porta» seria transformar uma decisão deles num agravo, e é o tipo de
-/// frase que custa o projeto. O que fica é a data, o facto e o que está a ser
-/// feito.
-class _AvisoDoLogin extends StatelessWidget {
-  const _AvisoDoLogin({required this.state, required this.wide});
-
-  final SearchReady state;
-  final bool wide;
-
-  /// Seis rondas do coletor. Ver a nota da classe.
-  static const _paradoDesde = Duration(hours: 3);
-
-  @override
-  Widget build(BuildContext context) {
-    final coleta = state.index.collectedAt;
-    if (DateTime.now().toUtc().difference(coleta) < _paradoDesde) {
-      return const SizedBox.shrink();
-    }
-
-    final d = coleta.toLocal();
-    String dois(int n) => n.toString().padLeft(2, '0');
-    final data = '${dois(d.day)}/${dois(d.month)}';
-
-    return Container(
-      width: double.infinity,
-      color: PWColors.surfaceRaised,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(
-            Icons.pause_circle_outline,
-            size: 16,
-            color: PWColors.accent,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              wide
-                  ? 'O marketplace passou a exigir login para ver os anúncios, '
-                        'e por isso a leitura está parada desde $data. O que '
-                        'está aqui é a última coleta — os preços e quem está à '
-                        'venda podem já ter mudado. Pedimos acesso à equipa do '
-                        'The Classic e, assim que voltar, esta tela volta a '
-                        'atualizar sozinha.'
-                  : 'Leitura parada desde $data: o marketplace passou a exigir '
-                        'login. Isto é a última coleta — preços e anúncios '
-                        'podem ter mudado.',
-              style: const TextStyle(
-                color: PWColors.text,
-                fontSize: 12,
-                height: 1.45,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _Disclaimer extends StatelessWidget {
   const _Disclaimer({required this.wide});
 

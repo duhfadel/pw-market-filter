@@ -265,21 +265,22 @@ class _Conteudo extends StatelessWidget {
         28,
       ),
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
+        Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: leitura),
             child: const _Explicacao(),
           ),
         ),
         const SizedBox(height: 16),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: leitura),
-          child: _Acoes(
-            plano: plano,
-            aoNovoGrupo: () => unawaited(_novoGrupo(context)),
-            aoNovoCampo: () => unawaited(_gerirCampos(context)),
-            aoCopiar: () => unawaited(_copiarLink(context)),
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: leitura),
+            child: _Acoes(
+              plano: plano,
+              aoNovoGrupo: () => unawaited(_novoGrupo(context)),
+              aoNovoCampo: () => unawaited(_gerirCampos(context)),
+              aoCopiar: () => unawaited(_copiarLink(context)),
+            ),
           ),
         ),
         const SizedBox(height: 14),
@@ -303,8 +304,7 @@ class _Conteudo extends StatelessWidget {
           aoDefinirExtra: vm.definirExtra,
         ),
         const SizedBox(height: 22),
-        Align(
-          alignment: Alignment.centerLeft,
+        Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: leitura),
             child: const _OndeFica(),

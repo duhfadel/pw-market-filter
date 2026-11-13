@@ -360,9 +360,13 @@ class TabelaDeInstancias extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, c) {
         final quantos = plano.grupos.length;
-        final cabem = (c.maxWidth / _larguraParaEmparelhar).floor();
-        final colunasPorLinha = cabem.clamp(1, 3).clamp(1, quantos);
         const espaco = 16.0;
+        // Quantos grupos cabem lado a lado, preenchendo a largura toda do
+        // monitor — até quatro por linha, e nunca mais grupos do que existem.
+        final cabem = (c.maxWidth / _larguraParaEmparelhar).floor();
+        final colunasPorLinha = cabem.clamp(1, 4).clamp(1, quantos);
+        // Cada grupo divide a largura disponível por igual: num ecrã largo
+        // dois grupos esticam-se até às bordas em vez de ficarem num miolo.
         final largura =
             (c.maxWidth - espaco * (colunasPorLinha - 1)) / colunasPorLinha;
         // As colunas só se comprimem quando há mesmo aperto: dois grupos num
@@ -378,7 +382,7 @@ class TabelaDeInstancias extends StatelessWidget {
               children: [
                 for (var gi = 0; gi < quantos; gi++)
                   SizedBox(
-                    width: colunasPorLinha == 1 ? c.maxWidth : largura,
+                    width: largura,
                     child: _constroiGrupo(
                       gi,
                       colunas: const [],

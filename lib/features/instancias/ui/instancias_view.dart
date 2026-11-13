@@ -253,77 +253,71 @@ class _Conteudo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.read<InstanciasViewModel>();
-    // A tabela usa a largura toda — grupos lado a lado quando houver espaço,
-    // pedido do dono. O texto e os botões ficam numa coluna de leitura, que
-    // esticada de ponta a ponta de um monitor largo seria desconfortável.
+    // A tabela usa a largura toda do monitor — sem tecto, grupos lado a lado
+    // enchendo o ecrã, pedido do dono. O texto e os botões ficam presos a uma
+    // coluna de leitura, que esticada de ponta a ponta seria desconfortável.
     const leitura = 860.0;
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1800),
-        child: ListView(
-          padding: EdgeInsets.fromLTRB(
-            compacto ? 12 : 18,
-            10,
-            compacto ? 12 : 18,
-            28,
-          ),
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: leitura),
-                child: const _Explicacao(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: leitura),
-              child: _Acoes(
-                plano: plano,
-                aoNovoGrupo: () => unawaited(_novoGrupo(context)),
-                aoNovoCampo: () => unawaited(_gerirCampos(context)),
-                aoCopiar: () => unawaited(_copiarLink(context)),
-              ),
-            ),
-            const SizedBox(height: 14),
-            TabelaDeInstancias(
-              plano: plano,
-              compacto: compacto,
-              aoOrdenar: vm.ordenarPor,
-              aoSomar: vm.somar,
-              aoContar: vm.contar,
-              aoRenomear: vm.renomear,
-              aoRemover: (onde) => _removerPersonagem(context, onde),
-              aoMover: vm.mover,
-              aoRenomearGrupo: vm.renomearGrupo,
-              aoRemoverGrupo: (grupo) => _removerGrupo(context, grupo),
-              aoAdicionarNoGrupo: (grupo) =>
-                  unawaited(_adicionar(context, grupo)),
-              hoje: InstanciasViewModel.hoje(),
-              aoPegarDiaria: (onde) => _pegarDiaria(context, onde),
-              aoPegarGrupo: (grupo) => _pegarGrupo(context, grupo),
-              aoFinalizarDungeon: (grupo, entrada) =>
-                  _finalizarDungeon(context, grupo, entrada),
-              aoDefinirExtra: vm.definirExtra,
-            ),
-            const SizedBox(height: 22),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: leitura),
-                child: const _OndeFica(),
-              ),
-            ),
-            const SizedBox(height: 22),
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: leitura),
-                child: const AdSlot(),
-              ),
-            ),
-          ],
-        ),
+    return ListView(
+      padding: EdgeInsets.fromLTRB(
+        compacto ? 12 : 18,
+        10,
+        compacto ? 12 : 18,
+        28,
       ),
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: leitura),
+            child: const _Explicacao(),
+          ),
+        ),
+        const SizedBox(height: 16),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: leitura),
+          child: _Acoes(
+            plano: plano,
+            aoNovoGrupo: () => unawaited(_novoGrupo(context)),
+            aoNovoCampo: () => unawaited(_gerirCampos(context)),
+            aoCopiar: () => unawaited(_copiarLink(context)),
+          ),
+        ),
+        const SizedBox(height: 14),
+        TabelaDeInstancias(
+          plano: plano,
+          compacto: compacto,
+          aoOrdenar: vm.ordenarPor,
+          aoSomar: vm.somar,
+          aoContar: vm.contar,
+          aoRenomear: vm.renomear,
+          aoRemover: (onde) => _removerPersonagem(context, onde),
+          aoMover: vm.mover,
+          aoRenomearGrupo: vm.renomearGrupo,
+          aoRemoverGrupo: (grupo) => _removerGrupo(context, grupo),
+          aoAdicionarNoGrupo: (grupo) => unawaited(_adicionar(context, grupo)),
+          hoje: InstanciasViewModel.hoje(),
+          aoPegarDiaria: (onde) => _pegarDiaria(context, onde),
+          aoPegarGrupo: (grupo) => _pegarGrupo(context, grupo),
+          aoFinalizarDungeon: (grupo, entrada) =>
+              _finalizarDungeon(context, grupo, entrada),
+          aoDefinirExtra: vm.definirExtra,
+        ),
+        const SizedBox(height: 22),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: leitura),
+            child: const _OndeFica(),
+          ),
+        ),
+        const SizedBox(height: 22),
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: leitura),
+            child: const AdSlot(),
+          ),
+        ),
+      ],
     );
   }
 }

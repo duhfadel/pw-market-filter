@@ -235,9 +235,10 @@ class TabelaDeInstancias extends StatelessWidget {
   /// portanto a grelha cai para menos colunas.
   /// A largura a partir da qual um grupo cabe lado a lado com outro. É
   /// deliberadamente baixa — abaixo dela as colunas de número usam a medida
-  /// comprimida — para os grupos emparelharem já num portátil de 1366 px, que
-  /// é onde o dono reparou que o segundo grupo caía para baixo.
-  static const _larguraParaEmparelhar = 636.0;
+  /// comprimida — para os grupos emparelharem mesmo com zoom do navegador ou
+  /// escala do sistema a encolher a largura em CSS, que é onde o dono
+  /// continuava a ver o segundo grupo cair para baixo.
+  static const _larguraParaEmparelhar = 600.0;
 
   /// Acima disto um grupo tem espaço para as colunas de número na medida
   /// cheia; abaixo, comprimem-se para caber dois lado a lado.

@@ -688,6 +688,7 @@ class _BarraDaDiaria extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: const [
             Icon(Icons.event_available, size: 15, color: PWColors.ok),
             SizedBox(width: 7),
@@ -707,7 +708,6 @@ class _BarraDaDiaria extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 0, 12, 8),
       child: Align(
-        alignment: Alignment.centerLeft,
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -822,6 +822,7 @@ class _BarraDaDungeon extends StatelessWidget {
     child: Wrap(
       spacing: 8,
       runSpacing: 8,
+      alignment: WrapAlignment.center,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         const Text(

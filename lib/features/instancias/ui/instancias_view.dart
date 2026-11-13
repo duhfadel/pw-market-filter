@@ -253,9 +253,13 @@ class _Conteudo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.read<InstanciasViewModel>();
+    // A tabela usa a largura toda — grupos lado a lado quando houver espaço,
+    // pedido do dono. O texto e os botões ficam numa coluna de leitura, que
+    // esticada de ponta a ponta de um monitor largo seria desconfortável.
+    const leitura = 860.0;
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 900),
+        constraints: const BoxConstraints(maxWidth: 1800),
         child: ListView(
           padding: EdgeInsets.fromLTRB(
             compacto ? 12 : 18,
@@ -264,13 +268,22 @@ class _Conteudo extends StatelessWidget {
             28,
           ),
           children: [
-            const _Explicacao(),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: leitura),
+                child: const _Explicacao(),
+              ),
+            ),
             const SizedBox(height: 16),
-            _Acoes(
-              plano: plano,
-              aoNovoGrupo: () => unawaited(_novoGrupo(context)),
-              aoNovoCampo: () => unawaited(_gerirCampos(context)),
-              aoCopiar: () => unawaited(_copiarLink(context)),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: leitura),
+              child: _Acoes(
+                plano: plano,
+                aoNovoGrupo: () => unawaited(_novoGrupo(context)),
+                aoNovoCampo: () => unawaited(_gerirCampos(context)),
+                aoCopiar: () => unawaited(_copiarLink(context)),
+              ),
             ),
             const SizedBox(height: 14),
             TabelaDeInstancias(
@@ -294,9 +307,20 @@ class _Conteudo extends StatelessWidget {
               aoDefinirExtra: vm.definirExtra,
             ),
             const SizedBox(height: 22),
-            const _OndeFica(),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: leitura),
+                child: const _OndeFica(),
+              ),
+            ),
             const SizedBox(height: 22),
-            const AdSlot(),
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: leitura),
+                child: const AdSlot(),
+              ),
+            ),
           ],
         ),
       ),

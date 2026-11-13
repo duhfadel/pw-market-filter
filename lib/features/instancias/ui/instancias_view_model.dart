@@ -112,6 +112,11 @@ class InstanciasViewModel extends Cubit<PlanoDeInstancias> {
   void pegarDiariaDoGrupo(int grupo) =>
       _emitirEGravar(state.coletaDiariaDoGrupo(grupo, hoje()));
 
+  /// Finaliza uma dungeon no grupo: cada personagem com a entrada [entrada]
+  /// gasta uma dela e ganha +6 chaves.
+  void finalizarDungeon(int grupo, EntradaDeInstancia entrada) =>
+      _emitirEGravar(state.finalizarDungeonNoGrupo(grupo, entrada));
+
   /// Volta a um plano anterior — o desfazer de uma coleta diária, que mexe em
   /// vários personagens de uma vez e por isso se desfaz pelo todo.
   void restaurar(PlanoDeInstancias plano) => _emitirEGravar(plano);

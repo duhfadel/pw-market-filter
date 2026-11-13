@@ -117,4 +117,20 @@ class PersonagemDeInstancia {
       coletadoEm: hoje,
     );
   }
+
+  /// Finaliza uma dungeon que gasta a entrada [entrada]: −1 nela, +6 na Chave.
+  ///
+  /// **Só se tiver a entrada.** Quem está a zero daquela não pode fazer a
+  /// dungeon, portanto devolve-se a si próprio sem mexer — o que deixa o botão
+  /// do grupo passar por quem não pode e contar só quem fez.
+  PersonagemDeInstancia comDungeon(EntradaDeInstancia entrada) {
+    if (de(entrada) < 1) return this;
+    return _copia(
+      contagens: {
+        ...contagens,
+        entrada: de(entrada) - 1,
+        EntradaDeInstancia.chave: de(EntradaDeInstancia.chave) + 6,
+      },
+    );
+  }
 }

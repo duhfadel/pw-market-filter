@@ -886,6 +886,18 @@ fora. No ficheiro os campos vivem num objecto `{campos: [...]}` no fim da
 lista do topo, e o `extras` de cada personagem só se escreve quando há —
 ausente nunca é afirmado.
 
+**Finalizar uma dungeon é três botões por grupo, um por entrada.** Pedido do
+dono a 13/11/2026: cada dungeon gasta uma relíquia de um tipo e dá 6 chaves,
+portanto a barra tem um botão por entrada — Artefato, Arma, Armadura. Carregar
+num deles, para todo o grupo: quem tem aquela entrada gasta uma (−1) e ganha
++6 chaves; quem está a zero dela não pode fazer a dungeon e fica de fora. O
+botão conta quantos podem (`podemDungeon`) e apaga-se quando ninguém pode — a
+mesma regra da coleta diária, um botão que não faz nada ensina a desconfiar
+dos que fazem. `comDungeon` no personagem é idempotente só no sentido de
+recusar quem não tem a entrada; não há marca de dia, porque uma dungeon pode
+fazer-se várias vezes. Desfazer guarda o plano inteiro de antes, como a
+coleta do grupo.
+
 **A coleta diária é um botão por personagem e uma barra por grupo.** Pedido
 do dono a 12/11/2026: um botão *pegar as 3 entradas diárias* que soma +1 em
 cada Relíquia Maravilha — Artefato, Arma, Armadura — e **não toca na chave**

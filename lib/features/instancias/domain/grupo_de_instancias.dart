@@ -30,6 +30,11 @@ class GrupoDeInstancias {
   bool todosPegaramHoje(String hoje) =>
       personagens.isNotEmpty && personagens.every((p) => p.pegouEm(hoje));
 
+  /// Quantos têm a entrada [entrada] — quem pode finalizar uma dungeon que a
+  /// gasta. É o que o botão de dungeon conta e o que decide se ele acende.
+  int podemDungeon(EntradaDeInstancia entrada) =>
+      personagens.where((p) => p.de(entrada) >= 1).length;
+
   GrupoDeInstancias com(List<PersonagemDeInstancia> novos) =>
       GrupoDeInstancias(nome: nome, personagens: novos);
 

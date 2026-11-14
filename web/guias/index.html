@@ -208,6 +208,21 @@
         filtrar(alvo.dataset.ver);
       });
     }
+
+    // Abre já no chip da versão que o endereço pedir (?v=1.8.7) — é por aí
+    // que a pílula Guias do app chega, para quem está no 1.8.7 cair na lista
+    // do 1.8.7 em vez de em Todos. Reusa o clique acima, portanto a moldura e
+    // o filtro ficam exactos. Sem parâmetro, ou versão que não existe, fica
+    // em Todos, que é o estado inicial da página.
+    var pedida = new URLSearchParams(location.search).get('v');
+    if (pedida) {
+      for (var m = 0; m < chips.length; m++) {
+        if (chips[m].dataset.ver === pedida) {
+          chips[m].click();
+          break;
+        }
+      }
+    }
   })();
 </script>
 

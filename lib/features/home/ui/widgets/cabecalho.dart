@@ -407,13 +407,29 @@ class _SectionPill extends StatelessWidget {
     // delivering two is the pill lying about its own number.
     final prontos = itens.where((t) => t.isReady).length;
 
+    // **Os Guias abrem a página-catálogo direto, não uma gaveta.** Oito guias
+    // numa gaveta de 260 px são oito linhas apertadas; a página `/guias/` é o
+    // catálogo de verdade e já filtra por versão. A pílula leva lá com a
+    // versão de quem está a clicar já marcada (`?v=`), que o chip pré-selecciona
+    // — pedido do dono a 14/11/2026. A conta fica: diz quantos artigos há antes
+    // do clique, que é o número que o dono escolheu para esta pílula.
+    if (secao == seccaoDosGuias) {
+      final destino = versao == null ? '/guias/' : '/guias/?v=$versao';
+      return Tooltip(
+        message: 'Todos os guias',
+        child: InkWell(
+          borderRadius: BorderRadius.circular(999),
+          onTap: () => abrirEndereco(context, destino, externo: true),
+          child: _Pill(label: secao, count: prontos),
+        ),
+      );
+    }
+
     // **Uma gaveta de um item é um clique gasto a nada.** Com uma entrada só,
     // a pílula leva direto ao destino — é o que a *Novidades* já faz e pela
     // mesma razão, e é o que o dono pediu em 05/10/2026 para as Guerras
-    // Territoriais, que não são um guia e passaram a ter secção própria.
-    //
-    // A regra é geral e não um caso à parte: os *Guias* voltam a abrir gaveta
-    // no dia em que forem dois, sem ninguém ter de se lembrar de a religar.
+    // Territoriais, que não são um guia e passaram a ter secção própria. Os
+    // *Guias* não passam por aqui: abrem sempre a página, acima.
     if (itens.length == 1 && itens.single.isReady) {
       final unico = itens.single;
       return Tooltip(
@@ -702,12 +718,33 @@ class _OverflowMenu extends StatelessWidget {
               ),
             ),
           ),
-          for (final tool in toolsDe(secao, versao: versao))
+          // Os Guias são uma entrada só — a página-catálogo — e não os oito
+          // artigos empilhados, pela mesma razão da pílula larga (ver
+          // `_SectionPill`). O menu estreito tem de concordar com a fila
+          // larga, ou a mesma secção muda de forma consoante o tamanho do
+          // ecrã.
+          if (secao == seccaoDosGuias)
             PopupMenuItem<Tool?>(
-              value: tool,
-              enabled: tool.isReady,
-              child: GavetaItem(tool: tool),
-            ),
+              onTap: () => abrirEndereco(
+                context,
+                versao == null ? '/guias/' : '/guias/?v=$versao',
+                externo: true,
+              ),
+              child: const Text(
+                'Todos os guias',
+                style: TextStyle(
+                  color: PWColors.papel,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            )
+          else
+            for (final tool in toolsDe(secao, versao: versao))
+              PopupMenuItem<Tool?>(
+                value: tool,
+                enabled: tool.isReady,
+                child: GavetaItem(tool: tool),
+              ),
         ],
       PopupMenuItem<Tool?>(
         onTap: () => _abrirNovidades(context),

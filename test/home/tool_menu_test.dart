@@ -18,34 +18,59 @@ void main() {
   // os selos foram rodados — 23/10/2026 — sem nada estar partido. Qual entrada
   // carrega o selo é decisão de produto e muda de mês a mês; o que tem de
   // continuar verdade é que a data o apaga sozinha.
-  test('o badge de novo vence sozinho', () {
-    final marcada = Tool(
+  test('uma ferramenta comum é novo por um mês, e depois normal', () {
+    final t = Tool(
       name: 'qualquer',
       tagline: 'x',
       icon: Icons.star,
-      secao: 'Ferramentas',
-      novoAte: DateTime.utc(2026, 10, 20),
+      publicado: DateTime.utc(2026, 10, 1),
     );
 
-    expect(marcada.novoEm(DateTime.utc(2026, 10, 19)), isTrue);
-    expect(marcada.novoEm(DateTime.utc(2026, 10, 21)), isFalse);
+    expect(t.betaEm(DateTime.utc(2026, 10, 15)), isFalse, reason: 'não é beta');
+    expect(t.novoEm(DateTime.utc(2026, 10, 15)), isTrue, reason: 'dentro do mês');
+    expect(t.novoEm(DateTime.utc(2026, 11, 2)), isFalse, reason: 'passado o mês');
+  });
+
+  // O ciclo que o dono pediu a 14/11/2026: BETA três semanas, depois *novo*
+  // um mês, depois normal — e os dois selos nunca coexistem.
+  test('uma ferramenta beta: BETA três semanas, novo um mês, normal', () {
+    final t = Tool(
+      name: 'nova',
+      tagline: 'x',
+      icon: Icons.star,
+      publicado: DateTime.utc(2026, 11, 11),
+      beta: true,
+    );
+
+    // Semana 1: BETA, não novo.
+    expect(t.betaEm(DateTime.utc(2026, 11, 18)), isTrue);
+    expect(t.novoEm(DateTime.utc(2026, 11, 18)), isFalse);
+    // Depois das 3 semanas: novo, não BETA.
+    expect(t.betaEm(DateTime.utc(2026, 12, 10)), isFalse);
+    expect(t.novoEm(DateTime.utc(2026, 12, 10)), isTrue);
+    // Passado o mês de novo: nenhum selo.
+    expect(t.betaEm(DateTime.utc(2027, 1, 10)), isFalse);
+    expect(t.novoEm(DateTime.utc(2027, 1, 10)), isFalse);
   });
 
   // E a lista a sério continua a ser varrida: qualquer selo que lá esteja tem
   // de ter data, porque um *novo* sem prazo é o que esta regra existe para
   // impedir. Não diz quantos são, que é o que muda.
-  test('nenhum selo de novo na lista real fica sem prazo', () {
+  test('nenhum selo na lista real fica sem data de publicação', () {
     for (final t in tools) {
-      if (t.novoEm(DateTime.utc(2026, 1, 1))) {
-        expect(t.novoAte, isNotNull, reason: '${t.name} mostra novo sem data');
+      if (t.novoEm(DateTime.utc(2026, 1, 1)) ||
+          t.betaEm(DateTime.utc(2026, 1, 1))) {
+        expect(t.publicado, isNotNull, reason: '${t.name} mostra selo sem data');
       }
     }
   });
 
-  test('o que não tem data nunca mostra badge', () {
-    final filtro = tools.firstWhere((t) => t.name == 'Filtro do Marketplace');
+  test('o que não tem data de publicação nunca mostra selo', () {
+    final titulos = tools.firstWhere((t) => t.name == 'Títulos');
 
-    expect(filtro.novoEm(DateTime.utc(2026, 9, 21)), isFalse);
+    expect(titulos.publicado, isNull);
+    expect(titulos.novoEm(DateTime.utc(2026, 11, 14)), isFalse);
+    expect(titulos.betaEm(DateTime.utc(2026, 11, 14)), isFalse);
   });
 
   test('cada entrada aparece em exatamente uma seção', () {

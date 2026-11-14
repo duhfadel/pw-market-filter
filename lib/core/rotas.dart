@@ -84,6 +84,11 @@ enum Tela {
   registros,
   runas,
 
+  /// O catálogo das ferramentas — `FerramentasView`. Sem prefixo de versão,
+  /// como as outras telas de ferramenta; a versão a mostrar viaja no `?v=`
+  /// posto pela pílula.
+  ferramentas,
+
   /// O organizador de instâncias — `InstanciasView`.
   ///
   /// **Sem prefixo de versão, como o `/registros` e o `/runas`.** Os itens
@@ -187,6 +192,11 @@ RotaResolvida resolverRota(String? name) {
   }
   if (segments.first == 'runas' && segments.length == 1) {
     return const RotaTela(Tela.runas);
+  }
+  // A query vem junto só pela versão (`?v=`), que a pílula põe para o catálogo
+  // abrir nas ferramentas de quem está a ler.
+  if (segments.first == 'ferramentas' && segments.length == 1) {
+    return RotaTela(Tela.ferramentas, query: uri.queryParametersAll);
   }
   // **Sem prefixo porque fala do cliente do jogo e não de um mercado** — a
   // mesma razão pela qual `/novidades` não o tem. Serve as três versões, e

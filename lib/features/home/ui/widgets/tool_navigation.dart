@@ -56,10 +56,15 @@ void abrirEndereco(
   // The same hazard **M1** found in the Novidades pill: picking the entry
   // that names the screen already open would push a second, identical copy
   // on top of it, and the back button's first press would appear to do
-  // nothing. Compared by path, not by the whole route name — `/filtro` can
-  // carry a query string these routes never will.
+  // nothing. Compared by path **on both sides**, never the whole string: o
+  // `/ferramentas?v=…` que a pílula escreve carrega query, e comparar o
+  // caminho do atual com a string inteira do destino nunca casava — o guard
+  // falhava e empurrava uma cópia por cima. Só as rotas sem query escapavam,
+  // que eram todas até 14/11/2026.
   final atual = ModalRoute.of(context)?.settings.name;
-  if (atual != null && Uri.parse(atual).path == endereco) return;
+  if (atual != null && Uri.parse(atual).path == Uri.parse(endereco).path) {
+    return;
+  }
 
   Navigator.of(context).pushNamed(endereco);
 }

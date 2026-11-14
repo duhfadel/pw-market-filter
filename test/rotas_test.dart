@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/core/rotas.dart';
-import 'package:pw_market_filter/features/home/domain/tool.dart';
 import 'package:pw_market_filter/features/search/data/address_bar.dart';
 
 /// Records every push and replace a `Navigator` makes, so a test can tell
@@ -150,11 +149,10 @@ void main() {
       expect(link, 'https://portalpw.net/#/1.8.7/filtro');
     });
 
-    test("the menu's own Filtro tool writes the canonical path", () {
-      final filtro = tools.firstWhere((t) => t.name == 'Filtro do Marketplace');
-
-      expect(filtro.route, AddressBar.canonicalFiltro);
-    });
+    // **O Filtro saiu do menu de Ferramentas a 14/11/2026** — já está implícito
+    // na porta da frente. A rota canónica continua cravada em `AddressBar`, e os
+    // testes acima e abaixo guardam-na; já não há um `Tool` do Filtro para
+    // confrontar.
 
     test('what the app writes is exactly what resolverRota already treats '
         'as canonical — no redirect in the loop', () {

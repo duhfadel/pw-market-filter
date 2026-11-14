@@ -99,6 +99,11 @@ flutter:
     - assets/images/capa-classes.webp
     - assets/icons/classes/
     - assets/icons/items/
+    # A arte das ferramentas, sem moldura nem fundo, numa pasta propria pela
+    # mesma razao das pedras: `items/` e partilhada pelo filtro e pelos cards,
+    # e recortar em cima mudaria o icone do item no site inteiro. A pagina de
+    # ferramentas le daqui e cai para `items/` quando nao ha versao limpa.
+    - assets/icons/ferramentas/
     # As pedras do set sem moldura nem fundo, escritas por
     # `tool/pedras/recortar.py`. Pasta propria e nao por cima de `items/`:
     # aquela e partilhada pelo card, pelas tiras de pedra e pelas linhas de

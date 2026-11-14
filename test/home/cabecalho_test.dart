@@ -136,39 +136,38 @@ void main() {
     );
   });
 
-  testWidgets('tapping opens the drawer, tapping away closes it', (
+  // **A pílula Ferramentas deixou de abrir gaveta a 14/11/2026** e passou a
+  // levar à página-catálogo `/ferramentas`, como a dos Guias — a gaveta de
+  // linhas apertadas deu lugar à tela. A versão de quem clica viaja no `?v=`.
+  testWidgets('Ferramentas leva ao catálogo com a versão, não abre gaveta', (
     tester,
   ) async {
-    await _montarCabecalho(tester);
+    String? empurrada;
+    await tester.pumpWidget(
+      MaterialApp(
+        onGenerateRoute: (s) {
+          empurrada = s.name;
+          return MaterialPageRoute(builder: (_) => const SizedBox());
+        },
+        home: comNovidades(
+          Scaffold(
+            body: SizedBox(width: 1200, child: Cabecalho(wide: true, versao: '1.8.7')),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
 
-    expect(find.text('Calculadora de runas'), findsNothing);
-
+    // A pílula vive numa fila que rola na horizontal; trá-la à vista antes de
+    // tocar, ou o toque cai ao lado.
+    await tester.ensureVisible(find.text('Ferramentas'));
     await tester.tap(find.text('Ferramentas'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Calculadora de runas'), findsOneWidget);
-
-    // Outside the drawer, which `PopupMenuButton`'s own barrier dismisses —
-    // not a custom gesture detector this file has to guess the bounds of.
-    await tester.tapAt(const Offset(5, 400));
-    await tester.pumpAndSettle();
-
+    // Não abriu uma gaveta de ferramentas…
     expect(find.text('Calculadora de runas'), findsNothing);
-  });
-
-  testWidgets('every drawer item carries a one-line description', (
-    tester,
-  ) async {
-    // *Títulos* alone says nothing to somebody who has never used it — the
-    // tagline is what makes the drawer say more than a card's title would.
-    await _montarCabecalho(tester);
-
-    await tester.tap(find.text('Ferramentas'));
-    await tester.pumpAndSettle();
-
-    for (final tool in ferramentas) {
-      expect(find.text(tool.tagline), findsOneWidget, reason: tool.name);
-    }
+    // …navegou para o catálogo, com a versão marcada.
+    expect(empurrada, '/ferramentas?v=1.8.7');
   });
 
   testWidgets('a tool that is not ready is listed, dimmed, and says em breve', (
@@ -210,7 +209,9 @@ void main() {
     await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
 
-    expect(find.text('Filtro do Marketplace'), findsOneWidget);
+    // A Ferramentas, no menu estreito, é a entrada única para o catálogo —
+    // não os tools empilhados —, igual à fila larga.
+    expect(find.text('Todas as ferramentas'), findsOneWidget);
   });
 
   group('the Novidades pill carries the unread dot moved off the home bar', () {

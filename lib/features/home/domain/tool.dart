@@ -24,7 +24,7 @@ class Tool {
     this.secao = 'Ferramentas',
     this.versoes = const {},
     this.emblem,
-    this.novoAte,
+    this.publicado,
     this.beta = false,
     this.route,
     this.href,
@@ -64,23 +64,42 @@ class Tool {
   bool serveA(String? versao) =>
       versao == null || versoes.isEmpty || versoes.contains(versao);
 
-  /// Until when the card wears a *novo* badge, or `null` for no badge.
+  /// Quando a ferramenta foi publicada, ou `null` para uma sem selo.
   ///
-  /// A date and not a flag, and that is the whole point: a badge nobody has
-  /// to remember to remove is a badge that stops being true. This one expires
-  /// on its own, which is the only kind of "new" a site can promise.
-  final DateTime? novoAte;
+  /// Uma data e não uma bandeira, e é o ponto todo: um selo que ninguém tem
+  /// de se lembrar de tirar é um selo que deixa de ser verdade. Dela derivam
+  /// os dois selos, [betaEm] e [novoEm], que vencem sozinhos — a única
+  /// espécie de "novo" que um site pode prometer.
+  final DateTime? publicado;
 
-  bool novoEm(DateTime agora) => novoAte != null && agora.isBefore(novoAte!);
-
-  /// Still being checked against the game.
-  ///
-  /// **Unlike [novoAte] this has no expiry, and that is deliberate.** *Novo*
-  /// stops being true by itself, so a date takes it down; *beta* stops being
-  /// true only when somebody has actually verified the thing, which is an
-  /// event and not a date. It comes off by hand, on the day the numbers have
-  /// been checked against a real window.
+  /// Lançou como beta. **Deixou de ser uma bandeira manual sem validade** (a
+  /// nota antiga reclamava disso): agora é só *como* a ferramenta entra no
+  /// ciclo, e quem decide o fim é [publicado] mais o tempo, não uma mão.
   final bool beta;
+
+  /// Três semanas de BETA, depois um mês de *novo*. Os números vivem aqui,
+  /// escritos uma vez.
+  static const _duraBeta = Duration(days: 21);
+  static const _duraNovo = Duration(days: 30);
+
+  /// Quando o selo *novo* começa: logo na publicação para uma ferramenta
+  /// comum, ou depois das três semanas de BETA para uma que nasceu beta.
+  DateTime? get _comecoDoNovo =>
+      publicado == null ? null : (beta ? publicado!.add(_duraBeta) : publicado);
+
+  /// Nas três primeiras semanas de uma ferramenta beta. Mutuamente exclusivo
+  /// com [novoEm]: quando o BETA acaba, o *novo* começa.
+  bool betaEm(DateTime agora) =>
+      beta && publicado != null && agora.isBefore(publicado!.add(_duraBeta));
+
+  /// Um mês de selo *novo*, a contar de [_comecoDoNovo] — ou seja, da
+  /// publicação para uma ferramenta comum, e do fim do BETA para uma beta.
+  bool novoEm(DateTime agora) {
+    final inicio = _comecoDoNovo;
+    return inicio != null &&
+        !agora.isBefore(inicio) &&
+        agora.isBefore(inicio.add(_duraNovo));
+  }
 
   /// Item id whose art stands for the tool, drawn in place of [icon].
   ///
@@ -127,26 +146,15 @@ class Tool {
 /// shape of the place from the start, and shipping one is a route away rather
 /// than a redesign.
 ///
-/// `final` and not `const` because of [Tool.novoAte] — a `DateTime` is not a
+/// `final` and not `const` because of [Tool.publicado] — a `DateTime` is not a
 /// compile-time constant, which is the price of a badge that expires by
 /// itself.
 final tools = <Tool>[
-  Tool(
-    name: 'Filtro do Marketplace',
-    // Says what you gain, never what the official marketplace lacks. The
-    // people who run that site are the audience here, not the competition.
-    tagline: 'Busque seu próximo personagem por arma, cartas e atributos.',
-    icon: Icons.travel_explore,
-    // Moeda de Ouro. The filter is about price as much as about gear.
-    emblem: 39873,
-    // The canonical path, not the bare `/filtro` the redirect in
-    // `core/rotas.dart` keeps alive for old links. This menu writes a fresh
-    // link every time somebody opens it from here, and a fresh link has to
-    // carry the version from the start — see `AddressBar`'s own note on the
-    // same asymmetry.
-    route: '/1.8.7/filtro',
-    versoes: const {'1.8.7'},
-  ),
+  // **O Filtro saiu das Ferramentas a 14/11/2026, a pedido do dono.** É a
+  // ferramenta-mãe do site e já está implícita em todo o lado — o herói da
+  // home com o botão *Buscar personagens*, a rota `/1.8.7/filtro`, os links
+  // partilhados. Listá-la aqui era repetir o óbvio; o menu passa a mostrar as
+  // ferramentas que **não** são a porta da frente.
   Tool(
     name: 'Títulos',
     // Um mês de badge. A data vence sozinha, então ninguém precisa lembrar
@@ -180,10 +188,11 @@ final tools = <Tool>[
     emblem: 56274,
     route: '/instancias',
     versoes: const {'1.8.7'},
-    // BETA e não *novo*: a ferramenta ainda não está 100%, e o que se quer
-    // dizer é a ressalva, não o convite. Uma ferramenta beta já é nova — a
-    // etiqueta sozinha diz as duas coisas. Sai quando o dono a der por pronta,
-    // como saiu a da calculadora de runas.
+    // Publicada a 11/11/2026. Dela o ciclo deriva sozinho: BETA três semanas,
+    // *novo* um mês, depois normal — ver `Tool.betaEm`/`novoEm`. BETA e não
+    // *novo* no início porque a ferramenta ainda não está 100%, e o que se
+    // quer dizer é a ressalva, não o convite.
+    publicado: DateTime.utc(2026, 11, 11),
     beta: true,
   ),
   Tool(
@@ -331,7 +340,7 @@ List<Tool> _guiasComoTools(String? versao) => [
       // Um mês a contar da publicação, derivado e não escrito — ver
       // `Guia.publicado`. Um *novo* que ninguém se lembra de tirar deixa de
       // ser verdade muito antes de alguém reparar.
-      novoAte: guia.publicado.add(Guia.duracaoDoSelo),
+      publicado: guia.publicado,
       route: guia.noApp ? guia.endereco : null,
       href: guia.noApp ? null : guia.endereco,
     ),

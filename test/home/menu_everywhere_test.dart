@@ -17,6 +17,7 @@ import 'package:pw_market_filter/features/home/ui/novidades_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/visit_counter_view_model.dart';
 import 'package:pw_market_filter/features/home/ui/widgets/cabecalho.dart';
 import 'package:pw_market_filter/features/novidades/ui/novidades_view.dart';
+import 'package:pw_market_filter/features/ferramentas/ui/ferramentas_view.dart';
 import 'package:pw_market_filter/features/registros/data/registro_repository.dart';
 import 'package:pw_market_filter/features/registros/ui/registros_view.dart';
 import 'package:pw_market_filter/features/registros/ui/registros_view_model.dart';
@@ -144,6 +145,9 @@ Future<void> _abrir(
               '/filtro' => SearchView(arriving: route.queryParametersAll),
               '/registros' => const RegistrosView(),
               '/runas' => const RunasView(),
+              '/ferramentas' => FerramentasView(
+                query: route.queryParametersAll,
+              ),
               '/novidades' => const NovidadesView(),
               _ => const HomeView(),
             },
@@ -175,7 +179,7 @@ void main() {
 
   testWidgets('Novidades navigates rather than scrolling', (tester) async {
     await _abrir(tester, '/registros');
-    await tester.tap(find.text('Novidades'));
+    await tester.tap(find.text('Novidades do Portal'));
     await tester.pumpAndSettle();
 
     expect(find.byType(NovidadesView), findsOneWidget);
@@ -241,7 +245,7 @@ void main() {
       final rotas = <String>[];
       await _abrir(tester, '/novidades', rotas: rotas);
 
-      await tester.tap(find.text('Novidades'));
+      await tester.tap(find.text('Novidades do Portal'));
       await tester.pumpAndSettle();
 
       // `MaterialApp` generates both `/` and `/novidades` for this initial
@@ -256,19 +260,22 @@ void main() {
   );
 
   testWidgets(
-    'M1 — picking the tool that names the open screen does not push it again',
+    'M1 — abrir o catálogo de dentro do próprio catálogo não o empurra de novo',
     (tester) async {
-      // The same hazard, through `abrirTool` rather than the Novidades pill:
-      // picking *Títulos* from the drawer while already on `/registros`.
+      // O mesmo risco, agora por `abrirEndereco`: tocar *Todas as ferramentas*
+      // no menu estreito já estando em `/ferramentas`. O guard compara o
+      // caminho (sem a query) e não empurra o que já está no topo.
       final rotas = <String>[];
-      await _abrir(tester, '/registros', rotas: rotas, largura: 390);
+      await _abrir(tester, '/ferramentas', rotas: rotas, largura: 390);
 
       await tester.tap(find.byIcon(Icons.menu));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Títulos'));
+      await tester.tap(find.text('Todas as ferramentas'));
       await tester.pumpAndSettle();
 
-      expect(rotas, ['/', '/registros']);
+      // `/` fica por baixo por o `initialRoute` empilhar — o que importa é que
+      // o toque não acrescentou um segundo `/ferramentas` por cima.
+      expect(rotas, ['/', '/ferramentas']);
     },
   );
 }

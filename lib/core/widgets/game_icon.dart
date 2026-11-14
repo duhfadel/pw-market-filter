@@ -57,6 +57,36 @@ class StoneIcon extends StatelessWidget {
   );
 }
 
+/// A arte de uma ferramenta, sem moldura nem fundo, no card de `/ferramentas`.
+///
+/// **Vem de `assets/icons/ferramentas/` e não de `items/`**, pela mesma razão
+/// das pedras: `items/` é partilhada pelo filtro e pelos cards, e a versão
+/// limpa só é desenhada aqui. Cai para o [ItemIcon] quando não há arte limpa —
+/// uma ferramenta nova sem recorte mostra o ícone do item em vez de nada.
+///
+/// `BoxFit.contain` porque as artes têm formatos diferentes (a página é
+/// deitada, a chave em pé): cada uma cabe na caixa pela proporção dela, sem
+/// esticar.
+class ArteDaFerramenta extends StatelessWidget {
+  const ArteDaFerramenta(this.itemId, {this.size = 54, super.key});
+
+  final int itemId;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: size,
+    height: size,
+    child: Image.asset(
+      'assets/icons/ferramentas/$itemId.png',
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.medium,
+      errorBuilder: (_, _, _) =>
+          Center(child: ItemIcon(itemId, size: size * .7)),
+    ),
+  );
+}
+
 /// A class's portrait, keyed by the `occupation` number the listing carries.
 class ClassIcon extends StatelessWidget {
   const ClassIcon(this.occupation, {this.size = 24, super.key});

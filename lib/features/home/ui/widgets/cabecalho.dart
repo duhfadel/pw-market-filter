@@ -3,6 +3,7 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/rotas.dart' as rotas;
 import '../../../../core/theme/medidas_da_maquete.dart';
 import '../../../../core/theme/pw_colors.dart';
 import '../../../../core/theme/pw_theme.dart';
@@ -11,6 +12,34 @@ import '../../data/novidade_lida.dart';
 import '../../domain/tool.dart';
 import '../novidades_view_model.dart';
 import 'tool_navigation.dart';
+
+/// O rótulo da pílula de novidades, escrito uma vez. Não é uma secção de
+/// `tools` como as outras — é uma pílula à parte —, por isso vive aqui.
+const secaoDasNovidades = 'Novidades do Portal';
+
+/// A secção da barra em que a rota [rota] cai, ou `null` numa tela sem pílula
+/// para acender (a home, o seletor).
+///
+/// **Deriva da rota e de mais nada**, para nenhuma tela ter de a passar à mão.
+/// As telas de ferramenta — o filtro, os títulos, as runas, as instâncias e o
+/// próprio catálogo — acendem *Ferramentas*; as guerras acendem *Guerras*; e
+/// `/novidades` acende a sua. Os Guias são página HTML, fora do app, portanto
+/// a pílula deles nunca se acende aqui — a página tem o seu próprio cabeçalho.
+String? secaoAtivaDaRota(String? rota) {
+  final r = rotas.resolverRota(rota);
+  if (r is! rotas.RotaTela) return null;
+  return switch (r.tela) {
+    rotas.Tela.ferramentas ||
+    rotas.Tela.registros ||
+    rotas.Tela.runas ||
+    rotas.Tela.instancias ||
+    rotas.Tela.filtro187 ||
+    rotas.Tela.filtro126 => 'Ferramentas',
+    rotas.Tela.guerras || rotas.Tela.guerras126 => 'Guerras',
+    rotas.Tela.novidades => secaoDasNovidades,
+    _ => null,
+  };
+}
 
 /// The site's mark, and the whole menu behind it.
 ///
@@ -122,45 +151,58 @@ class Cabecalho extends StatelessWidget {
   final bool semMercado;
 
   @override
-  Widget build(BuildContext context) => Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      _Marca(key: const Key('cabecalho-marca'), versao: versao),
-      if (wide)
-        // **A fila rola em vez de transbordar, e a quarta pílula foi quem
-        // mostrou que isto faltava.** `wide` liga aos 772 px de *janela*,
-        // mas a home prende o conteúdo a 780 px entre 680 e 1279 e ainda
-        // lhe tira margens — a barra recebe menos do que o limiar que a
-        // acendeu, e três pílulas cabiam nessa diferença por sorte. Uma
-        // secção nova não pode voltar a partir a barra.
-        //
-        // O `Spacer` que empurrava as pílulas para a direita saiu junto, e
-        // era metade do defeito: sendo `Expanded`, exigia todo o espaço
-        // livre, portanto a fila nunca chegava a encolher. `spaceBetween`
-        // afasta os dois extremos sem reclamar espaço de ninguém.
-        Flexible(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            // Encostada ao fim: o que tem de ficar visível quando falta
-            // espaço é o lado direito, onde a barra sempre viveu.
-            reverse: true,
-            child: Row(
-              children: [
-                for (final secao in secoesDaHome)
-                  if (toolsDe(secao, versao: versao).isNotEmpty &&
-                      (!semMercado || secaoServeSemMercado(secao))) ...[
-                    _SectionPill(secao: secao, versao: versao),
-                    const SizedBox(width: 8),
-                  ],
-                _NovidadesPill(memoria: memoriaDeNovidades),
-              ],
+  Widget build(BuildContext context) {
+    // A secção em que o visitante está agora, para a acender. Lê-se da rota
+    // atual e de mais nada — nenhuma tela tem de a passar à mão, ou uma que
+    // se esquecesse ficaria sem destaque sem ninguém reparar.
+    final ativa = secaoAtivaDaRota(ModalRoute.of(context)?.settings.name);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _Marca(key: const Key('cabecalho-marca'), versao: versao),
+        if (wide)
+          // **A fila rola em vez de transbordar, e a quarta pílula foi quem
+          // mostrou que isto faltava.** `wide` liga aos 772 px de *janela*,
+          // mas a home prende o conteúdo a 780 px entre 680 e 1279 e ainda
+          // lhe tira margens — a barra recebe menos do que o limiar que a
+          // acendeu, e três pílulas cabiam nessa diferença por sorte. Uma
+          // secção nova não pode voltar a partir a barra.
+          //
+          // O `Spacer` que empurrava as pílulas para a direita saiu junto, e
+          // era metade do defeito: sendo `Expanded`, exigia todo o espaço
+          // livre, portanto a fila nunca chegava a encolher. `spaceBetween`
+          // afasta os dois extremos sem reclamar espaço de ninguém.
+          Flexible(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              // Encostada ao fim: o que tem de ficar visível quando falta
+              // espaço é o lado direito, onde a barra sempre viveu.
+              reverse: true,
+              child: Row(
+                children: [
+                  for (final secao in secoesDaHome)
+                    if (toolsDe(secao, versao: versao).isNotEmpty &&
+                        (!semMercado || secaoServeSemMercado(secao))) ...[
+                      _SectionPill(
+                        secao: secao,
+                        versao: versao,
+                        ativa: ativa == secao,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                  _NovidadesPill(
+                    memoria: memoriaDeNovidades,
+                    ativa: ativa == secaoDasNovidades,
+                  ),
+                ],
+              ),
             ),
-          ),
-        )
-      else
-        _OverflowMenu(versao: versao, semMercado: semMercado),
-    ],
-  );
+          )
+        else
+          _OverflowMenu(versao: versao, semMercado: semMercado),
+      ],
+    );
+  }
 }
 
 /// Opens `/novidades`, the site's own screen of past announcements — guarded
@@ -271,11 +313,18 @@ class _Pill extends StatelessWidget {
     this.count,
     this.dot = false,
     this.ouro = false,
+    this.ativo = false,
   });
 
   final String label;
   final int? count;
   final bool dot;
+
+  /// A secção em que o visitante está agora: fundo do acento, letra preta —
+  /// pedido do dono a 14/11/2026, *«para o usuário saber onde está»*. Cheia e
+  /// não translúcida, porque é a única que tem de se ler como *estou aqui* e
+  /// não como mais uma porta. Sobrepõe-se ao [ouro].
+  final bool ativo;
 
   /// A variante `.pil.ouro` da maquete: moldura e letra na cor do acento.
   ///
@@ -310,15 +359,25 @@ class _Pill extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
         decoration: BoxDecoration(
-          color: PWColors.background.withValues(alpha: _chao),
+          color: ativo
+              ? PWColors.accent
+              : PWColors.background.withValues(alpha: _chao),
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: ouro
+            color: ativo
+                ? PWColors.accent
+                : ouro
                 ? PWColors.accent.withValues(alpha: Maquete.pilulaBordaOuro)
                 : Colors.white.withValues(alpha: Maquete.pilulaBorda),
           ),
         ),
-        child: _Dentro(label: label, count: count, dot: dot, ouro: ouro),
+        child: _Dentro(
+          label: label,
+          count: count,
+          dot: dot,
+          ouro: ouro,
+          ativo: ativo,
+        ),
       ),
     ),
   );
@@ -330,12 +389,14 @@ class _Dentro extends StatelessWidget {
     required this.count,
     required this.dot,
     required this.ouro,
+    required this.ativo,
   });
 
   final String label;
   final int? count;
   final bool dot;
   final bool ouro;
+  final bool ativo;
 
   @override
   Widget build(BuildContext context) => Row(
@@ -344,8 +405,13 @@ class _Dentro extends StatelessWidget {
       Text(
         label,
         style: TextStyle(
-          color: ouro ? PWColors.accent : PWColors.papel,
+          color: ativo
+              ? PWColors.background
+              : ouro
+              ? PWColors.accent
+              : PWColors.papel,
           fontSize: 13,
+          fontWeight: ativo ? FontWeight.w600 : FontWeight.w400,
         ),
       ),
       if (count != null) ...[
@@ -359,7 +425,12 @@ class _Dentro extends StatelessWidget {
         // the same, and every number on this site stays off that face.
         Text(
           '$count',
-          style: const TextStyle(color: PWColors.apagado, fontSize: 11),
+          style: TextStyle(
+            color: ativo
+                ? PWColors.background.withValues(alpha: 0.7)
+                : PWColors.apagado,
+            fontSize: 11,
+          ),
         ),
       ],
       if (dot) ...[
@@ -372,8 +443,8 @@ class _Dentro extends StatelessWidget {
           key: const Key('novidade-nao-lida'),
           width: 7,
           height: 7,
-          decoration: const BoxDecoration(
-            color: PWColors.accent,
+          decoration: BoxDecoration(
+            color: ativo ? PWColors.background : PWColors.accent,
             shape: BoxShape.circle,
           ),
         ),
@@ -388,7 +459,10 @@ class _Dentro extends StatelessWidget {
 /// Empty on purpose when a section has nothing at all: a pill that opens to
 /// an empty drawer is worse than no pill.
 class _SectionPill extends StatelessWidget {
-  const _SectionPill({required this.secao, this.versao});
+  const _SectionPill({required this.secao, this.versao, this.ativa = false});
+
+  /// Se a tela atual é desta secção — acende a pílula.
+  final bool ativa;
 
   final String secao;
 
@@ -420,7 +494,25 @@ class _SectionPill extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(999),
           onTap: () => abrirEndereco(context, destino, externo: true),
-          child: _Pill(label: secao, count: prontos),
+          child: _Pill(label: secao, count: prontos, ativo: ativa),
+        ),
+      );
+    }
+
+    // **As Ferramentas abrem a página-catálogo, como os Guias** — pedido do
+    // dono a 14/11/2026. A gaveta de linhas apertadas deu lugar a `/ferramentas`,
+    // uma tela do app (não HTML, porque o destino de cada card é uma rota
+    // interna), e a versão viaja no `?v=`. `externo: false`: é rota do app.
+    if (secao == 'Ferramentas') {
+      final destino = versao == null
+          ? '/ferramentas'
+          : '/ferramentas?v=$versao';
+      return Tooltip(
+        message: 'Ferramentas',
+        child: InkWell(
+          borderRadius: BorderRadius.circular(999),
+          onTap: () => abrirEndereco(context, destino, externo: false),
+          child: _Pill(label: secao, count: prontos, ativo: ativa),
         ),
       );
     }
@@ -437,7 +529,7 @@ class _SectionPill extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(999),
           onTap: () => abrirTool(context, unico, versao: versao),
-          child: _Pill(label: secao),
+          child: _Pill(label: secao, ativo: ativa),
         ),
       );
     }
@@ -455,7 +547,7 @@ class _SectionPill extends StatelessWidget {
             child: GavetaItem(tool: tool),
           ),
       ],
-      child: _Pill(label: secao, count: prontos),
+      child: _Pill(label: secao, count: prontos, ativo: ativa),
     );
   }
 }
@@ -492,7 +584,10 @@ class _SectionPill extends StatelessWidget {
 /// from `/novidades` and this pill must stop lighting without needing a new
 /// widget instance to notice.
 class _NovidadesPill extends StatelessWidget {
-  const _NovidadesPill({this.memoria});
+  const _NovidadesPill({this.memoria, this.ativa = false});
+
+  /// Se estamos em `/novidades` — acende a pílula, como as outras.
+  final bool ativa;
 
   final BrowserMemory? memoria;
 
@@ -526,9 +621,13 @@ class _NovidadesPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         onTap: () => _abrirNovidades(context),
         child: _Pill(
-          label: 'Novidades',
+          // *Novidades do Portal* e não só *Novidades* — pedido do dono a
+          // 14/11/2026, a abrir caminho para as novidades por versão que
+          // virão (1.8.7, 1.2.6, 1.4.4). Esta é a do portal, de todos.
+          label: secaoDasNovidades,
           // `.pil.ouro` — a única da barra, e é a que muda sozinha.
           ouro: true,
+          ativo: ativa,
           dot: NovidadeLida(memoria).existeNaoLida(entradas),
         ),
       ),
@@ -579,7 +678,7 @@ class GavetaItem extends StatelessWidget {
                 // page's tool cards left — `ToolCard` used to carry them, and
                 // a badge nobody can see is a badge that does not exist. This
                 // drawer row is the one surface a tool still has.
-                if (tool.beta) ...[
+                if (tool.betaEm(DateTime.now())) ...[
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -738,6 +837,23 @@ class _OverflowMenu extends StatelessWidget {
                 ),
               ),
             )
+          // As Ferramentas, como os Guias, são uma entrada só — a
+          // página-catálogo — e não a lista empilhada.
+          else if (secao == 'Ferramentas')
+            PopupMenuItem<Tool?>(
+              onTap: () => abrirEndereco(
+                context,
+                versao == null ? '/ferramentas' : '/ferramentas?v=$versao',
+                externo: false,
+              ),
+              child: const Text(
+                'Todas as ferramentas',
+                style: TextStyle(
+                  color: PWColors.papel,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            )
           else
             for (final tool in toolsDe(secao, versao: versao))
               PopupMenuItem<Tool?>(
@@ -749,7 +865,7 @@ class _OverflowMenu extends StatelessWidget {
       PopupMenuItem<Tool?>(
         onTap: () => _abrirNovidades(context),
         child: const Text(
-          'Novidades',
+          'Novidades do Portal',
           style: TextStyle(color: PWColors.papel, fontWeight: FontWeight.w600),
         ),
       ),

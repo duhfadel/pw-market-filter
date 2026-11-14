@@ -11,6 +11,7 @@ import 'features/home/ui/novidades_view_model.dart';
 import 'features/home/ui/visit_counter_view_model.dart';
 import 'features/novidades/ui/novidades_view.dart';
 import 'features/portas/ui/portas_view.dart';
+import 'features/ferramentas/ui/ferramentas_view.dart';
 import 'features/instancias/ui/instancias_view.dart';
 import 'features/registros/ui/registros_view.dart';
 import 'features/guias/ui/guerras_view.dart';
@@ -88,6 +89,11 @@ class PortalPWApp extends StatelessWidget {
           ),
           RotaTela(tela: Tela.registros) => const RegistrosView(),
           RotaTela(tela: Tela.runas) => const RunasView(),
+          // A query carrega só a versão (`?v=`), para o catálogo abrir nas
+          // ferramentas de quem clicou.
+          RotaTela(tela: Tela.ferramentas, :final query) => FerramentasView(
+            query: query,
+          ),
           // A query vai para dentro: a lista inteira pode vir no endereço,
           // como no filtro. Ver `instancias_url.dart`.
           RotaTela(tela: Tela.instancias, :final query) => InstanciasView(

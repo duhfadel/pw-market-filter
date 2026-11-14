@@ -442,7 +442,7 @@ void main() {
       );
     }
     // Novidades fica: lê as mesmas mensagens para os dois mercados.
-    expect(find.text('Novidades'), findsOneWidget);
+    expect(find.text('Novidades do Portal'), findsOneWidget);
     // E os *Guias* entraram a 09/11/2026, quando as multi contas perderam o
     // prefixo e a secção deixou de ter uma única entrada presa a um mercado.
     expect(find.text('Guias'), findsOneWidget);

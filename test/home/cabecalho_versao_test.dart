@@ -149,19 +149,21 @@ void main() {
               : 'A secção $secao escolheria o mercado por quem clicasse',
         );
       }
-      expect(find.text('Novidades'), wide ? findsOneWidget : findsNothing);
+      expect(find.text('Novidades do Portal'), wide ? findsOneWidget : findsNothing);
       expect(find.byKey(const Key('cabecalho-marca')), findsOneWidget);
     }
   });
 
-  test('o filtro é o que prende a secção de Ferramentas a um mercado', () {
-    // Nomeado, para que tirar o prefixo do filtro um dia seja uma decisão
-    // visível e não um efeito colateral de outra coisa.
-    expect(secaoServeSemMercado('Ferramentas'), isFalse);
+  test('nenhuma secção prende a um mercado pela rota, desde que o filtro saiu', () {
+    // **Era o filtro, cravado em `/1.8.7/filtro`, que prendia *Ferramentas* a
+    // um mercado.** Saído da secção a 14/11/2026, o que resta — Títulos,
+    // Organizador, Runas — tem rotas sem versão (`/registros`, `/instancias`,
+    // `/runas`), portanto nenhuma escolhe mercado por quem clica. É a mesma
+    // lógica derivada, não uma bandeira: a secção deixou de ter entrada presa
+    // a um mercado e passou a servir o seletor sozinha.
+    expect(toolsDe('Ferramentas').where(escolheMercado), isEmpty);
+    expect(secaoServeSemMercado('Ferramentas'), isTrue);
     expect(secaoServeSemMercado('Guias'), isTrue);
-    expect(toolsDe('Ferramentas').where(escolheMercado).map((t) => t.name), [
-      'Filtro do Marketplace',
-    ]);
   });
 
   // E o contrário, para o teste acima não passar por o cabeçalho ter deixado

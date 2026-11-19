@@ -61,7 +61,10 @@ class _CanalDoPortalState extends State<CanalDoPortal> {
 
   Future<void> _carregar() async {
     final buscar =
-        widget.carregar ?? () => VideoRepository().daSecao(CanalDoPortal.secao);
+        widget.carregar ??
+        // `curada`: a apresentação fica fixa no topo (ordem baixa) e o resto
+        // segue por recência — ao contrário das guerras, que são por data.
+        () => VideoRepository().daSecao(CanalDoPortal.secao, curada: true);
     try {
       final videos = await buscar();
       if (!mounted) return;

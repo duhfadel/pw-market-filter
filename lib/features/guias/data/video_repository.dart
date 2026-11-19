@@ -26,21 +26,37 @@ class VideoRepository {
   /// [versao] filtra por mercado quando a seção existe nos dois — as guerras
   /// territoriais são a primeira. Nulo pede a seção inteira, que é o que as
   /// seções de uma versão só querem.
-  Future<List<Video>> daSecao(String secao, {String? versao}) async {
+  ///
+  /// **[curada] inverte a prioridade da ordenação, e só o canal do Portal a
+  /// pede.** As guerras são um feed cronológico — a última guerra em cima —, por
+  /// isso a data manda e `ordem` só desempata. O canal é uma lista curada: o
+  /// vídeo de apresentação fica fixo no topo (ordem baixa) e o resto segue por
+  /// recência. Então aqui `ordem` manda e a data desempata — dar à apresentação
+  /// uma ordem menor que a dos outros fixa-a em primeiro sem lhe mentir a data,
+  /// e os outros, com a mesma ordem, ficam entre si por data decrescente.
+  Future<List<Video>> daSecao(
+    String secao, {
+    String? versao,
+    bool curada = false,
+  }) async {
     try {
+      final ordenacao = curada
+          ? 'ordem.asc,data.desc.nullslast,publicado_em.desc'
+          : 'data.desc.nullslast,ordem.asc,publicado_em.desc';
       final resposta = await _client.get(
         Uri.parse(
           '$_url?select=*&visivel=is.true'
           '&secao=eq.${Uri.encodeComponent(secao)}'
           '${versao == null ? '' : '&versao=eq.${Uri.encodeComponent(versao)}'}'
-          // **A data manda, e `ordem` passa a ser só o desempate.** A
-          // primeira grelha com dois vídeos mostrou o 20/09 antes do 04/10,
-          // porque a ordem era a de inserção — e quem abre uma página de
-          // guerras quer ver a última. `nullslast` é o que mantém as seções
-          // de guia a funcionar: lá ninguém preenche a data, e sem isso elas
-          // iriam todas para o topo ou para o fundo conforme o humor do
-          // Postgres, em vez de ficarem na ordem que alguém lhes deu.
-          '&order=data.desc.nullslast,ordem.asc,publicado_em.desc',
+          // **A data manda, e `ordem` passa a ser só o desempate** — exceto no
+          // canal curado, onde [curada] troca os dois. A primeira grelha com
+          // dois vídeos mostrou o 20/09 antes do 04/10, porque a ordem era a de
+          // inserção, e quem abre uma página de guerras quer ver a última.
+          // `nullslast` é o que mantém as seções de guia a funcionar: lá ninguém
+          // preenche a data, e sem isso elas iriam todas para o topo ou para o
+          // fundo conforme o humor do Postgres, em vez de ficarem na ordem que
+          // alguém lhes deu.
+          '&order=$ordenacao',
         ),
         headers: const {
           'apikey': _key,

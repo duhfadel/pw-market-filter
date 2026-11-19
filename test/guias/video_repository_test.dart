@@ -42,6 +42,14 @@ void main() {
     expect(pedida.query, contains('order=data.desc.nullslast,ordem.asc'));
   });
 
+  test('curada inverte: ordem manda, data desempata (o canal do Portal)', () async {
+    // Ao contrário das guerras, o canal é uma lista curada — a apresentação
+    // fica fixa no topo (ordem baixa) e o resto segue por recência. Então
+    // `ordem` manda e a data é o desempate.
+    await comResposta(const []).daSecao('canal', curada: true);
+    expect(pedida.query, contains('order=ordem.asc,data.desc.nullslast'));
+  });
+
   test('uma falha devolve lista vazia, nunca uma exceção', () async {
     // A grelha simplesmente não desenha. Um vídeo que grita um erro quando
     // não carrega é pior do que um que espera o próximo carregamento.

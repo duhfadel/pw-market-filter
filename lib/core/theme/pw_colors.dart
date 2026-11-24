@@ -109,6 +109,12 @@ abstract final class PWColors {
   /// Discord's own #3BA55D would land at 5.8 and go muddy on a dark panel.
   static const live = Color(0xFF5FBA7D);
 
+  /// O vermelho do botão de inscrição do YouTube — o único vermelho vivo do
+  /// site, e deliberado: o canal pediu um CTA que chamasse, e esta é a cor
+  /// que o olho já associa a *inscrever-se*. Texto branco por cima, não
+  /// `papel`, porque sobre vermelho saturado o branco puro é o que lê.
+  static const youtube = Color(0xFFFF0000);
+
   /// The frame of a character wearing the **defensive** UP5.
   ///
   /// The other four rungs of the card's frame are one ladder — how much the

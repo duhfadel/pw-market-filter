@@ -109,200 +109,119 @@ class _CanalDoPortalState extends State<CanalDoPortal> {
               ],
             ),
           ),
-          child: widget.wide
-              ? Row(
-                  // `.canal.larga { align-items: center }` — o convite senta
-                  // no meio do que a fila de videos ocupa, em vez de ficar
-                  // encostado ao topo com meio painel vazio por baixo.
+          // **O título é um letreiro à largura toda, e a fila de vídeos vem
+          // por baixo dele — pedido do dono.** Antes o convite ficava numa
+          // coluna à esquerda e os vídeos espremidos na outra metade; agora o
+          // grito «FALHA TERRITORIAL…» abre o painel de ponta a ponta, o
+          // subtítulo e o botão ficam numa linha, e os vídeos ocupam toda a
+          // largura em baixo, com as miniaturas maiores.
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const _Titulo(),
+              SizedBox(height: widget.wide ? 16 : 13),
+              // O subtítulo e o botão lado a lado no largo; empilhados no
+              // estreito, onde não cabem na mesma linha.
+              if (widget.wide)
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // `grid-template-columns: 1fr 1.15fr; gap: 30px`.
-                    const Expanded(flex: 100, child: _Convite(wide: true)),
-                    const SizedBox(width: 30),
-                    Expanded(
-                      flex: 115,
-                      child: GrelhaDeVideos(
-                        videos: _videos,
-                        compacta: true,
-                        depois: const _Vago(),
-                      ),
-                    ),
+                  children: const [
+                    Expanded(child: _Subtitulo(wide: true)),
+                    SizedBox(width: 20),
+                    _Botao(),
                   ],
                 )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _Convite(wide: false),
-                    const SizedBox(height: 18),
-                    GrelhaDeVideos(
-                      videos: _videos,
-                      compacta: true,
-                      depois: const _Vago(),
-                    ),
+              else
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    _Subtitulo(wide: false),
+                    SizedBox(height: 14),
+                    _Botao(),
                   ],
                 ),
+              SizedBox(height: widget.wide ? 24 : 20),
+              // `compacta` já é a fila horizontal (miniatura 16:9 em cima,
+              // título e data por baixo), e empilha sozinha no telemóvel. Com
+              // a largura toda do painel, os quatro cartões ficam lado a lado.
+              GrelhaDeVideos(videos: _videos, compacta: true),
+            ],
+          ),
         ),
       ],
     );
   }
 }
 
-/// O que o painel diz, e a porta para o canal.
-class _Convite extends StatelessWidget {
-  const _Convite({required this.wide});
+/// O letreiro do canal, à largura toda.
+///
+/// **Os A's esticados são o grito, e é pedido do dono** — o canal é informal,
+/// e o título abre o painel de ponta a ponta como uma manchete. `scaleDown`
+/// com alinhamento à esquerda: num ecrã largo fica no tamanho base, num
+/// estreito encolhe até caber, nunca corta uma letra. Sem algarismos, que a
+/// Marcellus desenha como figuras romanas — e aqui não há nenhum.
+class _Titulo extends StatelessWidget {
+  const _Titulo();
+
+  @override
+  Widget build(BuildContext context) => const Align(
+    alignment: Alignment.centerLeft,
+    child: FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Text(
+        'FALHA TERRITORIAAAAAAAAAAAAAAL',
+        maxLines: 1,
+        softWrap: false,
+        style: TextStyle(
+          fontFamily: PWTheme.display,
+          fontSize: 46,
+          color: PWColors.papel,
+          height: 1,
+        ),
+      ),
+    ),
+  );
+}
+
+/// A linha que diz o que o canal é, por baixo do letreiro.
+class _Subtitulo extends StatelessWidget {
+  const _Subtitulo({required this.wide});
 
   final bool wide;
 
   @override
-  Widget build(BuildContext context) => Column(
-    mainAxisSize: MainAxisSize.min,
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      // Sem algarismos: a Marcellus desenha figuras romanas.
-      ConstrainedBox(
-        // `.canal.larga h3 { max-width: 16ch }` — duas linhas, como na
-        // maquete, em vez de uma que corre até ao fim da coluna.
-        constraints: BoxConstraints(maxWidth: wide ? 340 : double.infinity),
-        child: Text(
-          'Os primeiros já estão no ar',
-          style: TextStyle(
-            fontFamily: PWTheme.display,
-            fontSize: wide ? 28 : 26,
-            color: PWColors.papel,
-            height: 1.15,
-          ),
-        ),
-      ),
-      SizedBox(height: wide ? 12 : 9),
-      ConstrainedBox(
-        // `.canal p { max-width: 44ch }`.
-        constraints: const BoxConstraints(maxWidth: 400),
-        child: Text(
-          'Os guias em vídeo, as contas que ninguém faz à mão e o que o '
-          'mercado anda dizendo.',
-          style: TextStyle(
-            color: PWColors.apagado,
-            fontSize: wide ? 14 : 13,
-            height: 1.5,
-          ),
-        ),
-      ),
-      SizedBox(height: wide ? 18 : 14),
-      const _Botao(),
-    ],
+  Widget build(BuildContext context) => Text(
+    'Os melhores e os piores momentos do competitivo!',
+    style: TextStyle(
+      color: PWColors.apagado,
+      fontSize: wide ? 15 : 14,
+      height: 1.4,
+    ),
   );
 }
 
-/// A porta para o canal, no mesmo separador como todo o link externo daqui.
+/// A porta para o canal — **vermelho do YouTube, a pedido do dono**, para o
+/// convite a inscrever-se chamar o olho. É o único botão cheio e vivo da raiz,
+/// e é deliberado: nada mais aqui disputa a atenção com ele.
 class _Botao extends StatelessWidget {
   const _Botao();
 
   static const _canal = 'https://www.youtube.com/@PortalPw';
 
   @override
-  Widget build(BuildContext context) => Align(
-    alignment: Alignment.centerLeft,
-    child: OutlinedButton(
-      onPressed: () => unawaited(
-        launchUrl(Uri.parse(_canal), mode: LaunchMode.externalApplication),
-      ),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: PWColors.papel,
-        side: const BorderSide(color: PWColors.border),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        backgroundColor: PWColors.surface.withValues(alpha: 0.5),
-      ),
-      child: const Text('Inscrever no YouTube →'),
+  Widget build(BuildContext context) => FilledButton(
+    onPressed: () => unawaited(
+      launchUrl(Uri.parse(_canal), mode: LaunchMode.externalApplication),
+    ),
+    style: FilledButton.styleFrom(
+      backgroundColor: PWColors.youtube,
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+    ),
+    child: const Text(
+      'Inscrever no YouTube →',
+      style: TextStyle(fontWeight: FontWeight.w600),
     ),
   );
-}
-
-/// O lugar que ainda não tem vídeo.
-///
-/// ```css
-/// .vago { aspect-ratio:16/9; border:1px dashed rgba(255,180,84,.34);
-///         border-radius:10px; background:rgba(255,180,84,.03) }
-/// ```
-///
-/// **Enche a terceira coluna e diz porquê.** Sem ele a fila ficava com um
-/// buraco do tamanho de um cartão e o convite à esquerda ficava com meio
-/// painel vazio ao lado — que foi o que o dono viu. Tracejado e não cheio,
-/// porque promete e não entrega: é um lugar guardado, não um vídeo.
-///
-/// **Não promete data.** *Está a caminho* é verdade sobre a intenção de quem
-/// grava; *«todas as semanas»* seria uma cadência que ninguém garantiu, e uma
-/// promessa falhada numa página de entrada custa mais do que o lugar vazio
-/// que ela tapava.
-class _Vago extends StatelessWidget {
-  const _Vago();
-
-  @override
-  Widget build(BuildContext context) => AspectRatio(
-    aspectRatio: 16 / 9,
-    child: DottedBorder(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'o próximo',
-            style: TextStyle(
-              color: PWColors.accent,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            'está a caminho',
-            style: TextStyle(
-              color: PWColors.accent.withValues(alpha: 0.6),
-              fontSize: 11,
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-/// Uma moldura tracejada, que o Flutter não tem de origem.
-class DottedBorder extends StatelessWidget {
-  const DottedBorder({required this.child, super.key});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => CustomPaint(
-    painter: _Tracejado(),
-    child: ColoredBox(
-      color: PWColors.accent.withValues(alpha: 0.03),
-      child: child,
-    ),
-  );
-}
-
-class _Tracejado extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final caneta = Paint()
-      ..color = PWColors.accent.withValues(alpha: 0.34)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-    const raio = Radius.circular(10);
-    final caminho = Path()
-      ..addRRect(RRect.fromRectAndRadius(Offset.zero & size, raio));
-    // Seis píxeis desenhados, quatro de intervalo — a cadência que lê como
-    // tracejado sem virar pontilhado a esta espessura.
-    for (final metrica in caminho.computeMetrics()) {
-      var d = 0.0;
-      while (d < metrica.length) {
-        final ate = (d + 6).clamp(0.0, metrica.length);
-        canvas.drawPath(metrica.extractPath(d, ate), caneta);
-        d += 10;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

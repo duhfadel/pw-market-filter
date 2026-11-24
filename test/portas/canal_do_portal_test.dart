@@ -67,7 +67,12 @@ void main() {
     // precisar de o escrever. No estreito o convite passa para cima dos
     // vídeos em vez de ao lado — dois terços de 390 px não são uma coluna.
     await montar(tester, reais);
-    expect(find.text('Os primeiros já estão no ar'), findsOneWidget);
+    // O letreiro do canal, o subtítulo e a porta vermelha para o YouTube.
+    expect(find.text('FALHA TERRITORIAAAAAAAAAAAAAAL'), findsOneWidget);
+    expect(
+      find.text('Os melhores e os piores momentos do competitivo!'),
+      findsOneWidget,
+    );
     expect(find.text('Inscrever no YouTube →'), findsOneWidget);
 
     await montar(tester, reais, largura: 390);

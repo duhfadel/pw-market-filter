@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- Página de recrutamento da guild, não linkada de lugar nenhum do site e
+     fora dos motores de busca de propósito: só quem recebe o endereço entra. -->
+<meta name="robots" content="noindex,nofollow">
+<title>NewAge</title>
+<style>
+/* As fontes são as do próprio app, servidas por Flutter a partir de
+   assets/fonts/ — o mesmo caminho que web/guias/estilo.css usa. Referidas e
+   não embutidas, para a página ficar leve. */
+@font-face {
+  font-family: "Marcellus";
+  src: url("/assets/assets/fonts/Marcellus-Regular.ttf") format("truetype");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/assets/assets/fonts/Inter-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/assets/assets/fonts/Inter-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/assets/assets/fonts/Inter-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+:root {
+  --bg: #0A1409;
+  --surface: #122012;
+  --raised: #182b16;
+  --border: #2d4526;
+  --text: #E8E8F4;
+  --muted: #9DB089;
+  --accent: #FFB454;
+  --papel: #F0E6F2;
+  --na: #8DC24E;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.6;
+}
+.wrap { max-width: 720px; margin: 0 auto; padding: 0 22px; }
+.hero { position: relative; padding: 70px 0 46px; text-align: center; overflow: hidden; }
+.hero::before {
+  content: "";
+  position: absolute; inset: 0; z-index: 0;
+  background: radial-gradient(58% 64% at 50% 2%, rgba(141,194,78,.20), transparent 68%);
+}
+.hero > * { position: relative; z-index: 1; }
+.logo {
+  width: 96px; height: 96px; margin: 0 auto 20px; border-radius: 50%;
+  filter: drop-shadow(0 0 22px rgba(141,194,78,.45)) drop-shadow(0 4px 10px rgba(0,0,0,.6));
+}
+h1 { font-family: "Marcellus", Georgia, serif; font-size: 58px; letter-spacing: 1px; color: var(--papel); line-height: 1; }
+.tagline { margin-top: 14px; font-size: 18px; color: var(--muted); font-family: "Marcellus", Georgia, serif; letter-spacing: .5px; }
+.sep { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
+section { padding: 30px 0; }
+.eyebrow { font-size: 12px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 14px; }
+h2 { font-family: "Marcellus", Georgia, serif; font-size: 28px; color: var(--papel); margin-bottom: 14px; }
+p { color: #CFD6C2; font-size: 16px; margin-bottom: 12px; }
+b, strong { color: var(--papel); font-weight: 700; }
+.lead { font-size: 19px; color: var(--papel); }
+.lead b { color: var(--na); }
+ul.lista { list-style: none; }
+ul.lista li { display: flex; align-items: flex-start; gap: 13px; padding: 14px 0; border-bottom: 1px solid var(--border); font-size: 16px; color: #CFD6C2; }
+ul.lista li:last-child { border-bottom: none; }
+.ck {
+  flex: 0 0 auto; width: 23px; height: 23px; border-radius: 50%;
+  background: rgba(255,180,84,.14); border: 1px solid var(--accent); color: var(--accent);
+  display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; margin-top: 1px;
+}
+.formula {
+  background: linear-gradient(135deg, rgba(141,194,78,.12), var(--surface) 65%);
+  border: 1px solid var(--border); border-radius: 14px; padding: 22px; margin-top: 16px; text-align: center;
+}
+.formula .num { color: var(--papel); font-size: 15px; font-weight: 600; line-height: 1.7; }
+.formula .num .leve { color: var(--muted); font-weight: 400; }
+.formula .linha { border-top: 1px solid var(--border); margin: 10px auto; width: 70%; }
+.formula .den { color: var(--accent); font-size: 14px; font-weight: 600; }
+.formula small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 12px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; margin-top: 6px; }
+.contatos { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 10px; }
+.nome { background: var(--raised); border: 1px solid var(--border); border-radius: 999px; padding: 9px 18px; font-weight: 600; font-size: 15px; color: var(--papel); }
+.obs { color: var(--muted); font-size: 14px; }
+footer { text-align: center; padding: 40px 0 60px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<div class="hero"><div class="wrap">
+  <img class="logo" src="na.png" alt="NewAge" width="96" height="96">
+  <h1>NewAge</h1>
+  <div class="tagline">Guerras territoriais. O alvo é o Tier 1.</div>
+</div></div>
+
+<div class="wrap">
+
+<section>
+  <div class="eyebrow">Nossa ideia</div>
+  <p class="lead"><b>Guild competitiva de TW &mdash; queremos ser Tier 1.</b></p>
+  <p>Claro que isso depende dos recrutamentos e da força dos nossos jogadores, mas vamos fazer todo o possível para disputar o T1.</p>
+</section>
+
+<div class="sep"></div>
+
+<section>
+  <div class="eyebrow">Obrigações dos jogadores</div>
+  <ul class="lista">
+    <li><span class="ck">&#10003;</span><span><b>TeamSpeak</b> em eventos e guerras &mdash; para organização e controle da galera.</span></li>
+    <li><span class="ck">&#10003;</span><span><b>Presença nas TWs</b> &mdash; é o foco da guild, e onde o Tier 1 se conquista.</span></li>
+    <li><span class="ck">&#10003;</span><span><b>Participar dos eventos</b> de segunda e quinta &mdash; é o que gera o gold da guild.</span></li>
+  </ul>
+</section>
+
+<div class="sep"></div>
+
+<section>
+  <div class="eyebrow">O que ofereceremos</div>
+  <ul class="lista">
+    <li><span class="ck">&#10003;</span><span><b>Pagamentos semanais</b> pelo painel do TheClassic &mdash; sorteados entre quem participou, conforme o gold dos eventos.</span></li>
+    <li><span class="ck">&#10003;</span><span><b>Eventos internos</b> usando o caixa da guild.</span></li>
+    <li><span class="ck">&#10003;</span><span><b>Um banco de guild</b> que cresce com todos, com caixa sempre pronto para lances de guerra.</span></li>
+  </ul>
+  <div class="formula">
+    <div class="num">Gold total da semana <span class="leve">(TC por guild ativa + Territórios)</span><br>&minus; Salário dos staff &minus; Despesas &minus; % do Banco da guild</div>
+    <div class="linha"></div>
+    <div class="den">&divide; Jogadores participantes</div>
+    <small>É assim que o pagamento de cada participante é calculado.</small>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<section>
+  <div class="eyebrow">Para participar</div>
+  <h2>Quem buscamos</h2>
+  <p>Jogadores <strong>ativos</strong>, dispostos ao T1 &mdash; ou que estejam lutando para chegar lá.</p>
+  <div class="card" style="margin-top:16px">
+    <p style="margin-bottom:8px"><strong>Fala com a gente.</strong> Manda PM para:</p>
+    <div class="contatos">
+      <span class="nome">duhit</span>
+      <span class="nome">kaneco</span>
+      <span class="nome">Mozaum</span>
+      <span class="nome">SteaL</span>
+      <span class="nome">RooH</span>
+    </div>
+    <div class="obs">Se ninguém responder (pode ser AFK), manda uma mensagem por <strong style="color:var(--papel)">correio</strong> no jogo.</div>
+  </div>
+</section>
+
+</div>
+
+<footer>NewAge &mdash; The Classic PW 1.8.7</footer>
+</body>
+</html>

@@ -93,6 +93,12 @@ def _rico(texto):
     t = re.sub(r'\*\*([^*]+)\*\*', r'<strong>\1</strong>', t)
     t = re.sub(r'(?<!\*)\*([^*\n]+)\*(?!\*)', r'<em>\1</em>', t)
     t = re.sub(r'`([^`]+)`', r'<code>\1</code>', t)
+    # A newline no texto vira quebra de linha. Quase todo passo é uma linha só,
+    # portanto isto não os toca; serve o único caso em que a quebra é o
+    # conteúdo — os doze versos que o jogador copia um a um para a missão do
+    # grou branco. O `\n` fica na saída também, para o HTML gerado continuar
+    # legível em vez de uma linha única gigante.
+    t = t.replace('\n', '<br>\n')
     return t
 
 

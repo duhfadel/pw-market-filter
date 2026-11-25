@@ -631,7 +631,20 @@ SAGAS.append({
         '**“O grou branco e o peixe” V** — vá a `674,34(23)` e fale com Xibai.',
         '**“O grou branco e o peixe” VI** — vá a `660,135(23)`, fale com Xirong, mate Caracóis em `620,104(21)` no Santuário Marinho até largar a Pasta de Caracol e volte a ele.',
         '**“O grou branco e o peixe” VII** — vá a `666,142(25)`, fale com Xizong, e ele se esconde: encontre-o em `668,134(23)`.',
-        '**O grou branco e o peixe** — digite os doze versos, um a um: *Qual é a maior distância que existe do mundo? / Aquela que separa a estrela do fundo do mar / A estrela cadente rasga o céu / Mas nunca mergulha até o fundo do mar / Qual é a maior distância que existe do mundo? / Aquela que separa o grou branco do peixe / Eles eram originalmente um só / Mas por causa das asas e das barbatanas / Estão eternamente separados / Toda estrela carrega um peixe / E todo peixe... / Tem asas para voar*. Depois vá a `663,132(41)`, no Templo das Nuvens — o Teleportador Lore Wesley em `668,124(23)` leva você.',
+        '**O grou branco e o peixe** — digite os doze versos, um a um:\n'
+        '*Qual é a maior distância que existe do mundo?*\n'
+        '*Aquela que separa a estrela do fundo do mar*\n'
+        '*A estrela cadente rasga o céu*\n'
+        '*Mas nunca mergulha até o fundo do mar*\n'
+        '*Qual é a maior distância que existe do mundo?*\n'
+        '*Aquela que separa o grou branco do peixe*\n'
+        '*Eles eram originalmente um só*\n'
+        '*Mas por causa das asas e das barbatanas*\n'
+        '*Estão eternamente separados*\n'
+        '*Toda estrela carrega um peixe*\n'
+        '*E todo peixe...*\n'
+        '*Tem asas para voar*\n'
+        'Depois vá a `663,132(41)`, no Templo das Nuvens — o Teleportador Lore Wesley em `668,124(23)` leva você.',
         '**Dongfang Meng: Memórias** — use a ação *refletir* e fale com o Grou branco.',
         '**Dongfang Meng: Retorno** — cave a Profecia de cem anos atrás em `662,135(41)`.',
         '**Dongfang Meng: Controvérsia** — fale com o Ministro Lu Jiuxi e com a Espiritualista Sha Juaing em `663,133(41)`, e feche com o Sacerdote Yun Kongji em `662,134(41)`.',

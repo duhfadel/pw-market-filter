@@ -151,6 +151,13 @@ class _Pronto extends StatelessWidget {
             const SizedBox(height: 18),
             _Abas(state: state, aoTrocar: vm.abrirAba),
             const SizedBox(height: 16),
+            // **Um atalho que só vale para esta aba**, por isso aparece só
+            // quando M/A está aberta e não na explicação do topo, que fala do
+            // mecanismo geral. Afirmá-lo lá seria dizê-lo das seis abas.
+            if (state.query.aba == 'M/A') ...[
+              const _CompraComPrata(),
+              const SizedBox(height: 16),
+            ],
             AtributoFiltros(
               query: state.query,
               disponiveis: state.disponiveis,
@@ -208,6 +215,64 @@ class _Explicacao extends StatelessWidget {
     'cada uma dá, e o custo vai de 1 a 100 páginas — então a melhor troca '
     'rende mais de cem vezes a pior.',
     style: TextStyle(color: PWColors.textMuted, fontSize: 13, height: 1.55),
+  );
+}
+
+/// **O atalho de prata, e só na aba M/A.** Os títulos desta aba não precisam
+/// das Páginas de Registro: um NPC vende-os por moedas de prata, muito mais
+/// barato. É contextual de propósito — não vale para as outras cinco abas, e
+/// afirmá-lo na explicação do topo seria dizê-lo das seis. O nome e a
+/// coordenada do NPC vão em [PWColors.accent], que aqui não é dinheiro mas o
+/// destaque de *é para cá que você vai*.
+class _CompraComPrata extends StatelessWidget {
+  const _CompraComPrata();
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: PWColors.accent.withValues(alpha: 0.10),
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: PWColors.accent.withValues(alpha: 0.45)),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Icon(Icons.toll_outlined, size: 20, color: PWColors.accent),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text.rich(
+            TextSpan(
+              children: const [
+                TextSpan(
+                  text:
+                      'Os títulos desta aba você compra com moedas de prata, '
+                      'no NPC ',
+                ),
+                TextSpan(
+                  text: 'Semente de Lotus Fulcral (561, 619)',
+                  style: TextStyle(
+                    color: PWColors.accent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                TextSpan(
+                  text:
+                      ', na Cidade do Dragão Sul — muito mais barato do que '
+                      'forjá-los com Páginas de Registro.',
+                ),
+              ],
+            ),
+            style: const TextStyle(
+              color: PWColors.text,
+              fontSize: 13,
+              height: 1.55,
+            ),
+          ),
+        ),
+      ],
+    ),
   );
 }
 

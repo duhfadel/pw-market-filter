@@ -180,4 +180,43 @@ class Jogador {
     m['status'] = status;
     return m;
   }
+
+  /// A copy carrying the storage path returned by the upload. Every other
+  /// field is preserved — the upload only learns the print's path.
+  Jogador comPrintUrl(String url) => Jogador(
+    id: id,
+    nome: nome,
+    cla: cla,
+    classe: classe,
+    cultivo: cultivo,
+    limite: limite,
+    nivel: nivel,
+    despertares: despertares,
+    hp: hp,
+    mp: mp,
+    acerto: acerto,
+    nivelAtaque: nivelAtaque,
+    ataqueFisico: ataqueFisico,
+    ataqueMagico: ataqueMagico,
+    furia: furia,
+    critico: critico,
+    canalizacao: canalizacao,
+    defFisica: defFisica,
+    defMetal: defMetal,
+    defMadeira: defMadeira,
+    defAgua: defAgua,
+    defFogo: defFogo,
+    defTerra: defTerra,
+    esquiva: esquiva,
+    nivelDefesa: nivelDefesa,
+    penetracaoFisica: penetracaoFisica,
+    penetracaoMagica: penetracaoMagica,
+    espirito: espirito,
+    indiceDano: indiceDano,
+    sobrevivencia: sobrevivencia,
+    printUrl: url,
+    recorteRunasUrl: recorteRunasUrl,
+    recorteGearUrl: recorteGearUrl,
+    status: status,
+  );
 }

@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/di/injection.dart';
-import '../../../core/result/result.dart';
 import '../../../core/theme/pw_colors.dart';
 import '../../../core/theme/pw_theme.dart';
 import '../data/jogadores_repository.dart';
 import '../domain/jogador.dart';
 import '../domain/papel.dart';
-import 'mensagens.dart';
 import 'roster_state.dart';
 import 'roster_view_model.dart';
 import 'widgets/jogador_form.dart';
@@ -196,19 +194,6 @@ class _SeloPendente extends StatelessWidget {
 void mostrarJogadorForm(BuildContext context, RosterViewModel vm) {
   showDialog<void>(
     context: context,
-    builder: (dialogContext) => JogadorForm(
-      onSalvar: (jogador) async {
-        final ok = await vm.adicionar(jogador);
-        if (ok) {
-          if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-        } else {
-          if (dialogContext.mounted) {
-            ScaffoldMessenger.of(dialogContext).showSnackBar(
-              SnackBar(content: Text(mensagemDoGuildErro(GuildErro.salvar))),
-            );
-          }
-        }
-      },
-    ),
+    builder: (dialogContext) => JogadorForm(vm: vm),
   );
 }

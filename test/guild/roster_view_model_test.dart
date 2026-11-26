@@ -12,6 +12,7 @@ class _FakeRepo implements JogadoresRepository {
   _FakeRepo(this._lista);
   final List<Jogador> _lista;
   int criados = 0;
+  int subidos = 0;
   @override
   Future<Result<List<Jogador>>> lista() async => Success(_lista);
   @override
@@ -21,8 +22,10 @@ class _FakeRepo implements JogadoresRepository {
   }
 
   @override
-  Future<Result<String>> subirPrint(Uint8List b, String n) async =>
-      Success(n);
+  Future<Result<String>> subirPrint(Uint8List b, String n) async {
+    subidos++;
+    return Success(n);
+  }
 }
 
 void main() {
@@ -39,6 +42,32 @@ void main() {
     final vm = RosterViewModel(repo, Papel.salaGuerras);
     final ok = await vm.adicionar(Jogador(id: '', nome: 'X'));
     expect(ok, isFalse);
+    expect(repo.criados, 0);
+  });
+
+  test('adding with a print uploads it before creating', () async {
+    final repo = _FakeRepo([]);
+    final vm = RosterViewModel(repo, Papel.admin);
+    final ok = await vm.adicionar(
+      Jogador(id: '', nome: 'A'),
+      print: Uint8List(10),
+      nomeArquivo: 'a.png',
+    );
+    expect(ok, isTrue);
+    expect(repo.subidos, 1);
+    expect(repo.criados, 1);
+  });
+
+  test('a print over 512 KB is refused before any upload', () async {
+    final repo = _FakeRepo([]);
+    final vm = RosterViewModel(repo, Papel.admin);
+    final ok = await vm.adicionar(
+      Jogador(id: '', nome: 'A'),
+      print: Uint8List(512 * 1024 + 1),
+      nomeArquivo: 'big.png',
+    );
+    expect(ok, isFalse);
+    expect(repo.subidos, 0);
     expect(repo.criados, 0);
   });
 }

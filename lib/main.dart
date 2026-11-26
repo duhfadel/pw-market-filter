@@ -13,6 +13,7 @@ import 'features/home/ui/visit_counter_view_model.dart';
 import 'features/novidades/ui/novidades_view.dart';
 import 'features/portas/ui/portas_view.dart';
 import 'features/ferramentas/ui/ferramentas_view.dart';
+import 'features/guild/ui/guild_view.dart';
 import 'features/instancias/ui/instancias_view.dart';
 import 'features/registros/ui/registros_view.dart';
 import 'features/guias/ui/guerras_view.dart';
@@ -118,6 +119,7 @@ class PortalPWApp extends StatelessWidget {
           RotaTela(tela: Tela.home126) => _comIndicePw126(
             const HomeView(pw126: true),
           ),
+          RotaTela(tela: Tela.guild) => const GuildView(),
           RotaTela() => const HomeView(),
         },
       );

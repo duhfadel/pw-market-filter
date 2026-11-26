@@ -20,19 +20,26 @@ import 'widgets/jogador_form.dart';
 /// piece, isolated on purpose because the web file-picker side of it is
 /// fiddly and does not need to hold this list up.
 class RosterView extends StatelessWidget {
-  const RosterView({required this.papel, super.key});
+  const RosterView({required this.papel, this.onSair, super.key});
 
   final Papel papel;
+
+  /// When non-null, the AppBar grows a "Sair" action that calls it — the
+  /// guild door's own job, not this screen's, so it stays null for the
+  /// existing tests that mount `RosterView` on its own.
+  final VoidCallback? onSair;
 
   @override
   Widget build(BuildContext context) => BlocProvider(
     create: (_) => RosterViewModel(getIt<JogadoresRepository>(), papel)..carregar(),
-    child: const _Tela(),
+    child: _Tela(onSair: onSair),
   );
 }
 
 class _Tela extends StatelessWidget {
-  const _Tela();
+  const _Tela({this.onSair});
+
+  final VoidCallback? onSair;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +51,15 @@ class _Tela extends StatelessWidget {
           'Jogadores',
           style: TextStyle(fontFamily: PWTheme.display, color: PWColors.papel),
         ),
+        actions: onSair == null
+            ? null
+            : [
+                TextButton(
+                  onPressed: onSair,
+                  style: TextButton.styleFrom(foregroundColor: PWColors.textMuted),
+                  child: const Text('Sair'),
+                ),
+              ],
       ),
       body: BlocBuilder<RosterViewModel, RosterState>(
         builder: (context, state) => switch (state) {

@@ -10,6 +10,11 @@ class AuthRepository {
   Session? get sessao => supa.auth.currentSession;
   Stream<AuthState> get mudancas => supa.auth.onAuthStateChange;
 
+  /// Whether there is a session at all — distinct from having a [Papel]. The
+  /// view-model needs this without constructing a [Session], which a test
+  /// cannot do.
+  bool get temSessao => supa.auth.currentSession != null;
+
   Future<Result<void>> entrar(String email, String senha) async {
     try {
       await supa.auth.signInWithPassword(email: email.trim(), password: senha);

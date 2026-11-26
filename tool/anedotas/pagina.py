@@ -149,12 +149,9 @@ RODAPE = '''</main>
 FONTE = (
     '  <hr>\n'
     '  <p style="color: var(--text-muted); font-size: 0.85rem;">'
-    'Os Limites de Arcano a Ápice vêm da '
-    '<a href="https://pwi.fandom.com/wiki/Perfect_World_Anecdote">PWpedia</a> '
-    '(as coordenadas batem com o BR ±1); os arcos de expansão brasileira — '
-    'Majestoso, Soberano, Crônica dos Deuses, Memória dos Gigantes — vêm do '
-    'guia BR da <a href="https://triviapw.com.br/">Trivia PW</a>, recuperado '
-    'pela Wayback Machine. Achou um passo diferente no jogo? Conte no '
+    'Este é o nosso mapa das anedotas do céu, levantado missão a missão. Um '
+    'patch do jogo pode mover uma coordenada — achou um passo diferente no seu '
+    'cliente? Conte no '
     '<a href="https://discord.gg/n5v3WdSJyg">Discord</a> que a gente corrige.</p>'
 )
 

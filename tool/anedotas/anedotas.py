@@ -167,17 +167,7 @@ REINOS.append({
         'mais dependente de versão — confirme o nome e o acesso no seu cliente '
         'antes de contar com ela.',
     ],
-    'nota': '**No total, a linha do Céu Arcano paga cerca de `101.600` Moedas '
-            'de Prata, `50` milhões de experiência, `20` milhões de espírito, '
-            '`5.093` de reputação e `14.728` de vitae**, mais `2` Pacotes de '
-            'Avatar de Guerra C, `10` Sangue Primordial, a Página do Céu '
-            'Arcano e `100` Pílulas Místicas — contando o desbloqueio e as '
-            'duas missões antes de subir o Limite.\n'
-            '**Os nomes de NPC e item são tradução fiel da PWpedia; as '
-            'coordenadas batem com o BR (±1).** Fez alguma e viu um nome ou uma '
-            'coordenada diferente no seu cliente? Conte no '
-            '[Discord](https://discord.gg/n5v3WdSJyg) que a gente acerta — uma '
-            'correção de quem jogou vale mais do que três sites concordando.',
+    'nota': "**No total, a linha do Céu Arcano paga cerca de `101.600` Moedas de Prata, `50` milhões de experiência, `20` milhões de espírito, `5.093` de reputação e `14.728` de vitae**, mais `2` Pacotes de Avatar de Guerra C, `10` Sangue Primordial, a Página do Céu Arcano e `100` Pílulas Místicas — contando o desbloqueio e as duas missões antes de subir o Limite.",
     'pronto': True,
 })
 
@@ -239,10 +229,7 @@ REINOS.append({
         'entra numa instância (o original chama *Flowsilver Palace*) — a parte '
         'mais dependente de versão; confirme no seu cliente.',
     ],
-    'nota': '**A linha da Miragem é longa e fecha num assalto à fortaleza**, '
-            'com a penúltima missão pedindo nível `100` e uma instância. Os '
-            'nomes vêm da PWpedia e as coordenadas batem com o BR (±1) — viu '
-            'diferente? Conte no [Discord](https://discord.gg/n5v3WdSJyg).',
+    'nota': "**A linha da Miragem é longa e fecha num assalto à fortaleza**, com a penúltima missão pedindo nível `100` e uma instância.",
     'pronto': True,
 })
 
@@ -314,10 +301,7 @@ REINOS.append({
         'Assalto Oeste (`450,604`) e o Espelho da Visão Distante, na Cidade '
         'Luneska (`483,587`).',
     ],
-    'nota': '**A linha do Astral tem nove fases e é a mais longa até aqui** — '
-            'do Posto do Vigor à Cidade Luneska. Nomes e coordenadas da '
-            'PWpedia, que batem com o BR (±1). Viu um passo diferente? '
-            '[Discord](https://discord.gg/n5v3WdSJyg).',
+    'nota': "**A linha do Astral tem nove fases e é a mais longa até aqui** — do Posto do Vigor à Cidade Luneska.",
     'pronto': True,
 })
 
@@ -370,10 +354,7 @@ REINOS.append({
         '**Céu Oscilante IX: a Plataforma Abissal** — fecha com o Rowan '
         '(`496,472`) e o Batedor Naveen, na Plataforma Abissal (`478,454`).',
     ],
-    'nota': "**Toda a linha do Oscilante é debaixo d'água, no Mar Silencioso**, "
-            'em nove fases, do Mar Silencioso à Plataforma Abissal. Nomes e '
-            'coordenadas da PWpedia (batem com o BR ±1). Viu diferente? '
-            '[Discord](https://discord.gg/n5v3WdSJyg).',
+    'nota': "**Toda a linha do Oscilante é debaixo d'água, no Mar Silencioso**, em nove fases, do Mar Silencioso à Plataforma Abissal.",
     'pronto': True,
 })
 
@@ -423,10 +404,7 @@ REINOS.append({
         'provavelmente terá de fechar sozinho. Prepare-se antes de começar: '
         'concluir "Eco das Eras" tranca o retorno à instância.',
     ],
-    'nota': '**O Crepúsculo tem dez fases e uma escolha de caminho — Fogo, '
-            'Vento ou Água — e fecha numa masmorra.** Nomes e coordenadas da '
-            'PWpedia (batem com o BR ±1). Viu diferente? '
-            '[Discord](https://discord.gg/n5v3WdSJyg).',
+    'nota': "**O Crepúsculo tem dez fases e uma escolha de caminho — Fogo, Vento ou Água — e fecha numa masmorra.**",
     'pronto': True,
 })
 
@@ -477,10 +455,7 @@ REINOS.append({
         'limpar até lá antes de começar as missões, para poupar buffs de '
         'vitae.',
     ],
-    'nota': '**O Real muda de continente, para Neverfall e as Estepes do '
-            'Oeste**, em dez fases, da Vila dos Vaga-lumes ao Templo da Queda '
-            'Celeste. Nomes e coordenadas da PWpedia (batem com o BR ±1). Viu '
-            'diferente? [Discord](https://discord.gg/n5v3WdSJyg).',
+    'nota': "**O Real muda de continente, para Neverfall e as Estepes do Oeste**, em dez fases, da Vila dos Vaga-lumes ao Templo da Queda Celeste.",
     'pronto': True,
 })
 
@@ -525,12 +500,7 @@ REINOS.append({
         'Arquimaga Pandora (`542,581`), encadeando dezenas de missões — os '
         'mutantes, o Cavaleiro, o Castelo Spotwood — até o fim.',
     ],
-    'nota': '**O Devoto é a anedota mais longa — uma história inteira em '
-            'Nicada**, com dezenas de missões encadeadas. Como não tem fases '
-            'numeradas, aqui ficam os marcos com coordenada; use a janela de '
-            'missões (tecla `Q`) para não se perder. Nomes e coordenadas da '
-            'PWpedia (batem com o BR ±1). Viu diferente? '
-            '[Discord](https://discord.gg/n5v3WdSJyg).',
+    'nota': "**O Devoto é a anedota mais longa — uma história inteira em Nicada**, com dezenas de missões encadeadas. Como não tem fases numeradas, aqui ficam os marcos com coordenada; use a janela de missões (tecla `Q`) para não se perder.",
     'pronto': True,
 })
 
@@ -579,10 +549,7 @@ REINOS.append({
         'da Perdição (`602,535`), com a Freira Penitente Aileen. É a instância '
         'que fecha o Ápice.',
     ],
-    'nota': '**O Ápice fecha numa instância, o Palácio da Perdição**, depois de '
-            'passar pelas tribos e forjas das Estepes do Oeste. Nomes e '
-            'coordenadas da PWpedia (batem com o BR ±1). Viu diferente? '
-            '[Discord](https://discord.gg/n5v3WdSJyg).',
+    'nota': "**O Ápice fecha numa instância, o Palácio da Perdição**, depois de passar pelas tribos e forjas das Estepes do Oeste.",
     'pronto': True,
 })
 
@@ -641,10 +608,7 @@ REINOS.append({
         'peças horizontais só andam na horizontal, as verticais só na '
         'vertical.',
     ],
-    'nota': '**Levantado do guia BR da Trivia (expansão Ascensão Selvagem), '
-            'recuperado pela Wayback Machine.** A PWpedia chama este Limite de '
-            '*Rising Sky*. Coordenadas do cliente BR. Viu um passo diferente? '
-            '[Discord](https://discord.gg/n5v3WdSJyg).',
+    'nota': "**É uma trama élfica da expansão Ascensão Selvagem, com alguns quebra-cabeças pelo caminho** — o decifrar da Língua Élfica e a Tranca. E cuidado: muitos mobs daqui dão dano proporcional ao seu HP.",
     'pronto': True,
 })
 
@@ -704,11 +668,7 @@ REINOS.append({
         'Trombeta de Gjallarhorn em `249,499` e fale com Vidar. Isso inicia '
         '*Céu: Antes da batalha* — a batalha final do Ragnarök.',
     ],
-    'nota': '**Levantado do guia BR da Trivia (expansão Yggdrasil), recuperado '
-            'pela Wayback Machine.** As três anedotas — Soberano, Crônica dos '
-            'Deuses e Memória dos Gigantes — são ligadas: use a janela de '
-            'missões (tecla `Q`) para seguir. Coordenadas do cliente BR. Viu '
-            'diferente? [Discord](https://discord.gg/n5v3WdSJyg).',
+    'nota': "**As três anedotas do Yggdrasil — Soberano, Crônica dos Deuses e Memória dos Gigantes — correm juntas e se cruzam.** Use a janela de missões (tecla `Q`) para não se perder entre elas.",
     'pronto': True,
 })
 
@@ -751,10 +711,7 @@ ARCOS_EXTRA = [
             'Morte Hela, o Deus da Morte, a Serpente do Mundo, Thor, o Cão do '
             'Inferno e Tyr, até "A Batalha Começou" e a Queda do Céu Divino.',
         ],
-        'nota': '**Arco do Yggdrasil, ligado ao Céu Soberano e à Memória dos '
-                'Gigantes.** Levantado do guia BR da Trivia, recuperado pela '
-                'Wayback Machine. Coords do cliente BR. Viu diferente? '
-                '[Discord](https://discord.gg/n5v3WdSJyg).',
+        'nota': "**Arco do Yggdrasil, ligado ao Céu Soberano e à Memória dos Gigantes** — as três correm juntas.",
     },
     {
         'slug': 'memoria-dos-gigantes',
@@ -785,10 +742,7 @@ ARCOS_EXTRA = [
             'Batalha dos Gigantes, a Lança Eterna, a Prisão de Loki e o Salão '
             'dos Espíritos.',
         ],
-        'nota': '**Arco do Yggdrasil, ligado ao Céu Soberano e à Crônica dos '
-                'Deuses.** Levantado do guia BR da Trivia, recuperado pela '
-                'Wayback Machine. Coords do cliente BR. Viu diferente? '
-                '[Discord](https://discord.gg/n5v3WdSJyg).',
+        'nota': "**Arco do Yggdrasil, ligado ao Céu Soberano e à Crônica dos Deuses** — as três correm juntas.",
     },
     {
         'slug': 'primeiro-contato',
@@ -820,11 +774,7 @@ ARCOS_EXTRA = [
             'Quedanunca, encontra o Executivo e começa "As Investigações de '
             'Althea" — que é o que abre a Guerra do Milênio.',
         ],
-        'nota': '**Arco regional ("Área"), jogado ao chegar a Quedanunca.** O '
-                'Céu aqui é aproximado: estes arcos não casam 1:1 com um '
-                'Limite, marcamos pelo nível em que se jogam. Levantado do guia '
-                'BR da Trivia (Wayback). Viu diferente? '
-                '[Discord](https://discord.gg/n5v3WdSJyg).',
+        'nota': "**Arco regional, jogado ao chegar a Quedanunca.** O Céu aqui é aproximado: estes arcos não casam 1:1 com um Limite, marcamos pelo nível em que se jogam.",
     },
     {
         'slug': 'guerra-do-milenio',
@@ -856,9 +806,6 @@ ARCOS_EXTRA = [
             'pela cavalaria da Luz, até a Arma de Usher e a Cerimônia de '
             'Ascensão de Alexander.',
         ],
-        'nota': '**Arco regional, continuação do Primeiro Contato, em '
-                'Quedanunca.** Céu aproximado, como no Primeiro Contato. '
-                'Levantado do guia BR da Trivia (Wayback). Viu diferente? '
-                '[Discord](https://discord.gg/n5v3WdSJyg).',
+        'nota': "**Arco regional, continuação do Primeiro Contato, em Quedanunca.** O Céu é aproximado, como no Primeiro Contato.",
     },
 ]

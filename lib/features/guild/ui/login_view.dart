@@ -6,9 +6,10 @@ import '../../../core/theme/pw_theme.dart';
 import 'guild_view_model.dart';
 import 'mensagens.dart';
 
-/// The guild panel's front door: e-mail and senha, nada mais. Quem não tem
-/// conta aqui não tem o que ver — não há "criar conta" nem "esqueci a
-/// senha", porque as contas são criadas à mão por quem já tem acesso.
+/// The guild panel's front door: e-mail and password, nothing else. Whoever
+/// has no account here has nothing to see — there is no "create account" nor
+/// "forgot password", because accounts are created by hand by whoever
+/// already has access.
 class LoginView extends StatefulWidget {
   const LoginView({required this.vm, super.key});
 

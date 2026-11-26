@@ -21,4 +21,9 @@ enum Papel {
   /// The three edit roles may create/edit/remove players this iteration;
   /// `salaGuerras` is for the second piece and touches nothing here.
   bool get podeEditarJogadores => this != Papel.salaGuerras;
+
+  /// Whether this role may see the player roster at all. sala_guerras is the
+  /// war-room role and has no business on the players screen — the client
+  /// mirrors the server's RLS, which returns that role zero rows.
+  bool get podeVerJogadores => this != Papel.salaGuerras;
 }

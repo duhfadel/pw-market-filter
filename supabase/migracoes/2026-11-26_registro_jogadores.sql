@@ -25,7 +25,7 @@ create table public.jogadores (
   indice_dano bigint, sobrevivencia bigint,
   print_url text, recorte_runas_url text, recorte_gear_url text,
   status text not null default 'pendente' check (status in ('pendente','transcrito')),
-  criado_por uuid references auth.users(id),
+  criado_por uuid default auth.uid() references auth.users(id),
   criado_em timestamptz not null default now(),
   atualizado_em timestamptz not null default now()
 );

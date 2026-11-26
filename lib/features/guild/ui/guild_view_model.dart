@@ -17,9 +17,12 @@ class GuildViewModel extends Cubit<GuildEstado> {
     }
     emit(const GuildCarregando());
     final papel = await _auth.meuPapel();
-    // A signed-in account with no role gets nothing — the door is the role,
-    // not the login, which is why "no access" is a state of its own.
-    emit(papel == null ? const GuildSemAcesso() : GuildLogado(papel));
+    // A signed-in account with no role, or a role that cannot see the
+    // roster, gets nothing — the door is the role, not the login, which is
+    // why "no access" is a state of its own.
+    emit(papel == null || !papel.podeVerJogadores
+        ? const GuildSemAcesso()
+        : GuildLogado(papel));
   }
 
   Future<Result<void>> entrar(String email, String senha) async {

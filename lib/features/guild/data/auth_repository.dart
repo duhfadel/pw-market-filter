@@ -8,7 +8,6 @@ import '../domain/papel.dart';
 /// are the SDK's job, which is the whole reason the dependency was approved.
 class AuthRepository {
   Session? get sessao => supa.auth.currentSession;
-  Stream<AuthState> get mudancas => supa.auth.onAuthStateChange;
 
   /// Whether there is a session at all — distinct from having a [Papel]. The
   /// view-model needs this without constructing a [Session], which a test
@@ -20,7 +19,7 @@ class AuthRepository {
       await supa.auth.signInWithPassword(email: email.trim(), password: senha);
       return const Success<void>(null);
     } on AuthException {
-      // Tipada e genérica de propósito: a tela não revela se o e-mail existe.
+      // Typed and generic on purpose: the screen never reveals whether the e-mail exists.
       return const Failure(GuildFailure(GuildErro.credenciais));
     } catch (_) {
       return const Failure(GuildFailure(GuildErro.conexao));
@@ -29,8 +28,8 @@ class AuthRepository {
 
   Future<void> sair() => supa.auth.signOut();
 
-  /// O papel do usuário logado, lido de `perfis`. `null` se não há sessão ou
-  /// a conta não tem papel — e sem papel não se faz nada.
+  /// The logged-in user's role, read from `perfis`. `null` if there is no
+  /// session or the account has no role — and with no role, nothing happens.
   Future<Papel?> meuPapel() async {
     final uid = sessao?.user.id;
     if (uid == null) return null;

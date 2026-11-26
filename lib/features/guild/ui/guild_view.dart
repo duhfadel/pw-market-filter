@@ -29,7 +29,7 @@ class GuildView extends StatelessWidget {
                 child: CircularProgressIndicator(color: PWColors.accent),
               ),
             ),
-            // RosterView já traz Scaffold+AppBar; o Sair vira uma ação dela.
+            // RosterView already brings its own Scaffold+AppBar; Sair becomes one of its actions.
             GuildLogado(:final papel) => RosterView(
               papel: papel,
               onSair: vm.sair,

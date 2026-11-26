@@ -15,7 +15,6 @@ class _FakeAuth implements AuthRepository {
   @override Future<Result<void>> entrar(String e, String s) async { logado = true; return const Success<void>(null); }
   @override Future<void> sair() async { logado = false; }
   @override Session? get sessao => null;
-  @override Stream<AuthState> get mudancas => const Stream.empty();
 }
 
 void main() {
@@ -34,6 +33,12 @@ void main() {
 
   test('session without a role resolves to no access', () async {
     final vm = GuildViewModel(_FakeAuth(logado: true, papel: null));
+    await vm.resolver();
+    expect(vm.state, isA<GuildSemAcesso>());
+  });
+
+  test('sala_guerras has no roster access — resolves to no access', () async {
+    final vm = GuildViewModel(_FakeAuth(logado: true, papel: Papel.salaGuerras));
     await vm.resolver();
     expect(vm.state, isA<GuildSemAcesso>());
   });

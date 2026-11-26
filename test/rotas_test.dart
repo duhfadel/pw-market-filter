@@ -197,6 +197,10 @@ void main() {
     });
   });
 
+  test('/guild resolves to the guild panel', () {
+    expect(resolverRota('/guild'), const RotaTela(Tela.guild));
+  });
+
   group('an unknown path falls back rather than throwing', () {
     test('an unknown top-level path falls back to the choice', () {
       expect((resolverRota('/nada-aqui') as RotaTela).tela, Tela.escolha);

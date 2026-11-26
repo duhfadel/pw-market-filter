@@ -117,6 +117,9 @@ enum Tela {
   /// ou do outro, não a tela.
   multiContas,
   novidades,
+
+  /// O painel de registro de jogadores — `GuildView`.
+  guild,
 }
 
 /// What a URL means: either a screen to render now, or a legacy path that
@@ -249,6 +252,10 @@ RotaResolvida resolverRota(String? name) {
     }
     if (segments[1] == 'guerras') return const RotaTela(Tela.guerras126);
     return const RotaTela(Tela.home126);
+  }
+
+  if (segments.first == 'guild' && segments.length == 1) {
+    return const RotaTela(Tela.guild);
   }
 
   return const RotaTela(Tela.escolha);

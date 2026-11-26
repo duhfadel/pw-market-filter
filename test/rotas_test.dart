@@ -198,7 +198,7 @@ void main() {
   });
 
   test('/guild resolves to the guild panel', () {
-    expect(resolverRota('/guild'), const RotaTela(Tela.guild));
+    expect(resolverRota('/newageguild'), const RotaTela(Tela.guild));
   });
 
   group('an unknown path falls back rather than throwing', () {

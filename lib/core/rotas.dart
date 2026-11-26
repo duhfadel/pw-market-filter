@@ -254,7 +254,7 @@ RotaResolvida resolverRota(String? name) {
     return const RotaTela(Tela.home126);
   }
 
-  if (segments.first == 'guild' && segments.length == 1) {
+  if (segments.first == 'newageguild' && segments.length == 1) {
     return const RotaTela(Tela.guild);
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/di/injection.dart';
 import 'core/rotas.dart';
+import 'core/supabase/cliente.dart';
 import 'core/theme/pw_theme.dart';
 import 'features/home/ui/espreitar_144_view.dart';
 import 'features/home/ui/home_view.dart';
@@ -21,7 +22,9 @@ import 'features/search/ui/search_view.dart';
 import 'features/search/ui/search_view_model.dart';
 import 'market/index_repository.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await iniciarSupabase();
   configureDependencies();
   runApp(const PortalPWApp());
 }

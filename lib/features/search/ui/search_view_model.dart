@@ -89,6 +89,11 @@ class SearchViewModel extends Cubit<SearchState> {
           ),
           IndexUnreadableFailure(:final field, :final detail) =>
             SearchUnreadable(field, detail),
+          // `AppFailure` stopped being `sealed` when the guild panel added
+          // its own typed failure in a separate file; this view model never
+          // produces anything but the two cases above, but the switch must
+          // still be total.
+          _ => SearchUnreadable('(desconhecido)', failure.toString()),
         },
       ),
     );

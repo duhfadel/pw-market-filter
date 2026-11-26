@@ -20,7 +20,15 @@ class Failure<T> extends Result<T> {
 }
 
 /// Typed, never a bare string — the screen decides how to say it.
-sealed class AppFailure {
+///
+/// `abstract`, not `sealed`: a `sealed` class only admits subclasses declared
+/// in this same file, and [GuildFailure] (`features/guild/domain/guild_failure.dart`)
+/// needed to be its own typed failure in its own feature folder rather than a
+/// third case bolted onto a file that knows nothing about the guild panel.
+/// The one place that depended on `AppFailure` being closed —
+/// `SearchViewModel`'s exhaustive `switch` over it — gained an explicit
+/// fallback arm instead.
+abstract class AppFailure {
   const AppFailure();
 }
 

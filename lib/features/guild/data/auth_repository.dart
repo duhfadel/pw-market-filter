@@ -2,7 +2,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/result/result.dart';
 import '../../../core/supabase/cliente.dart';
-import '../domain/guild_failure.dart';
 import '../domain/papel.dart';
 
 /// The guild panel's door. Wraps Supabase Auth; the session and its refresh

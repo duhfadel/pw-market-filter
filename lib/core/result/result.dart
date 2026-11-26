@@ -20,15 +20,7 @@ class Failure<T> extends Result<T> {
 }
 
 /// Typed, never a bare string — the screen decides how to say it.
-///
-/// `abstract`, not `sealed`: a `sealed` class only admits subclasses declared
-/// in this same file, and [GuildFailure] (`features/guild/domain/guild_failure.dart`)
-/// needed to be its own typed failure in its own feature folder rather than a
-/// third case bolted onto a file that knows nothing about the guild panel.
-/// The one place that depended on `AppFailure` being closed —
-/// `SearchViewModel`'s exhaustive `switch` over it — gained an explicit
-/// fallback arm instead.
-abstract class AppFailure {
+sealed class AppFailure {
   const AppFailure();
 }
 
@@ -44,4 +36,15 @@ class IndexUnreadableFailure extends AppFailure {
 
   final String field;
   final String detail;
+}
+
+/// Why a guild-panel action failed. The screen maps each to its own message —
+/// typed, never a bare string, the same rule every other `AppFailure` keeps.
+/// Lives here, not in `features/guild/`, because `AppFailure` is `sealed`:
+/// a subclass can only be declared in this same library file.
+enum GuildErro { credenciais, conexao, salvar, carregar, upload }
+
+class GuildFailure extends AppFailure {
+  const GuildFailure(this.erro);
+  final GuildErro erro;
 }

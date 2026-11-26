@@ -112,11 +112,15 @@ void main() {
     });
   });
 
-  test('só a Saga troca o tempo de leitura por uma medida', () {
-    // Somar as dezoito páginas dava «81 min de leitura». Um conjunto não tem
-    // duração, tem tamanho — e um segundo caso tem de ser decisão, não
-    // descuido.
+  test('só os conjuntos de páginas trocam o tempo de leitura por uma medida', () {
+    // Somar as dezoito páginas da Saga dava «81 min de leitura». Um conjunto
+    // não tem duração, tem tamanho — e um segundo caso tem de ser decisão,
+    // não descuido. As Anedotas do Céu são esse segundo caso, a 25/11/2026:
+    // dez Limites, uma página cada, somados mentiriam do mesmo jeito.
     final comMedida = guias.where((g) => g.medida != null);
-    expect(comMedida.map((g) => g.titulo), ['Saga do Herói: as 17 classes']);
+    expect(comMedida.map((g) => g.titulo), [
+      'Saga do Herói: as 17 classes',
+      'Anedotas do Céu',
+    ]);
   });
 }

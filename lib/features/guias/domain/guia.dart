@@ -108,6 +108,16 @@ final guias = <Guia>[
     medida: '17 classes, uma página cada',
   ),
   Guia(
+    titulo: 'Anedotas do Céu',
+    linha:
+        'Os dez Limites de Céu, de Arcano a Soberano: como destravar cada um '
+        'e as missões com coordenadas, passo a passo.',
+    endereco: '/guias/anedotas-do-ceu/',
+    publicado: DateTime.utc(2026, 11, 25),
+    versoes: const {'1.8.7'},
+    medida: '10 Limites de Céu',
+  ),
+  Guia(
     titulo: 'Início rápido',
     linha:
         'Como ganhar nível: as quests vermelhas, o Vale da Fênix e as '
@@ -135,15 +145,6 @@ final guias = <Guia>[
     publicado: DateTime.utc(2026, 10, 23),
     versoes: const {'1.8.7'},
   ),
-  Guia(
-    titulo: 'O astrolábio, do primeiro ao nível máximo',
-    linha:
-        'As três barras, os quatro botões, a parede do nível 50 — e onde não '
-        'desperdiçar pérola nem poeira.',
-    endereco: '/guias/astrolabio',
-    publicado: DateTime.utc(2026, 10, 28),
-    versoes: const {'1.8.7'},
-  ),
   // **O sexto, e por isso no último lugar que a secção mostra.** Ela corta em
   // seis e ele era o oitavo, portanto caía sempre fora — e é o único guia que
   // serve as três versões, logo o único que traz a etiqueta *todas as
@@ -162,6 +163,19 @@ final guias = <Guia>[
     endereco: '/multicontas',
     publicado: DateTime.utc(2026, 10, 5),
     noApp: true,
+  ),
+  // **Fora da vista curta desde 25/11/2026**, quando as Anedotas do Céu
+  // entraram: a secção corta em seis, e o guia novo tomou o lugar que era
+  // deste. Continua na lista inteira e na porta *ver todos* — ver a nota do
+  // Multi contas sobre o tecto de seis.
+  Guia(
+    titulo: 'O astrolábio, do primeiro ao nível máximo',
+    linha:
+        'As três barras, os quatro botões, a parede do nível 50 — e onde não '
+        'desperdiçar pérola nem poeira.',
+    endereco: '/guias/astrolabio',
+    publicado: DateTime.utc(2026, 10, 28),
+    versoes: const {'1.8.7'},
   ),
   Guia(
     titulo: 'O conduíte, do começo ao nível máximo',

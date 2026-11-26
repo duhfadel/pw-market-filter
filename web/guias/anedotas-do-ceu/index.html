@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Anedotas do Céu — Portal PW</title>
+  <meta name="description" content="As anedotas do céu do The Classic 1.8.7: os dez Limites de Céu e os arcos de história, com as missões e as coordenadas — filtrável por Céu ou por Arco.">
+
+  <link rel="canonical" href="https://portalpw.net/guias/anedotas-do-ceu/">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Portal PW">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Anedotas do Céu">
+  <meta property="og:description" content="As anedotas do céu do The Classic 1.8.7: os dez Limites de Céu e os arcos de história, com as missões e as coordenadas — filtrável por Céu ou por Arco.">
+  <meta property="og:url" content="https://portalpw.net/guias/anedotas-do-ceu/">
+  <meta property="og:image" content="https://portalpw.net/og-v2.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2">
+  <link rel="stylesheet" href="/guias/estilo.css">
+  <style>
+    .filtros { margin: 1.6rem 0 0.4rem; }
+    .filtros .grupo { margin-bottom: 0.9rem; }
+    .filtros h3 { font-size: 0.72rem; letter-spacing: 1.3px; text-transform: uppercase;
+      color: var(--text-muted); margin: 0 0 0.5rem; font-weight: 700; }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .chip { border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+      border-radius: 999px; padding: 0.34rem 0.82rem; font-size: 0.85rem; cursor: pointer;
+      font-family: inherit; line-height: 1.2; }
+    .chip:hover { border-color: var(--text-muted); }
+    .chip.on { border-color: var(--accent); color: var(--accent); background: rgba(255,180,84,0.12); }
+    .chip.limpar { color: var(--text-muted); border-style: dashed; }
+    .arco { margin: 2.2rem 0; padding-top: 1.4rem; border-top: 1px solid var(--border); }
+    .arco .badge { display: inline-block; font-size: 0.72rem; letter-spacing: 0.6px;
+      text-transform: uppercase; color: var(--accent); border: 1px solid var(--border);
+      border-radius: 999px; padding: 0.15rem 0.6rem; margin-bottom: 0.5rem; }
+    #vazio { color: var(--text-muted); font-size: 0.95rem; padding: 1.5rem 0; }
+  </style>
+  <!-- AdSense. O número de editor é público por desenho — ele vai no bundle de
+       toda a gente e também no `ads.txt` na raiz. Só onde há conteúdo do editor. -->
+  <script async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7064703455080324"
+          crossorigin="anonymous"></script>
+</head>
+<body>
+
+<header class="topo">
+  <div class="topo-interno">
+    <a href="/" title="Portal PW">
+      <img class="marca-larga" src="/assets/assets/images/portal-pw-logo-v2.webp" alt="Portal PW">
+      <img class="marca-curta" src="/assets/assets/images/pw-mark.webp" alt="Portal PW">
+    </a>
+    <span class="secao">Anedotas do Céu</span>
+  </div>
+</header>
+
+<main>
+
+  <h1>Anedotas do Céu</h1>
+  <p class="resumo">As anedotas são o diário de missões do jogo. Os dez <strong>Limites de Céu</strong> (de Arcano a Soberano) são a espinha, mas algumas anedotas têm nome próprio — Crônica dos Deuses, Memória dos Gigantes — e cobrem o mesmo Céu por outro ângulo. Filtre por um ou por outro.</p>
+  <div class="filtros">
+    <div class="grupo">
+      <h3>Filtrar por Céu</h3>
+      <div class="chips">
+        <button class="chip" type="button" data-tipo="ceu" data-val="arcano">Céu Arcano</button>
+        <button class="chip" type="button" data-tipo="ceu" data-val="miragem">Céu da Miragem</button>
+        <button class="chip" type="button" data-tipo="ceu" data-val="astral">Céu Astral</button>
+        <button class="chip" type="button" data-tipo="ceu" data-val="oscilante">Céu Oscilante</button>
+        <button class="chip" type="button" data-tipo="ceu" data-val="crepusculo">Céu do Crepúsculo</button>
+        <button class="chip" type="button" data-tipo="ceu" data-val="real">Céu Real</button>
+        <button class="chip" type="button" data-tipo="ceu" data-val="devoto">Céu Devoto</button>
+        <button class="chip" type="button" data-tipo="ceu" data-val="apice">Céu Ápice</button>
+        <button class="chip" type="button" data-tipo="ceu" data-val="majestoso">Céu Majestoso</button>
+        <button class="chip" type="button" data-tipo="ceu" data-val="soberano">Céu Soberano</button>
+      </div>
+    </div>
+    <div class="grupo">
+      <h3>Filtrar por Arco de história</h3>
+      <div class="chips">
+        <button class="chip" type="button" data-tipo="arco" data-val="primeiro-contato">Primeiro Contato</button>
+        <button class="chip" type="button" data-tipo="arco" data-val="guerra-do-milenio">Guerra do Milênio</button>
+        <button class="chip" type="button" data-tipo="arco" data-val="cronica-dos-deuses">Crônica dos Deuses</button>
+        <button class="chip" type="button" data-tipo="arco" data-val="memoria-dos-gigantes">Memória dos Gigantes</button>
+        <button class="chip limpar" type="button" id="limpar">limpar</button>
+      </div>
+    </div>
+  </div>
+  <p id="vazio" hidden>Nenhum arco com esse par de filtros. Toque em <strong>limpar</strong>.</p>
+  <section class="arco" data-ceu="arcano" data-arco="arcano">
+    <h2>Céu Arcano</h2>
+    <p class="resumo">A primeira anedota de Céu, no Mundo Primitivo, em volta da Cidade de Kirin. Desbloqueá-la sobe o seu Limite de Céu pela primeira vez; as missões pagam experiência, espírito, reputação e as Páginas do Céu Arcano.</p>
+    <div class="aviso">
+      <p><strong>Requisito:</strong> Nível 90, Despertar I (após o Pináculo do Mundo e os Novos Horizontes) — o primeiro dos dez Limites.</p>
+    </div>
+    <h3>Como destravar</h3>
+    <p>Primeiro você destrava o Limite, em duas missões que o jogo entrega sozinho quando você chega ao Mundo Central no nível <code>90</code> com um Despertar:<br>
+<strong>1. Explore o Mundo Primitivo</strong> — fale com o <strong>Mensageiro do Tempo</strong> na plataforma central de Arcosaur, em <code>553,655(28)</code>. Ele abre o teleporte para o Mundo Primitivo. Recompensa: um Pacote de Avatar de Guerra C.<br>
+<strong>2. O Que é o Limite?</strong> — já no Mundo Primitivo, fale com o <strong>Caldeirão Sagrado</strong> na Cidade de Kirin, em <code>370,464</code>. Use a ação <em>Meditar</em> e espere <code>10</code> segundos — cinco vezes. Depois fale com o <strong>Emissário do Céu Arcano</strong> em <code>373,469</code>. Isso sobe o seu Limite para Céu Arcano e abre a anedota.</p>
+    <h3>As missões, em ordem</h3>
+    <ol class="passos">
+      <li><strong>Pré-Céu Arcano: as quatro vigias</strong> — com o Emissário do Céu Arcano (<code>373,469</code>) como despachante, fale com os quatro Postos de Vigia no ar: o da Cidade de Kirin em <code>378,458(38)</code>, o da Torre do Dragão em <code>319,516(43)</code>, o do Cume do Macaco da Neve em <code>374,578(50)</code> e o da Fortaleza do Tirano em <code>351,624(47)</code>. Em cada um aparece uma Sombra Repentina que conta um pedaço do lugar. Volte ao Emissário. Recompensa: um Pacote de Avatar de Guerra C.</li>
+      <li><strong>Pré-Céu Arcano: Força Necessária</strong> — ao chegar ao nível <code>90</code> ou acima, fale de novo com o Emissário do Céu Arcano (<code>373,469</code>). Recompensa: <code>10</code> Sangue Primordial e uma Página do Céu Arcano. É o que libera a anedota propriamente dita.</li>
+      <li><strong>Céu Arcano I: o Registro do Exército</strong> — fale com o <strong>Imperador Branco: Alexander</strong>, atrás da área de nascimento humana da Cidade de Kirin, em <code>380,474</code>. Pegue um Registro do Exército no Registro ali ao lado (<code>377,471</code>) e entregue a ele. Depois fale com o <strong>Comandante Wei</strong>, no grupo da Força de Resistência (<code>379,467</code>), e volte ao Alexander. Recompensa: <code>2952</code> Moedas de Prata, <code>1.475.700</code> de experiência, <code>590.280</code> de espírito, <code>148</code> de reputação e <code>394</code> de vitae.</li>
+      <li><strong>Céu Arcano I: limpar o Exército Tirano</strong> — ainda com o Imperador Branco: Alexander (<code>380,474</code>), mate <code>5</code> Guerreiros do Exército Tirano perto dele, fale com o Comandante Wei (<code>379,467</code>) e mate <code>3</code> Soldados do Exército Tirano. Cuidado ao atacar: é fácil puxar monstros demais de uma vez — se isso acontecer, suba ao ar e fique parado até eles voltarem ao lugar.</li>
+      <li><strong>Céu Arcano II: o Posto Avançado do Tirano</strong> — o despachante agora é o Posto de Vigia Roubado, no Reduto da Coruja do Céu (<code>338,473</code>). Vá ao Posto Avançado do Tirano (<code>346,488</code>) e fale com Linn Shoyo, na borda do acampamento (<code>350,488</code>).</li>
+      <li><strong>Céu Arcano II: explodir os celeiros</strong> — Linn Shoyo (<code>350,488</code>) dá <code>4</code> Dinamites. Entregue aos quatro Celeiros do posto — em <code>348,487</code>, <code>347,486</code>, <code>343,488</code> e <code>342,489</code> — o que dá para fazer do ar, sem puxar os monstros. Volte a Linn Shoyo, acenda o Pavio de Dinamite no meio do posto (<code>345,487</code>) e fale com ele de novo.</li>
+      <li><strong>Céu Arcano III: os guaxinins de bambu</strong> — fale com o Chefe Guaxinim de Bambu, na vila dele (<code>374,506</code>). Mate <code>5</code> Lutadores e <code>5</code> Guerreiros Guaxinim na Floresta do Crepúsculo, a oeste da vila, e cave as Pedras Suspeitas ao lado do Chefe (<code>375,505</code>) para um Guaxinim Ninja aparecer. Mate-o e volte ao Chefe.</li>
+      <li><strong>Céu Arcano III: o Acampamento Avançado</strong> — vá ao Acampamento Avançado do Tirano (<code>346,523</code>), fale com Chie Tenmus num canto dele (<code>341,525</code>), mate <code>5</code> Demônios Tóxicos ao sul e fale com a Placa na entrada do acampamento (<code>345,525</code>).</li>
+      <li><strong>Céu Arcano IV: limpar o acampamento</strong> — a partir daqui é preciso estar em Céu Arcano IV. Ainda no Acampamento Avançado, mate <code>6</code> Sentinelas Ocultas, junte <code>4</code> Hastes de Madeira dos Ídolos em volta (<code>342,529</code>, <code>344,526</code>, <code>349,533</code>) e mate Sacerdotes Sombrios por <code>2</code> Gemas. Entregue tudo ao Mastro Quebrado no meio (<code>344,528</code>) e acenda o Braseiro ao fundo (<code>345,534</code>).</li>
+      <li><strong>Céu Arcano IV: o ritual no Altar Primitivo</strong> — pegue a Varinha Primitiva no Braseiro, vá ao Altar Primitivo, ao norte (<code>341,547</code>), e conduza o ritual: limpe Soldados e Piromantes e os Focos Arcanos em volta, incendeie os Componentes do Ritual e conclua no Altar (<code>338,548</code>). <strong>Voe o tempo todo</strong> — um Xamã Sombrio patrulha o chão.</li>
+      <li><strong>Céu Arcano IV: as vilas dos guaxinins</strong> — siga para a Vila do Guaxinim das Árvores (<code>353,562</code>), colete um Cristal de Vitalidade espalhado pela vila, entregue ao Chefe de lá e limpe os Guaxinins Corrompidos em volta, na Planície da Aliança.</li>
+      <li><strong>O fim do Céu Arcano: o Palácio da Prata Fluida</strong> — a última missão da linha pede <strong>Despertar II, nível <code>100</code></strong>, porque entra numa instância (a que o original chama <em>Flowsilver Palace</em>). É a parte mais dependente de versão — confirme o nome e o acesso no seu cliente antes de contar com ela.</li>
+    </ol>
+    <div class="aviso"><p><strong>No total, a linha do Céu Arcano paga cerca de <code>101.600</code> Moedas de Prata, <code>50</code> milhões de experiência, <code>20</code> milhões de espírito, <code>5.093</code> de reputação e <code>14.728</code> de vitae</strong>, mais <code>2</code> Pacotes de Avatar de Guerra C, <code>10</code> Sangue Primordial, a Página do Céu Arcano e <code>100</code> Pílulas Místicas — contando o desbloqueio e as duas missões antes de subir o Limite.<br>
+<strong>Os nomes de NPC e item são tradução fiel da PWpedia; as coordenadas batem com o BR (±1).</strong> Fez alguma e viu um nome ou uma coordenada diferente no seu cliente? Conte no <a href="https://discord.gg/n5v3WdSJyg">Discord</a> que a gente acerta — uma correção de quem jogou vale mais do que três sites concordando.</p></div>
+  </section>
+  <section class="arco" data-ceu="miragem" data-arco="miragem">
+    <h2>Céu da Miragem</h2>
+    <p class="resumo">A segunda anedota de Céu, ainda no Mundo Primitivo. Agora se enfrenta o Exército Tirano de perto — do Acampamento da Retaguarda à Vila de Outono e à Crista do Macaco da Neve — e a linha fecha num assalto à fortaleza.</p>
+    <div class="aviso">
+      <p><strong>Requisito:</strong> Nível 90, Despertar II, Céu de Miragem I (após a União da Justiça) — o segundo dos dez Limites.</p>
+    </div>
+    <h3>Como destravar</h3>
+    <p><strong>1. Chamado do Céu da Miragem</strong> — com o Céu Arcano no <code>10</code> e a barra de vitae cheia, a missão chega sozinha. Depois do <strong>segundo Despertar</strong>, no nível <code>90</code>, fale com o Imperador Branco: Alexander em Kirin (<code>379,473</code>).<br>
+<strong>2. Céu da Miragem</strong> — fale com Whitesurge, em Kirin (<code>371,463</code>) ou no Acampamento da Retaguarda do Tirano (<code>364,595</code>). Isso sobe o seu Limite para Céu da Miragem e abre a anedota.</p>
+    <h3>As missões, em ordem</h3>
+    <ol class="passos">
+      <li><strong>A escuridão da Espada de Luz</strong> — Whitesurge manda falar com o Comandante Du, no Acampamento da Retaguarda do Tirano (<code>364,594</code>). Mate <code>5</code> Cavaleiros de Placa de Luz ali e volte a ele.</li>
+      <li><strong>Escolhas difíceis</strong> — mate <code>5</code> Infantes do Exército Tirano ao norte do acampamento e fale com o Aldeão de Outono, na Vila de Outono (<code>383,615</code>), a nordeste.</li>
+      <li><strong>Tesouros da Vila de Outono</strong> — junte os quatro tesouros ao norte da vila: em <code>383,628</code>, <code>384,626</code>, <code>383,624</code> e <code>379,627</code>. Leve ao Chefe da Vila de Outono (<code>387,618</code>).</li>
+      <li><strong>Jovem cabeça-quente, e o Ancião</strong> — colete <code>2</code> Planos Secretos do Tirano com os Aldeões Feridos a noroeste (<code>367,630</code>), entregue ao Chefe, e depois fale com o Ancião da Vila de Outono (<code>389,615</code>).</li>
+      <li><strong>O segredo dos Macacos da Neve</strong> — mate <code>5</code> Macacos da Neve Alfa na Crista do Macaco da Neve (fique longe do meio, por causa do Sacerdote e do Alto Cacique) e fale com Linn Shoyo, na saída da crista (<code>377,584</code>).</li>
+      <li><strong>Prata Sagrada</strong> — mate o Sacerdote do Macaco da Neve por um Minério de Prata Gélida. É um chefe de dano mágico que foge do corpo a corpo — melhor atraí-lo para o lado leste e atordoá-lo. Depois fale com Chie Tenmus (<code>377,584</code>).</li>
+      <li><strong>A ajuda dos Guaxinins das Árvores</strong> — vá à Vila do Guaxinim das Árvores (<code>358,560</code>), espere alguns segundos e fale depressa com um Aprendiz de Peão Guaxinim antes que ele se afaste.</li>
+      <li><strong>O assalto à fortaleza</strong> — a reta final encadeia aeronaves emprestadas, assassinos das sombras e o plano de ataque até o assalto à fortaleza do Tirano. A penúltima missão pede <strong>nível <code>100</code></strong> e entra numa instância (o original chama <em>Flowsilver Palace</em>) — a parte mais dependente de versão; confirme no seu cliente.</li>
+    </ol>
+    <div class="aviso"><p><strong>A linha da Miragem é longa e fecha num assalto à fortaleza</strong>, com a penúltima missão pedindo nível <code>100</code> e uma instância. Os nomes vêm da PWpedia e as coordenadas batem com o BR (±1) — viu diferente? Conte no <a href="https://discord.gg/n5v3WdSJyg">Discord</a>.</p></div>
+  </section>
+  <section class="arco" data-ceu="astral" data-arco="astral">
+    <h2>Céu Astral</h2>
+    <p class="resumo">A terceira anedota muda de região: do Posto do Vigor às vilas de pedra do leste — Pedra de Tinta, Cidade Luneska, o Acampamento dos Goblins de Gelo e a Prisão Glacial. É a linha mais longa até aqui, com nove fases.</p>
+    <div class="aviso">
+      <p><strong>Requisito:</strong> Nível 100, Despertar II, Céu de Miragem X (após o Lacre Final) — o terceiro dos dez Limites.</p>
+    </div>
+    <h3>Como destravar</h3>
+    <p>Com o Céu da Miragem no <code>10</code>, a missão chega pelo <strong>Emissário do Céu Astral Zhou</strong>, em Kirin (<code>377,460</code>), que o teleporta ao <strong>Posto do Vigor</strong> (<code>405,584</code>). Fale com os seis Postos de Vigia no ar — sobre o Posto do Vigor (<code>405,584</code>), a Vila Pedra de Tinta (<code>413,619</code>), as Ruínas Pedra de Névoa (<code>480,625</code>), a Cidade Luneska (<code>448,602</code>), o Acampamento dos Goblins de Gelo (<code>444,561</code>) e a Prisão Glacial (<code>435,584</code>) — e volte ao Imperador Branco: Alexander, agora na Vila de Outono (<code>388,614</code>).</p>
+    <h3>As missões, em ordem</h3>
+    <ol class="passos">
+      <li><strong>Reforços e insígnias</strong> — pelo Alexander (Vila de Outono, <code>388,614</code>), limpe Desertores e Reforços do Exército Tirano em volta do Posto do Vigor e junte <code>3</code> Insígnias Luneskanas dos Cavaleiros Misteriosos. Entregue ao Tenente Kwei (<code>404,584</code>).</li>
+      <li><strong>As pedras antigas</strong> — com o Comandante Feng (<code>404,585</code>) e depois o Historiador, colete <code>4</code> Pedras Antigas ao norte do Posto do Vigor (dá para cavar a mesma quatro vezes) e entregue ao Historiador (<code>401,592</code>).</li>
+      <li><strong>Os Oren da Pedra Escura</strong> — mate Oren da Pedra Escura ao norte, fale com o Jovem Oren ao sul da Vila Pedra de Tinta (<code>412,607</code>) e junte <code>4</code> Fragmentos de Rocha, até alcançar o Céu Astral II.</li>
+      <li><strong>Céu Astral II: a Vila Pedra de Tinta</strong> — com o Chefe Pedra de Tinta (<code>409,618</code>), derrube Oren Gigantes por Fragmentos de Pedra Escura e cave o Caco de Pedra Antiga no centro da vila (<code>414,624</code>; o nome aparece em branco, atrás do caco). Leve ao Ancião (<code>409,620</code>).</li>
+      <li><strong>Céu Astral II: o Colosso de Pedra Escura</strong> — enfrente o Colosso de Pedra Escura, a leste da vila. É um chefe de ataque físico forte que baixa a sua defesa — melhor com ajuda.</li>
+      <li><strong>Céu Astral III: a Fronteira Luneska</strong> — pelo Oren Progenitor, na Vila Pedra de Tinta (<code>414,631</code>), e depois pelo Oren Errante, na Fronteira Luneska (<code>458,624</code>).</li>
+      <li><strong>Céu Astral IV: as Ruínas Pedra de Névoa</strong> — pelo Oren Infiltrador, na Fronteira Luneska (<code>472,636</code>), e o Oren Erudito, nas Ruínas Pedra de Névoa (<code>486,640</code>).</li>
+      <li><strong>Céu Astral V: os campos de energia</strong> — pelo Guardião de Alma Lunesco, nas Ruínas Pedra de Névoa (<code>481,625</code>), e o Guardião do Campo de Energia, no ar da Fronteira Luneska (<code>469,618</code>).</li>
+      <li><strong>Céu Astral VI: o Acampamento dos Goblins de Gelo</strong> — pela Sentinela do Campo de Energia (<code>459,565</code>) e o Mestre dos Goblins de Gelo, no acampamento deles (<code>443,560</code>).</li>
+      <li><strong>Céu Astral VII–VIII: a Prisão Glacial</strong> — pelo Comandante do Estado do Vigor, na Prisão Glacial (<code>439,594</code>), e os Comandantes de Assalto Norte e Oeste, na Fronteira Luneska (<code>480,616</code> e <code>450,604</code>).</li>
+      <li><strong>Céu Astral IX: a Cidade Luneska</strong> — fecha com o Comandante de Assalto Oeste (<code>450,604</code>) e o Espelho da Visão Distante, na Cidade Luneska (<code>483,587</code>).</li>
+    </ol>
+    <div class="aviso"><p><strong>A linha do Astral tem nove fases e é a mais longa até aqui</strong> — do Posto do Vigor à Cidade Luneska. Nomes e coordenadas da PWpedia, que batem com o BR (±1). Viu um passo diferente? <a href="https://discord.gg/n5v3WdSJyg">Discord</a>.</p></div>
+  </section>
+  <section class="arco" data-ceu="oscilante" data-arco="oscilante">
+    <h2>Céu Oscilante</h2>
+    <p class="resumo">A quarta anedota desce para debaixo d'água, no Mar Silencioso. Você monta num peixe e cruza as vilas do fundo — Costa-Mar, a Enseada da Pérola, a Floresta Reluzente e Marévoa — numa linha de nove fases.</p>
+    <div class="aviso">
+      <p><strong>Requisito:</strong> Nível 100, Despertar II, Céu Astral X — o quarto dos dez Limites.</p>
+    </div>
+    <h3>Como destravar</h3>
+    <p>Com o Céu Astral no <code>10</code>, fale com a <strong>Imagem de Althea</strong>, em Kirin (<code>373,465</code>), que o teleporta ao alto das Escadas de Astraluna (<code>401,522</code>), a nordeste. Fale com o Imperador Branco: Alexander ali ao lado (<code>403,521</code>). Daqui em diante tudo acontece debaixo d'água.</p>
+    <h3>As missões, em ordem</h3>
+    <ol class="passos">
+      <li><strong>Sob o mar</strong> — com o Comandante da Frota Corcoran, na Frota Aliada (<code>417,528</code>), você monta num peixe que mostra o Mar Silencioso e o deixa na frente da Vila Costa-Mar (<code>425,501</code>). Bárbaro e Feiticeira precisam estar em forma humana para montar.</li>
+      <li><strong>Céu Oscilante II: a Enseada da Pérola</strong> — com o Chefe Costa-Mar Wavelance (<code>427,506</code>), vá à Enseada da Pérola (<code>461,502</code>), mate um Saqueador Shoka e fale com o Chefe Aphon, dentro do tronco oco na Floresta Reluzente (<code>471,536</code>).</li>
+      <li><strong>Céu Oscilante III: o Eremita Sem Nome</strong> — ache o Eremita Sem Nome, que vagueia pela Floresta Reluzente (<code>481,531</code>), espere meio minuto e fale de novo com ele nas Ruínas de Marécorrente (<code>444,529</code>).</li>
+      <li><strong>Céu Oscilante IV–V: Marévoa</strong> — com o Senhor da Maré Hydro, em Marévoa (<code>446,486</code>), recupere o Memento da Maré no Memorial (<code>447,492</code>) e fale com o Comandante Rowan (<code>447,485</code>). Depois limpe <code>5</code> Batedores Shoka ao sul e fale com o Chefe Astronus, na Vila Mar-Estrela (<code>435,458</code>).</li>
+      <li><strong>Céu Oscilante VI–VII: Marévoa e a Vila Mar-Estrela</strong> — de volta ao Senhor da Maré Hydro (<code>446,486</code>) e ao Chefe Astronus, na Vila Mar-Estrela (<code>435,458</code>), e depois ao Comandante Rowan, em Marévoa (<code>447,485</code>).</li>
+      <li><strong>Céu Oscilante VIII: o Acampamento da Vanguarda</strong> — o Comandante Rowan muda-se para o Acampamento da Vanguarda (<code>496,472</code>); a linha segue por ele ali.</li>
+      <li><strong>Céu Oscilante IX: a Plataforma Abissal</strong> — fecha com o Rowan (<code>496,472</code>) e o Batedor Naveen, na Plataforma Abissal (<code>478,454</code>).</li>
+    </ol>
+    <div class="aviso"><p><strong>Toda a linha do Oscilante é debaixo d'água, no Mar Silencioso</strong>, em nove fases, do Mar Silencioso à Plataforma Abissal. Nomes e coordenadas da PWpedia (batem com o BR ±1). Viu diferente? <a href="https://discord.gg/n5v3WdSJyg">Discord</a>.</p></div>
+  </section>
+  <section class="arco" data-ceu="crepusculo" data-arco="crepusculo">
+    <h2>Céu do Crepúsculo</h2>
+    <p class="resumo">A quinta anedota começa em Marévoa e se abre em três caminhos — Fogo, Vento e Água —, cada um com o seu Senhor elemental. São dez fases, as maiores até aqui.</p>
+    <div class="aviso">
+      <p><strong>Requisito:</strong> Nível 100, Despertar II, Céu Oscilante X — o quinto dos dez Limites.</p>
+    </div>
+    <h3>Como destravar</h3>
+    <p>Com o Céu Oscilante no <code>10</code>, fale com o <strong>Senhor da Maré Hydro</strong>, em Marévoa (<code>446,486</code>), e com o Batedor Shensei ao lado (<code>443,486</code>).</p>
+    <h3>As missões, em ordem</h3>
+    <ol class="passos">
+      <li><strong>Céu do Crepúsculo I–II</strong> — pelo Hydro (<code>446,486</code>), fale com o Comandante da Muralha Seidon, no extremo norte da Muralha do Abismo (<code>454,463</code>), limpe <code>5</code> Batedores Shoka ao sul e fale com o Chefe Astronus, na Vila Mar-Estrela (<code>435,458</code>). Depois fale com o Arauto de Pelágius, em Marévoa (<code>450,481</code>).</li>
+      <li><strong>Céu do Crepúsculo III: os três Senhores</strong> — pelo Imperador Branco: Alexander, em Kirin (<code>379,473</code>), apresente-se aos três Senhores elementais: o Senhor do Fogo Pyrathion, na Vila de Outono (<code>388,612</code>); o Senhor do Vento Tempestra, no Acampamento dos Goblins de Gelo (<code>444,561</code>); e o Senhor da Água Pelágius, na Floresta Reluzente (<code>471,536</code>). Volte ao Alexander.</li>
+      <li><strong>Escolha um caminho: Fogo, Vento ou Água</strong> — durante as fases III a V você decide qual Senhor ajudar, gastando um Tratado de Ajuda Imperial. Cada caminho é uma série própria de missões, aberta pelos Arautos em Kirin (<code>371,471</code> Vento, <code>372,472</code> Água, <code>373,470</code> Fogo).</li>
+      <li><strong>Céu do Crepúsculo IV–VI: de volta a Kirin</strong> — depois do caminho escolhido, três fases com o Imperador Branco: Alexander, em Kirin (<code>379,473</code>).</li>
+      <li><strong>Céu do Crepúsculo VII–IX: os três Senhores em Modo História</strong> — revisite o Senhor do Fogo Pyrathion, na Vila de Outono (<code>386,615</code>), o Senhor do Vento Tempestra, nas Ruínas Pedra de Névoa (<code>481,625</code>), e o Senhor da Água Hydro, em Marévoa (<code>446,486</code>).</li>
+      <li><strong>Céu do Crepúsculo X: a Corte do Rei Shoka</strong> — a última fase teleporta você para uma masmorra (a Corte do Rei Shoka), que você provavelmente terá de fechar sozinho. Prepare-se antes de começar: concluir "Eco das Eras" tranca o retorno à instância.</li>
+    </ol>
+    <div class="aviso"><p><strong>O Crepúsculo tem dez fases e uma escolha de caminho — Fogo, Vento ou Água — e fecha numa masmorra.</strong> Nomes e coordenadas da PWpedia (batem com o BR ±1). Viu diferente? <a href="https://discord.gg/n5v3WdSJyg">Discord</a>.</p></div>
+  </section>
+  <section class="arco" data-ceu="real" data-arco="real">
+    <h2>Céu Real</h2>
+    <p class="resumo">A sexta anedota muda de continente: vai para Neverfall e as Estepes do Oeste. Passa pela Vila dos Vaga-lumes, as Ruínas do Titã, o Castelo Desolado e Dalmoor, em dez fases.</p>
+    <div class="aviso">
+      <p><strong>Requisito:</strong> Nível 100, Despertar II, Céu do Crepúsculo X — o sexto dos dez Limites.</p>
+    </div>
+    <h3>Como destravar</h3>
+    <p>Com o Céu do Crepúsculo no <code>10</code>, ao entrar nas Estepes do Oeste a missão chega sozinha e o teleporta ao norte de Neverfall (<code>350,644</code>), perto da Imperatriz da Luz Althea.</p>
+    <h3>As missões, em ordem</h3>
+    <ol class="passos">
+      <li><strong>Céu Real I: a Vila dos Vaga-lumes</strong> — com a Garota Cega, na Vila dos Vaga-lumes (<code>350,712</code>), pegue o Símbolo no Símbolo Misterioso ao norte (<code>343,723</code>) e entregue a Firefly Entha (<code>343,717</code>).</li>
+      <li><strong>Céu Real II: as Frutas Quasímodo</strong> — no Vale de Messinar (Ruínas do Titã), use a Rede de Vara para matar <code>5</code> Frutas Quasímodo no ar (<code>331,691</code>) — elas são imunes a dano normal — e fale com Mahmu, o Titã (<code>332,698</code>). Cuidado com a Serpe das Areias Mortas, que voa pela área.</li>
+      <li><strong>Céu Real III–IV: o Castelo Desolado</strong> — pelo Fantasma de uma Garota, nas Ruínas do Titã (<code>316,716</code>); não saia da área do Templo da Morte ou a missão falha. Depois, no Castelo Desolado (<code>354,725</code>), mate <code>8</code> Bruxos Perversos e fale com o Soldado Monson (<code>352,722</code>).</li>
+      <li><strong>Céu Real V–VI: girassóis e Dalmoor</strong> — colete <code>5</code> Girassóis Murchos a noroeste do Arbusto de Girassol e entregue a Kimchala (<code>376,692</code>). Depois, com o Pastor Louco em Dalmoor (<code>388,675</code>), fale com o Ancião Bolafofa na Vila Bolafofa (<code>423,657</code>).</li>
+      <li><strong>Céu Real VII: a Cavalaria da Rosa</strong> — pelo Comandante da Cavalaria da Rosa Vetrin, na Vila Bolafofa (<code>420,655</code>).</li>
+      <li><strong>Céu Real VIII–IX: o Agouro e o Vulcão</strong> — pela Dama de Gelo do Agouro, na Fonte do Agouro (<code>409,696</code>), e o Cacique Sheren, no Aglomerado Vulcânico de Dallagher (<code>487,714</code>).</li>
+      <li><strong>Céu Real X: o Templo da Queda Celeste</strong> — a última fase pede o Templo da Queda Celeste até o <strong>andar <code>18</code></strong> (uma instância). Vale limpar até lá antes de começar as missões, para poupar buffs de vitae.</li>
+    </ol>
+    <div class="aviso"><p><strong>O Real muda de continente, para Neverfall e as Estepes do Oeste</strong>, em dez fases, da Vila dos Vaga-lumes ao Templo da Queda Celeste. Nomes e coordenadas da PWpedia (batem com o BR ±1). Viu diferente? <a href="https://discord.gg/n5v3WdSJyg">Discord</a>.</p></div>
+  </section>
+  <section class="arco" data-ceu="real" data-arco="primeiro-contato">
+    <span class="badge">Céu Real</span>
+    <h2>Primeiro Contato</h2>
+    <p class="resumo">O arco que abre Quedanunca (Neverfall): a viagem de barco do Porto dos Sonhos até a cidade, passando por Niore e Wenham, até as investigações de Althea. É fácil, mas longo — muita gente se perde por não seguir a ordem.</p>
+    <div class="aviso">
+      <p><strong>Requisito:</strong> Acesso a Quedanunca (Bilhete de Quedanunca no inventário).</p>
+    </div>
+    <h3>Como destravar</h3>
+    <p>Com o Bilhete de Quedanunca no inventário, vá ao barco <strong>O Arcano de Sonhos</strong>, atrás do Capitão Arcano de Sonhos, no Porto dos Sonhos (<code>671,357</code>), e clique nele para embarcar — não funciona sem o Bilhete. Perdeu o Bilhete? Compre outro por <code>1.000.000</code> de Moedas de Prata no mesmo Capitão. Depois fale com o Guarda do Porto.</p>
+    <h3>As missões, em ordem</h3>
+    <ol class="passos">
+      <li><strong>Para o oeste</strong> — a linha leva você para o oeste, pelos "Estranhos Acontecimentos" e pela "História do Império da Luz".</li>
+      <li><strong>As Pessoas de Niore, e a Crise em Niore</strong> — a história passa pela vila de Niore.</li>
+      <li><strong>Investigando Wenham</strong> — e "As Pessoas de Wenham", até "Surge a Verdade".</li>
+      <li><strong>Partindo para Quedanunca</strong> — você chega à Magnífica Cidade Quedanunca, encontra o Executivo e começa "As Investigações de Althea" — que é o que abre a Guerra do Milênio.</li>
+    </ol>
+    <div class="aviso"><p><strong>Arco regional ("Área"), jogado ao chegar a Quedanunca.</strong> O Céu aqui é aproximado: estes arcos não casam 1:1 com um Limite, marcamos pelo nível em que se jogam. Levantado do guia BR da Trivia (Wayback). Viu diferente? <a href="https://discord.gg/n5v3WdSJyg">Discord</a>.</p></div>
+  </section>
+  <section class="arco" data-ceu="real" data-arco="guerra-do-milenio">
+    <span class="badge">Céu Real</span>
+    <h2>Guerra do Milênio</h2>
+    <p class="resumo">Continuação do Primeiro Contato: uma viagem no tempo até o ano de 1366, a Batalha do Vale das Uvas com a Fada Guardiã Heki — até a Ascensão de Alexander.</p>
+    <div class="aviso">
+      <p><strong>Requisito:</strong> Liberada no meio do Primeiro Contato, após "As Investigações de Althea".</p>
+    </div>
+    <h3>Como destravar</h3>
+    <p>A primeira missão, <strong>Atlas do Tempo</strong>, abre quando você conclui "As Investigações de Althea" do Primeiro Contato. Fale com Althea, Imperatriz da Luz, em <code>316,611</code> (Quedanunca).</p>
+    <h3>As missões, em ordem</h3>
+    <ol class="passos">
+      <li><strong>Atlas do Tempo</strong> — por Althea (<code>316,611</code>), fale com o Executivo Michael (<code>316,615</code>) e com a Fada Guardiã Heki (<code>417,629</code>), e volte a Althea.</li>
+      <li><strong>Cristais Temporais</strong> — a Heki pede <code>3</code> Cristais Temporais na Montanha Ouronegro (<code>411,626</code>); junte-os e entregue a ela.</li>
+      <li><strong>A Batalha do Vale das Uvas</strong> — a Heki teleporta você ao ano de <code>1366</code>. Lá, "Atacando nas Sombras" (mate <code>3</code> Cavalos de Guerra e <code>3</code> Patrulheiros dos Savagianos, em <code>422,515</code>) e "Incendeie o Acampamento" (os <code>3</code> acampamentos dos Sentinelas).</li>
+      <li><strong>A guerra, até a Ascensão</strong> — a linha segue pelo Vale das Uvas e pela cavalaria da Luz, até a Arma de Usher e a Cerimônia de Ascensão de Alexander.</li>
+    </ol>
+    <div class="aviso"><p><strong>Arco regional, continuação do Primeiro Contato, em Quedanunca.</strong> Céu aproximado, como no Primeiro Contato. Levantado do guia BR da Trivia (Wayback). Viu diferente? <a href="https://discord.gg/n5v3WdSJyg">Discord</a>.</p></div>
+  </section>
+  <section class="arco" data-ceu="devoto" data-arco="devoto">
+    <h2>Céu Devoto</h2>
+    <p class="resumo">A sétima anedota é uma história longa na cidade de Nicada, nas Estepes do Oeste — dezenas de missões em torno da Câmara de Comércio, dos aprendizes e dos mutantes que cercam a cidade.</p>
+    <div class="aviso">
+      <p><strong>Requisito:</strong> Nível 100, Despertar II, Céu Real X — o sétimo dos dez Limites.</p>
+    </div>
+    <h3>Como destravar</h3>
+    <p>Com o Céu Real no <code>10</code> e a barra de vitae cheia, ao entrar nas Estepes do Oeste a missão chega sozinha. Fale com o <strong>Emissário do Céu Devoto Kuza</strong>, em Nicada (<code>565,600</code>), para obter o Céu Devoto 1.</p>
+    <h3>As missões, em ordem</h3>
+    <ol class="passos">
+      <li><strong>Visitar o Castelão, acampar em Nicada</strong> — pelo Kuza (<code>565,600</code>), fale com o Lorde de Nicada Adrien (<code>554,589</code>) e depois com o Atendente Phil (<code>561,597</code>).</li>
+      <li><strong>A Câmara de Comércio</strong> — fale com o Presidente Edmond (<code>569,609</code>); ele o põe num balão numa volta pela cidade. Não pode estar transformado para aceitar a missão.</li>
+      <li><strong>Comprar materiais, e o ataque</strong> — pela Guarda Real Rachia (<code>548,603</code>), compre <code>10</code> Jades Laranja do Comerciante Barzel (<code>547,598</code>). Depois mate <code>10</code> Lobos Mutantes fora da cidade (em volta de <code>528,603</code>) e volte a Rachia.</li>
+      <li><strong>Inquérito e os aprendizes</strong> — a história segue por Nicada: Barzel (<code>547,598</code>), Alicia (<code>547,600</code>), o Curador Ilio no prédio do Distrito Financeiro (<code>540,607</code>) e os aprendizes Carl e Eily.</li>
+      <li><strong>Da cidade à estrada</strong> — a história segue de Nicada para a Estação de Cargas, com o Chefe dos Correios Cahill (<code>562,579</code>), e depois para Warmspring, com a Arquimaga Dolores (<code>592,565</code>).</li>
+      <li><strong>O retorno a Nicada</strong> — a linha volta ao Distrito Financeiro de Nicada, com Goodhill (<code>545,611</code>), e às Estepes do Oeste, com a Arquimaga Pandora (<code>542,581</code>), encadeando dezenas de missões — os mutantes, o Cavaleiro, o Castelo Spotwood — até o fim.</li>
+    </ol>
+    <div class="aviso"><p><strong>O Devoto é a anedota mais longa — uma história inteira em Nicada</strong>, com dezenas de missões encadeadas. Como não tem fases numeradas, aqui ficam os marcos com coordenada; use a janela de missões (tecla <code>Q</code>) para não se perder. Nomes e coordenadas da PWpedia (batem com o BR ±1). Viu diferente? <a href="https://discord.gg/n5v3WdSJyg">Discord</a>.</p></div>
+  </section>
+  <section class="arco" data-ceu="apice" data-arco="apice">
+    <h2>Céu Ápice</h2>
+    <p class="resumo">A oitava anedota continua nas Estepes do Oeste, em Drapna e na Vila Hannibal, com a Imperatriz da Luz Althea te acompanhando. A linha fecha rumo ao Palácio da Perdição.</p>
+    <div class="aviso">
+      <p><strong>Requisito:</strong> Nível 100, Despertar II, Céu Devoto X — o oitavo dos dez Limites.</p>
+    </div>
+    <h3>Como destravar</h3>
+    <p>Com o Céu Devoto no <code>10</code> e a barra de vitae cheia, a missão chega sozinha. Fale com o <strong>Apóstolo do Ápice Zenet</strong>, em Drapna (<code>522,567</code>).</p>
+    <h3>As missões, em ordem</h3>
+    <ol class="passos">
+      <li><strong>A caçada a Aida continua</strong> — você é teleportado ao Clã dos Alquimistas; fale com a Imperatriz da Luz Althea no Pilar Telepático (<code>570,528</code>). Ela passa a te seguir (só você a vê). Investigue a Vila Hannibal (<code>521,533</code>) com ela — fique no chão para concluir.</li>
+      <li><strong>O Pássaro sem Alma</strong> — na Vila Hannibal (<code>522,534</code>), mate <code>5</code> Pássaros sem Alma no céu (<code>518,535</code>) e <code>5</code> Espantalhos ao lado (<code>516,537</code>), falando com Althea entre as etapas.</li>
+      <li><strong>A Alma do Feno</strong> — ache a origem do grito enquanto mata os Espantalhos (<code>517,539</code>): use a ação Atacar num Espantalho, fale com o Espantalho Bod (<code>516,541</code>) e mate <code>5</code> Espíritos do Medo (<code>519,540</code>).</li>
+      <li><strong>Tabu, e o resgate</strong> — pelo Espantalho Bod (<code>516,541</code>), mate o Clone de Tattiul que surge em cima de você e volte a falar com Althea (<code>522,534</code>).</li>
+      <li><strong>As tribos e as forjas</strong> — a história passa pelo Clã dos Alquimistas (<code>587,507</code>), a Forja de Lava (<code>571,500</code>), as Planícies do Espírito Sagrado (<code>556,509</code>), a Tribo dos Morcegos Vampiros (<code>511,518</code>) e a Tribo do Senhor das Feras (<code>543,499</code>).</li>
+      <li><strong>A caçada a Aida</strong> — ela aparece nas Cavernas Sem Fim (<code>583,469</code>); a linha segue para o Fórum do Esquecimento (<code>543,459</code>) e volta à Prefeitura (<code>316,614</code>) e à Praça do Paladino (<code>361,601</code>).</li>
+      <li><strong>Céu Ápice: o Palácio da Perdição</strong> — a reta final leva ao Palácio da Perdição (<code>602,535</code>), com a Freira Penitente Aileen. É a instância que fecha o Ápice.</li>
+    </ol>
+    <div class="aviso"><p><strong>O Ápice fecha numa instância, o Palácio da Perdição</strong>, depois de passar pelas tribos e forjas das Estepes do Oeste. Nomes e coordenadas da PWpedia (batem com o BR ±1). Viu diferente? <a href="https://discord.gg/n5v3WdSJyg">Discord</a>.</p></div>
+  </section>
+  <section class="arco" data-ceu="majestoso" data-arco="majestoso">
+    <h2>Céu Majestoso</h2>
+    <p class="resumo">A nona anedota, da expansão Ascensão Selvagem, numa área nova a noroeste de Quedanunca — as Planícies do Ocidente e a Floresta Vidal. É uma trama élfica e de Yggdrasil, com NPCs que te seguem e alguns quebra-cabeças pelo caminho.</p>
+    <div class="aviso">
+      <p><strong>Requisito:</strong> Nível 100, Despertar II, Céu Ápice X — o nono dos dez Limites.</p>
+    </div>
+    <h3>Como destravar</h3>
+    <p>Com o <strong>Céu Ápice no <code>10</code></strong>, fale com o <strong>Apóstolo do Céu Divino Yoshin</strong>, em Quedanunca (<code>564,502</code>, na Cidade de Nicada), para subir ao Céu Majestoso. Aviso: muitos mobs daqui dão dano proporcional ao seu HP — vá com buffs, amuleto e poções.</p>
+    <h3>As missões, em ordem</h3>
+    <ol class="passos">
+      <li><strong>Céu Majestoso: Corpo Original</strong> — com Martelinho, que te segue, vá a <code>218,710</code> e cave "Restaurar a Formação Mágica".</li>
+      <li><strong>Céu Majestoso: Quarto Cristal</strong> — com Martelinho te seguindo, vá a <code>256,698</code> e fale com Landar em <code>257,695</code>.</li>
+      <li><strong>Céu Majestoso: Ir à Floresta</strong> — com a Princesa da Água Elisa te seguindo, vá a <code>228,716</code>, derrote <code>3</code> Guerreiros Alados Manipulados e conclua falando com ela.</li>
+      <li><strong>Decifrando os Caracteres</strong> — depois de falar com Vidar, você recebe o Livro Comparativo da Língua Élfica. Leia-o (botão direito), e a palavra que os símbolos formam é <strong>YGGDRASIL</strong> — digite em maiúsculas e envie.</li>
+      <li><strong>Suprimentos Temporários</strong> — colete as Frutas Doces nos galhos das árvores em <code>219,689</code> (Floresta Vidal) e, logo depois, os Fungos Frescos no chão ali ao lado.</li>
+      <li><strong>Aberrações: as pegadas</strong> — a missão não aponta NPC nem alvo; em frente ao NPC que a inicia (<code>223,685</code>, Floresta Vidal) há pegadas. Siga-as até <code>232,694</code> para invocar o Rhya e derrote-o sozinho.</li>
+      <li><strong>Mar de Egil: pescar</strong> — use a Isca Quedanunca no lago (botão direito) e aperte Espaço para fisgar <code>5</code> Peixes Marinhos Frescos. Depois, junte o Molho de Mel ao peixe para cozinhar <code>5</code> Peixes Grelhados Apetitosos.</li>
+      <li><strong>Interseção do Sol: o Livro de Sangue</strong> — voe até <code>219,698</code> e cave o Livro de Sangue no galho; a senha é <strong><code>0413</code></strong> para cavar o Diário. Depois use a Carta do Pai (botão direito).</li>
+      <li><strong>O Templo do Céu, e a Tranca</strong> — vá a <code>222,741</code> (a altura importa) para chegar ao Templo do Céu. Lá, resolva o quebra-cabeça de deslizar: leve a peça de cor diferente até a seta à direita — as peças horizontais só andam na horizontal, as verticais só na vertical.</li>
+    </ol>
+    <div class="aviso"><p><strong>Levantado do guia BR da Trivia (expansão Ascensão Selvagem), recuperado pela Wayback Machine.</strong> A PWpedia chama este Limite de <em>Rising Sky</em>. Coordenadas do cliente BR. Viu um passo diferente? <a href="https://discord.gg/n5v3WdSJyg">Discord</a>.</p></div>
+  </section>
+  <section class="arco" data-ceu="soberano" data-arco="soberano">
+    <h2>Céu Soberano</h2>
+    <p class="resumo">A décima e última anedota, da expansão Yggdrasil: um Ragnarök inteiro, na Segunda Raiz da Árvore do Mundo e em Quedanunca. É uma de três anedotas ligadas — Soberano, Crônica dos Deuses e Memória dos Gigantes —, então siga pela janela de missões (tecla <code>Q</code>) para não se perder entre elas.</p>
+    <div class="aviso">
+      <p><strong>Requisito:</strong> Nível 102, Despertar II, Céu Majestoso X — o décimo e último Limite.</p>
+    </div>
+    <h3>Como destravar</h3>
+    <p>Precisa de <strong>Céu Soberano I+ e nível <code>102</code></strong>. A linha abre em <strong>Céu · Segunda Raiz</strong>: fale com <strong>Althea, Imperatriz da Luz</strong>, na Prefeitura (<code>315,611</code>), e vá ao <strong>Vidar</strong> no Reino Congelado (<code>271,671</code>). Para invocar o Vidar ou o Gatinho Branco mais tarde, há o Deus da Natureza Vidar em <code>247,501</code>, na Trompa da Vitória.</p>
+    <h3>As missões, em ordem</h3>
+    <ol class="passos">
+      <li><strong>Afinidade</strong> — ganhe afinidade com os Gigantes dando-lhes presentes (cada um vale <code>+10</code>, e caem de monstros da Segunda Raiz): Jord (<code>213,608</code>), Mímir (<code>245,595</code>), Laufey (<code>245,566</code>) e Farbanti (<code>246,626</code>). A afinidade muda o final da história.</li>
+      <li><strong>Gigante de Gelo e Geada</strong> — fale com Óbido, o Gigante de Gelo, em <code>264,666</code>.</li>
+      <li><strong>Mar do Medo Timoroso</strong> — pelo Vidar, vá a <code>248,628</code> e lute com Farbanti, o Gigante do Mar (<code>247,625</code>). Isso libera a anedota Memória dos Gigantes.</li>
+      <li><strong>Corpo Adormecido, e o Pecado da Beleza Selada</strong> — siga o Vidar a <code>273,610</code> e <code>285,584</code>; depois lute com a Giganta em <code>247,566</code>, de onde surge Laufey, a Giganta Bruxa, no Jardim de Flores Sinistras (<code>246,566</code>).</li>
+      <li><strong>O Poder das Palavras, e o Silêncio da Sabedoria</strong> — pelo Vidar, vá à Prisão dos Deuses (<code>215,582</code>), fale com Rhya (o Gato Preto) e o Vidar (<code>213,586</code>), e lute com a Gigante da Montanha (<code>216,583</code>).</li>
+      <li><strong>Explorando a Segunda Raiz</strong> — com o Vidar e Mímir em <code>246,595</code>, beba da Fonte da Sabedoria (<code>242,592</code>).</li>
+      <li><strong>Os deuses de Quedanunca</strong> — a linha volta a Quedanunca: fale com Frey, o deus da prosperidade (<code>220,532</code>), e com Hela, a Deusa do Submundo (<code>254,514</code>).</li>
+      <li><strong>O Ragnarök</strong> — pelo Gatinho Branco, encare os deuses: Odin e Fenrir (<code>228,486</code> → <code>233,488</code>), Týr e o Cão Garme (<code>278,496</code> → <code>282,492</code>), Thor e Jormungand (<code>209,508</code> → <code>213,508</code>), e o Nidhogg (em Quedanunca).</li>
+      <li><strong>A Trombeta de Gjallarhorn</strong> — feitas as quatro acima, cave a Trombeta de Gjallarhorn em <code>249,499</code> e fale com Vidar. Isso inicia <em>Céu: Antes da batalha</em> — a batalha final do Ragnarök.</li>
+    </ol>
+    <div class="aviso"><p><strong>Levantado do guia BR da Trivia (expansão Yggdrasil), recuperado pela Wayback Machine.</strong> As três anedotas — Soberano, Crônica dos Deuses e Memória dos Gigantes — são ligadas: use a janela de missões (tecla <code>Q</code>) para seguir. Coordenadas do cliente BR. Viu diferente? <a href="https://discord.gg/n5v3WdSJyg">Discord</a>.</p></div>
+  </section>
+  <section class="arco" data-ceu="soberano" data-arco="cronica-dos-deuses">
+    <span class="badge">Céu Soberano</span>
+    <h2>Crônica dos Deuses</h2>
+    <p class="resumo">O arco gêmeo do Soberano no Yggdrasil: o Ragnarök pelo lado dos deuses — Frey e a Abundância, a Arma Eterna refundida, Hela, Thor, Tyr e Fenrir. Interligada ao Soberano e à Memória dos Gigantes.</p>
+    <div class="aviso">
+      <p><strong>Requisito:</strong> Corre junto com o Céu Soberano (nível 102+).</p>
+    </div>
+    <h3>Como destravar</h3>
+    <p>Corre junto com o Céu Soberano. Siga pela janela de missões (tecla <code>Q</code>); para invocar o Gatinho Branco ou o Vidar, há o Deus da Natureza Vidar em <code>247,501</code> (Trompa da Vitória).</p>
+    <h3>As missões, em ordem</h3>
+    <ol class="passos">
+      <li><strong>Céu · Guardião, e a Herança da Vontade</strong> — pelo Gatinho Branco (<code>240,700</code>) e pelo Vidar, em Quedanunca.</li>
+      <li><strong>Céu · Arrumar a Culpa</strong> — no Esquilo Ratatosk, em <code>246,494</code> (Trompa da Vitória), seguida de "Galo do Topo da Árvore" e "Esquilo da Yggdrasil".</li>
+      <li><strong>Céu · Deus Frei, e a Abundância I–III</strong> — pelo Gatinho Branco, as três Abundâncias em <code>220,795</code>, <code>380,520</code> e <code>470,630</code>, até "A Promessa de Frey", com o deus Frey (<code>220,532</code>, no Destino dos Deuses).</li>
+      <li><strong>A Arma Eterna</strong> — "Refundida" (<code>230,490</code>) e depois "Forjando a Arma Eterna" com o Ancião Earl, em <code>598,674</code>, na cidade Rodentia.</li>
+      <li><strong>O Ragnarök dos deuses</strong> — a reta final encadeia a Senhora da Morte Hela, o Deus da Morte, a Serpente do Mundo, Thor, o Cão do Inferno e Tyr, até "A Batalha Começou" e a Queda do Céu Divino.</li>
+    </ol>
+    <div class="aviso"><p><strong>Arco do Yggdrasil, ligado ao Céu Soberano e à Memória dos Gigantes.</strong> Levantado do guia BR da Trivia, recuperado pela Wayback Machine. Coords do cliente BR. Viu diferente? <a href="https://discord.gg/n5v3WdSJyg">Discord</a>.</p></div>
+  </section>
+  <section class="arco" data-ceu="soberano" data-arco="memoria-dos-gigantes">
+    <span class="badge">Céu Soberano</span>
+    <h2>Memória dos Gigantes</h2>
+    <p class="resumo">O terceiro arco do Yggdrasil: a história pelos Gigantes — o Ancestral, o do Mar, o da Montanha, o da Sabedoria e a Giganta Feiticeira —, com Pedras Místicas, a Lança Eterna e a Prisão de Loki. Interligada ao Soberano e à Crônica dos Deuses.</p>
+    <div class="aviso">
+      <p><strong>Requisito:</strong> Corre junto com o Céu Soberano (nível 102+).</p>
+    </div>
+    <h3>Como destravar</h3>
+    <p>Corre junto com o Céu Soberano. Siga pela janela de missões (tecla <code>Q</code>).</p>
+    <h3>As missões, em ordem</h3>
+    <ol class="passos">
+      <li><strong>Céu · Gigante Ancestral</strong> — pelo Gatinho Branco (<code>285,584</code>), derrote <code>5</code> essências espalhadas por Quedanunca. Elas são imunes a dano comum: pegue a Pedra Mística do elemento certo (a Essência do Trovão em <code>280,584</code> cai com a Pedra Mística do Trovão, do Dragão Mutante) — a menos que você já cause dano daquele elemento.</li>
+      <li><strong>Os Gigantes</strong> — a linha passa pelos Gigantes do Mar, da Montanha e da Sabedoria, e pela Giganta Feiticeira, cada um com a sua missão (Nascimento, Bênção, Os Ossos…).</li>
+      <li><strong>Céu: Lança Eterna, e a Prisão de Loki</strong> — a reta final: a Batalha dos Gigantes, a Lança Eterna, a Prisão de Loki e o Salão dos Espíritos.</li>
+    </ol>
+    <div class="aviso"><p><strong>Arco do Yggdrasil, ligado ao Céu Soberano e à Crônica dos Deuses.</strong> Levantado do guia BR da Trivia, recuperado pela Wayback Machine. Coords do cliente BR. Viu diferente? <a href="https://discord.gg/n5v3WdSJyg">Discord</a>.</p></div>
+  </section>
+  <h2>O que são as anedotas, e por que elas valem</h2>
+  <p><strong>A anedota é o diário de missões do Mundo Perfeito.</strong> Ela guarda em que ponto de cada linha de missões você parou, e serve de mapa para não se perder entre centenas delas. O mercado resume tudo num número — <code>Progresso total … / 2756</code> — que diz o quanto, mas não o quê nem onde.</p>
+  <p><strong>Concluir uma parte dá um Título com atributo.</strong> É a mesma moeda da ferramenta de <a href="/registros">Títulos</a>: cada anedota fechada solta um título permanente. Por isso vale fazê-las em ordem — e por isso elas estão aqui.</p>
+  <p><strong>Os dez Limites de Céu são a espinha.</strong> Arcano, Miragem, Astral, Oscilante, Crepúsculo, Real, Devoto, Ápice, Majestoso e Soberano: cada Limite abre a sua própria anedota, e subir um é o que destrava o próximo. Esta é a página de cada um, na ordem do jogo.</p>
+  <h2>Antes de começar o Céu Arcano</h2>
+  <p><strong>O Céu Arcano é o primeiro Limite, e abre no nível <code>90</code> com um Despertar.</strong> Ele acontece no <strong>Mundo Primitivo</strong>, em volta da <strong>Cidade de Kirin</strong> — o mesmo mapa que a versão internacional chama <em>Primal World</em>. Para chegar lá você precisa ter fechado a fase histórica do Pináculo do Mundo no Despertar I.</p>
+  <p>A linha não dá só o Limite: as missões pagam experiência, espírito, reputação e as <strong>Páginas do Céu Arcano</strong>, que são o que alimenta a subida do próprio Limite.</p>
+  <hr>
+  <p style="color: var(--text-muted); font-size: 0.85rem;">Os Limites de Arcano a Ápice vêm da <a href="https://pwi.fandom.com/wiki/Perfect_World_Anecdote">PWpedia</a> (as coordenadas batem com o BR ±1); os arcos de expansão brasileira — Majestoso, Soberano, Crônica dos Deuses, Memória dos Gigantes — vêm do guia BR da <a href="https://triviapw.com.br/">Trivia PW</a>, recuperado pela Wayback Machine. Achou um passo diferente no jogo? Conte no <a href="https://discord.gg/n5v3WdSJyg">Discord</a> que a gente corrige.</p>
+  <script>
+  (function () {
+    var fc = null, fa = null;
+    var arcos = Array.prototype.slice.call(document.querySelectorAll('.arco'));
+    var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+    var vazio = document.getElementById('vazio');
+    function aplicar() {
+      var n = 0;
+      arcos.forEach(function (s) {
+        var ok = (!fc || s.getAttribute('data-ceu') === fc) &&
+                 (!fa || s.getAttribute('data-arco') === fa);
+        s.hidden = !ok;
+        if (ok) n++;
+      });
+      chips.forEach(function (c) {
+        var t = c.getAttribute('data-tipo'), v = c.getAttribute('data-val');
+        var on = (t === 'ceu' && v === fc) || (t === 'arco' && v === fa);
+        c.classList.toggle('on', on);
+      });
+      if (vazio) vazio.hidden = n > 0;
+    }
+    chips.forEach(function (c) {
+      if (c.id === 'limpar') {
+        c.addEventListener('click', function () { fc = null; fa = null; aplicar(); });
+        return;
+      }
+      c.addEventListener('click', function () {
+        var t = c.getAttribute('data-tipo'), v = c.getAttribute('data-val');
+        if (t === 'ceu') fc = (fc === v) ? null : v;
+        else fa = (fa === v) ? null : v;
+        aplicar();
+      });
+    });
+  })();
+  </script>
+</main>
+
+<div class="publicidade">
+  <span class="rotulo">PUBLICIDADE</span>
+  <a class="casa" href="mailto:duhspain@gmail.com">Quer anunciar neste espaço? <strong>Clique aqui</strong></a>
+</div>
+
+<footer>
+  <p>
+    Projeto de fã, sem vínculo com o The Classic Games.<br>
+    <a href="/privacidade/">Privacidade</a> &middot;
+    <a href="/guias/">Guias</a> &middot;
+    <a href="/">Voltar ao Portal</a>
+  </p>
+</footer>
+
+</body>
+</html>

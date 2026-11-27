@@ -4,8 +4,8 @@ import 'papel.dart';
 
 /// A section of the guild panel's menu-hub.
 ///
-/// `jogadores` is the only one that is actually built; the other two are
-/// placeholders so the menu already shows the shape of the panel — the same
+/// `jogadores` and `salaGuerras` are built; `financeiro` is still a
+/// placeholder so the menu already shows the shape of the panel — the same
 /// idea as the home's `Tool` with a null route, dimmed and labelled *em
 /// breve*.
 enum SecaoGuild {
@@ -21,7 +21,7 @@ enum SecaoGuild {
 
   String get subtitulo => switch (this) {
     SecaoGuild.jogadores => 'Quem está na guilda, e a ficha de cada um',
-    SecaoGuild.salaGuerras => 'Em breve',
+    SecaoGuild.salaGuerras => 'Monta os pts',
     SecaoGuild.financeiro => 'Em breve',
   };
 
@@ -31,9 +31,10 @@ enum SecaoGuild {
     SecaoGuild.financeiro => Icons.account_balance_wallet,
   };
 
-  /// Whether this section is built. `salaGuerras` and `financeiro` draw
-  /// dimmed and do not navigate while this is false.
-  bool get pronta => this == SecaoGuild.jogadores;
+  /// Whether this section is built. `financeiro` draws dimmed and does not
+  /// navigate while this is false.
+  bool get pronta =>
+      this == SecaoGuild.jogadores || this == SecaoGuild.salaGuerras;
 
   /// Whether `papel` may see this card at all — a card that is not visible
   /// for a role is omitted, never drawn disabled, which is the distinction a

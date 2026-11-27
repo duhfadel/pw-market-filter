@@ -39,8 +39,9 @@ String _rotuloSalvo(DateTime? salvoEm) {
 }
 
 /// The war room: the roster not yet placed on one side, the pts on the
-/// other. Tap and button only here — dragging a chip between the two is the
-/// next task, not this one.
+/// other. A chip moves between the two by its grab handle
+/// (`ChipJogador`'s `_Pega`): dragged onto a pt it calls `vm.mover(id, i)`,
+/// dragged onto the pool it calls `vm.mover(id, null)`.
 class SalaGuerrasView extends StatelessWidget {
   const SalaGuerrasView({super.key});
 
@@ -240,7 +241,10 @@ class _Pronta extends StatelessWidget {
 
 /// The left column: search plus the unplaced roster, as chips with no leader
 /// crown and no remove cross — there is nothing to toggle or send back from
-/// the pool itself.
+/// the pool itself. The whole column is a `DragTarget<String>`: dropping a
+/// dragged `jogadorId` here calls `vm.mover(id, null)`, which is simply
+/// "remove from every group" — there is no destination of its own to
+/// refuse, unlike a pt, which can be full.
 class _Disponiveis extends StatelessWidget {
   const _Disponiveis({
     required this.jogadores,
@@ -255,55 +259,67 @@ class _Disponiveis extends StatelessWidget {
   final ValueChanged<String> onBuscaChange;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      color: PWColors.painel,
-      borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: PWColors.filete),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Disponíveis ($total)',
-          style: const TextStyle(
-            color: PWColors.papel,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          key: const Key('busca_disponiveis'),
-          controller: controller,
-          onChanged: onBuscaChange,
-          style: const TextStyle(color: PWColors.papel),
-          decoration: const InputDecoration(
-            hintText: 'Buscar jogador…',
-            prefixIcon: Icon(Icons.search, color: PWColors.apagado),
-          ),
-        ),
-        const SizedBox(height: 10),
-        if (jogadores.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Text(
-              'Nenhum jogador disponível.',
-              style: TextStyle(color: PWColors.apagado, fontSize: 12),
+  Widget build(BuildContext context) {
+    final vm = context.read<SalaGuerrasViewModel>();
+    return DragTarget<String>(
+      onAcceptWithDetails: (details) => vm.mover(details.data, null),
+      builder: (context, candidatos, rejeitados) {
+        final recebendo = candidatos.isNotEmpty;
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: recebendo ? PWColors.surfaceRaised : PWColors.painel,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: recebendo ? PWColors.accent : PWColors.filete,
+              width: recebendo ? 2 : 1,
             ),
-          )
-        else
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              for (final j in jogadores)
-                ChipJogador(key: ValueKey('disp_${j.id}'), jogador: j),
+              Text(
+                'Disponíveis ($total)',
+                style: const TextStyle(
+                  color: PWColors.papel,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                key: const Key('busca_disponiveis'),
+                controller: controller,
+                onChanged: onBuscaChange,
+                style: const TextStyle(color: PWColors.papel),
+                decoration: const InputDecoration(
+                  hintText: 'Buscar jogador…',
+                  prefixIcon: Icon(Icons.search, color: PWColors.apagado),
+                ),
+              ),
+              const SizedBox(height: 10),
+              if (jogadores.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Text(
+                    'Nenhum jogador disponível.',
+                    style: TextStyle(color: PWColors.apagado, fontSize: 12),
+                  ),
+                )
+              else
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final j in jogadores)
+                      ChipJogador(key: ValueKey('disp_${j.id}'), jogador: j),
+                  ],
+                ),
             ],
           ),
-      ],
-    ),
-  );
+        );
+      },
+    );
+  }
 }
 
 /// The right column: every pt plus the "+ nova pt" card, both the same

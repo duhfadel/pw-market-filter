@@ -8,10 +8,14 @@ import '../../../domain/jogador.dart';
 /// A player as a small chip — the unit the war room moves around, both in
 /// the pool of unplaced players and inside a group's body.
 ///
-/// The grab handle (`⠿`) is drawn on every chip and is purely visual for
-/// now: drag itself is the next task, and the handle's presence is what
-/// tells a staff member a chip is meant to be picked up at all, so it does
-/// not wait for a drag target to exist before showing.
+/// The grab handle (`⠿`) is drawn on every chip and is the one thing that
+/// drags — see `_Pega` below, which mirrors
+/// `instancias/ui/widgets/tabela_de_instancias.dart`'s `_PegaArrasto`: a
+/// dedicated, small, immediate `Draggable`, never the whole chip. Grabbing a
+/// tiny handle at the chip's edge does not steal the page's vertical scroll
+/// the way dragging the whole row would, which is why no long-press gate is
+/// needed here either — the same call the instance table already made and
+/// `CLAUDE.md` records.
 ///
 /// [lider] and the two callbacks travel together — a chip inside a group
 /// gets a crown to toggle leadership and a cross to send the player back to
@@ -61,10 +65,7 @@ class ChipJogador extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            '⠿',
-            style: TextStyle(color: PWColors.apagado, fontSize: 13),
-          ),
+          _Pega(jogador: jogador),
           const SizedBox(width: 6),
           if (occu != null) ...[
             ClassIcon(occu, size: 20),
@@ -104,6 +105,80 @@ class ChipJogador extends StatelessWidget {
               tooltip: 'Tirar da pt',
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// The `⠿` handle — the only part of a chip that starts a drag.
+///
+/// `Draggable` and not `LongPressDraggable`, mirroring the instance table's
+/// own `_PegaArrasto`: the handle is a small, dedicated target, so grabbing
+/// it does not fight a finger's vertical scroll the way an immediate drag
+/// over the whole chip would. The rest of the chip — name, crown, cross —
+/// stays a plain tap.
+class _Pega extends StatelessWidget {
+  const _Pega({required this.jogador});
+
+  final Jogador jogador;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: 'Arraste para mover',
+    child: MouseRegion(
+      cursor: SystemMouseCursors.grab,
+      child: Draggable<String>(
+        data: jogador.id,
+        dragAnchorStrategy: pointerDragAnchorStrategy,
+        feedback: _Fantasma(jogador: jogador),
+        // The handle fades at its own spot while a copy of it flies with
+        // the pointer — the same signal the instance table's pega gives.
+        childWhenDragging: Opacity(opacity: 0.2, child: _glifo()),
+        child: _glifo(),
+      ),
+    ),
+  );
+
+  Widget _glifo() => const Padding(
+    padding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+    child: Text('⠿', style: TextStyle(color: PWColors.apagado, fontSize: 13)),
+  );
+}
+
+/// What flies with the pointer during a drag — a small, self-contained copy
+/// of the chip's identity, never sized by (or sizing) the row it came from:
+/// `feedback` paints in the overlay, outside any `Row`'s constraints.
+class _Fantasma extends StatelessWidget {
+  const _Fantasma({required this.jogador});
+
+  final Jogador jogador;
+
+  @override
+  Widget build(BuildContext context) {
+    final classe = jogador.classe;
+    final occu = classe == null ? null : ocupacaoDaClasse[classe];
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: PWColors.elevado,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: PWColors.accent),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (occu != null) ...[
+              ClassIcon(occu, size: 20),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              jogador.nome,
+              style: const TextStyle(color: PWColors.papel, fontSize: 13),
+            ),
+          ],
+        ),
       ),
     );
   }

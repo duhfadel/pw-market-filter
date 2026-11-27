@@ -32,9 +32,12 @@ Color _corDeHex(String hex) {
   return valor == null ? PWColors.apagado : Color(0xFF000000 | valor);
 }
 
-/// One party's card: its name, colour, member count and roster — tap-only
-/// for now, drag lands in the next task. `grupoIndex` is this group's
-/// position in `FormacaoGuerra.grupos`, which is what every call back into
+/// One party's card: its name, colour, member count and roster. The whole
+/// card is a `DragTarget<String>` for a dragged `jogadorId` — see
+/// `ChipJogador`'s `_Pega` — and highlights while a drag that could land
+/// here is overhead, the same cue `tabela_de_instancias.dart`'s group
+/// target gives. `grupoIndex` is this group's position in
+/// `FormacaoGuerra.grupos`, which is what every call back into
 /// [SalaGuerrasViewModel] is keyed on.
 class CartaoPt extends StatelessWidget {
   const CartaoPt({
@@ -56,89 +59,110 @@ class CartaoPt extends StatelessWidget {
     final vm = context.read<SalaGuerrasViewModel>();
     final cor = _corDeHex(grupo.cor);
 
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: PWColors.painel,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: PWColors.filete),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return DragTarget<String>(
+      // A full group refuses a newcomer — but a member already sitting in
+      // it is not a newcomer, so dropping someone back onto their own full
+      // group is a no-op, never a rejection. `FormacaoGuerra.moverMembro`
+      // would also no-op that case on its own, but doing it here as well
+      // means the drop never flashes "refused" over a group a member is
+      // already standing in.
+      onWillAcceptWithDetails: (details) =>
+          !grupo.cheio || grupo.membros.any((m) => m.jogadorId == details.data),
+      onAcceptWithDetails: (details) => vm.mover(details.data, grupoIndex),
+      builder: (context, candidatos, rejeitados) {
+        final recebendo = candidatos.isNotEmpty;
+        return Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: recebendo ? PWColors.surfaceRaised : PWColors.painel,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: recebendo ? PWColors.accent : PWColors.filete,
+              width: recebendo ? 2 : 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _Swatch(
-                key: ValueKey('swatch_pt_$grupoIndex'),
-                cor: cor,
-                onTap: () => _abrirPaleta(context, vm),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  grupo.nome,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  style: const TextStyle(
-                    color: PWColors.papel,
-                    fontWeight: FontWeight.w600,
+              Row(
+                children: [
+                  _Swatch(
+                    key: ValueKey('swatch_pt_$grupoIndex'),
+                    cor: cor,
+                    onTap: () => _abrirPaleta(context, vm),
                   ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      grupo.nome,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: const TextStyle(
+                        color: PWColors.papel,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  _IconeBotao(
+                    icon: Icons.edit_outlined,
+                    cor: PWColors.apagado,
+                    tooltip: 'Renomear',
+                    onTap: () => _abrirRenomear(context, vm),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${grupo.membros.length}/${FormacaoGuerra.maxMembros}',
+                    style: const TextStyle(
+                      color: PWColors.apagado,
+                      fontSize: 12,
+                    ),
+                  ),
+                  _IconeBotao(
+                    icon: Icons.delete_outline,
+                    cor: PWColors.danger,
+                    tooltip: 'Remover pt',
+                    onTap: () => vm.removerPt(grupoIndex),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              if (grupo.membros.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(
+                    child: Text(
+                      'Arraste jogadores para cá.',
+                      style: TextStyle(color: PWColors.apagado, fontSize: 12),
+                    ),
+                  ),
+                )
+              else
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final m in grupo.membros)
+                      // A member id with no matching Jogador is never drawn
+                      // — `FormacaoGuerra.podada` already prunes this on
+                      // load, but a card that trusted the id blindly would
+                      // crash the one time the two disagree instead of just
+                      // skipping a chip.
+                      if (jogadoresPorId[m.jogadorId] case final j?)
+                        ChipJogador(
+                          key: ValueKey('membro_${grupoIndex}_${m.jogadorId}'),
+                          jogador: j,
+                          corGrupo: cor,
+                          lider: m.lider,
+                          onAlternarLider: () =>
+                              vm.alternarLider(grupoIndex, m.jogadorId),
+                          onRemover: () => vm.mover(m.jogadorId, null),
+                        ),
+                  ],
                 ),
-              ),
-              _IconeBotao(
-                icon: Icons.edit_outlined,
-                cor: PWColors.apagado,
-                tooltip: 'Renomear',
-                onTap: () => _abrirRenomear(context, vm),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                '${grupo.membros.length}/${FormacaoGuerra.maxMembros}',
-                style: const TextStyle(color: PWColors.apagado, fontSize: 12),
-              ),
-              _IconeBotao(
-                icon: Icons.delete_outline,
-                cor: PWColors.danger,
-                tooltip: 'Remover pt',
-                onTap: () => vm.removerPt(grupoIndex),
-              ),
             ],
           ),
-          const SizedBox(height: 10),
-          if (grupo.membros.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(
-                child: Text(
-                  'Arraste jogadores para cá.',
-                  style: TextStyle(color: PWColors.apagado, fontSize: 12),
-                ),
-              ),
-            )
-          else
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                for (final m in grupo.membros)
-                  // A member id with no matching Jogador is never drawn —
-                  // `FormacaoGuerra.podada` already prunes this on load, but
-                  // a card that trusted the id blindly would crash the one
-                  // time the two disagree instead of just skipping a chip.
-                  if (jogadoresPorId[m.jogadorId] case final j?)
-                    ChipJogador(
-                      key: ValueKey('membro_${grupoIndex}_${m.jogadorId}'),
-                      jogador: j,
-                      corGrupo: cor,
-                      lider: m.lider,
-                      onAlternarLider: () =>
-                          vm.alternarLider(grupoIndex, m.jogadorId),
-                      onRemover: () => vm.mover(m.jogadorId, null),
-                    ),
-              ],
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 

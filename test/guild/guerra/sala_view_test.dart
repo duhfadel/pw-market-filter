@@ -13,6 +13,7 @@ import 'package:pw_market_filter/features/guild/domain/guerra/membro_guerra.dart
 import 'package:pw_market_filter/features/guild/domain/jogador.dart';
 import 'package:pw_market_filter/features/guild/ui/guerra/sala_view.dart';
 import 'package:pw_market_filter/features/guild/ui/guerra/sala_view_model.dart';
+import 'package:pw_market_filter/features/guild/ui/guerra/widgets/chip_jogador.dart';
 
 import '../../support/load_fonts.dart';
 
@@ -360,5 +361,112 @@ void main() {
 
     final context = tester.element(find.byType(Scaffold));
     expect(context.read<SalaGuerrasViewModel>(), isA<SalaGuerrasViewModel>());
+  });
+
+  /// Drags the named player's handle (`⠿`) from wherever it currently sits
+  /// to `destino`, one step at a time — mirroring
+  /// `instancias_view_test.dart`'s own "arrastar um personagem" drag, since
+  /// this screen's `_Pega` is the same `Draggable` shape.
+  Future<void> arrastar(
+    WidgetTester tester,
+    String jogador,
+    Offset destino,
+  ) async {
+    final chip = find.ancestor(
+      of: find.text(jogador),
+      matching: find.byType(ChipJogador),
+    );
+    final pega = tester.getCenter(
+      find.descendant(of: chip, matching: find.text('⠿')),
+    );
+    final gesto = await tester.startGesture(pega);
+    await tester.pump();
+    for (var i = 1; i <= 8; i++) {
+      await gesto.moveTo(Offset.lerp(pega, destino, i / 8)!);
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await gesto.up();
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('dragging a pool chip onto a pt by its handle places them', (
+    tester,
+  ) async {
+    _registrar(
+      _FakeFormacaoRepository(formacaoComUmMembro()),
+      _FakeJogadoresRepository(jogadores()),
+    );
+
+    await tester.pumpWidget(const MaterialApp(home: SalaGuerrasView()));
+    await tester.pumpAndSettle();
+
+    final alvo = tester.getCenter(find.text('Pt 1'));
+    await arrastar(tester, 'Bruno', alvo);
+
+    expect(find.text('2/10'), findsOneWidget);
+    expect(find.text('Disponíveis (0)'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('pt_0')),
+        matching: find.text('Bruno'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('dragging a member onto the pool by its handle removes them', (
+    tester,
+  ) async {
+    _registrar(
+      _FakeFormacaoRepository(formacaoComUmMembro()),
+      _FakeJogadoresRepository(jogadores()),
+    );
+
+    await tester.pumpWidget(const MaterialApp(home: SalaGuerrasView()));
+    await tester.pumpAndSettle();
+
+    final alvo = tester.getCenter(find.text('Disponíveis (1)'));
+    await arrastar(tester, 'Aaron', alvo);
+
+    expect(find.text('0/10'), findsOneWidget);
+    expect(find.text('Disponíveis (2)'), findsOneWidget);
+    expect(find.text('Arraste jogadores para cá.'), findsOneWidget);
+  });
+
+  testWidgets('dropping onto a full pt does not move the dragged player', (
+    tester,
+  ) async {
+    final cheios = [
+      for (var i = 0; i < 10; i++) _jogador('m$i', 'Membro $i'),
+      _jogador('extra', 'Extra'),
+    ];
+    final formacao = FormacaoGuerra(
+      grupos: [
+        GrupoGuerra(
+          nome: 'Pt 1',
+          cor: '#56A8F5',
+          membros: [
+            for (var i = 0; i < 10; i++) MembroGuerra(jogadorId: 'm$i'),
+          ],
+        ),
+      ],
+    );
+    _registrar(
+      _FakeFormacaoRepository(formacao),
+      _FakeJogadoresRepository(cheios),
+    );
+
+    await tester.pumpWidget(const MaterialApp(home: SalaGuerrasView()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('10/10'), findsOneWidget);
+    expect(find.text('Disponíveis (1)'), findsOneWidget);
+
+    final alvo = tester.getCenter(find.text('Pt 1'));
+    await arrastar(tester, 'Extra', alvo);
+
+    // The full group refused the drop — nothing moved.
+    expect(find.text('10/10'), findsOneWidget);
+    expect(find.text('Disponíveis (1)'), findsOneWidget);
   });
 }

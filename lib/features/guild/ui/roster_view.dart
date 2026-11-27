@@ -9,10 +9,21 @@ import '../../../market/ocupacoes.dart';
 import '../data/jogadores_repository.dart';
 import '../domain/jogador.dart';
 import '../domain/papel.dart';
+import 'detalhe_view.dart';
 import 'roster_filtro.dart';
 import 'roster_state.dart';
 import 'roster_view_model.dart';
 import 'widgets/jogador_form.dart';
+
+/// Opens [DetalheView] for one player. The guild panel has no named route
+/// for a player's detail yet — there is nothing here to bookmark or share,
+/// unlike the market's own criteria, which do get a URL — so a plain push
+/// is the right-sized tool.
+void _abrirDetalhe(BuildContext context, Jogador jogador) {
+  Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => DetalheView(jogador: jogador)));
+}
 
 /// The width below which the roster stops being a table and becomes a stack
 /// of cards — the same breakpoint `TabelaDeInstancias` uses for the same
@@ -38,7 +49,8 @@ class RosterView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BlocProvider(
-    create: (_) => RosterViewModel(getIt<JogadoresRepository>(), papel)..carregar(),
+    create: (_) =>
+        RosterViewModel(getIt<JogadoresRepository>(), papel)..carregar(),
     child: _Tela(onSair: onSair),
   );
 }
@@ -63,7 +75,9 @@ class _Tela extends StatelessWidget {
             : [
                 TextButton(
                   onPressed: onSair,
-                  style: TextButton.styleFrom(foregroundColor: PWColors.textMuted),
+                  style: TextButton.styleFrom(
+                    foregroundColor: PWColors.textMuted,
+                  ),
                   child: const Text('Sair'),
                 ),
               ],
@@ -102,8 +116,12 @@ class _Pronto extends StatelessWidget {
       for (final j in state.jogadores)
         if (j.classe != null) j.classe!,
     };
-    final conhecidas = [for (final c in classesDoJogo) if (presentes.contains(c)) c];
-    final desconhecidas = presentes.difference(conhecidas.toSet()).toList()..sort();
+    final conhecidas = [
+      for (final c in classesDoJogo)
+        if (presentes.contains(c)) c,
+    ];
+    final desconhecidas = presentes.difference(conhecidas.toSet()).toList()
+      ..sort();
     return [...conhecidas, ...desconhecidas];
   }
 
@@ -228,10 +246,13 @@ class _ChipsDeClasse extends StatelessWidget {
                 ? ClassIcon(ocupacaoDaClasse[classe]!, size: 18)
                 : null,
             selected: atual == classe,
-            onSelected: (selecionado) => vm.setClasse(selecionado ? classe : null),
+            onSelected: (selecionado) =>
+                vm.setClasse(selecionado ? classe : null),
             selectedColor: PWColors.violeta,
             backgroundColor: PWColors.elevado,
-            labelStyle: TextStyle(color: atual == classe ? PWColors.papel : PWColors.textMuted),
+            labelStyle: TextStyle(
+              color: atual == classe ? PWColors.papel : PWColors.textMuted,
+            ),
           ),
       ],
     );
@@ -257,10 +278,13 @@ class _ChipsDeStatus extends StatelessWidget {
           FilterChip(
             label: Text(_rotuloStatus(status)),
             selected: atual == status,
-            onSelected: (selecionado) => vm.setStatus(selecionado ? status : null),
+            onSelected: (selecionado) =>
+                vm.setStatus(selecionado ? status : null),
             selectedColor: _corStatus(status),
             backgroundColor: PWColors.elevado,
-            labelStyle: TextStyle(color: atual == status ? PWColors.noite : PWColors.textMuted),
+            labelStyle: TextStyle(
+              color: atual == status ? PWColors.noite : PWColors.textMuted,
+            ),
           ),
       ],
     );
@@ -384,7 +408,8 @@ class _CabecalhoTabela extends StatelessWidget {
     final vm = context.read<RosterViewModel>();
     final ordem = vm.filtro.ordem;
 
-    void alternar(OrdemColuna coluna) => vm.setOrdem(ordem == coluna ? null : coluna);
+    void alternar(OrdemColuna coluna) =>
+        vm.setOrdem(ordem == coluna ? null : coluna);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -425,7 +450,10 @@ class _CabecalhoTabela extends StatelessWidget {
             ),
           ),
           const SizedBox(width: _colStatus, child: _TextoCabecalho('Status')),
-          const SizedBox(width: _colAtualizado, child: _TextoCabecalho('Atualizado')),
+          const SizedBox(
+            width: _colAtualizado,
+            child: _TextoCabecalho('Atualizado'),
+          ),
         ],
       ),
     );
@@ -440,7 +468,11 @@ class _TextoCabecalho extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
     texto,
-    style: const TextStyle(color: PWColors.apagado, fontSize: 12, fontWeight: FontWeight.w600),
+    style: const TextStyle(
+      color: PWColors.apagado,
+      fontSize: 12,
+      fontWeight: FontWeight.w600,
+    ),
   );
 }
 
@@ -449,7 +481,11 @@ class _TextoCabecalho extends StatelessWidget {
 /// since there is no ascending direction to reverse into (see
 /// `RosterFiltro`).
 class _CabecalhoOrdenavel extends StatelessWidget {
-  const _CabecalhoOrdenavel(this.texto, {required this.ativo, required this.onTap});
+  const _CabecalhoOrdenavel(
+    this.texto, {
+    required this.ativo,
+    required this.onTap,
+  });
 
   final String texto;
   final bool ativo;
@@ -485,29 +521,44 @@ class _LinhaJogador extends StatelessWidget {
   final Jogador jogador;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 10),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            SizedBox(width: _colJogador, child: _IdentidadeJogador(jogador)),
-            SizedBox(width: _colLimite, child: _CelulaTexto(jogador.limite)),
-            SizedBox(width: _colNivelAtaque, child: _CelulaNumero(jogador.nivelAtaque)),
-            SizedBox(width: _colHp, child: _CelulaNumero(jogador.hp)),
-            SizedBox(width: _colNivelDefesa, child: _CelulaNumero(jogador.nivelDefesa)),
-            SizedBox(width: _colCritico, child: _CelulaTexto(jogador.critico)),
-            SizedBox(width: _colStatus, child: _StatusChip(jogador.status)),
-            SizedBox(width: _colAtualizado, child: _CelulaAtualizado(jogador.atualizadoEm)),
-          ],
-        ),
-        if (jogador.aRevisar && jogador.nota != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 6, left: 2),
-            child: _NotaRevisao(jogador.nota!),
+  Widget build(BuildContext context) => InkWell(
+    onTap: () => _abrirDetalhe(context, jogador),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              SizedBox(width: _colJogador, child: _IdentidadeJogador(jogador)),
+              SizedBox(width: _colLimite, child: _CelulaTexto(jogador.limite)),
+              SizedBox(
+                width: _colNivelAtaque,
+                child: _CelulaNumero(jogador.nivelAtaque),
+              ),
+              SizedBox(width: _colHp, child: _CelulaNumero(jogador.hp)),
+              SizedBox(
+                width: _colNivelDefesa,
+                child: _CelulaNumero(jogador.nivelDefesa),
+              ),
+              SizedBox(
+                width: _colCritico,
+                child: _CelulaTexto(jogador.critico),
+              ),
+              SizedBox(width: _colStatus, child: _StatusChip(jogador.status)),
+              SizedBox(
+                width: _colAtualizado,
+                child: _CelulaAtualizado(jogador.atualizadoEm),
+              ),
+            ],
           ),
-      ],
+          if (jogador.aRevisar && jogador.nota != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 6, left: 2),
+              child: _NotaRevisao(jogador.nota!),
+            ),
+        ],
+      ),
     ),
   );
 }
@@ -519,10 +570,15 @@ class _IdentidadeJogador extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ocupacao = jogador.classe == null ? null : ocupacaoDaClasse[jogador.classe];
+    final ocupacao = jogador.classe == null
+        ? null
+        : ocupacaoDaClasse[jogador.classe];
     return Row(
       children: [
-        if (ocupacao != null) ...[ClassIcon(ocupacao, size: 28), const SizedBox(width: 8)],
+        if (ocupacao != null) ...[
+          ClassIcon(ocupacao, size: 28),
+          const SizedBox(width: 8),
+        ],
         Expanded(
           child: Text(
             jogador.nome,
@@ -543,7 +599,10 @@ class _CelulaTexto extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
     texto ?? '—',
-    style: TextStyle(color: texto == null ? PWColors.apagado : PWColors.papel, fontSize: 13),
+    style: TextStyle(
+      color: texto == null ? PWColors.apagado : PWColors.papel,
+      fontSize: 13,
+    ),
   );
 }
 
@@ -555,7 +614,10 @@ class _CelulaNumero extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
     valor?.toString() ?? '—',
-    style: TextStyle(color: valor == null ? PWColors.apagado : PWColors.papel, fontSize: 13),
+    style: TextStyle(
+      color: valor == null ? PWColors.apagado : PWColors.papel,
+      fontSize: 13,
+    ),
   );
 }
 
@@ -567,7 +629,10 @@ class _CelulaAtualizado extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rotulo = _rotuloAtualizado(data);
-    return Text(rotulo ?? '—', style: const TextStyle(color: PWColors.apagado, fontSize: 12));
+    return Text(
+      rotulo ?? '—',
+      style: const TextStyle(color: PWColors.apagado, fontSize: 12),
+    );
   }
 }
 
@@ -582,7 +647,12 @@ class _NotaRevisao extends StatelessWidget {
     children: [
       const Icon(Icons.flag_outlined, size: 14, color: PWColors.danger),
       const SizedBox(width: 6),
-      Expanded(child: Text(nota, style: const TextStyle(color: PWColors.danger, fontSize: 12))),
+      Expanded(
+        child: Text(
+          nota,
+          style: const TextStyle(color: PWColors.danger, fontSize: 12),
+        ),
+      ),
     ],
   );
 }
@@ -610,90 +680,123 @@ class _CartaoJogador extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ocupacao = jogador.classe == null ? null : ocupacaoDaClasse[jogador.classe];
+    final ocupacao = jogador.classe == null
+        ? null
+        : ocupacaoDaClasse[jogador.classe];
     final rotuloAtualizado = _rotuloAtualizado(jogador.atualizadoEm);
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: PWColors.elevado,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _abrirDetalhe(context, jogador),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: PWColors.filete),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              if (ocupacao != null) ...[ClassIcon(ocupacao, size: 32), const SizedBox(width: 10)],
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      jogador.nome,
-                      style: const TextStyle(
-                        color: PWColors.papel,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (jogador.classe != null || jogador.limite != null)
-                      Text(
-                        [
-                          if (jogador.classe != null) jogador.classe!,
-                          if (jogador.limite != null) jogador.limite!,
-                        ].join(' · '),
-                        style: const TextStyle(color: PWColors.textMuted, fontSize: 12),
-                      ),
-                  ],
-                ),
-              ),
-              _StatusChip(jogador.status),
-            ],
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: PWColors.elevado,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: PWColors.filete),
           ),
-          const SizedBox(height: 10),
-          if (jogador.nivelAtaque != null)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: PWColors.noite,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  const Text(
-                    'Nível de Ataque',
-                    style: TextStyle(color: PWColors.textMuted, fontSize: 12),
-                  ),
-                  const Spacer(),
-                  Text(
-                    '${jogador.nivelAtaque}',
-                    style: const TextStyle(
-                      color: PWColors.accent,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
+                  if (ocupacao != null) ...[
+                    ClassIcon(ocupacao, size: 32),
+                    const SizedBox(width: 10),
+                  ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          jogador.nome,
+                          style: const TextStyle(
+                            color: PWColors.papel,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (jogador.classe != null || jogador.limite != null)
+                          Text(
+                            [
+                              if (jogador.classe != null) jogador.classe!,
+                              if (jogador.limite != null) jogador.limite!,
+                            ].join(' · '),
+                            style: const TextStyle(
+                              color: PWColors.textMuted,
+                              fontSize: 12,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
+                  _StatusChip(jogador.status),
                 ],
               ),
-            ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 14,
-            runSpacing: 4,
-            children: [
-              _FichaSecundaria('HP', jogador.hp?.toString()),
-              _FichaSecundaria('Nv. Defesa', jogador.nivelDefesa?.toString()),
-              _FichaSecundaria('Crítico', jogador.critico),
-              if (rotuloAtualizado != null)
-                Text(rotuloAtualizado, style: const TextStyle(color: PWColors.apagado, fontSize: 11)),
+              const SizedBox(height: 10),
+              if (jogador.nivelAtaque != null)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: PWColors.noite,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Text(
+                        'Nível de Ataque',
+                        style: TextStyle(
+                          color: PWColors.textMuted,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${jogador.nivelAtaque}',
+                        style: const TextStyle(
+                          color: PWColors.accent,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 14,
+                runSpacing: 4,
+                children: [
+                  _FichaSecundaria('HP', jogador.hp?.toString()),
+                  _FichaSecundaria(
+                    'Nv. Defesa',
+                    jogador.nivelDefesa?.toString(),
+                  ),
+                  _FichaSecundaria('Crítico', jogador.critico),
+                  if (rotuloAtualizado != null)
+                    Text(
+                      rotuloAtualizado,
+                      style: const TextStyle(
+                        color: PWColors.apagado,
+                        fontSize: 11,
+                      ),
+                    ),
+                ],
+              ),
+              if (jogador.aRevisar && jogador.nota != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: _NotaRevisao(jogador.nota!),
+                ),
             ],
           ),
-          if (jogador.aRevisar && jogador.nota != null)
-            Padding(padding: const EdgeInsets.only(top: 8), child: _NotaRevisao(jogador.nota!)),
-        ],
+        ),
       ),
     );
   }
@@ -713,8 +816,14 @@ class _FichaSecundaria extends StatelessWidget {
     return Text.rich(
       TextSpan(
         children: [
-          TextSpan(text: '$rotulo ', style: const TextStyle(color: PWColors.apagado)),
-          TextSpan(text: valor, style: const TextStyle(color: PWColors.papel)),
+          TextSpan(
+            text: '$rotulo ',
+            style: const TextStyle(color: PWColors.apagado),
+          ),
+          TextSpan(
+            text: valor,
+            style: const TextStyle(color: PWColors.papel),
+          ),
         ],
       ),
       style: const TextStyle(fontSize: 12),

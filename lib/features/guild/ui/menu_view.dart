@@ -5,14 +5,13 @@ import '../../../core/theme/pw_colors.dart';
 import '../../../core/theme/pw_theme.dart';
 import '../domain/papel.dart';
 import '../domain/secao_guild.dart';
+import 'financeiro/fin_view.dart';
 import 'guerra/sala_view.dart';
 import 'roster_view.dart';
 
 /// `/newageguild`'s menu-hub: one card per [SecaoGuild] the signed-in [papel]
-/// may see. *Jogadores* and *Sala de Guerras* are built; *Financeiro* draws
-/// dimmed, labelled *em breve*, and never navigates — the same idea the
-/// home's `Tool` already uses for a tool with no route yet, so the panel
-/// shows its own shape from the start.
+/// may see. All three — *Jogadores*, *Sala de Guerras* and *Financeiro* —
+/// are built and navigate on tap.
 class MenuView extends StatelessWidget {
   const MenuView({required this.papel, this.onSair, super.key});
 
@@ -117,9 +116,9 @@ class _CartaoSecao extends StatelessWidget {
           context,
         ).push(MaterialPageRoute(builder: (_) => const SalaGuerrasView()));
       case SecaoGuild.financeiro:
-        // Not built yet — `pronta` is false and `onTap` is null, so this is
-        // never reached.
-        break;
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const FinanceiroView()));
     }
   }
 

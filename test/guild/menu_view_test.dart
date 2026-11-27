@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/core/di/injection.dart';
 import 'package:pw_market_filter/core/result/result.dart';
+import 'package:pw_market_filter/features/guild/data/financeiro_repository.dart';
 import 'package:pw_market_filter/features/guild/data/formacao_repository.dart';
 import 'package:pw_market_filter/features/guild/data/jogadores_repository.dart';
+import 'package:pw_market_filter/features/guild/domain/financeiro/lancamento.dart';
 import 'package:pw_market_filter/features/guild/domain/guerra/formacao_guerra.dart';
 import 'package:pw_market_filter/features/guild/domain/jogador.dart';
 import 'package:pw_market_filter/features/guild/domain/papel.dart';
+import 'package:pw_market_filter/features/guild/ui/financeiro/fin_view_model.dart';
 import 'package:pw_market_filter/features/guild/ui/guerra/sala_view_model.dart';
 import 'package:pw_market_filter/features/guild/ui/menu_view.dart';
 
@@ -42,6 +45,17 @@ class _FakeJogadoresRepository implements JogadoresRepository {
       const Success<void>(null);
 }
 
+class _FakeFinanceiroRepository implements FinanceiroRepository {
+  @override
+  Future<Result<List<Lancamento>>> lista() async => const Success([]);
+
+  @override
+  Future<Result<void>> adicionar(Lancamento l) async => const Success<void>(null);
+
+  @override
+  Future<Result<void>> remover(String id) async => const Success<void>(null);
+}
+
 void main() {
   Future<void> montar(WidgetTester tester, Papel papel) async {
     await tester.pumpWidget(MaterialApp(home: MenuView(papel: papel)));
@@ -49,13 +63,20 @@ void main() {
   }
 
   setUp(() {
-    // The sala card now navigates for real, which means `SalaGuerrasView`
-    // resolves its view model out of `getIt` exactly as production does —
-    // so a fake has to stand in for the two repositories it needs, the
-    // same registration `guerra/sala_view_test.dart` makes.
+    // The sala and financeiro cards now navigate for real, which means
+    // their views resolve their view models out of `getIt` exactly as
+    // production does — so fakes have to stand in for every repository they
+    // need, the same registration `guerra/sala_view_test.dart` and
+    // `financeiro/fin_view_test.dart` make.
     getIt.registerFactory<SalaGuerrasViewModel>(
       () => SalaGuerrasViewModel(
         _FakeFormacaoRepository(),
+        _FakeJogadoresRepository(),
+      ),
+    );
+    getIt.registerFactory<FinanceiroViewModel>(
+      () => FinanceiroViewModel(
+        _FakeFinanceiroRepository(),
         _FakeJogadoresRepository(),
       ),
     );
@@ -64,6 +85,9 @@ void main() {
   tearDown(() {
     if (getIt.isRegistered<SalaGuerrasViewModel>()) {
       getIt.unregister<SalaGuerrasViewModel>();
+    }
+    if (getIt.isRegistered<FinanceiroViewModel>()) {
+      getIt.unregister<FinanceiroViewModel>();
     }
   });
 
@@ -95,7 +119,7 @@ void main() {
     },
   );
 
-  testWidgets('the sala card is no longer dimmed, unlike financeiro', (
+  testWidgets('the financeiro card is no longer dimmed, now that it is built', (
     tester,
   ) async {
     await montar(tester, Papel.admin);
@@ -103,7 +127,10 @@ void main() {
     final salaTitulo = tester.widget<Text>(find.text('Sala de Guerras'));
     final financeiroTitulo = tester.widget<Text>(find.text('Financeiro'));
 
-    expect(salaTitulo.style?.color, isNot(financeiroTitulo.style?.color));
+    // All three cards are `pronta` now, so the title color is the same one
+    // as every other built section's, not the dimmed `textMuted` the
+    // placeholder used to draw.
+    expect(financeiroTitulo.style?.color, salaTitulo.style?.color);
   });
 
   testWidgets('tapping the sala card pushes SalaGuerrasView', (tester) async {
@@ -118,7 +145,7 @@ void main() {
     expect(find.text('Disponíveis (0)'), findsOneWidget);
   });
 
-  testWidgets('tapping the financeiro card does nothing, it stays em breve', (
+  testWidgets('tapping the financeiro card pushes FinanceiroView', (
     tester,
   ) async {
     await montar(tester, Papel.admin);
@@ -126,8 +153,8 @@ void main() {
     await tester.tap(find.text('Financeiro'));
     await tester.pumpAndSettle();
 
-    // Still on the menu — no new screen's content appeared.
-    expect(find.text('Financeiro'), findsOneWidget);
-    expect(find.text('Em breve'), findsOneWidget);
+    // FinanceiroView's own content once loaded — distinct from the menu
+    // card's title just tapped, since the AppBar titles are the same word.
+    expect(find.text('Total da guild'), findsOneWidget);
   });
 }

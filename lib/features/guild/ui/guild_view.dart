@@ -7,7 +7,7 @@ import '../data/auth_repository.dart';
 import 'guild_estado.dart';
 import 'guild_view_model.dart';
 import 'login_view.dart';
-import 'roster_view.dart';
+import 'menu_view.dart';
 
 /// `/newageguild`, the guild panel's door: resolves whoever is reading into
 /// one of its four states and shows the screen that answers it.
@@ -29,8 +29,8 @@ class GuildView extends StatelessWidget {
                 child: CircularProgressIndicator(color: PWColors.accent),
               ),
             ),
-            // RosterView already brings its own Scaffold+AppBar; Sair becomes one of its actions.
-            GuildLogado(:final papel) => RosterView(
+            // MenuView already brings its own Scaffold+AppBar; Sair becomes one of its actions.
+            GuildLogado(:final papel) => MenuView(
               papel: papel,
               onSair: vm.sair,
             ),

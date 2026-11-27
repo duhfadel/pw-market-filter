@@ -1,11 +1,16 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/core/di/injection.dart';
 import 'package:pw_market_filter/core/result/result.dart';
 import 'package:pw_market_filter/features/guild/data/fichas_repository.dart';
+import 'package:pw_market_filter/features/guild/data/jogadores_repository.dart';
 import 'package:pw_market_filter/features/guild/domain/ficha.dart';
 import 'package:pw_market_filter/features/guild/domain/jogador.dart';
+import 'package:pw_market_filter/features/guild/domain/papel.dart';
 import 'package:pw_market_filter/features/guild/ui/detalhe_view.dart';
+import 'package:pw_market_filter/features/guild/ui/roster_view_model.dart';
 
 import '../support/load_fonts.dart';
 
@@ -16,6 +21,27 @@ class _FakeFichasRepository implements FichasRepository {
   @override
   Future<Result<List<Ficha>>> historico(String jogadorId) async =>
       Success(_historico);
+}
+
+class _FakeJogadoresRepository implements JogadoresRepository {
+  _FakeJogadoresRepository(this._lista);
+  final List<Jogador> _lista;
+
+  @override
+  Future<Result<List<Jogador>>> lista() async => Success(_lista);
+
+  @override
+  Future<Result<void>> criar(Jogador j) async => const Success<void>(null);
+
+  @override
+  Future<Result<String>> subirPrint(
+    Uint8List bytes,
+    String nomeArquivo,
+  ) async => Success(nomeArquivo);
+
+  @override
+  Future<Result<void>> editar(String id, Map<String, dynamic> campos) async =>
+      const Success<void>(null);
 }
 
 /// Fix round 1: `atual.dados[chave]` sat as an unconstrained `Text` beside
@@ -57,11 +83,15 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
 
+      final jogador = Jogador(id: '1', nome: 'Mozaum');
+      final vm = RosterViewModel(
+        _FakeJogadoresRepository([jogador]),
+        Papel.admin,
+      );
+
       await tester.pumpWidget(
         MaterialApp(
-          home: DetalheView(
-            jogador: Jogador(id: '1', nome: 'Mozaum'),
-          ),
+          home: DetalheView(jogador: jogador, papel: Papel.admin, vm: vm),
         ),
       );
       await tester.pumpAndSettle();
@@ -71,6 +101,41 @@ void main() {
       // test, so the assertion above is about the real row and not an
       // empty screen.
       expect(find.text('Crítico'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'a long nickname does not push the editar action off the app bar',
+    (tester) async {
+      getIt.registerLazySingleton<FichasRepository>(
+        () => _FakeFichasRepository(const []),
+      );
+
+      tester.view.physicalSize = const Size(360, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      final jogador = Jogador(
+        id: '1',
+        nome: 'umnomebembemlongoparaestourarabarra',
+      );
+      final vm = RosterViewModel(
+        _FakeJogadoresRepository([jogador]),
+        Papel.admin,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DetalheView(jogador: jogador, papel: Papel.admin, vm: vm),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      // The action only shows up because the name's own title made room —
+      // confirms the ellipsis fix actually did something, not that the
+      // button was simply absent.
+      expect(find.text('editar'), findsOneWidget);
     },
   );
 }

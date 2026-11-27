@@ -20,10 +20,22 @@ import 'widgets/jogador_form.dart';
 /// for a player's detail yet — there is nothing here to bookmark or share,
 /// unlike the market's own criteria, which do get a URL — so a plain push
 /// is the right-sized tool.
+///
+/// The same [RosterViewModel] this roster already runs on is handed down to
+/// the detail page, rather than it building a second one — editing there has
+/// to reload the one list this page reads from, not a disconnected copy of
+/// it. The role comes from that same model's loaded state; a state that is
+/// not [RosterPronto] cannot happen here, since a row only exists to tap once
+/// the roster has loaded.
 void _abrirDetalhe(BuildContext context, Jogador jogador) {
-  Navigator.of(
-    context,
-  ).push(MaterialPageRoute(builder: (_) => DetalheView(jogador: jogador)));
+  final vm = context.read<RosterViewModel>();
+  final s = vm.state;
+  final papel = s is RosterPronto ? s.papel : Papel.staffBasico;
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => DetalheView(jogador: jogador, papel: papel, vm: vm),
+    ),
+  );
 }
 
 /// The width below which the roster stops being a table and becomes a stack

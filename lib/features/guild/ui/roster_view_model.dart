@@ -33,7 +33,10 @@ class RosterViewModel extends Cubit<RosterState> {
   Future<void> carregar() async {
     emit(const RosterLoading());
     final r = await _repo.lista();
-    r.fold((lista) => emit(RosterPronto(lista, _papel)), (_) => emit(const RosterFalha()));
+    r.fold(
+      (lista) => emit(RosterPronto(lista, _papel)),
+      (_) => emit(const RosterFalha()),
+    );
   }
 
   void setBusca(String busca) => _atualizarFiltro(_filtro.comBusca(busca));
@@ -42,7 +45,8 @@ class RosterViewModel extends Cubit<RosterState> {
 
   void setStatus(String? status) => _atualizarFiltro(_filtro.comStatus(status));
 
-  void setOrdem(OrdemColuna? ordem) => _atualizarFiltro(_filtro.comOrdem(ordem));
+  void setOrdem(OrdemColuna? ordem) =>
+      _atualizarFiltro(_filtro.comOrdem(ordem));
 
   /// Re-emits the current state so `BlocBuilder` rebuilds — [_filtro] is
   /// applied by [jogadoresVisiveis] at read time, so the roster itself never
@@ -60,17 +64,58 @@ class RosterViewModel extends Cubit<RosterState> {
   /// [print], when given, is uploaded before the player is created — a
   /// player row with a print path nobody could upload would be an orphan
   /// pointing at nothing, so a failed upload never reaches `criar`.
-  Future<bool> adicionar(Jogador j, {Uint8List? print, String? nomeArquivo}) async {
+  Future<bool> adicionar(
+    Jogador j, {
+    Uint8List? print,
+    String? nomeArquivo,
+  }) async {
     if (!_papel.podeEditarJogadores) return false;
     if (print != null && print.length > _limiteBytes) return false;
     var dados = j;
     if (print != null) {
       final up = await _repo.subirPrint(print, nomeArquivo!);
       final caminho = up.fold((p) => p, (_) => null);
-      if (caminho == null) return false; // upload falhou: não cria órfão sem print
+      // upload falhou: não cria órfão sem print
+      if (caminho == null) return false;
       dados = j.comPrintUrl(caminho);
     }
     final r = await _repo.criar(dados);
+    final ok = r.fold((_) => true, (_) => false);
+    if (ok) await carregar();
+    return ok;
+  }
+
+  /// Hand correction: staff typed a stat directly instead of waiting for a
+  /// fresh print to be read. [campos] carries only what changed, by column
+  /// name — never the whole player, which would also resend an audit stamp
+  /// nobody asked to change.
+  Future<bool> editar(String id, Map<String, dynamic> campos) async {
+    if (!_papel.podeEditarJogadores) return false;
+    if (campos.isEmpty) return true; // nothing to save, nothing to reload
+    final r = await _repo.editar(id, campos);
+    final ok = r.fold((_) => true, (_) => false);
+    if (ok) await carregar();
+    return ok;
+  }
+
+  /// Re-transcription: a new print replaces the old one and the player goes
+  /// back to `pendente` until someone reads it — the same upload path
+  /// [adicionar] uses, except the id is preserved rather than a second row
+  /// being created.
+  Future<bool> trocarImagem(
+    String id,
+    Uint8List bytes,
+    String nomeArquivo,
+  ) async {
+    if (!_papel.podeEditarJogadores) return false;
+    if (bytes.length > _limiteBytes) return false;
+    final up = await _repo.subirPrint(bytes, nomeArquivo);
+    final caminho = up.fold((p) => p, (_) => null);
+    if (caminho == null) return false;
+    final r = await _repo.editar(id, {
+      'print_url': caminho,
+      'status': 'pendente',
+    });
     final ok = r.fold((_) => true, (_) => false);
     if (ok) await carregar();
     return ok;

@@ -10,10 +10,14 @@ import '../data/fichas_repository.dart';
 import '../domain/delta.dart';
 import '../domain/ficha.dart';
 import '../domain/jogador.dart';
+import '../domain/papel.dart';
 import '../domain/runa.dart';
 import 'detalhe_estado.dart';
 import 'detalhe_view_model.dart';
+import 'roster_state.dart';
+import 'roster_view_model.dart';
 import 'tempo.dart';
+import 'widgets/jogador_form.dart';
 
 /// Which `dados` keys show under each group heading, and the label each one
 /// prints — fixed here rather than derived from whatever a ficha happens to
@@ -56,20 +60,62 @@ const _camposOutros = [
 /// sheet, every stat grouped, and the rune loadout. Opened from a tap on a
 /// roster row.
 class DetalheView extends StatelessWidget {
-  const DetalheView({required this.jogador, super.key});
+  const DetalheView({
+    required this.jogador,
+    required this.papel,
+    required this.vm,
+    super.key,
+  });
 
   final Jogador jogador;
+
+  /// Gates the "editar" entry — the same `podeEditarJogadores` the roster
+  /// already uses to show or hide "Adicionar jogador", so a role that
+  /// cannot touch the list cannot touch one player's page either.
+  final Papel papel;
+
+  /// The roster's own view model, passed down rather than re-created, so
+  /// saving an edit here reloads the very list the visitor came from and
+  /// goes back to on their own, instead of a second, disconnected copy of
+  /// the roster's state.
+  final RosterViewModel vm;
 
   @override
   Widget build(BuildContext context) => BlocProvider(
     create: (_) =>
         DetalheViewModel(getIt<FichasRepository>(), jogador)..carregar(),
-    child: const _Tela(),
+    child: _Tela(papel: papel, vm: vm),
   );
 }
 
 class _Tela extends StatelessWidget {
-  const _Tela();
+  const _Tela({required this.papel, required this.vm});
+
+  final Papel papel;
+  final RosterViewModel vm;
+
+  /// Opens the edit dialog for [jogador] and, once it closes, pulls this
+  /// same player's freshly-reloaded row back out of [vm] — `editar` and
+  /// `trocarImagem` already call `carregar()` on save, so the roster behind
+  /// this page is never stale; this only refreshes what this page's own
+  /// header shows, since `DetalheViewModel` holds its own copy of the
+  /// player rather than reading the roster live.
+  Future<void> _abrirEdicao(BuildContext context, Jogador jogador) async {
+    final detalheVm = context.read<DetalheViewModel>();
+    await showDialog<void>(
+      context: context,
+      builder: (_) => JogadorForm(vm: vm, inicial: jogador),
+    );
+    final s = vm.state;
+    if (s is RosterPronto) {
+      for (final j in s.jogadores) {
+        if (j.id == jogador.id) {
+          detalheVm.atualizarJogador(j);
+          break;
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,12 +130,39 @@ class _Tela extends StatelessWidget {
               DetalheSemFicha(jogador: final j) => j.nome,
               _ => '',
             },
+            // The "editar" action now shares this bar with the name, so a
+            // long nickname on a narrow phone needs somewhere to give —
+            // never the action beside it.
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
             style: const TextStyle(
               fontFamily: PWTheme.display,
               color: PWColors.papel,
             ),
           ),
         ),
+        actions: !papel.podeEditarJogadores
+            ? null
+            : [
+                BlocBuilder<DetalheViewModel, DetalheEstado>(
+                  builder: (context, state) {
+                    final j = switch (state) {
+                      DetalhePronto(jogador: final j) => j,
+                      DetalheSemFicha(jogador: final j) => j,
+                      _ => null,
+                    };
+                    if (j == null) return const SizedBox.shrink();
+                    return TextButton.icon(
+                      onPressed: () => _abrirEdicao(context, j),
+                      style: TextButton.styleFrom(
+                        foregroundColor: PWColors.accent,
+                      ),
+                      icon: const Icon(Icons.edit_outlined, size: 16),
+                      label: const Text('editar'),
+                    );
+                  },
+                ),
+              ],
       ),
       body: BlocBuilder<DetalheViewModel, DetalheEstado>(
         builder: (context, state) => switch (state) {

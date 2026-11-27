@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 
 import '../../features/guild/data/auth_repository.dart';
+import '../../features/guild/data/fichas_repository.dart';
 import '../../features/guild/data/jogadores_repository.dart';
 import '../../features/home/data/ao_vivo_repository.dart';
 import '../../features/home/ui/ao_vivo_view_model.dart';
@@ -52,6 +53,7 @@ void configureDependencies() {
     ..registerLazySingleton<NovidadeRepository>(NovidadeRepository.new)
     ..registerLazySingleton<AuthRepository>(AuthRepository.new)
     ..registerLazySingleton<JogadoresRepository>(JogadoresRepository.new)
+    ..registerLazySingleton<FichasRepository>(FichasRepository.new)
     ..registerFactory<SearchViewModel>(
       () => SearchViewModel(getIt<IndexRepository>()),
     )

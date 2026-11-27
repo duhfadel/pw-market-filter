@@ -26,6 +26,10 @@ class _FakeRepo implements JogadoresRepository {
     subidos++;
     return Success(n);
   }
+
+  @override
+  Future<Result<void>> editar(String id, Map<String, dynamic> campos) async =>
+      const Success<void>(null);
 }
 
 void main() {

@@ -39,4 +39,15 @@ class JogadoresRepository {
       return const Failure(GuildFailure(GuildErro.upload));
     }
   }
+
+  /// Hand correction of a player's fields — a direct PATCH, no new print in
+  /// this round (see the spec's deferred decision).
+  Future<Result<void>> editar(String id, Map<String, dynamic> campos) async {
+    try {
+      await supa.from('jogadores').update(campos).eq('id', id);
+      return const Success<void>(null);
+    } catch (_) {
+      return const Failure(GuildFailure(GuildErro.salvar));
+    }
+  }
 }

@@ -23,3 +23,8 @@ create policy fichas_staff_write on public.fichas
   for all to authenticated
   using (papel_do(auth.uid()) in ('admin','staff_editor','staff_basico'))
   with check (papel_do(auth.uid()) in ('admin','staff_editor','staff_basico'));
+
+-- fast-follow (nome de quem atualizou): o app nao resolve uid->email de outro
+-- staff (RLS), entao o email vai denormalizado aqui quando a exibicao do autor
+-- entrar. Iteracao 2 mostra so a data; a coluna fica pronta.
+alter table public.jogadores add column if not exists atualizado_por_email text;

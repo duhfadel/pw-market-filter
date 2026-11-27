@@ -12,25 +12,38 @@ import 'package:pw_market_filter/features/guild/ui/guerra/sala_estado.dart';
 import 'package:pw_market_filter/features/guild/ui/guerra/sala_view_model.dart';
 
 class _FakeFormacaoRepository implements FormacaoRepository {
-  _FakeFormacaoRepository(this._formacao, {this.falhaAoSalvar = false});
+  _FakeFormacaoRepository(
+    this._formacao, {
+    this.falhaAoSalvar = false,
+    this.salvoEm,
+    this.salvoPorEmail,
+  });
   final FormacaoGuerra _formacao;
   final bool falhaAoSalvar;
+  final DateTime? salvoEm;
+  final String? salvoPorEmail;
   bool falhaAoCarregar = false;
   FormacaoGuerra? salva;
 
   @override
-  Future<Result<FormacaoGuerra>> carregar() async {
+  Future<Result<FormacaoCarregada>> carregar() async {
     if (falhaAoCarregar) {
       return const Failure(GuildFailure(GuildErro.carregar));
     }
-    return Success(_formacao);
+    return Success(
+      FormacaoCarregada(
+        _formacao,
+        salvoEm: salvoEm,
+        salvoPorEmail: salvoPorEmail,
+      ),
+    );
   }
 
   @override
-  Future<Result<void>> salvar(FormacaoGuerra f) async {
+  Future<Result<String?>> salvar(FormacaoGuerra f) async {
     if (falhaAoSalvar) return const Failure(GuildFailure(GuildErro.salvar));
     salva = f;
-    return const Success<void>(null);
+    return const Success('quemsalvou@guilda.com');
   }
 }
 
@@ -110,6 +123,25 @@ void main() {
 
       final s = vm.state as SalaPronta;
       expect(s.formacao.grupos.single.membros.map((m) => m.jogadorId), ['a']);
+    });
+
+    test('seeds salvoEm and salvoPorEmail from what the repository loaded, '
+        'not only from a local save', () async {
+      final quando = DateTime(2026, 11, 20, 18, 30);
+      final vm = SalaGuerrasViewModel(
+        _FakeFormacaoRepository(
+          _formacaoComUmGrupo(),
+          salvoEm: quando,
+          salvoPorEmail: 'colega@guilda.com',
+        ),
+        _FakeJogadoresRepository([_jogador('a')]),
+      );
+
+      await vm.carregar();
+
+      final s = vm.state as SalaPronta;
+      expect(s.salvoEm, quando);
+      expect(s.salvoPorEmail, 'colega@guilda.com');
     });
 
     test('a failure loading either side emits SalaFalha', () async {
@@ -214,17 +246,25 @@ void main() {
   });
 
   group('salvar', () {
-    test('on success re-emits SalaPronta with salvoEm set', () async {
-      final repo = _FakeFormacaoRepository(_formacaoComUmGrupo());
-      final vm = SalaGuerrasViewModel(repo, _FakeJogadoresRepository(const []));
-      await vm.carregar();
-      expect((vm.state as SalaPronta).salvoEm, isNull);
+    test(
+      'on success re-emits SalaPronta with salvoEm and salvoPorEmail set',
+      () async {
+        final repo = _FakeFormacaoRepository(_formacaoComUmGrupo());
+        final vm = SalaGuerrasViewModel(
+          repo,
+          _FakeJogadoresRepository(const []),
+        );
+        await vm.carregar();
+        expect((vm.state as SalaPronta).salvoEm, isNull);
 
-      await vm.salvar();
+        await vm.salvar();
 
-      expect((vm.state as SalaPronta).salvoEm, isNotNull);
-      expect(repo.salva, isNotNull);
-    });
+        final s = vm.state as SalaPronta;
+        expect(s.salvoEm, isNotNull);
+        expect(s.salvoPorEmail, 'quemsalvou@guilda.com');
+        expect(repo.salva, isNotNull);
+      },
+    );
 
     test(
       'on failure the error is surfaced on falhasSalvar, never swallowed',

@@ -24,13 +24,14 @@ class _FakeFormacaoRepository implements FormacaoRepository {
   FormacaoGuerra? salva;
 
   @override
-  Future<Result<FormacaoGuerra>> carregar() async => Success(_formacao);
+  Future<Result<FormacaoCarregada>> carregar() async =>
+      Success(FormacaoCarregada(_formacao));
 
   @override
-  Future<Result<void>> salvar(FormacaoGuerra f) async {
+  Future<Result<String?>> salvar(FormacaoGuerra f) async {
     if (falhaAoSalvar) return const Failure(GuildFailure(GuildErro.salvar));
     salva = f;
-    return const Success<void>(null);
+    return const Success(null);
   }
 }
 
@@ -202,7 +203,9 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('swatch_pt_0')));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('cor_#FF5C5C')));
+    // Lowercase — `PWColors.gradeHexes` is where the palette's hexes come
+    // from now, and `toHex` lowercases them.
+    await tester.tap(find.byKey(const ValueKey('cor_#ff5c5c')));
     await tester.pumpAndSettle();
 
     final crown = tester.widget<Text>(find.text('♛'));

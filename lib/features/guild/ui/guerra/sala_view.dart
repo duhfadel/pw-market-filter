@@ -21,21 +21,35 @@ import 'widgets/chip_jogador.dart';
 /// device category.
 const double _larguraDuasColunas = 760;
 
-/// Minimum width any pt card accepts before giving up and matching the
-/// available width instead — the guard that keeps a 300px card from
-/// overflowing a phone narrower than that.
+/// The pt column's width — both the pool column on the left and every pt
+/// card on the right in the wide layout, which is why `_Pronta` reads this
+/// constant for the left column instead of its own literal `300`: the two
+/// sides of the board are meant to line up, and a resize that touched only
+/// one would quietly break that. On the right it also doubles as the
+/// minimum before a card gives up and matches the available width instead,
+/// the guard that keeps a 300px card from overflowing a phone narrower than
+/// that.
 const double _larguraCartaoPt = 300;
 
-/// "salvo há N min" from [SalaPronta.salvoEm] — a finer grain than
-/// `rotuloAtualizado` in `tempo.dart` on purpose: that one tracks a sheet
-/// correction, read in days, while a board save happens minute to minute
-/// during a single editing session.
-String _rotuloSalvo(DateTime? salvoEm) {
+/// "salvo há N min · quem" from [SalaPronta.salvoEm] and
+/// [SalaPronta.salvoPorEmail] — a finer grain than `rotuloAtualizado` in
+/// `tempo.dart` on purpose: that one tracks a sheet correction, read in
+/// days, while a board save happens minute to minute during a single
+/// editing session. The author is appended only when known — both a save
+/// made before this column existed and one read back anonymously still owe
+/// nobody a name — and the label is what the author rides in on, since
+/// [salvoEm] is read from the server now and not only from this session's
+/// own save, so a teammate's save shows up here too.
+String _rotuloSalvo(DateTime? salvoEm, String? salvoPorEmail) {
   if (salvoEm == null) return 'ainda não salvo';
   final diff = DateTime.now().difference(salvoEm);
-  if (diff.inMinutes < 1) return 'salvo agora';
-  if (diff.inMinutes < 60) return 'salvo há ${diff.inMinutes} min';
-  return 'salvo há ${diff.inHours} h';
+  final quando = diff.inMinutes < 1
+      ? 'salvo agora'
+      : diff.inMinutes < 60
+      ? 'salvo há ${diff.inMinutes} min'
+      : 'salvo há ${diff.inHours} h';
+  if (salvoPorEmail == null || salvoPorEmail.isEmpty) return quando;
+  return '$quando · $salvoPorEmail';
 }
 
 /// The war room: the roster not yet placed on one side, the pts on the
@@ -154,9 +168,18 @@ class _BarraSalvar extends StatelessWidget {
       spacing: 12,
       runSpacing: 8,
       children: [
-        Text(
-          _rotuloSalvo(pronta?.salvoEm),
-          style: const TextStyle(color: PWColors.apagado, fontSize: 12),
+        // Bounded so a long institutional email ellipsizes instead of
+        // pushing the save button off a narrow screen — a `Wrap` gives each
+        // child its own intrinsic width, which for a bare `Text` is however
+        // long the string is.
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 240),
+          child: Text(
+            _rotuloSalvo(pronta?.salvoEm, pronta?.salvoPorEmail),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: const TextStyle(color: PWColors.apagado, fontSize: 12),
+          ),
         ),
         FilledButton.icon(
           onPressed: pronta == null ? null : vm.salvar,
@@ -220,7 +243,7 @@ class _Pronta extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(width: 300, child: esquerda),
+                SizedBox(width: _larguraCartaoPt, child: esquerda),
                 const SizedBox(width: 16),
                 Expanded(child: direita),
               ],

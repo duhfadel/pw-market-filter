@@ -148,4 +148,18 @@ abstract final class PWColors {
   };
 
   static Color grade(int grade) => gradeColors[grade] ?? textMuted;
+
+  /// A [Color] as the lowercase `#rrggbb` hex string the war-room board
+  /// stores a pt's colour in — the inverse of `_corDeHex` in
+  /// `cartao_pt.dart`.
+  static String toHex(Color c) =>
+      '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+
+  /// [gradeColors], in rung order, as hex strings — the single source both
+  /// the pt colour picker and its default-colour rotation read from, so the
+  /// two can never list a colour the other does not know about.
+  static final List<String> gradeHexes = [
+    for (final grau in gradeColors.keys.toList()..sort())
+      toHex(gradeColors[grau]!),
+  ];
 }

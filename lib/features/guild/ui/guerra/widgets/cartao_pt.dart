@@ -8,20 +8,13 @@ import '../../../domain/jogador.dart';
 import '../sala_view_model.dart';
 import 'chip_jogador.dart';
 
-/// A small, fixed palette for a group's colour — hexes drawn straight from
-/// [PWColors.gradeColors] rather than a free colour picker. The swatch and
+/// A small, fixed palette for a group's colour — [PWColors.gradeHexes]
+/// itself, read rather than hand-copied, so a future change to the grade
+/// ladder cannot leave this picker one colour behind it. The swatch and
 /// the leader crown are the one place in this screen a colour other than
 /// `PWColors` is allowed to draw, and even there it has to come from this
 /// list rather than from anywhere the game itself did not already define.
-const _paletaCores = <String>[
-  '#B9C0D4',
-  '#6FCF97',
-  '#56A8F5',
-  '#B57BEE',
-  '#FFB454',
-  '#FF8C42',
-  '#FF5C5C',
-];
+final _paletaCores = PWColors.gradeHexes;
 
 /// Parses a group's stored hex (`#56A8F5`) into a [Color]. A string that
 /// fails to parse — nothing in this screen writes one — falls back to

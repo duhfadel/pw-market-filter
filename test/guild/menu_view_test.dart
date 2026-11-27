@@ -17,12 +17,11 @@ import 'package:pw_market_filter/features/guild/ui/menu_view.dart';
 /// merely dimmed, the same distinction `SecaoGuild.visivelPara` encodes.
 class _FakeFormacaoRepository implements FormacaoRepository {
   @override
-  Future<Result<FormacaoGuerra>> carregar() async =>
-      Success(FormacaoGuerra(grupos: const []));
+  Future<Result<FormacaoCarregada>> carregar() async =>
+      Success(FormacaoCarregada(FormacaoGuerra(grupos: const [])));
 
   @override
-  Future<Result<void>> salvar(FormacaoGuerra f) async =>
-      const Success<void>(null);
+  Future<Result<String?>> salvar(FormacaoGuerra f) async => const Success(null);
 }
 
 class _FakeJogadoresRepository implements JogadoresRepository {
@@ -68,7 +67,9 @@ void main() {
     }
   });
 
-  testWidgets('sala_guerras sees its own room but not Jogadores', (tester) async {
+  testWidgets('sala_guerras sees its own room but not Jogadores', (
+    tester,
+  ) async {
     await montar(tester, Papel.salaGuerras);
 
     expect(find.text('Sala de Guerras'), findsOneWidget);
@@ -83,15 +84,20 @@ void main() {
     expect(find.text('Financeiro'), findsOneWidget);
   });
 
-  testWidgets('staff_basico sees Jogadores and Sala de Guerras, not Financeiro', (tester) async {
-    await montar(tester, Papel.staffBasico);
+  testWidgets(
+    'staff_basico sees Jogadores and Sala de Guerras, not Financeiro',
+    (tester) async {
+      await montar(tester, Papel.staffBasico);
 
-    expect(find.text('Jogadores'), findsOneWidget);
-    expect(find.text('Sala de Guerras'), findsOneWidget);
-    expect(find.text('Financeiro'), findsNothing);
-  });
+      expect(find.text('Jogadores'), findsOneWidget);
+      expect(find.text('Sala de Guerras'), findsOneWidget);
+      expect(find.text('Financeiro'), findsNothing);
+    },
+  );
 
-  testWidgets('the sala card is no longer dimmed, unlike financeiro', (tester) async {
+  testWidgets('the sala card is no longer dimmed, unlike financeiro', (
+    tester,
+  ) async {
     await montar(tester, Papel.admin);
 
     final salaTitulo = tester.widget<Text>(find.text('Sala de Guerras'));

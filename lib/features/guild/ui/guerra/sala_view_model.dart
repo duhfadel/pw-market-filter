@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/result/result.dart';
+import '../../../../core/theme/pw_colors.dart';
 import '../../data/formacao_repository.dart';
 import '../../data/jogadores_repository.dart';
 import '../../domain/guerra/formacao_guerra.dart';
@@ -49,16 +50,25 @@ class SalaGuerrasViewModel extends Cubit<SalaEstado> {
     final rFormacao = await _formacaoRepo.carregar();
     final rJogadores = await _jogadoresRepo.lista();
 
-    final formacao = rFormacao.fold((f) => f, (_) => null);
+    final carregada = rFormacao.fold((c) => c, (_) => null);
     final jogadores = rJogadores.fold((js) => js, (_) => null);
-    if (formacao == null || jogadores == null) {
+    if (carregada == null || jogadores == null) {
       emit(const SalaFalha());
       return;
     }
 
     final transcritos = jogadores.where((j) => j.transcrito).toList();
-    final podada = formacao.podada({for (final j in transcritos) j.id});
-    emit(SalaPronta(podada, transcritos));
+    final podada = carregada.formacao.podada({
+      for (final j in transcritos) j.id,
+    });
+    emit(
+      SalaPronta(
+        podada,
+        transcritos,
+        salvoEm: carregada.salvoEm,
+        salvoPorEmail: carregada.salvoPorEmail,
+      ),
+    );
   }
 
   void mover(String jogadorId, int? destino) =>
@@ -86,28 +96,35 @@ class SalaGuerrasViewModel extends Cubit<SalaEstado> {
 
   void removerPt(int grupo) => _atualizarFormacao((f) => f.semGrupo(grupo));
 
-  /// A small rotation of `PWColors.gradeColors`-family hexes, cycled by the
-  /// group's position — a new party is never born the same colour as its
-  /// immediate neighbour. The staff member can always recolour afterwards.
-  static const _coresPadrao = [
-    '#56A8F5',
-    '#6FCF97',
-    '#FFB454',
-    '#B57BEE',
-    '#E8707C',
-  ];
+  /// A rotation of [PWColors.gradeHexes], cycled by the group's position —
+  /// a new party is never born the same colour as its immediate neighbour.
+  /// A *subset* and not the whole seven: every default here must also be a
+  /// swatch the colour picker in `cartao_pt.dart` can select, which the
+  /// grey at rung 0 and the red at rung 6 are kept out to leave as
+  /// deliberately-chosen rather than default colours. Both read the same
+  /// list, so a palette change can never give a pt a colour its own picker
+  /// cannot show as selected. The staff member can always recolour
+  /// afterwards.
+  static final _coresPadrao = PWColors.gradeHexes.sublist(1, 6);
 
   /// Persists the board as it stands. On success, [state] is re-emitted
-  /// with [SalaPronta.salvoEm] set to now; on failure the typed error goes
-  /// out on [falhasSalvar] and [state] is left exactly as it was — the
-  /// board on screen is still correct, it simply has not reached the
-  /// server yet.
+  /// with [SalaPronta.salvoEm] set to now and [SalaPronta.salvoPorEmail]
+  /// set to whoever just saved; on failure the typed error goes out on
+  /// [falhasSalvar] and [state] is left exactly as it was — the board on
+  /// screen is still correct, it simply has not reached the server yet.
   Future<void> salvar() async {
     final s = state;
     if (s is! SalaPronta) return;
     final r = await _formacaoRepo.salvar(s.formacao);
     r.fold(
-      (_) => emit(SalaPronta(s.formacao, s.jogadores, salvoEm: DateTime.now())),
+      (email) => emit(
+        SalaPronta(
+          s.formacao,
+          s.jogadores,
+          salvoEm: DateTime.now(),
+          salvoPorEmail: email,
+        ),
+      ),
       (falha) => _falhasSalvar.add(falha as GuildFailure),
     );
   }

@@ -8,17 +8,25 @@ import 'package:pw_market_filter/features/guild/domain/guerra/membro_guerra.dart
 /// Proves the interface shape compiles and is usable — the real test of a
 /// consumer reading and writing it lives on the board's view model.
 class _FakeFormacaoRepository implements FormacaoRepository {
-  _FakeFormacaoRepository(this._formacao);
+  _FakeFormacaoRepository(this._formacao, {this.salvoEm, this.salvoPorEmail});
   final FormacaoGuerra _formacao;
+  final DateTime? salvoEm;
+  final String? salvoPorEmail;
   FormacaoGuerra? salva;
 
   @override
-  Future<Result<FormacaoGuerra>> carregar() async => Success(_formacao);
+  Future<Result<FormacaoCarregada>> carregar() async => Success(
+    FormacaoCarregada(
+      _formacao,
+      salvoEm: salvoEm,
+      salvoPorEmail: salvoPorEmail,
+    ),
+  );
 
   @override
-  Future<Result<void>> salvar(FormacaoGuerra f) async {
+  Future<Result<String?>> salvar(FormacaoGuerra f) async {
     salva = f;
-    return const Success<void>(null);
+    return Success(salvoPorEmail);
   }
 }
 
@@ -38,8 +46,26 @@ void main() {
 
     final result = await repo.carregar();
 
-    expect(result, isA<Success<FormacaoGuerra>>());
-    expect((result as Success<FormacaoGuerra>).value.grupos, hasLength(1));
+    expect(result, isA<Success<FormacaoCarregada>>());
+    expect(
+      (result as Success<FormacaoCarregada>).value.formacao.grupos,
+      hasLength(1),
+    );
+  });
+
+  test('carregar carries the save metadata alongside the formation', () async {
+    final quando = DateTime(2026, 11, 27, 10);
+    final repo = _FakeFormacaoRepository(
+      FormacaoGuerra(grupos: const []),
+      salvoEm: quando,
+      salvoPorEmail: 'lider@guilda.com',
+    );
+
+    final result = await repo.carregar();
+
+    final carregada = (result as Success<FormacaoCarregada>).value;
+    expect(carregada.salvoEm, quando);
+    expect(carregada.salvoPorEmail, 'lider@guilda.com');
   });
 
   test('salvar returns Success and the fake sees what was passed', () async {
@@ -50,7 +76,7 @@ void main() {
 
     final result = await repo.salvar(formacao);
 
-    expect(result, isA<Success<void>>());
+    expect(result, isA<Success<String?>>());
     expect(repo.salva, same(formacao));
   });
 

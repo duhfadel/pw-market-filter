@@ -147,6 +147,11 @@ void main() {
     expect(find.text('500 TCC'), findsOneWidget);
     expect(find.text('300 TCC'), findsWidgets);
 
+    // The chart above the ledger pushes the rows past the first screenful,
+    // and the sliver list only builds what is near the viewport — scroll
+    // there before asserting on anything the list itself draws.
+    await tester.scrollUntilVisible(find.text('Site'), 300);
+
     expect(find.text('+1.000 TCC'), findsOneWidget);
     expect(find.text('-200 TCC'), findsOneWidget);
     expect(find.text('Caixa → Reserva'), findsOneWidget);
@@ -178,6 +183,9 @@ void main() {
     expect(repo.adicionado?.pote, Pote.reserva);
     expect(repo.adicionado?.categoria, CategoriaEntrada.territorio);
     expect(repo.adicionado?.valor, 500);
+    // The chart above the ledger pushes the new row past the first
+    // screenful — scroll to it before asserting it is there.
+    await tester.scrollUntilVisible(find.text('+500 TCC'), 300);
     expect(find.text('+500 TCC'), findsOneWidget);
     // Reserva's own card now reads 500 too.
     expect(find.text('500 TCC'), findsWidgets);
@@ -244,6 +252,9 @@ void main() {
 
       expect(repo.adicionado?.tipo, TipoLancamento.pagamentoStaff);
       expect(repo.adicionado?.membro, 'b');
+      // The chart above the ledger pushes the new row past the first
+      // screenful — scroll to it before asserting it is there.
+      await tester.scrollUntilVisible(find.text('Bruno'), 300);
       expect(find.text('Bruno'), findsOneWidget);
       // Found more than once: the pot and total cards now read the same
       // negative figure as the ledger row itself.
@@ -298,6 +309,12 @@ void main() {
     await tester.pumpWidget(const MaterialApp(home: FinanceiroView()));
     await tester.pumpAndSettle();
 
+    // The chart above the ledger pushes the row past the first screenful —
+    // scroll to its button before tapping it.
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('remover_lancamento')),
+      300,
+    );
     await tester.tap(find.byKey(const Key('remover_lancamento')));
     await tester.pumpAndSettle();
 

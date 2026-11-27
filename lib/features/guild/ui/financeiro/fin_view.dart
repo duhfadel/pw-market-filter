@@ -13,12 +13,12 @@ import 'fin_estado.dart';
 import 'fin_view_model.dart';
 import 'widgets/cartoes_saldo.dart';
 import 'widgets/dialogos_financeiro.dart';
+import 'widgets/grafico_fin.dart';
 import 'widgets/linha_lancamento.dart';
 
 /// The financial panel: the guild's total and its two pots, the four ways
-/// money moves, and the ledger of every movement so far. No chart yet — that
-/// is the next task, which only adds a widget below the ledger and reads
-/// `FinPronto.meses`/`gastoFixo` that already exist on this screen's state.
+/// money moves, a month-by-month chart of entrada/despesa/staff against the
+/// current gasto fixo, and the ledger of every movement so far.
 class FinanceiroView extends StatelessWidget {
   const FinanceiroView({super.key});
 
@@ -112,6 +112,20 @@ class _Pronta extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 _Acoes(vm: vm, jogadores: state.jogadores),
+                const SizedBox(height: 20),
+                const Divider(height: 1),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    'Entradas, despesas e staff por mês',
+                    style: TextStyle(
+                      color: PWColors.papel,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+                GraficoFin(meses: state.meses, gastoFixo: state.gastoFixo),
                 const SizedBox(height: 20),
                 const Divider(height: 1),
                 const Padding(

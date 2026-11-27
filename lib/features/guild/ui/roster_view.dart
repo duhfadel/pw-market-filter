@@ -13,6 +13,7 @@ import 'detalhe_view.dart';
 import 'roster_filtro.dart';
 import 'roster_state.dart';
 import 'roster_view_model.dart';
+import 'tempo.dart';
 import 'widgets/jogador_form.dart';
 
 /// Opens [DetalheView] for one player. The guild panel has no named route
@@ -327,17 +328,6 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
-/// "Atualizado há N dias" from `atualizadoEm` — the date only. **Not** who
-/// touched it: this iteration cannot resolve another staff member's uid to a
-/// name, and a wrong or missing name would be worse than no byline at all.
-String? _rotuloAtualizado(DateTime? data) {
-  if (data == null) return null;
-  final dias = DateTime.now().difference(data).inDays;
-  if (dias <= 0) return 'atualizado hoje';
-  if (dias == 1) return 'atualizado há 1 dia';
-  return 'atualizado há $dias dias';
-}
-
 /// The column widths for the wide table — one place, so the header and every
 /// row line up, and so the scroll wrap below knows exactly how wide the
 /// whole thing is.
@@ -628,7 +618,7 @@ class _CelulaAtualizado extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rotulo = _rotuloAtualizado(data);
+    final rotulo = rotuloAtualizado(data);
     return Text(
       rotulo ?? '—',
       style: const TextStyle(color: PWColors.apagado, fontSize: 12),
@@ -683,7 +673,7 @@ class _CartaoJogador extends StatelessWidget {
     final ocupacao = jogador.classe == null
         ? null
         : ocupacaoDaClasse[jogador.classe];
-    final rotuloAtualizado = _rotuloAtualizado(jogador.atualizadoEm);
+    final atualizadoLabel = rotuloAtualizado(jogador.atualizadoEm);
 
     return Material(
       color: Colors.transparent,
@@ -779,9 +769,9 @@ class _CartaoJogador extends StatelessWidget {
                     jogador.nivelDefesa?.toString(),
                   ),
                   _FichaSecundaria('Crítico', jogador.critico),
-                  if (rotuloAtualizado != null)
+                  if (atualizadoLabel != null)
                     Text(
-                      rotuloAtualizado,
+                      atualizadoLabel,
                       style: const TextStyle(
                         color: PWColors.apagado,
                         fontSize: 11,

@@ -13,6 +13,7 @@ import '../domain/jogador.dart';
 import '../domain/runa.dart';
 import 'detalhe_estado.dart';
 import 'detalhe_view_model.dart';
+import 'tempo.dart';
 
 /// Which `dados` keys show under each group heading, and the label each one
 /// prints — fixed here rather than derived from whatever a ficha happens to
@@ -184,7 +185,7 @@ class _Cabecalho extends StatelessWidget {
       if (j.despertares != null)
         '${j.despertares} despertar${j.despertares == 1 ? '' : 'es'}',
     ].join(' · ');
-    final atualizado = _rotuloAtualizado(j.atualizadoEm);
+    final atualizado = rotuloAtualizado(j.atualizadoEm);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,17 +234,6 @@ class _Cabecalho extends StatelessWidget {
       ],
     );
   }
-}
-
-/// "atualizado há N dias", the date only — no author in this iteration, the
-/// same call `roster_view.dart`'s own card already made and for the same
-/// reason: this screen cannot resolve another staff member's uid to a name.
-String? _rotuloAtualizado(DateTime? data) {
-  if (data == null) return null;
-  final dias = DateTime.now().difference(data).inDays;
-  if (dias <= 0) return 'atualizado hoje';
-  if (dias == 1) return 'atualizado há 1 dia';
-  return 'atualizado há $dias dias';
 }
 
 /// "Desde a última imagem" — the attack level and crit changes, the two
@@ -391,12 +381,15 @@ class _GrupoAtributos extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Text(
-                    '${atual.dados[chave]}',
-                    style: const TextStyle(
-                      color: PWColors.papel,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                  Flexible(
+                    child: Text(
+                      '${atual.dados[chave]}',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: PWColors.papel,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   if (delta[chave] != null) ...[

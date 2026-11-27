@@ -2,10 +2,12 @@ name = "portalpw-cron"
 main = "worker.js"
 compatibility_date = "2026-08-29"
 
-# Sem endereço público. O Worker não atende requisição nenhuma — só o cron o
-# acorda. Ligar isso publicaria um `*.workers.dev` que dispararia a coleta
-# para quem soubesse a URL, e cada coleta são ~1000 requisições ao marketplace.
-workers_dev = false
+# Endereço público ligado só para a transcrição. O handler `fetch` do worker.js
+# atende **apenas** `/transcricao/*`, atrás do segredo `TRANSCRICAO_TOKEN`, e
+# 404 em tudo o mais. A coleta continua a viver no `scheduled` (cron) e não tem
+# porta HTTP nenhuma — então abrir o `*.workers.dev` não a expõe. Se um dia a
+# transcrição deixar de existir, isto volta a `false` e o `fetch` sai junto.
+workers_dev = true
 
 # Três gatilhos, e a separação é o ponto.
 #

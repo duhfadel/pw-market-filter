@@ -93,6 +93,8 @@ const JANELA_DAS_NOVIDADES = 20;
 
 const SUPABASE = 'https://yadfbwsolmkcaylbxviw.supabase.co/rest/v1';
 const SUPABASE_KEY = 'sb_publishable_D2hgezeh5BbZVpt_QLeXwg_FowKweu2';
+const SUPABASE_STORAGE = 'https://yadfbwsolmkcaylbxviw.supabase.co/storage/v1';
+const BUCKET_PRINTS = 'prints';
 
 // Uma rodada parada na fila por mais tempo que isto está travada, não ocupada.
 // Uma coleta normal leva ~3 minutos; a fila do GitHub é instantânea quando há
@@ -106,6 +108,13 @@ const PRESA_DEMAIS_MS = 10 * 60 * 1000;
 const NA_FILA = new Set(['queued', 'pending', 'waiting', 'requested']);
 
 export default {
+  // O único endereço HTTP do Worker. A coleta vive no `scheduled` e continua
+  // sem porta nenhuma; este `fetch` atende só a transcrição e 404 em tudo o
+  // mais, por isso abrir o `workers.dev` não expõe a coleta.
+  async fetch(request, env, _ctx) {
+    return atenderTranscricao(request, env);
+  },
+
   async scheduled(event, env, ctx) {
 
     // Dois gatilhos, duas tarefas. O do Supabase não dispara coleta nenhuma:
@@ -1074,4 +1083,108 @@ async function contarOsVideos(env, novos, mortos, mudos) {
 
 function ehTW(titulo) {
   return !NAO_E_TW.test(titulo);
+}
+
+// O endpoint de transcrição. Existe para uma coisa só: entregar os prints de
+// ficha que o staff subiu, para serem lidos e transcritos, e apagá-los depois.
+// Tudo o mais responde 404 — a coleta não tem porta HTTP. Protegido por um
+// token dedicado (`TRANSCRICAO_TOKEN`, um `wrangler secret`) que NÃO é a chave
+// de serviço: se vazar, o dano é ler prints de personagens de uma guild, e
+// basta trocar o segredo. A chave de serviço nunca sai do Worker.
+async function atenderTranscricao(request, env) {
+  const url = new URL(request.url);
+  if (!url.pathname.startsWith('/transcricao/')) {
+    return new Response('nao encontrado', { status: 404 });
+  }
+  const token = request.headers.get('x-transcricao-token');
+  if (!env.TRANSCRICAO_TOKEN || token !== env.TRANSCRICAO_TOKEN) {
+    return new Response('nao autorizado', { status: 401 });
+  }
+
+  if (request.method === 'GET' && url.pathname === '/transcricao/pendentes') {
+    const r = await supabase(
+      env,
+      '/jogadores?status=eq.pendente&select=id,nome,print_url&order=criado_em',
+    );
+    if (!r.ok) return new Response('erro ao listar', { status: 502 });
+    const linhas = await r.json();
+    const saida = [];
+    for (const j of linhas) {
+      const link = j.print_url ? await assinarPrint(env, j.print_url) : null;
+      saida.push({ id: j.id, nome: j.nome, print_url: j.print_url, link });
+    }
+    return Response.json(saida);
+  }
+
+  if (request.method === 'POST' && url.pathname === '/transcricao/apagar') {
+    let corpo;
+    try {
+      corpo = await request.json();
+    } catch (_) {
+      return new Response('corpo invalido', { status: 400 });
+    }
+    // Apaga por id de jogador, nunca por caminho que o chamador invente: o
+    // Worker resolve o `print_url` real no banco e apaga só esse objeto exato.
+    // Assim um caminho arbitrário — ou um prefixo que varresse os vizinhos —
+    // não chega ao storage, mesmo que o token vaze. O id tem de ser um UUID,
+    // o que também fecha injeção no filtro `in.(...)` do PostgREST.
+    const EH_UUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const ids = Array.isArray(corpo && corpo.ids)
+      ? corpo.ids.filter((x) => typeof x === 'string' && EH_UUID.test(x))
+      : [];
+    if (ids.length === 0) return new Response('nada a apagar', { status: 400 });
+    const filtro = ids.map((id) => `"${id}"`).join(',');
+    const r = await supabase(
+      env,
+      `/jogadores?id=in.(${filtro})&select=id,print_url`,
+    );
+    if (!r.ok) return new Response('erro ao resolver', { status: 502 });
+    const linhas = await r.json();
+    let apagados = 0;
+    for (const j of linhas) {
+      if (!j.print_url) continue;
+      const d = await fetch(
+        `${SUPABASE_STORAGE}/object/${BUCKET_PRINTS}/${encodeURIComponent(j.print_url)}`,
+        {
+          method: 'DELETE',
+          headers: {
+            apikey: env.SUPABASE_SERVICE_KEY,
+            Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+          },
+        },
+      );
+      if (d.ok) apagados += 1;
+    }
+    // O ficheiro foi-se; a coluna deixa de apontar para um objeto que não
+    // existe mais.
+    await supabase(env, `/jogadores?id=in.(${filtro})`, {
+      method: 'PATCH',
+      prefer: 'return=minimal',
+      body: { print_url: null },
+    });
+    return Response.json({ apagados });
+  }
+
+  return new Response('metodo ou rota nao permitidos', { status: 405 });
+}
+
+// Um link assinado e curto (10 min) para um print do bucket privado, feito com
+// a chave de serviço. Quem recebe o link le a imagem sem precisar da chave.
+async function assinarPrint(env, caminho) {
+  const r = await fetch(
+    `${SUPABASE_STORAGE}/object/sign/${BUCKET_PRINTS}/${encodeURIComponent(caminho)}`,
+    {
+      method: 'POST',
+      headers: {
+        apikey: env.SUPABASE_SERVICE_KEY,
+        Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ expiresIn: 600 }),
+    },
+  );
+  if (!r.ok) return null;
+  const { signedURL } = await r.json();
+  return signedURL ? `${SUPABASE_STORAGE}${signedURL}` : null;
 }

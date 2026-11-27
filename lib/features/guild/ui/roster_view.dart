@@ -315,8 +315,14 @@ String? _rotuloAtualizado(DateTime? data) {
 }
 
 /// The column widths for the wide table — one place, so the header and every
-/// row line up. `Jogador` has no fixed width: it is the one column that
-/// grows.
+/// row line up, and so the scroll wrap below knows exactly how wide the
+/// whole thing is.
+///
+/// `Jogador` is fixed too, unlike the first version of this table: a
+/// `Row` inside a horizontally-scrolling `SingleChildScrollView` gets an
+/// unbounded width, and `Expanded` asserts on an unbounded constraint —
+/// every column has to carry its own number once the table can scroll.
+const double _colJogador = 220;
 const double _colLimite = 90;
 const double _colNivelAtaque = 130;
 const double _colHp = 100;
@@ -325,25 +331,48 @@ const double _colCritico = 90;
 const double _colStatus = 110;
 const double _colAtualizado = 140;
 
+/// The table's own width — the same 980 the page already caps its content
+/// at (`_Pronto`'s `ConstrainedBox`), so on anything at or above that the
+/// table fills the space exactly and the scrollbar never shows. Below it,
+/// and in particular in the 681–760px band where the fixed columns alone
+/// (760px) already outrun the 680px breakpoint that chose this layout, it
+/// scrolls instead of overflowing — the same fix `TabelaDeInstancias`
+/// already uses for its own fixed-width columns.
+const double _larguraFixaTabela =
+    _colJogador +
+    _colLimite +
+    _colNivelAtaque +
+    _colHp +
+    _colNivelDefesa +
+    _colCritico +
+    _colStatus +
+    _colAtualizado;
+
 class _TabelaJogadores extends StatelessWidget {
   const _TabelaJogadores({required this.jogadores});
 
   final List<Jogador> jogadores;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      const _CabecalhoTabela(),
-      const Divider(height: 1),
-      Expanded(
-        child: ListView.separated(
-          itemCount: jogadores.length,
-          separatorBuilder: (_, _) => const Divider(height: 1),
-          itemBuilder: (_, i) => _LinhaJogador(jogadores[i]),
-        ),
+  Widget build(BuildContext context) => SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: SizedBox(
+      width: _larguraFixaTabela,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const _CabecalhoTabela(),
+          const Divider(height: 1),
+          Expanded(
+            child: ListView.separated(
+              itemCount: jogadores.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (_, i) => _LinhaJogador(jogadores[i]),
+            ),
+          ),
+        ],
       ),
-    ],
+    ),
   );
 }
 
@@ -361,7 +390,7 @@ class _CabecalhoTabela extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
-          const Expanded(child: _TextoCabecalho('Jogador')),
+          const SizedBox(width: _colJogador, child: _TextoCabecalho('Jogador')),
           const SizedBox(width: _colLimite, child: _TextoCabecalho('Limite')),
           SizedBox(
             width: _colNivelAtaque,
@@ -463,7 +492,7 @@ class _LinhaJogador extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: _IdentidadeJogador(jogador)),
+            SizedBox(width: _colJogador, child: _IdentidadeJogador(jogador)),
             SizedBox(width: _colLimite, child: _CelulaTexto(jogador.limite)),
             SizedBox(width: _colNivelAtaque, child: _CelulaNumero(jogador.nivelAtaque)),
             SizedBox(width: _colHp, child: _CelulaNumero(jogador.hp)),

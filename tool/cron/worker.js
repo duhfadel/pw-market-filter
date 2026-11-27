@@ -1166,6 +1166,79 @@ async function atenderTranscricao(request, env) {
     return Response.json({ apagados });
   }
 
+  if (request.method === 'POST' && url.pathname === '/transcricao/salvar') {
+    let corpo;
+    try {
+      corpo = await request.json();
+    } catch (_) {
+      return new Response('corpo invalido', { status: 400 });
+    }
+    const EH_UUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const id = corpo && corpo.id;
+    if (typeof id !== 'string' || !EH_UUID.test(id)) {
+      return new Response('id invalido', { status: 400 });
+    }
+    // Lista branca: só estas colunas podem ser escritas por /transcricao.
+    const COLUNAS = new Set([
+      'cla', 'classe', 'cultivo', 'limite', 'nivel', 'despertares',
+      'hp', 'mp', 'acerto', 'nivel_ataque', 'ataque_fisico', 'ataque_magico',
+      'furia', 'critico', 'canalizacao', 'def_fisica', 'def_metal',
+      'def_madeira', 'def_agua', 'def_fogo', 'def_terra', 'esquiva',
+      'nivel_defesa', 'penetracao_fisica', 'penetracao_magica', 'espirito',
+      'indice_dano', 'sobrevivencia',
+    ]);
+    const dados = {};
+    for (const [k, v] of Object.entries((corpo && corpo.dados) || {})) {
+      if (COLUNAS.has(k)) dados[k] = v;
+    }
+    const runas = Array.isArray(corpo && corpo.runas) ? corpo.runas : [];
+    const status = (corpo && corpo.status) === 'revisar' ? 'revisar' : 'transcrito';
+    const nota = status === 'revisar' ? (corpo && corpo.nota) || null : null;
+
+    // 1) grava a foto no historico.
+    const fins = await supabase(env, '/fichas', {
+      method: 'POST',
+      prefer: 'return=minimal',
+      body: { jogador_id: id, dados, runas },
+    });
+    if (!fins.ok) return new Response('erro ao gravar ficha', { status: 502 });
+
+    // 2) atualiza o jogadores (estado atual). Sem `atualizado_por`: quem
+    // escreve aqui é a chave de serviço do Worker, sem identidade de staff.
+    const patch = { ...dados, status, nota, atualizado_em: new Date().toISOString() };
+    const up = await supabase(env, `/jogadores?id=eq.${id}`, {
+      method: 'PATCH',
+      prefer: 'return=minimal',
+      body: patch,
+    });
+    if (!up.ok) return new Response('erro ao atualizar jogador', { status: 502 });
+
+    // 3) transcrito -> apaga o print e zera o print_url.
+    if (status === 'transcrito') {
+      const r = await supabase(env, `/jogadores?id=eq.${id}&select=print_url`);
+      const [row] = r.ok ? await r.json() : [];
+      if (row && row.print_url) {
+        await fetch(
+          `${SUPABASE_STORAGE}/object/${BUCKET_PRINTS}/${encodeURIComponent(row.print_url)}`,
+          {
+            method: 'DELETE',
+            headers: {
+              apikey: env.SUPABASE_SERVICE_KEY,
+              Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+            },
+          },
+        );
+        await supabase(env, `/jogadores?id=eq.${id}`, {
+          method: 'PATCH',
+          prefer: 'return=minimal',
+          body: { print_url: null },
+        });
+      }
+    }
+    return Response.json({ ok: true, status });
+  }
+
   return new Response('metodo ou rota nao permitidos', { status: 405 });
 }
 

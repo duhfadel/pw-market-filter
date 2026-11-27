@@ -1,0 +1,137 @@
+import 'package:flutter/material.dart';
+
+import '../../../../../core/theme/pw_colors.dart';
+import '../../../../../core/widgets/game_icon.dart';
+import '../../../../../market/ocupacoes.dart';
+import '../../../domain/jogador.dart';
+
+/// A player as a small chip — the unit the war room moves around, both in
+/// the pool of unplaced players and inside a group's body.
+///
+/// The grab handle (`⠿`) is drawn on every chip and is purely visual for
+/// now: drag itself is the next task, and the handle's presence is what
+/// tells a staff member a chip is meant to be picked up at all, so it does
+/// not wait for a drag target to exist before showing.
+///
+/// [lider] and the two callbacks travel together — a chip inside a group
+/// gets a crown to toggle leadership and a cross to send the player back to
+/// the pool; a chip in the pool gets neither, because there is no leader to
+/// mark and nothing closer than "remove" to offer (placing one happens by
+/// dropping it into a group, not from the pool chip itself).
+///
+/// The name is `Flexible` with ellipsis on purpose — a chip sits inside a
+/// card whose width is not this widget's to decide, and a long nickname
+/// must never push the attack level or the crown off the edge.
+class ChipJogador extends StatelessWidget {
+  const ChipJogador({
+    required this.jogador,
+    this.corGrupo,
+    this.lider = false,
+    this.onAlternarLider,
+    this.onRemover,
+    super.key,
+  });
+
+  final Jogador jogador;
+
+  /// The group's own colour, read for the leader crown's tint only. Null
+  /// outside a group, where there is no crown to tint.
+  final Color? corGrupo;
+
+  final bool lider;
+
+  /// Non-null only for a chip drawn inside a group — shows the ♛.
+  final VoidCallback? onAlternarLider;
+
+  /// Non-null only for a chip drawn inside a group — shows the ✕.
+  final VoidCallback? onRemover;
+
+  @override
+  Widget build(BuildContext context) {
+    final classe = jogador.classe;
+    final occu = classe == null ? null : ocupacaoDaClasse[classe];
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: PWColors.elevado,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: PWColors.filete),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            '⠿',
+            style: TextStyle(color: PWColors.apagado, fontSize: 13),
+          ),
+          const SizedBox(width: 6),
+          if (occu != null) ...[
+            ClassIcon(occu, size: 20),
+            const SizedBox(width: 6),
+          ],
+          Flexible(
+            child: Text(
+              jogador.nome,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: const TextStyle(color: PWColors.papel, fontSize: 13),
+            ),
+          ),
+          if (jogador.nivelAtaque != null) ...[
+            const SizedBox(width: 6),
+            // The attack level, never in the display face — a number
+            // someone is deciding a war line-up on.
+            Text(
+              'NA ${jogador.nivelAtaque}',
+              style: const TextStyle(color: PWColors.apagado, fontSize: 12),
+            ),
+          ],
+          if (onAlternarLider != null)
+            _Botao(
+              glifo: '♛',
+              cor: lider
+                  ? (corGrupo ?? PWColors.accent)
+                  : PWColors.apagado.withValues(alpha: 0.45),
+              onTap: onAlternarLider!,
+              tooltip: lider ? 'Tirar liderança' : 'Tornar líder',
+            ),
+          if (onRemover != null)
+            _Botao(
+              glifo: '✕',
+              cor: PWColors.apagado,
+              onTap: onRemover!,
+              tooltip: 'Tirar da pt',
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Botao extends StatelessWidget {
+  const _Botao({
+    required this.glifo,
+    required this.cor,
+    required this.onTap,
+    required this.tooltip,
+  });
+
+  final String glifo;
+  final Color cor;
+  final VoidCallback onTap;
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: tooltip,
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 4),
+        child: Text(glifo, style: TextStyle(color: cor, fontSize: 14)),
+      ),
+    ),
+  );
+}

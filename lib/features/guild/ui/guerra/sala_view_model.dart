@@ -107,8 +107,7 @@ class SalaGuerrasViewModel extends Cubit<SalaEstado> {
     if (s is! SalaPronta) return;
     final r = await _formacaoRepo.salvar(s.formacao);
     r.fold(
-      (_) =>
-          emit(SalaPronta(s.formacao, s.jogadores, salvoEm: DateTime.now())),
+      (_) => emit(SalaPronta(s.formacao, s.jogadores, salvoEm: DateTime.now())),
       (falha) => _falhasSalvar.add(falha as GuildFailure),
     );
   }
@@ -119,10 +118,7 @@ class SalaGuerrasViewModel extends Cubit<SalaEstado> {
     emit(SalaPronta(mudar(s.formacao), s.jogadores));
   }
 
-  void _atualizarGrupo(
-    int grupo,
-    GrupoGuerra Function(GrupoGuerra) mudar,
-  ) {
+  void _atualizarGrupo(int grupo, GrupoGuerra Function(GrupoGuerra) mudar) {
     _atualizarFormacao((f) {
       if (grupo < 0 || grupo >= f.grupos.length) return f;
       return FormacaoGuerra(

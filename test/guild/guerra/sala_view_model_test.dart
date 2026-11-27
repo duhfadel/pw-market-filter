@@ -96,7 +96,10 @@ void main() {
 
     test('prunes formation members outside the transcribed roster', () async {
       final formacao = _formacaoComUmGrupo(
-        membros: [MembroGuerra(jogadorId: 'a'), MembroGuerra(jogadorId: 'sumiu')],
+        membros: [
+          MembroGuerra(jogadorId: 'a'),
+          MembroGuerra(jogadorId: 'sumiu'),
+        ],
       );
       final vm = SalaGuerrasViewModel(
         _FakeFormacaoRepository(formacao),
@@ -124,20 +127,26 @@ void main() {
   });
 
   group('mover', () {
-    test('places the player in the destination group and out of disponiveis', () async {
-      final vm = SalaGuerrasViewModel(
-        _FakeFormacaoRepository(_formacaoComUmGrupo()),
-        _FakeJogadoresRepository([_jogador('a'), _jogador('b')]),
-      );
-      await vm.carregar();
-      expect((vm.state as SalaPronta).disponiveis, unorderedEquals(['a', 'b']));
+    test(
+      'places the player in the destination group and out of disponiveis',
+      () async {
+        final vm = SalaGuerrasViewModel(
+          _FakeFormacaoRepository(_formacaoComUmGrupo()),
+          _FakeJogadoresRepository([_jogador('a'), _jogador('b')]),
+        );
+        await vm.carregar();
+        expect(
+          (vm.state as SalaPronta).disponiveis,
+          unorderedEquals(['a', 'b']),
+        );
 
-      vm.mover('a', 0);
+        vm.mover('a', 0);
 
-      final s = vm.state as SalaPronta;
-      expect(s.formacao.grupos[0].membros.single.jogadorId, 'a');
-      expect(s.disponiveis, ['b']);
-    });
+        final s = vm.state as SalaPronta;
+        expect(s.formacao.grupos[0].membros.single.jogadorId, 'a');
+        expect(s.disponiveis, ['b']);
+      },
+    );
 
     test('destino null removes the player back into disponiveis', () async {
       final formacao = _formacaoComUmGrupo(
@@ -169,7 +178,10 @@ void main() {
 
     vm.alternarLider(0, 'a');
 
-    expect((vm.state as SalaPronta).formacao.grupos[0].membros.single.lider, isTrue);
+    expect(
+      (vm.state as SalaPronta).formacao.grupos[0].membros.single.lider,
+      isTrue,
+    );
   });
 
   test('renomear and recolorir rebuild only the targeted group', () async {
@@ -204,10 +216,7 @@ void main() {
   group('salvar', () {
     test('on success re-emits SalaPronta with salvoEm set', () async {
       final repo = _FakeFormacaoRepository(_formacaoComUmGrupo());
-      final vm = SalaGuerrasViewModel(
-        repo,
-        _FakeJogadoresRepository(const []),
-      );
+      final vm = SalaGuerrasViewModel(repo, _FakeJogadoresRepository(const []));
       await vm.carregar();
       expect((vm.state as SalaPronta).salvoEm, isNull);
 
@@ -217,26 +226,29 @@ void main() {
       expect(repo.salva, isNotNull);
     });
 
-    test('on failure the error is surfaced on falhasSalvar, never swallowed', () async {
-      final vm = SalaGuerrasViewModel(
-        _FakeFormacaoRepository(_formacaoComUmGrupo(), falhaAoSalvar: true),
-        _FakeJogadoresRepository(const []),
-      );
-      await vm.carregar();
+    test(
+      'on failure the error is surfaced on falhasSalvar, never swallowed',
+      () async {
+        final vm = SalaGuerrasViewModel(
+          _FakeFormacaoRepository(_formacaoComUmGrupo(), falhaAoSalvar: true),
+          _FakeJogadoresRepository(const []),
+        );
+        await vm.carregar();
 
-      final falhas = <GuildFailure>[];
-      final sub = vm.falhasSalvar.listen(falhas.add);
+        final falhas = <GuildFailure>[];
+        final sub = vm.falhasSalvar.listen(falhas.add);
 
-      await vm.salvar();
-      // let the broadcast stream's listener fire.
-      await Future<void>.delayed(Duration.zero);
+        await vm.salvar();
+        // let the broadcast stream's listener fire.
+        await Future<void>.delayed(Duration.zero);
 
-      expect(falhas, hasLength(1));
-      expect(falhas.single.erro, GuildErro.salvar);
-      // state is untouched by the failed save — still correct, just unsaved.
-      expect((vm.state as SalaPronta).salvoEm, isNull);
+        expect(falhas, hasLength(1));
+        expect(falhas.single.erro, GuildErro.salvar);
+        // state is untouched by the failed save — still correct, just unsaved.
+        expect((vm.state as SalaPronta).salvoEm, isNull);
 
-      await sub.cancel();
-    });
+        await sub.cancel();
+      },
+    );
   });
 }

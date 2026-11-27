@@ -4,6 +4,7 @@ import '../../features/guild/data/auth_repository.dart';
 import '../../features/guild/data/fichas_repository.dart';
 import '../../features/guild/data/formacao_repository.dart';
 import '../../features/guild/data/jogadores_repository.dart';
+import '../../features/guild/ui/guerra/sala_view_model.dart';
 import '../../features/home/data/ao_vivo_repository.dart';
 import '../../features/home/ui/ao_vivo_view_model.dart';
 import '../../features/home/data/novidade_repository.dart';
@@ -85,5 +86,14 @@ void configureDependencies() {
     )
     ..registerFactory<VisitCounterViewModel>(
       () => VisitCounterViewModel(getIt<VisitRepository>()),
+    )
+    // A fábrica, pela mesma razão do `InstanciasViewModel`: a sala é lida
+    // do servidor a cada entrada, e um singleton guardaria uma formação
+    // velha na memória depois de quem a editou ter saído da tela.
+    ..registerFactory<SalaGuerrasViewModel>(
+      () => SalaGuerrasViewModel(
+        getIt<FormacaoRepository>(),
+        getIt<JogadoresRepository>(),
+      ),
     );
 }

@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/core/di/injection.dart';
 import 'package:pw_market_filter/core/result/result.dart';
+import 'package:pw_market_filter/features/guild/data/fichas_repository.dart';
 import 'package:pw_market_filter/features/guild/data/jogadores_repository.dart';
+import 'package:pw_market_filter/features/guild/domain/ficha.dart';
 import 'package:pw_market_filter/features/guild/domain/jogador.dart';
 import 'package:pw_market_filter/features/guild/domain/papel.dart';
 import 'package:pw_market_filter/features/guild/ui/roster_view.dart';
@@ -30,6 +32,18 @@ class _FakeRepo implements JogadoresRepository {
       const Success<void>(null);
 }
 
+class _FakeFichasRepo implements FichasRepository {
+  @override
+  Future<Result<List<Ficha>>> historico(String jogadorId) async =>
+      const Success([]);
+
+  @override
+  Future<Result<void>> corrigirUltima(
+    String jogadorId,
+    Map<String, dynamic> camposDados,
+  ) async => const Success<void>(null);
+}
+
 /// Fix round 1: the wide table's fixed columns (90+130+100+100+90+110+140 =
 /// 760) alone already outrun the 681–760px band of the wide/narrow
 /// breakpoint (680), so any Jogador column — fixed or `Expanded` — pushed
@@ -52,11 +66,15 @@ void main() {
     if (getIt.isRegistered<JogadoresRepository>()) {
       getIt.unregister<JogadoresRepository>();
     }
+    if (getIt.isRegistered<FichasRepository>()) {
+      getIt.unregister<FichasRepository>();
+    }
   });
 
   testWidgets(
     'the wide table does not overflow in the 681-760px band that used to break',
     (tester) async {
+      getIt.registerLazySingleton<FichasRepository>(_FakeFichasRepo.new);
       getIt.registerLazySingleton<JogadoresRepository>(
         () => _FakeRepo([
           Jogador(

@@ -94,12 +94,17 @@ class _Tela extends StatelessWidget {
   final Papel papel;
   final RosterViewModel vm;
 
-  /// Opens the edit dialog for [jogador] and, once it closes, pulls this
-  /// same player's freshly-reloaded row back out of [vm] — `editar` and
-  /// `trocarImagem` already call `carregar()` on save, so the roster behind
-  /// this page is never stale; this only refreshes what this page's own
-  /// header shows, since `DetalheViewModel` holds its own copy of the
-  /// player rather than reading the roster live.
+  /// Opens the edit dialog for [jogador] and, once it closes, brings this
+  /// page back in sync on both halves of the player. `editar` and
+  /// `trocarImagem` already call `carregar()` on the roster side, so [vm]
+  /// is never stale — `atualizarJogador` pulls this player's
+  /// freshly-reloaded row back out of it for the header. But a hand
+  /// correction also merges into the latest `fichas` row now (see
+  /// `RosterViewModel.editar`), and `DetalheViewModel` holds its own copy of
+  /// that history — reading [vm] again says nothing about it. So the stat
+  /// groups below the header need their own reload, which is why this calls
+  /// `DetalheViewModel.carregar()` too, rather than relying on a pop-and-reopen
+  /// of this same page to pick the new ficha up.
   Future<void> _abrirEdicao(BuildContext context, Jogador jogador) async {
     final detalheVm = context.read<DetalheViewModel>();
     await showDialog<void>(
@@ -115,6 +120,7 @@ class _Tela extends StatelessWidget {
         }
       }
     }
+    await detalheVm.carregar();
   }
 
   @override
@@ -204,7 +210,12 @@ class _Pronto extends StatelessWidget {
           children: [
             _Cabecalho(jogador: state.jogador),
             const SizedBox(height: 16),
-            if (state.delta.isNotEmpty) ...[
+            // Gated on the same two fields `_FaixaEvolucao` draws, not on
+            // `delta.isNotEmpty` — a delta can be non-empty over fields
+            // neither of these name (e.g. only `hp` moved) and the banner
+            // then renders nothing, which used to leave this 16px spacer
+            // floating above the Ataque group with no banner above it.
+            if (_destaquesEvolucao(state.delta).isNotEmpty) ...[
               _FaixaEvolucao(delta: state.delta),
               const SizedBox(height: 16),
             ],
@@ -309,6 +320,21 @@ class _Cabecalho extends StatelessWidget {
   }
 }
 
+/// The two fields `_FaixaEvolucao` actually highlights — shared with
+/// `_Pronto`'s own gate, so the banner and the spacer above the Ataque
+/// group agree on whether there is anything to show. `delta.isNotEmpty`
+/// alone is not that answer: a ficha missing `nivel_ataque` with `critico`
+/// never delta-ing (it is free text) can leave `delta` non-empty while
+/// naming neither field this banner draws, which used to reserve the
+/// banner's `SizedBox` for a `_FaixaEvolucao` that rendered nothing.
+List<(String, DeltaCampo)> _destaquesEvolucao(Map<String, DeltaCampo> delta) {
+  return [
+    if (delta['nivel_ataque'] != null)
+      ('Nível de Ataque', delta['nivel_ataque']!),
+    if (delta['critico'] != null) ('Crítico', delta['critico']!),
+  ];
+}
+
 /// "Desde a última imagem" — the attack level and crit changes, the two
 /// numbers a guild officer actually scans for. Only drawn when there is a
 /// previous ficha to compare against; `_Pronto` already guards that.
@@ -319,11 +345,7 @@ class _FaixaEvolucao extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final destaques = [
-      if (delta['nivel_ataque'] != null)
-        ('Nível de Ataque', delta['nivel_ataque']!),
-      if (delta['critico'] != null) ('Crítico', delta['critico']!),
-    ];
+    final destaques = _destaquesEvolucao(delta);
     if (destaques.isEmpty) return const SizedBox.shrink();
 
     return Container(

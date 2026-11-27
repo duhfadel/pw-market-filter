@@ -3,11 +3,25 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pw_market_filter/core/result/result.dart';
+import 'package:pw_market_filter/features/guild/data/fichas_repository.dart';
 import 'package:pw_market_filter/features/guild/data/jogadores_repository.dart';
+import 'package:pw_market_filter/features/guild/domain/ficha.dart';
 import 'package:pw_market_filter/features/guild/domain/jogador.dart';
 import 'package:pw_market_filter/features/guild/domain/papel.dart';
 import 'package:pw_market_filter/features/guild/ui/roster_view_model.dart';
 import 'package:pw_market_filter/features/guild/ui/widgets/jogador_form.dart';
+
+class _FakeFichasRepo implements FichasRepository {
+  @override
+  Future<Result<List<Ficha>>> historico(String jogadorId) async =>
+      const Success([]);
+
+  @override
+  Future<Result<void>> corrigirUltima(
+    String jogadorId,
+    Map<String, dynamic> camposDados,
+  ) async => const Success<void>(null);
+}
 
 class _FakeRepo implements JogadoresRepository {
   _FakeRepo(this._lista);
@@ -37,7 +51,7 @@ void main() {
   testWidgets('edit mode shows the current name preset and fixed', (
     tester,
   ) async {
-    final vm = RosterViewModel(_FakeRepo([]), Papel.admin);
+    final vm = RosterViewModel(_FakeRepo([]), _FakeFichasRepo(), Papel.admin);
     final jogador = Jogador(id: '42', nome: 'mozaum', classe: 'Místico');
 
     await tester.pumpWidget(
@@ -68,7 +82,7 @@ void main() {
   testWidgets('add mode (no inicial) still shows the empty, editable form', (
     tester,
   ) async {
-    final vm = RosterViewModel(_FakeRepo([]), Papel.admin);
+    final vm = RosterViewModel(_FakeRepo([]), _FakeFichasRepo(), Papel.admin);
 
     await tester.pumpWidget(
       MaterialApp(
@@ -86,7 +100,7 @@ void main() {
   });
 
   testWidgets('edit mode does not overflow on a narrow phone', (tester) async {
-    final vm = RosterViewModel(_FakeRepo([]), Papel.admin);
+    final vm = RosterViewModel(_FakeRepo([]), _FakeFichasRepo(), Papel.admin);
     final jogador = Jogador(
       id: '42',
       nome: 'umnomebembemlongoparaestourar',

@@ -2,15 +2,22 @@ import 'dart:typed_data';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../data/fichas_repository.dart';
 import '../data/jogadores_repository.dart';
 import '../domain/jogador.dart';
 import '../domain/papel.dart';
 import 'roster_filtro.dart';
 import 'roster_state.dart';
 
+/// Audit columns a hand correction stamps on `jogadores` — never part of a
+/// ficha's `dados`, which only holds the character's own attributes.
+const _camposDeAuditoria = {'atualizado_por', 'atualizado_em'};
+
 class RosterViewModel extends Cubit<RosterState> {
-  RosterViewModel(this._repo, this._papel) : super(const RosterLoading());
+  RosterViewModel(this._repo, this._fichasRepo, this._papel)
+    : super(const RosterLoading());
   final JogadoresRepository _repo;
+  final FichasRepository _fichasRepo;
   final Papel _papel;
 
   // 512 KB, the same cap the streamer art bucket already enforces.
@@ -89,12 +96,26 @@ class RosterViewModel extends Cubit<RosterState> {
   /// fresh print to be read. [campos] carries only what changed, by column
   /// name — never the whole player, which would also resend an audit stamp
   /// nobody asked to change.
+  ///
+  /// `jogadores` is not the only copy of these stats — the detail screen
+  /// reads them from the newest `fichas` row — so once the roster PATCH
+  /// lands, the same attribute fields (minus the audit stamp, which belongs
+  /// to `jogadores` alone) are merged into that ficha too. A correction that
+  /// updated the roster and left the ficha behind would make the two
+  /// screens disagree about the same player.
   Future<bool> editar(String id, Map<String, dynamic> campos) async {
     if (!_papel.podeEditarJogadores) return false;
     if (campos.isEmpty) return true; // nothing to save, nothing to reload
     final r = await _repo.editar(id, campos);
     final ok = r.fold((_) => true, (_) => false);
-    if (ok) await carregar();
+    if (ok) {
+      final camposDados = Map<String, dynamic>.from(campos)
+        ..removeWhere((chave, _) => _camposDeAuditoria.contains(chave));
+      if (camposDados.isNotEmpty) {
+        await _fichasRepo.corrigirUltima(id, camposDados);
+      }
+      await carregar();
+    }
     return ok;
   }
 

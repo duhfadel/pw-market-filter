@@ -14,12 +14,24 @@ class _FakeFichasRepository implements FichasRepository {
   @override
   Future<Result<List<Ficha>>> historico(String jogadorId) async =>
       Success(_historico);
+
+  @override
+  Future<Result<void>> corrigirUltima(
+    String jogadorId,
+    Map<String, dynamic> camposDados,
+  ) async => const Success<void>(null);
 }
 
 class _FalhaFichasRepository implements FichasRepository {
   @override
   Future<Result<List<Ficha>>> historico(String jogadorId) async =>
       const Failure(GuildFailure(GuildErro.carregar));
+
+  @override
+  Future<Result<void>> corrigirUltima(
+    String jogadorId,
+    Map<String, dynamic> camposDados,
+  ) async => const Failure(GuildFailure(GuildErro.salvar));
 }
 
 void main() {

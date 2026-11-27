@@ -21,6 +21,12 @@ class _FakeFichasRepository implements FichasRepository {
   @override
   Future<Result<List<Ficha>>> historico(String jogadorId) async =>
       Success(_historico);
+
+  @override
+  Future<Result<void>> corrigirUltima(
+    String jogadorId,
+    Map<String, dynamic> camposDados,
+  ) async => const Success<void>(null);
 }
 
 class _FakeJogadoresRepository implements JogadoresRepository {
@@ -86,6 +92,7 @@ void main() {
       final jogador = Jogador(id: '1', nome: 'Mozaum');
       final vm = RosterViewModel(
         _FakeJogadoresRepository([jogador]),
+        _FakeFichasRepository(const []),
         Papel.admin,
       );
 
@@ -121,6 +128,7 @@ void main() {
       );
       final vm = RosterViewModel(
         _FakeJogadoresRepository([jogador]),
+        _FakeFichasRepository(const []),
         Papel.admin,
       );
 

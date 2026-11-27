@@ -6,6 +6,7 @@ import '../../../core/theme/pw_colors.dart';
 import '../../../core/theme/pw_theme.dart';
 import '../../../core/widgets/game_icon.dart';
 import '../../../market/ocupacoes.dart';
+import '../data/fichas_repository.dart';
 import '../data/jogadores_repository.dart';
 import '../domain/jogador.dart';
 import '../domain/papel.dart';
@@ -62,8 +63,11 @@ class RosterView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BlocProvider(
-    create: (_) =>
-        RosterViewModel(getIt<JogadoresRepository>(), papel)..carregar(),
+    create: (_) => RosterViewModel(
+      getIt<JogadoresRepository>(),
+      getIt<FichasRepository>(),
+      papel,
+    )..carregar(),
     child: _Tela(onSair: onSair),
   );
 }
@@ -146,7 +150,13 @@ class _Pronto extends StatelessWidget {
 
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 980),
+        // `_larguraFixaTabela` plus this `Padding`'s own 32px (16 each
+        // side) — not a bare 980. The padding sits *inside* the
+        // `ConstrainedBox`, so capping at the table's width alone left the
+        // `LayoutBuilder` below with 32px less than the table actually
+        // needs, and the table scrolled a few pixels even at its own
+        // declared width. See `_larguraFixaTabela`.
+        constraints: const BoxConstraints(maxWidth: _larguraFixaTabela + 32),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
           child: Column(
@@ -357,13 +367,16 @@ const double _colCritico = 90;
 const double _colStatus = 110;
 const double _colAtualizado = 140;
 
-/// The table's own width — the same 980 the page already caps its content
-/// at (`_Pronto`'s `ConstrainedBox`), so on anything at or above that the
-/// table fills the space exactly and the scrollbar never shows. Below it,
-/// and in particular in the 681–760px band where the fixed columns alone
-/// (760px) already outrun the 680px breakpoint that chose this layout, it
-/// scrolls instead of overflowing — the same fix `TabelaDeInstancias`
-/// already uses for its own fixed-width columns.
+/// The table's own width. `_Pronto`'s `ConstrainedBox` caps its content at
+/// exactly this plus its own 32px of padding, so on anything at or above
+/// that the table fills the space exactly and the scrollbar never shows —
+/// capping at this number alone, with the padding still subtracted inside
+/// it, used to leave the table 32px short of itself and scrolling by that
+/// much on every wide screen. Below the cap, and in particular in the
+/// 681–760px band where the fixed columns alone (760px) already outrun the
+/// 680px breakpoint that chose this layout, it scrolls instead of
+/// overflowing — the same fix `TabelaDeInstancias` already uses for its own
+/// fixed-width columns.
 const double _larguraFixaTabela =
     _colJogador +
     _colLimite +

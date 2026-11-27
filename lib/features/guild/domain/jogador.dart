@@ -46,6 +46,9 @@ class Jogador {
     this.printUrl,
     this.recorteRunasUrl,
     this.recorteGearUrl,
+    this.nota,
+    this.atualizadoPor,
+    this.atualizadoEm,
     this.status = 'pendente',
   });
 
@@ -89,12 +92,19 @@ class Jogador {
   final String? recorteRunasUrl;
   final String? recorteGearUrl;
 
+  final String? nota;
+  final String? atualizadoPor;
+  final DateTime? atualizadoEm;
+
   final String status;
 
   /// Whether the sheet print has been read and this entry's stats are real.
   /// A player stays `pendente` until someone transcribes their print, and
   /// `transcrito` is the only honest way to tell the two states apart.
   bool get transcrito => status == 'transcrito';
+
+  /// Whether this entry has been flagged for a second look.
+  bool get aRevisar => status == 'revisar';
 
   factory Jogador.fromJson(Map<String, dynamic> json) {
     return Jogador(
@@ -131,6 +141,11 @@ class Jogador {
       printUrl: json['print_url'] as String?,
       recorteRunasUrl: json['recorte_runas_url'] as String?,
       recorteGearUrl: json['recorte_gear_url'] as String?,
+      nota: json['nota'] as String?,
+      atualizadoPor: json['atualizado_por'] as String?,
+      atualizadoEm: json['atualizado_em'] != null
+          ? DateTime.parse(json['atualizado_em'] as String)
+          : null,
       status: json['status'] as String? ?? 'pendente',
     );
   }
@@ -177,6 +192,9 @@ class Jogador {
     put('print_url', printUrl);
     put('recorte_runas_url', recorteRunasUrl);
     put('recorte_gear_url', recorteGearUrl);
+    put('nota', nota);
+    put('atualizado_por', atualizadoPor);
+    put('atualizado_em', atualizadoEm?.toIso8601String());
     m['status'] = status;
     return m;
   }
@@ -217,6 +235,9 @@ class Jogador {
     printUrl: url,
     recorteRunasUrl: recorteRunasUrl,
     recorteGearUrl: recorteGearUrl,
+    nota: nota,
+    atualizadoPor: atualizadoPor,
+    atualizadoEm: atualizadoEm,
     status: status,
   );
 }

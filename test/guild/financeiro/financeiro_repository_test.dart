@@ -77,4 +77,24 @@ void main() {
     expect(restored.categoria, original.categoria);
     expect(restored.data, original.data);
   });
+
+  test(
+    'dadosParaInserir drops id and data, leaving the database to decide both',
+    () {
+      // `data` here stands for whatever a dialog's `DateTime.now()` happened
+      // to produce — the exact value must never reach the payload, because
+      // sending it would override the column's own Brazil-timezone default
+      // with whatever day the caller's own clock said.
+      final dados = dadosParaInserir(_lancamento());
+
+      expect(dados.containsKey('id'), isFalse);
+      expect(dados.containsKey('data'), isFalse);
+      // Everything else toJson writes is still there — this strips exactly
+      // two keys, not the whole payload.
+      expect(dados['tipo'], 'entrada');
+      expect(dados['pote'], 'caixa');
+      expect(dados['valor'], 1000);
+      expect(dados['categoria'], 'guild_ativa');
+    },
+  );
 }

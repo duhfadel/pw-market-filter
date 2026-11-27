@@ -5,6 +5,7 @@ import '../../features/guild/data/financeiro_repository.dart';
 import '../../features/guild/data/fichas_repository.dart';
 import '../../features/guild/data/formacao_repository.dart';
 import '../../features/guild/data/jogadores_repository.dart';
+import '../../features/guild/ui/financeiro/fin_view_model.dart';
 import '../../features/guild/ui/guerra/sala_view_model.dart';
 import '../../features/home/data/ao_vivo_repository.dart';
 import '../../features/home/ui/ao_vivo_view_model.dart';
@@ -95,6 +96,15 @@ void configureDependencies() {
     ..registerFactory<SalaGuerrasViewModel>(
       () => SalaGuerrasViewModel(
         getIt<FormacaoRepository>(),
+        getIt<JogadoresRepository>(),
+      ),
+    )
+    // A fábrica pela mesma razão das duas acima: o livro-caixa é lido do
+    // servidor a cada entrada, e um singleton guardaria lançamentos velhos
+    // na memória depois de quem os editou ter saído da tela.
+    ..registerFactory<FinanceiroViewModel>(
+      () => FinanceiroViewModel(
+        getIt<FinanceiroRepository>(),
         getIt<JogadoresRepository>(),
       ),
     );
